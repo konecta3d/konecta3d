@@ -1,0 +1,1144 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import LandingRenderer from "@/components/LandingRenderer";
+import CollapsibleSection from "@/components/CollapsibleSection";
+import ActionLinkPicker from "@/components/ActionLinkPicker";
+import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
+
+interface Benefit {
+  id: string;
+  title: string;
+}
+
+export default function LandingNew() {
+  const [config, setConfig] = useState<LandingConfig>(defaultLandingConfig);
+// Migración: si toolsIds existe pero tools no, convertir (ejecutado tras mount)
+useEffect(() => {
+  if (config.toolsIds && !config.tools) {
+    const migrated = (config.toolsIds as string[]).map((url, i) => ({
+      id: `tool-${i}-${Date.now()}`,
+      label: "Abrir enlace",
+      url,
+    }));
+    update({ tools: migrated });
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+  const [businessId, setBusinessId] = useState("");
+  const [slug, setSlug] = useState("");
+  const [saveStatus, setSaveStatus] = useState("Pendiente");
+  const [lastSaved, setLastSaved] = useState("");
+  const [benefits, setBenefits] = useState<Benefit[]>([]);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const update = (patch: Partial<LandingConfig>) =>
+    setConfig((prev) => ({ ...prev, ...patch }));
+
+  const slugify = (s: string) =>
+    s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+
+  // Resolver businessId
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlBusinessId = params.get("businessId");
+    const storedId = localStorage.getItem("konecta-business-id") || "";
+    const bid = urlBusinessId || storedId;
+
+    if (urlBusinessId) {
+      localStorage.setItem("konecta-business-id", urlBusinessId);
+    }
+
+    if (!bid) return;
+    setBusinessId(bid);
+  }, []);
+
+  // Cargar config + datos de negocio + beneficios
+  useEffect(() => {
+    if (!businessId) return;
+
+    const load = async () => {
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("name, slug, logo_url")
+        .eq("id", businessId)
+        .single();
+
+      const businessName = biz?.name || "";
+      const businessLogo = biz?.logo_url || "";
+
+      if (biz?.slug) setSlug(biz.slug);
+
+      const { data } = await supabase
+        .from("landing_configs")
+        .select("config")
+        .eq("business_id", businessId)
+        .single();
+
+      const c = data?.config || null;
+      if (!c) {
+        setConfig({
+          ...defaultLandingConfig,
+          businessName,
+          logoUrl: businessLogo,
+        });
+      } else {
+        const merged = { ...defaultLandingConfig, ...c };
+        setConfig({
+          ...merged,
+          businessName: merged.businessName || businessName,
+          logoUrl: merged.logoUrl || businessLogo,
+        });
+      }
+
+      // Beneficios VIP para asociar a CTAs
+      const { data: benefitsData } = await supabase
+        .from("benefits")
+        .select("id, title")
+        .eq("business_id", businessId)
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
+      setBenefits((benefitsData as Benefit[]) || []);
+    };
+
+    load();
+  }, [businessId]);
+
+  // Guardar config
+  const saveNow = async () => {
+    if (!businessId) return;
+    const s = slugify(config.businessName || "negocio");
+    setSlug(s);
+
+    try {
+      setSaveStatus("Guardando...");
+      const res = await fetch("/api/landing/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessId,
+          slug: s,
+          config,
+        }),
+      });
+      if (!res.ok) {
+        setSaveStatus("Error al guardar");
+        alert("No se pudo guardar. Revisa la consola/Network.");
+        return;
+      }
+      setSaveStatus("Guardado");
+      setLastSaved(new Date().toLocaleTimeString());
+    } catch (e) {
+      console.error(e);
+      setSaveStatus("Error al guardar");
+      alert("Error al guardar. Mira consola/Network.");
+    }
+  };
+
+  // Subir imagen
+  const uploadImage = async (
+    file: File,
+    kind: "bg" | "logo" | "review",
+  ): Promise<string | null> => {
+    if (!businessId) {
+      alert("Falta businessId");
+      return null;
+    }
+    const form = new FormData();
+    form.append("file", file);
+    form.append("kind", kind);
+    form.append("businessId", businessId);
+    const res = await fetch("/api/landing/upload", {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      alert("Error al subir imagen");
+      return null;
+    }
+    const data = await res.json();
+    return data.url as string;
+  };
+
+  // FIX #4: ctaStyle con los mismos fallbacks que LandingRenderer
+  const ctaStyle = {
+    backgroundColor: config.ctaBg || "#ffffff",
+    color: config.ctaTextColor || "#ffffff",
+    borderColor: config.ctaBorderColor || "#ffffff",
+    borderWidth: `${config.ctaBorderWidth ?? 2}px`,
+    borderStyle: "solid",
+    borderRadius: `${config.ctaRadius ?? 16}px`,
+    opacity: (config.ctaOpacity ?? 20) / 100,
+    fontSize: `${config.ctaFontSize ?? 14}px`,
+  } as React.CSSProperties;
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="max-w-6xl mx-auto py-6 px-4 md:px-0 space-y-6">
+        {/* Cabecera */}
+        <header className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-bold">Editor de Landing</h1>
+          <p className="text-sm text-slate-300">
+            Configura el contenido, el diseño y las herramientas de tu landing.
+          </p>
+        </header>
+
+        {/* Barra de guardado */}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveNow}
+              className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black"
+            >
+              Guardar cambios
+            </button>
+            <div className="text-xs text-[var(--brand-1)]">
+              {saveStatus}
+              {lastSaved ? ` · ${lastSaved}` : ""}
+            </div>
+          </div>
+        </div>
+
+        {!businessId && (
+          <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+            Falta businessId en la URL. Abre esta página con:
+            {" /landing/new?businessId=TU_ID"}
+          </div>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          {/* Panel de controles */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-6 md:p-6">
+
+            {/* Fondo */}
+            <CollapsibleSection
+              title="Fondo"
+              description="Color o imagen de fondo de tu landing."
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={config.showBg}
+                    onChange={(e) => update({ showBg: e.target.checked })}
+                  />
+                  Mostrar fondo
+                </label>
+
+                <div className="flex items-center gap-4 text-xs">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={config.bgMode === "color"}
+                      onChange={() => update({ bgMode: "color" })}
+                    />
+                    Color
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={config.bgMode === "image"}
+                      onChange={() => update({ bgMode: "image" })}
+                    />
+                    Imagen
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                    Color de texto
+                  </label>
+                  <input
+                    type="color"
+                    value={config.textColor}
+                    onChange={(e) => update({ textColor: e.target.value })}
+                    className="mt-2 h-8 w-16 rounded-lg border border-[var(--border)]"
+                  />
+                </div>
+
+                {config.bgMode === "color" && (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={config.bgColor}
+                        onChange={(e) => update({ bgColor: e.target.value })}
+                        className="h-8 w-16 rounded-lg border border-[var(--border)]"
+                      />
+                      <span className="text-xs text-[var(--brand-1)]">Intensidad</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={20}
+                      max={100}
+                      value={config.bgOpacity}
+                      onChange={(e) =>
+                        update({ bgOpacity: Number(e.target.value) })
+                      }
+                      className="mt-2 w-full"
+                    />
+                  </div>
+                )}
+
+                {config.bgMode === "image" && (
+                  <div className="space-y-3">
+                    <input
+                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const url = await uploadImage(file, "bg");
+                        if (url)
+                          update({
+                            bgUrl: url,
+                            bgMode: "image",
+                            showBg: true,
+                          });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
+
+            {/* Identidad */}
+            <CollapsibleSection
+              title="Identidad de la landing"
+              description="Logo, nombre del negocio y subtítulo."
+            >
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-[var(--brand-1)]">Logo</div>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={config.showLogo}
+                      onChange={(e) => update({ showLogo: e.target.checked })}
+                    />
+                    Mostrar logo
+                  </label>
+                  <input
+                    className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const url = await uploadImage(file, "logo");
+                      if (url) update({ logoUrl: url });
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-[var(--brand-1)]">
+                    Nombre y subtítulo
+                  </div>
+                  <input
+                    className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                    value={config.businessName}
+                    onChange={(e) => update({ businessName: e.target.value })}
+                    placeholder="Nombre del negocio"
+                  />
+                  <input
+                    className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                    value={config.subtitle}
+                    onChange={(e) => update({ subtitle: e.target.value })}
+                    placeholder="Mensaje de bienvenida"
+                  />
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Botones principales */}
+            <CollapsibleSection
+              title="Botones de acción (CTA)"
+              description="Configura los botones principales que invitan a tus clientes a actuar."
+            >
+              <div className="space-y-3">
+                {[
+                  {
+                    textKey: "cta1Text" as const,
+                    linkKey: "cta1Link" as const,
+                    benefitKey: "cta1BenefitId" as const,
+                    label: "CTA 1",
+                  },
+                  {
+                    textKey: "cta2Text" as const,
+                    linkKey: "cta2Link" as const,
+                    benefitKey: "cta2BenefitId" as const,
+                    label: "CTA 2",
+                  },
+                  {
+                    textKey: "cta3Text" as const,
+                    linkKey: "cta3Link" as const,
+                    benefitKey: "cta3BenefitId" as const,
+                    label: "CTA 3",
+                  },
+                ].map(({ textKey, linkKey, benefitKey, label }) => (
+                  <div key={textKey} className="space-y-1">
+                    <input
+                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold"
+                      value={config[textKey]}
+                      onChange={(e) =>
+                        update({ [textKey]: e.target.value } as any)
+                      }
+                      placeholder={label}
+                      style={ctaStyle}
+                    />
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                      <div className="flex-1 flex gap-2">
+                        <input
+                          className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                          value={config[linkKey]}
+                          onChange={(e) =>
+                            update({ [linkKey]: e.target.value } as any)
+                          }
+                          placeholder={`Link ${label}`}
+                        />
+                        <ActionLinkPicker
+                          value={config[linkKey] as string}
+                          onChange={(url) =>
+                            update({ [linkKey]: url } as any)
+                          }
+                          label=""
+                        />
+                      </div>
+                      {benefits.length > 0 && (
+                        <div className="w-full md:w-[220px]">
+                          <label className="text-[10px] uppercase tracking-wide text-[var(--brand-1)]">
+                            Beneficio VIP (opcional)
+                          </label>
+                          <select
+                            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
+                            value={(config[benefitKey] as string) || ""}
+                            onChange={(e) =>
+                              update({ [benefitKey]: e.target.value } as any)
+                            }
+                          >
+                            <option value="">Sin beneficio asociado</option>
+                            {benefits.map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Botones extra 4 y 5 */}
+                <div className="pt-2 border-t border-[var(--border)] space-y-2">
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={config.showMoreButtons}
+                      onChange={(e) =>
+                        update({ showMoreButtons: e.target.checked })
+                      }
+                    />
+                    Mostrar botones extra (CTA 4 y CTA 5)
+                  </label>
+
+                  {config.showMoreButtons && (
+                    <div className="space-y-3">
+                      {[
+                        {
+                          textKey: "cta4Text" as const,
+                          linkKey: "cta4Link" as const,
+                          label: "CTA 4",
+                          showKey: "showCta4" as const,
+                        },
+                        {
+                          textKey: "cta5Text" as const,
+                          linkKey: "cta5Link" as const,
+                          label: "CTA 5",
+                          showKey: "showCta5" as const,
+                        },
+                      ].map(({ textKey, linkKey, label, showKey }) => (
+                        <div key={textKey} className="space-y-1">
+                          <label className="flex items-center gap-2 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={config[showKey]}
+                              onChange={(e) =>
+                                update({ [showKey]: e.target.checked } as any)
+                              }
+                            />
+                            Mostrar {label}
+                          </label>
+                          {config[showKey] && (
+                            <>
+                              <input
+                                className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold"
+                                value={config[textKey]}
+                                onChange={(e) =>
+                                  update({ [textKey]: e.target.value } as any)
+                                }
+                                placeholder={label}
+                                style={ctaStyle}
+                              />
+                              <div className="flex gap-2">
+                                <input
+                                  className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                                  value={config[linkKey]}
+                                  onChange={(e) =>
+                                    update({ [linkKey]: e.target.value } as any)
+                                  }
+                                  placeholder={`Link ${label}`}
+                                />
+                                <ActionLinkPicker
+                                  value={config[linkKey] as string}
+                                  onChange={(url) =>
+                                    update({ [linkKey]: url } as any)
+                                  }
+                                  label=""
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Estilo de botones */}
+                <div className="space-y-2 pt-3 border-t border-[var(--border)]">
+                  <div className="text-xs font-semibold text-[var(--brand-1)]">
+                    Estilo de botones
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                        Fondo botón
+                      </label>
+                      <input
+                        type="color"
+                        value={config.ctaBg}
+                        onChange={(e) => update({ ctaBg: e.target.value })}
+                        className="mt-1 h-8 w-16 rounded-lg border border-[var(--border)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                        Texto botón
+                      </label>
+                      <input
+                        type="color"
+                        value={config.ctaTextColor}
+                        onChange={(e) =>
+                          update({ ctaTextColor: e.target.value })
+                        }
+                        className="mt-1 h-8 w-16 rounded-lg border border-[var(--border)]"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Radio
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={32}
+                      value={config.ctaRadius}
+                      onChange={(e) =>
+                        update({ ctaRadius: Number(e.target.value) })
+                      }
+                      className="mt-2 w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Bloque final de la landing */}
+            <CollapsibleSection
+              title="Bloque final de la landing"
+              description="Elige qué quieres mostrar debajo de los botones."
+            >
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-[var(--brand-1)]">
+                    Contenido del bloque final
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {[
+                      { id: "none", label: "Sin bloque" },
+                      { id: "tools", label: "Herramientas" },
+                      { id: "invite", label: "Invita a un amigo" },
+                      { id: "image", label: "Imagen con link" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() =>
+                          update({ finalBlockMode: opt.id as any })
+                        }
+                        className={`px-3 py-1 rounded-full border ${
+                          config.finalBlockMode === opt.id
+                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)]"
+                            : "border-[var(--border)] text-[var(--brand-1)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+{/* Herramientas */}
+{config.finalBlockMode === "tools" && (
+  <div className="space-y-3">
+    {/* Título y subtítulo */}
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Título
+      </label>
+      <input
+        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        value={config.toolsTitle}
+        onChange={(e) => update({ toolsTitle: e.target.value })}
+        placeholder="Herramientas para tu cliente"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Subtítulo
+      </label>
+      <input
+        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        value={config.toolsSubtitle}
+        onChange={(e) => update({ toolsSubtitle: e.target.value })}
+        placeholder="Accede rápido a tus enlaces principales"
+      />
+    </div>
+
+    {/* Lista de herramientas */}
+    <div className="space-y-2">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Herramientas ({config.tools?.length || 0}/5)
+      </label>
+
+{(config.tools || []).map((tool, index) => (
+  <div key={tool.id} className="flex gap-2 items-start">
+    <input
+      className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
+      value={tool.label}
+      onChange={(e) => {
+        const currentTools = config.tools || [];
+        const updated = [...currentTools];
+        updated[index] = { ...updated[index], label: e.target.value };
+        update({ tools: updated });
+      }}
+      placeholder="Texto del botón (ej: Reservar cita)"
+    />
+    <div className="flex-1">
+      <ActionLinkPicker
+        value={tool.url}
+        onChange={(url) => {
+          const currentTools = config.tools || [];
+          const updated = [...currentTools];
+          updated[index] = { ...updated[index], url };
+          update({ tools: updated });
+        }}
+      />
+    </div>
+    <button
+      type="button"
+      onClick={() => {
+        const currentTools = config.tools || [];
+        const updated = currentTools.filter((_, i) => i !== index);
+        update({ tools: updated });
+      }}
+      className="mt-2 px-2 py-1 text-xs text-red-400 border border-red-400 rounded hover:bg-red-400/10"
+    >
+      ×
+    </button>
+  </div>
+))}
+
+      {/* Añadir herramienta */}
+      {(config.tools || []).length < 5 && (
+        <button
+          type="button"
+          onClick={() => {
+            const newTool = {
+              id: crypto.randomUUID(),
+              label: "",
+              url: "",
+            };
+            update({ tools: [...(config.tools || []), newTool] });
+          }}
+          className="w-full py-2 text-xs border border-dashed border-[var(--brand-3)] text-[var(--brand-3)] rounded-lg hover:bg-[var(--brand-3)]/10"
+        >
+          + Añadir herramienta
+        </button>
+      )}
+    </div>
+  </div>
+)}
+
+                {/* Invitación */}
+                {config.finalBlockMode === "invite" && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                        Título
+                      </label>
+                      <input
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                        value={config.inviteTitle}
+                        onChange={(e) =>
+                          update({ inviteTitle: e.target.value })
+                        }
+                        placeholder="Invita a un amigo"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                        Texto
+                      </label>
+                      <textarea
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
+                        rows={3}
+                        value={config.inviteText}
+                        onChange={(e) =>
+                          update({ inviteText: e.target.value })
+                        }
+                        placeholder="Explica el beneficio de invitar a un amigo."
+                      />
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                          Texto del botón
+                        </label>
+                        <input
+                          className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                          value={config.inviteBtnText}
+                          onChange={(e) =>
+                            update({ inviteBtnText: e.target.value })
+                          }
+                          placeholder="Compartir enlace"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                          Link del botón
+                        </label>
+                        <input
+                          className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                          value={config.inviteBtnLink}
+                          onChange={(e) =>
+                            update({ inviteBtnLink: e.target.value })
+                          }
+                          placeholder="Pega un link de invitación"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+{/* Imagen con link */}
+{config.finalBlockMode === "image" && (
+  <div className="space-y-3">
+    {/* Link */}
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Link al pulsar la imagen (opcional)
+      </label>
+      <input
+        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        value={config.reviewLink}
+        onChange={(e) => update({ reviewLink: e.target.value })}
+        placeholder="Pega un link de reseñas u oferta"
+      />
+    </div>
+
+    {/* Imagen */}
+    <div className="space-y-2">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Imagen final
+      </label>
+      <input
+        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        type="file"
+        accept="image/*"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const url = await uploadImage(file, "review");
+          if (url) update({ reviewImage: url });
+        }}
+      />
+      {config.reviewImage && (
+        <div className="mt-2 text-xs text-[var(--brand-1)]">
+          Imagen cargada. Se mostrará al final de la landing.
+        </div>
+      )}
+    </div>
+
+    {/* Tamaño (presets) */}
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Tamaño de la imagen
+      </label>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {[
+          { id: "small", label: "Compacta" },
+          { id: "medium", label: "Media" },
+          { id: "large", label: "Destacada" },
+        ].map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() =>
+              update({ finalImageSize: opt.id as "small" | "medium" | "large" })
+            }
+            className={`px-3 py-1 rounded-full border ${
+              config.finalImageSize === opt.id
+                ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)]"
+                : "border-[var(--border)] text-[var(--brand-1)]"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* Altura fina (slider) */}
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Altura de la imagen (px)
+      </label>
+      <input
+        type="range"
+        min={120}
+        max={320}
+        value={config.finalImageHeight}
+        onChange={(e) =>
+          update({ finalImageHeight: Number(e.target.value) })
+        }
+        className="mt-1 w-full"
+      />
+      <div className="text-[10px] text-[var(--brand-1)]">
+        {config.finalImageHeight} px
+      </div>
+    </div>
+
+    {/* Padding lateral contenido (mismo control que en Espacio avanzado) */}
+    <div className="space-y-1">
+      <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+        Padding lateral contenido
+      </label>
+      <input
+        type="range"
+        min={12}
+        max={32}
+        value={config.contentPaddingX}
+        onChange={(e) =>
+          update({ contentPaddingX: Number(e.target.value) })
+        }
+        className="mt-1 w-full"
+      />
+      <div className="text-[10px] text-[var(--brand-1)]">
+        {config.contentPaddingX} px
+      </div>
+    </div>
+
+    {/* Marco + sombra */}
+    <div className="flex flex-wrap gap-4 text-xs pt-1">
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={config.finalImageFramed}
+          onChange={(e) => update({ finalImageFramed: e.target.checked })}
+        />
+        <span>Mostrar marco alrededor</span>
+      </label>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={config.finalImageShadow}
+          onChange={(e) => update({ finalImageShadow: e.target.checked })}
+        />
+        <span>Aplicar sombra suave</span>
+      </label>
+    </div>
+  </div>
+)}
+              </div>
+            </CollapsibleSection>
+
+            {/* Espacio avanzado */}
+            <CollapsibleSection
+              title="Espacio avanzado"
+              description="Ajusta márgenes y contenedores de la landing."
+            >
+              <div className="space-y-4 text-xs">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Padding superior del hero
+                    </label>
+                    <input
+                      type="range"
+                      min={24}
+                      max={80}
+                      value={config.heroPaddingTop}
+                      onChange={(e) =>
+                        update({ heroPaddingTop: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Padding inferior del hero
+                    </label>
+                    <input
+                      type="range"
+                      min={12}
+                      max={60}
+                      value={config.heroPaddingBottom}
+                      onChange={(e) =>
+                        update({ heroPaddingBottom: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Margen superior divisor
+                    </label>
+                    <input
+                      type="range"
+                      min={8}
+                      max={32}
+                      value={config.dividerMarginTop}
+                      onChange={(e) =>
+                        update({ dividerMarginTop: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Margen inferior divisor
+                    </label>
+                    <input
+                      type="range"
+                      min={8}
+                      max={32}
+                      value={config.dividerMarginBottom}
+                      onChange={(e) =>
+                        update({ dividerMarginBottom: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Separación entre botones
+                    </label>
+                    <input
+                      type="range"
+                      min={8}
+                      max={32}
+                      value={config.buttonsGap}
+                      onChange={(e) =>
+                        update({ buttonsGap: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Margen bloques finales
+                    </label>
+                    <input
+                      type="range"
+                      min={16}
+                      max={64}
+                      value={config.finalBlockMarginTop}
+                      onChange={(e) =>
+                        update({ finalBlockMarginTop: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Padding lateral contenido
+                    </label>
+                    <input
+                      type="range"
+                      min={12}
+                      max={32}
+                      value={config.contentPaddingX}
+                      onChange={(e) =>
+                        update({ contentPaddingX: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Padding vertical general
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={32}
+                      value={config.landingPaddingY}
+                      onChange={(e) =>
+                        update({ landingPaddingY: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                      Tamaño del fondo (imagen)
+                    </label>
+                    <input
+                      type="range"
+                      min={80}
+                      max={160}
+                      value={config.bgSize}
+                      onChange={(e) =>
+                        update({ bgSize: Number(e.target.value) })
+                      }
+                      className="mt-1 w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
+                    Posición del fondo
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {["center center", "top center", "bottom center"].map((pos) => (
+                      <button
+                        key={pos}
+                        type="button"
+                        onClick={() => update({ bgPosition: pos })}
+                        className={`px-3 py-1 rounded-full border text-[11px] ${
+                          config.bgPosition === pos
+                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10"
+                            : "border-[var(--border)]"
+                        }`}
+                      >
+                        {pos === "center center" && "Centro"}
+                        {pos === "top center" && "Arriba"}
+                        {pos === "bottom center" && "Abajo"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4 pt-2 border-t border-[var(--border)] mt-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={config.heroContainer}
+                      onChange={(e) =>
+                        update({ heroContainer: e.target.checked })
+                      }
+                    />
+                    <span>Fondo suave detrás del hero</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={config.bodyContainer}
+                      onChange={(e) =>
+                        update({ bodyContainer: e.target.checked })
+                      }
+                    />
+                    <span>Fondo suave detrás de los botones</span>
+                  </label>
+                </div>
+                {/* FIX #1 y #2: eliminada la sección showReview duplicada
+                    y el selector de finalOrder sin efecto real */}
+              </div>
+            </CollapsibleSection>
+          </div>
+
+          {/* Vista previa */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold">Vista previa (móvil)</div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-500 hover:bg-red-50"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "¿Restaurar valores por defecto? Perderás los cambios no guardados.",
+                      )
+                    ) {
+                      setConfig(defaultLandingConfig);
+                    }
+                  }}
+                >
+                  Reset
+                </button>
+                {/* FIX #5: usar el estado `slug` en lugar de recalcular con slugify */}
+                <button
+                  type="button"
+                  className="rounded-md border border-[var(--border)] px-3 py-1 text-xs"
+                  onClick={() => {
+                    localStorage.setItem(
+                      "konecta-landing-preview",
+                      JSON.stringify(config),
+                    );
+                    window.open(`/l/${slug}/NFC?preview=1`, "_blank");
+                  }}
+                >
+                  Ver en tamaño real
+                </button>
+              </div>
+            </div>
+            <div
+              ref={previewRef}
+              className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent p-4 flex justify-center"
+              style={{ width: 360, height: 780, overflow: "hidden" }}
+            >
+              <div
+                style={{
+                  width: 390,
+                  transform: "scale(0.92)",
+                  transformOrigin: "top center",
+                }}
+              >
+                <div className="rounded-[24px] overflow-hidden">
+                  <LandingRenderer config={config} toolsEnabled={true} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

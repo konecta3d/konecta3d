@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+input[type="range"] {
+  height: 6px;
+  width: 50%;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 9999px;
+  background: #f6c453;
+  border: 2px solid #0b121a;
+}
+input[type="range"]::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 9999px;
+  background: #f6c453;
+  border: 2px solid #0b121a;
+}
+
+:root {
+  --brand-1: #0a323c;
+  --brand-2: #001e3c;
+  --brand-3: #39a1a9;
+  --brand-4: #ffb400;
+  --brand-5: #ffffff;
+  --background: #f3f4f6; /* un poco más oscuro para más contraste */
+  --foreground: #0b1520; /* texto principal ligeramente más intenso */
+  --card: #ffffff;
+  --border: rgba(12, 26, 36, 0.18); /* borde más marcado en modo claro */
+  --sidebar-title-color: var(--brand-2);
+  --sidebar-title-size: 18px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit);
+}
+
+.dark {
+  --background: #0a1118;
+  --foreground: #e8eef4;
+  --card: #0f1720;
+  --border: rgba(255, 255, 255, 0.08);
+  --brand-1: #9fd1d6;
+  --sidebar-title-color: #ffb400;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  filter: brightness(var(--brightness, 100%));
+}
+
+/* Ajustes de contraste para modo claro (la clase .dark se aplica en <html>) */
+:not(.dark) .text-gray-400 {
+  color: #4b5563; /* similar a gray-600 */
+}
+:not(.dark) .text-gray-500 {
+  color: #374151; /* similar a gray-700 */
+}
+:not(.dark) .text-gray-300 {
+  color: #6b7280; /* subir un tono */
+}
+:not(.dark) input::placeholder,
+:not(.dark) textarea::placeholder {
+  color: #9ca3af; /* gray-400 más visible en fondo claro */
+}
+
+/* Modo claro para asistentes (Lead Magnet + Beneficios VIP) */
+:not(.dark) .lm-wizard,
+:not(.dark) .vb-wizard {
+  background-color: var(--background);
+}
+
+:not(.dark) .lm-wizard .text-white,
+:not(.dark) .vb-wizard .text-white {
+  color: #111827; /* texto principal oscuro */
+}
+
+:not(.dark) .lm-wizard .text-gray-300,
+:not(.dark) .vb-wizard .text-gray-300 {
+  color: #4b5563;
+}
+
+:not(.dark) .lm-wizard .text-gray-400,
+:not(.dark) .vb-wizard .text-gray-400 {
+  color: #374151;
+}
+
+/* Bloques que antes usaban fondos/bordes semitransparentes blancos */
+:not(.dark) .lm-wizard .bg-white\/10,
+:not(.dark) .lm-wizard .bg-white\/5,
+:not(.dark) .vb-wizard .bg-white\/10,
+:not(.dark) .vb-wizard .bg-white\/5 {
+  background-color: var(--card);
+}
+
+:not(.dark) .lm-wizard .border-white\/10,
+:not(.dark) .vb-wizard .border-white\/10,
+:not(.dark) .vb-wizard .border-white\/20 {
+  border-color: var(--border);
+}
+
+/* Gradientes principales: en modo claro los convertimos en cards claras */
+:not(.dark) .lm-wizard .bg-gradient-to-r,
+:not(.dark) .vb-wizard .bg-gradient-to-r {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Estilos para selects en modo oscuro */
+.dark select {
+  background: #ffffff;
+  color: #000000;
+}
+.dark select option {
+  background: #ffffff;
+  color: #000000;
+}
