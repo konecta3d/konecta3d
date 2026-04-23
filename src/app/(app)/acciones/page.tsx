@@ -29,7 +29,7 @@ const ACTION_CATEGORIES = {
   whatsapp: {
     title: "WhatsApp",
     description: "Chat directo con tu negocio",
-    icon: "💬",
+    icon: "",
     color: "#25D366",
     tools: ["WhatsApp Direct"],
     placeholder: "34600000000",
@@ -38,7 +38,7 @@ const ACTION_CATEGORIES = {
   calendar: {
     title: "Agendar Citas",
     description: "Reservar reuniones y citas",
-    icon: "📅",
+    icon: "",
     color: "#4285F4",
     tools: ["Calendly", "Google Calendar", "Bookity"],
     placeholder: "https://calendly.com/...",
@@ -47,7 +47,7 @@ const ACTION_CATEGORIES = {
   location: {
     title: "Ubicación",
     description: "Direcciones y mapas",
-    icon: "📍",
+    icon: "",
     color: "#EA4335",
     tools: ["Google Maps", "Waze"],
     placeholder: "https://maps.google.com/...",
@@ -56,7 +56,7 @@ const ACTION_CATEGORIES = {
   reviews: {
     title: "Reseñas",
     description: "Valoraciones y opiniones",
-    icon: "⭐",
+    icon: "",
     color: "#FBBC04",
     tools: ["Google Reviews", "TripAdvisor"],
     placeholder: "https://maps.google.com/...",
@@ -65,7 +65,7 @@ const ACTION_CATEGORIES = {
   payment: {
     title: "Pagos",
     description: "Process payments securely",
-    icon: "💳",
+    icon: "",
     color: "#6772E5",
     tools: ["Stripe", "PayPal", "Bizum"],
     placeholder: "https://paypal.me/...",
@@ -74,7 +74,7 @@ const ACTION_CATEGORIES = {
   video: {
     title: "Videollamada",
     description: "Reuniones por video",
-    icon: "📹",
+    icon: "",
     color: "#2D8CFF",
     tools: ["Zoom", "Google Meet"],
     placeholder: "https://zoom.us/...",
@@ -83,7 +83,7 @@ const ACTION_CATEGORIES = {
   form: {
     title: "Formularios",
     description: "Encuestas y solicitudes",
-    icon: "📋",
+    icon: "",
     color: "#7248B9",
     tools: ["Google Forms", "Typeform"],
     placeholder: "https://forms.google.com/...",
@@ -92,7 +92,7 @@ const ACTION_CATEGORIES = {
   catalog: {
     title: "Catálogo",
     description: "Tus productos y servicios",
-    icon: "🛍️",
+    icon: "",
     color: "#FF6B6B",
     tools: ["Catálogo propio"],
     placeholder: "https://tu-negocio.com/catalogo",
@@ -101,7 +101,7 @@ const ACTION_CATEGORIES = {
   social: {
     title: "Redes Sociales",
     description: "Conectar en redes",
-    icon: "📱",
+    icon: "",
     color: "#E4405F",
     tools: ["Instagram", "Facebook", "YouTube"],
     placeholder: "https://instagram.com/...",
@@ -110,7 +110,7 @@ const ACTION_CATEGORIES = {
   web: {
     title: "Web / Landing",
     description: "Página principal o landing específica",
-    icon: "🌐",
+    icon: "",
     color: "#0ea5e9",
     tools: ["Web del negocio", "Landing Konecta3D"],
     placeholder: "https://tu-negocio.com",
@@ -132,13 +132,31 @@ export default function AccionesPage() {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id");
+useEffect(() => {
+  const load = async () => {
+    let bid = "";
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData.session?.user?.email || "";
+
+    if (userEmail) {
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+
+      bid = biz?.id || "";
+    }
+
     if (bid) {
       setBusinessId(bid);
       loadSavedLinks(bid);
     }
-  }, []);
+  };
+
+  load();
+}, []);
 
   const loadSavedLinks = async (bid: string) => {
     const { data, error } = await supabase
@@ -268,7 +286,7 @@ export default function AccionesPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Herramientas del Negocio</h1>
-          <p className="text-gray-400">Genera y guarda links de acción para usar en tus recursos</p>
+          <p className="text-white">Genera y guarda links de acción para usar en tus recursos</p>
         </div>
 
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
@@ -285,7 +303,7 @@ export default function AccionesPage() {
                 className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] text-left hover:border-[var(--brand-1)] transition-all"
               >
                 <h3 className="font-bold text-lg mb-1">{category.title}</h3>
-                <p className="text-sm text-gray-400 mb-3">{category.description}</p>
+                <p className="text-sm text-white mb-3">{category.description}</p>
                 <div className="flex flex-wrap gap-1">
                   {category.tools.slice(0, 3).map(tool => (
                     <span key={tool} className="text-xs px-2 py-1 bg-[var(--background)] rounded">
@@ -313,7 +331,7 @@ export default function AccionesPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="min-w-0">
                       <div className="font-medium truncate">{link.name}</div>
-                      <div className="text-xs text-gray-500 truncate max-w-xs">{link.url}</div>
+                      <div className="text-xs text-white truncate max-w-xs">{link.url}</div>
                     </div>
                   </div>
                   <div className="flex gap-2 ml-3">
@@ -349,7 +367,7 @@ export default function AccionesPage() {
           <h1 className="text-2xl font-bold">
             {category.title}
           </h1>
-          <p className="text-gray-400">{category.description}</p>
+          <p className="text-white">{category.description}</p>
         </div>
       </div>
 
@@ -391,7 +409,7 @@ export default function AccionesPage() {
                 className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder={category.messagePlaceholder}
+                placeholder={"messagePlaceholder" in category ? (category as { messagePlaceholder: string }).messagePlaceholder : ""}
               />
             </div>
           </>
@@ -406,7 +424,7 @@ export default function AccionesPage() {
               onChange={(e) => setUrl(e.target.value)}
               placeholder={category.placeholder}
             />
-            <p className="text-xs text-gray-500 mt-1">Ej: {category.example}</p>
+            {"example" in category && <p className="text-xs text-white mt-1">Ej: {(category as { example: string }).example}</p>}
           </div>
         )}
 
@@ -463,7 +481,7 @@ export default function AccionesPage() {
         </div>
         
         {filteredLinks.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-white">
             <p>No hay opciones guardadas todavía</p>
             <p className="text-sm mt-1">Genera y guarda una opción para verla aquí</p>
           </div>
@@ -473,7 +491,7 @@ export default function AccionesPage() {
               <div key={link.id} className="flex items-center justify-between p-4 bg-[var(--background)] rounded-lg border border-[var(--border)]">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{link.name}</div>
-                  <div className="text-xs text-gray-500 truncate">{link.url}</div>
+                  <div className="text-xs text-white truncate">{link.url}</div>
                 </div>
                 <div className="flex gap-2 ml-3">
                   <button

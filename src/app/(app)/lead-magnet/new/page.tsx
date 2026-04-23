@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +8,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
 type Objective = "captar" | "vuelvan" | "conversion" | "referidos";
+
+const BASE_TITLE_PLACEHOLDER = "Tu recurso de valor";
+const BASE_INTRO_PLACEHOLDER = "Introducción al documento";
+const BASE_CONTENT_PLACEHOLDER = "Contenido principal del recurso";
 type BusinessType = "servicio" | "producto" | "ambos";
 
 interface LeadMagnetState {
@@ -111,7 +115,7 @@ const ORIENTATION_MESSAGES: Record<string, Record<string, string>> = {
     producto: "Un **Checklist** o **Recomendación práctica** ayuda a que el cliente vea el valor inmediato de tu producto sin barreras.",
     ambos: "Cualquier formato que resuelva un problema específico y rápido será efectivo para captar leads.",
   },
-  volvieron: {
+  vuelvan: {
     servicio: "Una **Recomendación técnica personalizada** tras el servicio asegura que el cliente se sienta cuidado y regrese.",
     producto: "Una **Guía de uso avanzado** o mantenimiento alarga la vida del producto y fomenta que el cliente vuelva a confiar en ti.",
     ambos: "Enfócate en aportar valor post-venta para asegurar la recurrencia.",
@@ -126,7 +130,7 @@ const ORIENTATION_MESSAGES: Record<string, Record<string, string>> = {
 
 const CTA_SUGGESTIONS: Record<Objective, string[]> = {
   captar: ["Descargar Guía Gratis", "Ver Masterclass", "Obtener Cupón"],
-  volvieron: ["Agendar Revisión", "Ver Novedades", "Acceso Club VIP"],
+  vuelvan: ["Agendar Revisión", "Ver Novedades", "Acceso Club VIP"],
   conversion: ["Comprar Ahora", "Solicitar Presupuesto", "Ver Demo En Vivo"],
   referidos: ["Regalar a un Amigo", "Compartir en WhatsApp", "Invitar y Ganar"],
 };
@@ -138,7 +142,7 @@ const SN_SUGGESTIONS: Record<Objective, { s1: string[]; s2: string[]; s3: string
     s3: ["Para automatizar esto, pulsa abajo", "Si quieres el software, agenda cita", "Mira cómo lo hacemos nosotros"],
     s4: ["Reserva tu auditoría gratuita", "Hablar con un asesor técnico", "Ver video demostrativo"],
   },
-  volvieron: {
+  vuelvan: {
     s1: ["Envía esta encuesta a tus clientes", "Regala este cupón en el próximo ticket", "Añade este detalle en tu packaging"],
     s2: ["Aumentarás tu recurrencia mensual", "Clientes más felices y fieles", "Más recomendaciones positivas"],
     s3: ["Si quieres el sistema de fidelidad...", "Pregunta por nuestro plan VIP", "Activa tus recompensas aquí"],
@@ -158,7 +162,7 @@ const SN_SUGGESTIONS: Record<Objective, { s1: string[]; s2: string[]; s3: string
   },
 };
 
-export default function LeadMagnetPage() {
+function LeadMagnetNewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -257,7 +261,7 @@ export default function LeadMagnetPage() {
   };
 
   useEffect(() => {
-    // Verificar autenticación primero y, si viene ?edit=, cargar el Lead Magnet
+    // Verificar autenticación primero y, si viene ?edit=, cargar el Recurso de Valor
     const checkAuth = async () => {
       const {
         data: { session },
@@ -274,7 +278,13 @@ export default function LeadMagnetPage() {
         return;
       }
 
-      const bid = localStorage.getItem("konecta-business-id") || "";
+      const userEmail = session.user.email || "";
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      const bid = biz?.id || "";
       if (!bid) {
         router.push("/business/login?redirect=/lead-magnet/new");
         return;
@@ -351,7 +361,12 @@ export default function LeadMagnetPage() {
     form.append("file", file);
     form.append("kind", "logo");
     form.append("businessId", businessId);
-    const res = await fetch("/api/landing/upload", { method: "POST", body: form });
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/landing/upload", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${session?.access_token || ""}` },
+      body: form,
+    });
     if (!res.ok) {
       alert("Error al subir el logo");
       return null;
@@ -361,19 +376,18 @@ export default function LeadMagnetPage() {
   };
 
   const load = async () => {
-    const bid = localStorage.getItem("konecta-business-id") || "";
-    if (!bid) return;
+    if (!businessId) return;
     const { data } = await supabase
       .from("lead_magnets")
       .select("*")
-      .eq("business_id", bid)
+      .eq("business_id", businessId)
       .order("created_at", { ascending: false });
     setItems(data || []);
   };
 
   const saveAndGetId = async (): Promise<string | null> => {
     if (!businessId) {
-      alert("Falta businessId; no se puede guardar el Lead Magnet.");
+      alert("Falta businessId; no se puede guardar el PDF.");
       return null;
     }
 
@@ -436,7 +450,7 @@ export default function LeadMagnetPage() {
       const { data, error } = result as any;
       if (error) {
         console.error("Error al guardar lead_magnet:", error);
-        alert("Error al guardar el Lead Magnet: " + error.message);
+        alert("Error al guardar el Recurso de Valor: " + error.message);
         return null;
       }
 
@@ -448,7 +462,7 @@ export default function LeadMagnetPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       load();
-      alert("Lead Magnet guardado correctamente.");
+      alert("PDF guardado correctamente.");
       return id;
     } finally {
       setLoading(false);
@@ -506,9 +520,13 @@ export default function LeadMagnetPage() {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${state.colorBrand};padding-bottom:20px;margin-bottom:30px}.brand{font-size:1.2rem;font-weight:900;color:${state.colorBrand};text-transform:uppercase}.tag{background:${state.colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${state.colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:1.1rem;color:#4B5563;margin-bottom:40px}.section{margin-bottom:30px}.section h4{color:${state.colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${state.colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:0.9rem;color:#374151;line-height:1.8;white-space:pre-line}.sn-section{padding:1.2rem;border-top:1px dashed rgba(0,0,0,0.1);border-bottom:1px dashed rgba(0,0,0,0.1);margin-bottom:20px;border-radius:8px;font-size:0.85rem;line-height:1.4;color:#000000;background:#f9fafb}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:12px 25px;border-radius:8px;background:${state.colorButton};color:#fff;font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.cta-btn-outline{padding:12px 25px;border-radius:8px;border:2px solid ${state.colorButton};color:${state.colorButton};font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.footer{position:absolute;bottom:20px;left:20mm;right:20mm;border-top:1px solid #E5E7EB;padding-top:20px;font-size:0.7rem;color:#9CA3AF;text-align:center}</style></head><body><div class="container"><div class="header"><div class="brand">${(state.businessName || "MI NEGOCIO").toUpperCase()}</div><div class="tag">${state.typeLabel}</div></div><div class="title">${effectiveTitle}
 </div>${effectiveIntro ? `<div class="subtitle">${effectiveIntro}</div>` : ""}${state.intro ? `<div class="subtitle">${state.intro}</div>` : ""}<div class="section"><h4>${state.typeLabel}</h4><div class="content">${contentHtml}</div></div>${(state.sn1En && state.sn1) || (state.sn2En && state.sn2) || (state.sn3En && state.sn3) || (state.sn4En && state.sn4) ? `<div class="sn-section">${state.sn1En && state.sn1 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn1}</div>` : ""}${state.sn2En && state.sn2 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn2}</div>` : ""}${state.sn3En && state.sn3 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn3}</div>` : ""}${state.sn4En && state.sn4 ? `<div style="margin-top:10px;margin-bottom:15px;font-weight:bold;text-align:center;color:#000000">${state.sn4}</div>` : ""}</div>` : ""}<div class="cta-box"><a href="${state.cta1Link || "#"}" class="cta-btn" target="_blank">${state.cta1Text || "ACCION"}</a>${state.cta2Enabled && state.cta2Text ? `<a href="${state.cta2Link || "#"}" class="cta-btn-outline" target="_blank">${state.cta2Text}</a>` : ""}</div><div class="footer">Personalizado para ti por ${state.businessName || "Mi Negocio"}</div></div></body></html>`;
 
+    const { data: { session: pdfSession } } = await supabase.auth.getSession();
     const res = await fetch("/api/lead-magnet/generate-pdf", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${pdfSession?.access_token || ""}`,
+      },
       body: JSON.stringify({
         html,
         businessId,
@@ -521,7 +539,7 @@ export default function LeadMagnetPage() {
     if (data.error) {
       alert("Error al guardar el PDF: " + data.error);
     } else {
-      // Refuerzo: actualizar pdf_url tambien desde el cliente para este Lead Magnet
+      // Refuerzo: actualizar pdf_url tambien desde el cliente para este Recurso de Valor
       if (data.url && lmId) {
         await supabase
           .from("lead_magnets")
@@ -540,7 +558,7 @@ export default function LeadMagnetPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)] mx-auto mb-4"></div>
-          <p className="text-slate-200">Verificando acceso...</p>
+          <p className="text-white">Verificando acceso...</p>
         </div>
       </div>
     );
@@ -551,7 +569,7 @@ export default function LeadMagnetPage() {
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-[#C5A059] text-sm font-extrabold tracking-widest uppercase">Generador de Lead Magnet</h1>
+            <h1 className="text-[#C5A059] text-sm font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
           </div>
           <div className="flex gap-3 items-center">
             {/* Toggle between Wizard and Advanced */}
@@ -574,7 +592,7 @@ export default function LeadMagnetPage() {
         <div className="flex items-center justify-center gap-1 md:gap-2 mb-8">
           {[1, 2, 3, 4].map((step, idx) => (
             <div key={step} className="flex items-center">
-              <button onClick={() => goToStep(step)} className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full transition-all text-xs font-bold ${state.activeStep === step ? "bg-[#C5A059] text-[#0A0A0B]" : "border border-white/10 text-[#94A3B8]"}`}>
+              <button onClick={() => goToStep(step)} className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full transition-all text-xs font-bold ${state.activeStep === step ? "bg-[#C5A059] text-[#0A0A0B]" : "border border-white/10 text-white"}`}>
                 <span>{step}</span>
                 <span className="hidden md:inline">{stepTitles[idx]}</span>
               </button>
@@ -588,11 +606,11 @@ export default function LeadMagnetPage() {
             <>
               <button onClick={() => goToStep(1)} className="w-full text-left mb-6">
                 <h2 className="text-[var(--brand-3)] text-lg uppercase tracking-widest mb-1">1. Estrategia Base</h2>
-                <p className="text-slate-200 text-sm">Define los fundamentos de tu lead magnet</p>
+                <p className="text-white text-sm">Define los fundamentos de tu Recurso de Valor</p>
               </button>
               <div className="border-l-4 border-[var(--brand-4)] bg-[var(--brand-4)]/5 p-4 rounded-r-lg mb-6">
                 <h4 className="text-[var(--brand-3)] text-xs uppercase tracking-widest mb-2">Tutor Estratégico: Objetivos</h4>
-                <p className="text-slate-200 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: getOrientationMessage().replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+                <p className="text-white text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: getOrientationMessage().replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
               </div>
               
               <div className="mb-6">
@@ -611,10 +629,10 @@ export default function LeadMagnetPage() {
                           alt="logo actual"
                           className="h-10 w-10 rounded-lg object-contain border border-[var(--border)] bg-black/20"
                         />
-                        <span className="text-xs text-slate-300">Este logo se usará en el encabezado del PDF.</span>
+                        <span className="text-xs text-white">Este logo se usará en el encabezado del PDF.</span>
                       </div>
                     )}
-                    <label className="inline-flex items-center gap-2 text-xs text-slate-200 cursor-pointer">
+                    <label className="inline-flex items-center gap-2 text-xs text-white cursor-pointer">
                       <span className="px-3 py-2 rounded-full border border-[var(--border)] bg-white/5 hover:bg-white/10 transition-colors">
                         Subir logo
                       </span>
@@ -667,12 +685,12 @@ export default function LeadMagnetPage() {
             <>
               <button onClick={() => goToStep(2)} className="w-full text-left mb-6">
                 <h2 className="text-[var(--brand-3)] text-lg uppercase tracking-widest mb-1">2. Contenido de Valor</h2>
-                <p className="text-slate-200 text-sm">Crea el contenido de tu recurso</p>
+                <p className="text-white text-sm">Crea el contenido de tu recurso</p>
               </button>
 
               <div className="border-2 border-[var(--brand-3)] bg-[var(--brand-3)]/5 p-4 rounded-xl mb-6">
                 <h4 className="text-[var(--brand-3)] text-xs uppercase tracking-widest mb-2">Tutor Estratégico: Contenido AIDA</h4>
-                <p className="text-slate-200 text-sm leading-relaxed">Usa el <b>Título</b> para captar Atención. La <b>Aclaración</b> para generar Interés. El <b>Contenido</b> debe alimentar el Deseo resolviendo un problema real.</p>
+                <p className="text-white text-sm leading-relaxed">Usa el <b>Título</b> para captar Atención. La <b>Aclaración</b> para generar Interés. El <b>Contenido</b> debe alimentar el Deseo resolviendo un problema real.</p>
               </div>
 
               <div className="space-y-4">
@@ -700,12 +718,12 @@ export default function LeadMagnetPage() {
                 <div>
                   <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">Contenido Principal (Aporte de Valor)</label>
                   <textarea value={state.content} onChange={(e) => update({ content: e.target.value })} placeholder="Escribe aquí el contenido técnico..." rows={8} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[var(--brand-3)] resize-none" />
-                  <p className="text-slate-300 text-xs mt-1">Usa **texto** para negrita.</p>
+                  <p className="text-white text-xs mt-1">Usa **texto** para negrita.</p>
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button onClick={() => goToStep(1)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-gray-400 hover:bg-white/5 transition-colors">Atrás</button>
+                <button onClick={() => goToStep(1)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-white hover:bg-white/5 transition-colors">Atrás</button>
                 <button onClick={() => goToStep(3)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider bg-[var(--brand-4)] text-black hover:opacity-90 transition-opacity">Siguiente</button>
               </div>
             </>
@@ -715,7 +733,7 @@ export default function LeadMagnetPage() {
             <>
               <button onClick={() => goToStep(3)} className="w-full text-left mb-6">
                 <h2 className="text-[var(--brand-3)] text-lg uppercase tracking-widest mb-1">3. El Cierre (SN)</h2>
-                <p className="text-slate-200 text-sm">Define las acciones que quieres que tome el cliente</p>
+                <p className="text-white text-sm">Define las acciones que quieres que tome el cliente</p>
               </button>
 
               <div className="space-y-4">
@@ -729,7 +747,7 @@ export default function LeadMagnetPage() {
                       <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest font-extrabold">{item.n}. {item.k === "sn1" ? "Sugerencia de aplicación" : item.k === "sn2" ? "Beneficios obtenidos" : "Acción siguiente (CTA)"} <span className="font-normal opacity-70 text-[10px]">(Máx {item.max})</span></label>
                       <input type="checkbox" checked={state[item.en as keyof LeadMagnetState] as boolean} onChange={(e) => update({ [item.en]: e.target.checked })} className="w-5 h-5 cursor-pointer accent-[var(--brand-3)]" />
                     </div>
-                    <p className="text-slate-200 text-xs italic mb-2">{item.p}</p>
+                    <p className="text-white text-xs italic mb-2">{item.p}</p>
                     <textarea value={state[item.k as keyof LeadMagnetState] as string} onChange={(e) => update({ [item.k]: e.target.value })} rows={2} maxLength={item.max} className="w-full px-3 py-2 rounded-lg border border-[#0f1720] bg-[#0f1720] text-white text-xs outline-none focus:border-[var(--brand-3)] resize-none" />
                     <div className="flex flex-wrap gap-1 mt-2">
                       {item.sug.map(s => (
@@ -742,7 +760,7 @@ export default function LeadMagnetPage() {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button onClick={() => goToStep(2)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-[#94A3B8] hover:bg-white/5 transition-colors">Atrás</button>
+                <button onClick={() => goToStep(2)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-white hover:bg-white/5 transition-colors">Atrás</button>
                 <button onClick={() => goToStep(4)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider bg-[var(--brand-4)] text-black hover:opacity-90 transition-opacity">Siguiente</button>
               </div>
             </>
@@ -752,11 +770,11 @@ export default function LeadMagnetPage() {
             <div>
               <button onClick={() => goToStep(4)} className="w-full text-left mb-6">
                 <h2 className="text-white text-lg uppercase tracking-widest mb-1">4. Personalización</h2>
-                <p className="text-slate-200 text-sm">Ajusta los colores y CTAs del PDF</p>
+                <p className="text-white text-sm">Ajusta los colores y CTAs del PDF</p>
               </button>
 
               <div className="bg-[var(--brand-3)]/5 p-4 rounded-xl mb-6">
-                <p className="text-slate-200 text-sm italic">El botón debe ser una orden directa y clara. Usa colores que contrasten.</p>
+                <p className="text-white text-sm italic">El botón debe ser una orden directa y clara. Usa colores que contrasten.</p>
               </div>
 
               <div className="space-y-4 mb-6">
@@ -766,7 +784,7 @@ export default function LeadMagnetPage() {
                   <div className="bg-white/5 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-bold">Botón Principal (CTA 1)</h3>
-                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <label className="flex items-center gap-2 text-sm text-white">
                         <input
                           type="checkbox"
                           checked={state.cta1Enabled}
@@ -779,7 +797,7 @@ export default function LeadMagnetPage() {
                     {state.cta1Enabled && (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs text-slate-300 mb-1">Texto del botón</label>
+                          <label className="block text-xs text-white mb-1">Texto del botón</label>
                           <div className="flex gap-2">
                             <select
                               value={state.cta1Text}
@@ -811,7 +829,7 @@ export default function LeadMagnetPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-slate-300 mb-1">Enlace (URL)</label>
+                          <label className="block text-xs text-white mb-1">Enlace (URL)</label>
                           <div className="space-y-2">
                             <ActionLinkPicker
                               value={state.cta1Link}
@@ -835,7 +853,7 @@ export default function LeadMagnetPage() {
                   <div className="bg-white/5 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-bold">Botón Secundario (CTA 2)</h3>
-                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <label className="flex items-center gap-2 text-sm text-white">
                         <input
                           type="checkbox"
                           checked={state.cta2Enabled}
@@ -855,7 +873,7 @@ export default function LeadMagnetPage() {
                     {state.cta2Enabled && (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs text-slate-300 mb-1">Texto del botón</label>
+                          <label className="block text-xs text-white mb-1">Texto del botón</label>
                           <div className="flex gap-2">
                             <select
                               value={state.cta2Text}
@@ -887,7 +905,7 @@ export default function LeadMagnetPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-slate-300 mb-1">Enlace (URL)</label>
+                          <label className="block text-xs text-white mb-1">Enlace (URL)</label>
                           <div className="space-y-2">
                             <ActionLinkPicker
                               value={state.cta2Link}
@@ -955,7 +973,7 @@ export default function LeadMagnetPage() {
                 </div>
 
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-[11px] text-slate-300">
+                  <summary className="cursor-pointer text-[11px] text-white">
                     Ajustes avanzados de color
                   </summary>
                   <div className="space-y-4 mt-3">
@@ -1045,5 +1063,13 @@ export default function LeadMagnetPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LeadMagnetPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm">Cargando...</div>}>
+      <LeadMagnetNewContent />
+    </Suspense>
   );
 }

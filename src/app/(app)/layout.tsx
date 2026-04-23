@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import MobileTitle from "@/components/MobileTitle";
 import Sidebar from "@/components/Sidebar";
 import SidebarTitle from "@/components/SidebarTitle";
@@ -23,8 +23,9 @@ const businessLinks: SidebarLink[] = [
   { label: "Historial", href: "/mi-negocio/historial", category: "Mi Negocio" },
   { label: "Estadísticas", href: "/mi-negocio/estadisticas", category: "Mi Negocio" },
   { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
-  { label: "Lead Magnet", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },
+  { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Generadores", nameKey: "vipBenefits", module: "module_vip_benefits" },
+  { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
   { label: "Herramientas del negocio", href: "/acciones", category: "Herramientas del negocio", module: "module_tools" },
 ];
 
@@ -36,18 +37,31 @@ const adminLinks: SidebarLink[] = [
   { label: "Actividad", href: "/admin/actividad", category: "Panel Admin" },
 ];
 
+// Todos los módulos activos por defecto para evitar parpadeo al cargar
+const DEFAULT_MODULES: Record<string, boolean> = {
+  module_vip_benefits: true,
+  module_lead_magnet: true,
+  module_whatsapp: true,
+  module_tools: true,
+  module_forms: true,
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminMode = pathname.startsWith("/admin");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [modules, setModules] = useState<Record<string, boolean>>({});
+  const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Cargar nombres personalizados
-    const saved = localStorage.getItem("konecta-sidebar-names");
-    if (saved) setCustomNames(JSON.parse(saved));
+    // Cargar nombres personalizados con protección ante JSON corrupto
+    try {
+      const saved = localStorage.getItem("konecta-sidebar-names");
+      if (saved) setCustomNames(JSON.parse(saved));
+    } catch {
+      console.warn("No se pudieron cargar los nombres personalizados del sidebar.");
+    }
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent<Record<string, string>>).detail;
@@ -59,35 +73,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isAdminMode) {
-      const loadModules = async () => {
-        const businessId = localStorage.getItem("konecta-business-id");
-        if (!businessId) {
-          setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true });
-          return;
-        }
-        const { data } = await supabase
-          .from("businesses")
-          .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools")
-          .eq("id", businessId)
-          .single();
+    if (isAdminMode) return;
 
-        if (data) {
-          setModules({
-            module_vip_benefits: data.module_vip_benefits ?? true,
-            module_lead_magnet: data.module_lead_magnet ?? true,
-            module_whatsapp: data.module_whatsapp ?? true,
-            module_tools: data.module_tools ?? true,
-          });
-        }
-      };
-      loadModules();
-    }
+    const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData?.session?.user?.email;
+      if (!userEmail) return;
+
+      // Una sola query en lugar de dos
+      const { data, error } = await supabase
+        .from("businesses")
+        .select("module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms")
+        .eq("contact_email", userEmail)
+        .single();
+
+      if (error) {
+        console.warn("Error cargando módulos:", error.message);
+        return;
+      }
+
+      if (data) {
+        setModules({
+          module_vip_benefits: data.module_vip_benefits ?? true,
+          module_lead_magnet: data.module_lead_magnet ?? true,
+          module_whatsapp: data.module_whatsapp ?? true,
+          module_tools: data.module_tools ?? true,
+          module_forms: data.module_forms ?? true,
+        });
+      }
+    };
+
+    load();
   }, [isAdminMode]);
 
   const baseLinks = isAdminMode ? adminLinks : businessLinks;
 
-  // Filtrar links al igual que en el Sidebar
   const links = baseLinks.filter((l) => {
     if (!isAdminMode && l.module && modules[l.module] === false) {
       return false;
@@ -129,7 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     className={`block rounded-lg px-3 py-2 ${
                       isActive
                         ? "bg-[var(--brand-4)] text-black font-semibold"
-                        : "text-slate-200 hover:bg-white/5"
+                        : "text-white hover:bg-white/5"
                     }`}
                   >
                     {label}

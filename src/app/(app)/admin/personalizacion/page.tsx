@@ -77,7 +77,7 @@ export default function AdminPersonalization() {
           key: "names",
           value: JSON.stringify(names),
           updated_at: new Date().toISOString(),
-        }, { onConflict: "key });
+        }, { onConflict: "key" });
 
       if (error) {
         console.error("Supabase error:", error);
@@ -165,7 +165,7 @@ export default function AdminPersonalization() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-4">Nomenclatura</h2>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm text-white mb-4">
             Personaliza los nombres que se muestran en el menú lateral para los negocios.
           </p>
           <div className="grid md:grid-cols-2 gap-4">

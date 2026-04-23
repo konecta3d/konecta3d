@@ -30,8 +30,18 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — NO subir secretos al repositorio
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Sí subir el ejemplo (es documentación, no contiene secretos)
+!.env.local.example
+
+# Claude Code — metadatos locales, no necesarios en el repo
+.claude/
 
 # vercel
 .vercel

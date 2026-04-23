@@ -50,15 +50,15 @@ export default function AdminDashboard() {
 
     // Total landings
     const { count: totalLandings } = await supabase
-      .from("landings")
+      .from("landing_configs")
       .select("id", { count: "exact", head: true });
 
-    // Onboarding "completado" (heurística): negocios con sector + offer_name
+    // Onboarding "completado" (heurística): negocios con sector y slug definidos
     const { count: onboardingCompleted } = await supabase
       .from("businesses")
       .select("id", { count: "exact", head: true })
       .not("sector", "is", null)
-      .not("offer_name", "is", null);
+      .not("slug", "is", null);
 
     setStats({
       totalBusinesses: totalBusinesses || 0,
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
     if (leads) {
       setRecentLeads(leads.map(l => ({
         ...l,
-        business_name: l.businesses?.name
+        business_name: (l.businesses as unknown as { name: string } | null)?.name
       })));
     }
 
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)] mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando estadísticas...</p>
+          <p className="text-white">Cargando estadísticas...</p>
         </div>
       </div>
     );
@@ -117,32 +117,32 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Negocios totales</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Negocios totales</div>
           <div className="text-3xl font-bold text-[var(--brand-1)]">{stats.totalBusinesses}</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Negocios activos (30 días)</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Negocios activos (30 días)</div>
           <div className="text-3xl font-bold text-green-500">{stats.activeBusinesses30d}</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Onboarding completado*</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Onboarding completado*</div>
           <div className="text-3xl font-bold text-blue-500">{stats.onboardingCompleted}</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Leads totales</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Leads totales</div>
           <div className="text-3xl font-bold text-purple-500">{stats.totalLeads}</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Leads últimos 30 días</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Leads últimos 30 días</div>
           <div className="text-3xl font-bold text-green-400">{stats.leads30d}</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Landings creadas</div>
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Landings creadas</div>
           <div className="text-3xl font-bold text-orange-400">{stats.totalLandings}</div>
         </div>
       </div>
 
-      <p className="text-xs text-gray-500">* Se considera onboarding completado si el negocio tiene sector y oferta principal definidos.</p>
+      <p className="text-xs text-white">* Se considera onboarding completado si el negocio tiene sector y slug de landing definidos.</p>
 
       {/* Quick lists */}
       <div className="grid md:grid-cols-2 gap-6">
@@ -155,16 +155,16 @@ export default function AdminDashboard() {
             </a>
           </div>
           {recentBusinesses.length === 0 ? (
-            <p className="text-gray-500 text-sm">No hay negocios</p>
+            <p className="text-white text-sm">No hay negocios</p>
           ) : (
             <div className="space-y-2">
               {recentBusinesses.map((b) => (
                 <div key={b.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--background)]">
                   <div>
                     <div className="font-medium text-sm">{b.name}</div>
-                    <div className="text-xs text-gray-500">{b.sector || "Sin sector"}</div>
+                    <div className="text-xs text-white">{b.sector || "Sin sector"}</div>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-white">
                     {new Date(b.created_at).toLocaleDateString("es-ES")}
                   </div>
                 </div>
@@ -177,19 +177,19 @@ export default function AdminDashboard() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Leads recientes</h2>
-            <span className="text-sm text-gray-500">{stats.totalLeads} totales</span>
+            <span className="text-sm text-white">{stats.totalLeads} totales</span>
           </div>
           {recentLeads.length === 0 ? (
-            <p className="text-gray-500 text-sm">No hay leads</p>
+            <p className="text-white text-sm">No hay leads</p>
           ) : (
             <div className="space-y-2">
               {recentLeads.map((lead) => (
                 <div key={lead.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--background)]">
                   <div>
                     <div className="font-medium text-sm">{lead.name || lead.email}</div>
-                    <div className="text-xs text-gray-500">{lead.business_name}</div>
+                    <div className="text-xs text-white">{lead.business_name}</div>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-white">
                     {new Date(lead.created_at).toLocaleDateString("es-ES")}
                   </div>
                 </div>

@@ -78,7 +78,12 @@ export default function VipBenefitsNew() {
     form.append("file", file);
     form.append("kind", "logo");
     form.append("businessId", businessId);
-    const res = await fetch("/api/landing/upload", { method: "POST", body: form });
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/landing/upload", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${session?.access_token || ""}` },
+      body: form,
+    });
     if (!res.ok) return null;
     const data = await res.json();
     return data.url as string;
@@ -109,12 +114,18 @@ export default function VipBenefitsNew() {
         return;
       }
 
-      const bid = localStorage.getItem("konecta-business-id") || "";
+      const userEmail = session.user.email || "";
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      const bid = biz?.id || "";
       if (!bid) {
         router.push("/business/login?redirect=/vip-benefits/new");
         return;
       }
-      
+
       setBusinessId(bid);
       setCheckingAuth(false);
       load();
@@ -186,7 +197,7 @@ export default function VipBenefitsNew() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)] mx-auto mb-4"></div>
-          <p className="text-gray-400">Verificando acceso...</p>
+          <p className="text-white">Verificando acceso...</p>
         </div>
       </div>
     );
@@ -196,7 +207,7 @@ export default function VipBenefitsNew() {
     <div className="max-w-6xl mx-auto space-y-6 p-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Generador de Beneficios VIP</h1>
-        <p className="text-sm text-gray-400">Crea ofertas exclusivas para tus clientes</p>
+        <p className="text-sm text-white">Crea ofertas exclusivas para tus clientes</p>
       </div>
 
       {/* Plantillas rápidas */}
@@ -217,7 +228,7 @@ export default function VipBenefitsNew() {
           
           {/* Contenedor 1: Datos básicos */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
-            <div className="text-sm font-semibold text-[var(--brand-1)]">Datos básicos</div>
+            <div className="text-sm font-semibold text-white">Datos básicos</div>
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -259,7 +270,7 @@ export default function VipBenefitsNew() {
 
           {/* Contenedor 2: Contenido */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
-            <div className="text-sm font-semibold text-[var(--brand-1)]">Contenido del beneficio</div>
+            <div className="text-sm font-semibold text-white">Contenido del beneficio</div>
 
             <select className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" value={type} onChange={(e) => setType(e.target.value)}>
               {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -309,7 +320,7 @@ export default function VipBenefitsNew() {
 
           {/* Contenedor 3: CTA */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
-            <div className="text-sm font-semibold text-[var(--brand-1)]">Botón de acción (CTA)</div>
+            <div className="text-sm font-semibold text-white">Botón de acción (CTA)</div>
 
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={ctaEnabled} onChange={(e) => setCtaEnabled(e.target.checked)} />
@@ -336,15 +347,15 @@ export default function VipBenefitsNew() {
 
           {/* Contenedor 4: Colores + Guardar */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-4">
-            <div className="text-sm font-semibold text-[var(--brand-1)]">Diseño y colores</div>
+            <div className="text-sm font-semibold text-white">Diseño y colores</div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div><label className="text-xs text-gray-400">Fondo</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docBg} onChange={(e) => setDocBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
-              <div><label className="text-xs text-gray-400">Texto</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docText} onChange={(e) => setDocText(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
-              <div><label className="text-xs text-gray-400">Acento</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docAccent} onChange={(e) => setDocAccent(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
-              <div><label className="text-xs text-gray-400">Borde</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docBorder} onChange={(e) => setDocBorder(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
-              <div><label className="text-xs text-gray-400">Botón</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docButtonBg} onChange={(e) => setDocButtonBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
-              <div><label className="text-xs text-gray-400">Texto botón</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docButtonText} onChange={(e) => setDocButtonText(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Fondo</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docBg} onChange={(e) => setDocBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Texto</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docText} onChange={(e) => setDocText(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Acento</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docAccent} onChange={(e) => setDocAccent(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Borde</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docBorder} onChange={(e) => setDocBorder(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Botón</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docButtonBg} onChange={(e) => setDocButtonBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
+              <div><label className="text-xs text-white">Texto botón</label><div className="flex items-center gap-2 mt-1"><input type="color" value={docButtonText} onChange={(e) => setDocButtonText(e.target.value)} className="w-8 h-8 rounded cursor-pointer" /></div></div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
@@ -383,7 +394,7 @@ export default function VipBenefitsNew() {
       {/* Lista */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
         <div className="text-sm font-semibold mb-4">Beneficios creados ({items.length})</div>
-        {items.length === 0 ? <div className="text-sm text-gray-400">No hay beneficios</div> : (
+        {items.length === 0 ? <div className="text-sm text-white">No hay beneficios</div> : (
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {items.map((b) => (
               <div key={b.id} className="flex items-center justify-between p-3 bg-[var(--background)] rounded-lg">

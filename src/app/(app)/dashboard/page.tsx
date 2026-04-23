@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const [businessId, setBusinessId] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -19,13 +19,33 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    // Primero verificar parametro businessId en URL (desde admin)
-    const urlBusinessId = searchParams.get("businessId");
-    const bid = urlBusinessId || localStorage.getItem("konecta-business-id") || "";
-    if (!bid) return;
-    setBusinessId(bid);
-
     const load = async () => {
+      // 1) Si viene businessId por URL (admin), úsalo
+      const urlBusinessId = searchParams.get("businessId");
+      let bid = urlBusinessId || "";
+
+      // 2) Si no viene por URL, usar sesión de negocio
+      if (!bid) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userEmail = sessionData.session?.user?.email || "";
+
+        if (!userEmail) {
+          window.location.href = "/business/login";
+          return;
+        }
+
+        const { data: bizByEmail } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("contact_email", userEmail)
+          .single();
+
+        bid = bizByEmail?.id || "";
+      }
+
+      if (!bid) return;
+      setBusinessId(bid);
+
       // Cargar datos del negocio
       const { data: biz } = await supabase
         .from("businesses")
@@ -45,7 +65,7 @@ export default function DashboardPage() {
         .select("*", { count: "exact", head: true })
         .eq("business_id", bid);
 
-      // Contar lead magnets
+      // Contar Recursos de Valor
       const { count: leadMagnetsCount } = await supabase
         .from("lead_magnets")
         .select("*", { count: "exact", head: true })
@@ -63,8 +83,7 @@ export default function DashboardPage() {
         .from("products_services")
         .select("*", { count: "exact", head: true })
         .eq("business_id", bid);
-
-      setStats({
+setStats({
         benefits: benefitsCount || 0,
         leadMagnets: leadMagnetsCount || 0,
         clients: clientsCount || 0,
@@ -73,7 +92,7 @@ export default function DashboardPage() {
     };
 
     load();
-  }, []);
+  }, [searchParams]);
 
   const copyLink = async (text: string) => {
     await navigator.clipboard.writeText(text);
@@ -92,34 +111,34 @@ export default function DashboardPage() {
         "Guarda y comparte el enlace",
       ],
     },
-    {
-      title: "Lead Magnet",
-      description: "Crea recursos de valor para tus clientes",
-      href: "",
-      cta: "Crear lead magnet",
-      isSpecial: true,
-      options: [
-        { 
-          title: "Asistente", 
-          description: "Guía paso a paso", 
-          href: businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard",
-          icon: "🚀"
-        },
-        { 
-          title: "Avanzado", 
-          description: "Control total", 
-          href: businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new",
-          icon: "⚙️"
-        }
-      ],
-      steps: [
-        "Elige el tipo (guía, checklist, recomendación)",
-        "Escribe el título y contenido",
-        "Añade los botones de acción",
-        "Personaliza los colores",
-        "Descarga el PDF",
-      ],
+{
+  title: "Recurso de Valor",
+  description: "Crea contenido útil para fidelizar a tus clientes",
+  href: "",
+  cta: "Crear recurso",
+  isSpecial: true,
+  options: [
+    { 
+      title: "Asistente", 
+      description: "Guía paso a paso", 
+      href: businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard",
+      icon: ""
     },
+    { 
+      title: "Avanzado", 
+      description: "Control total", 
+      href: businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new",
+      icon: ""
+    }
+  ],
+  steps: [
+    "Elige el formato",
+    "Escribe el título y contenido",
+    "Añade los botones de acción",
+    "Personaliza los colores",
+    "Descarga el PDF",
+  ],
+},
     {
       title: "Beneficios VIP",
       description: "Crea descuentos y beneficios exclusivos para tus clientes",
@@ -191,8 +210,8 @@ export default function DashboardPage() {
           <p className="text-sm text-[var(--brand-1)]">Beneficios</p>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-center">
-          <p className="text-3xl font-bold text-[var(--brand-4)]">{stats.leadMagnets}</p>
-          <p className="text-sm text-[var(--brand-1)]">Lead Magnets</p>
+<p className="text-3xl font-bold text-[var(--brand-4)]">{stats.leadMagnets}</p>
+<p className="text-sm text-[var(--brand-1)]">Recursos de Valor</p>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-center">
           <p className="text-3xl font-bold text-[var(--brand-4)]">{stats.clients}</p>
@@ -226,7 +245,7 @@ export default function DashboardPage() {
                       href={opt.href}
                       className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:border-[var(--brand-4)] transition-colors"
                     >
-                      <span className="text-xl">{opt.icon}</span>
+<span className="text-xs uppercase tracking-widest text-gray-400">Opción</span>
                       <div>
                         <div className="font-semibold text-sm">{opt.title}</div>
                         <div className="text-xs text-gray-500">{opt.description}</div>
@@ -310,5 +329,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm">Cargando...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

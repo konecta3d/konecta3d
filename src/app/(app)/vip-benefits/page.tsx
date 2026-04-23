@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -14,11 +14,28 @@ interface Benefit {
   created_at: string;
 }
 
-export default function VipBenefitsPage() {
+function VipBenefitsContent() {
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
-  const businessId = searchParams.get("businessId") || localStorage.getItem("konecta-business-id") || "";
+  const [businessId, setBusinessId] = useState("");
+
+useEffect(() => {
+  const load = async () => {
+    const paramId = searchParams.get("businessId");
+    if (paramId) { setBusinessId(paramId); return; }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData?.session?.user?.email || "";
+    if (!userEmail) { setBusinessId(""); return; }
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .single();
+    setBusinessId(biz?.id || "");
+  };
+  load();
+}, [searchParams]);
 
   useEffect(() => {
     if (!businessId) {
@@ -71,10 +88,10 @@ export default function VipBenefitsPage() {
           {/* Asistente */}
           <div className="text-center">
             <h2 className="text-xl font-bold text-white mb-2">Asistente</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white mb-4">
               Creación guiada paso a paso.
             </p>
-            <ul className="text-sm text-gray-400 space-y-1 mb-4 text-left max-w-xs mx-auto">
+            <ul className="text-sm text-white space-y-1 mb-4 text-left max-w-xs mx-auto">
               <li className="flex items-center gap-2">
                 <span className="text-[var(--brand-4)]">✓</span> 4 pasos guiados
               </li>
@@ -87,7 +104,7 @@ export default function VipBenefitsPage() {
             </ul>
             <Link
               href={businessId ? `/vip-benefits/wizard?businessId=${businessId}` : "/vip-benefits/wizard"}
-              className="block w-full max-w-xs mx-auto py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90"
+className="block w-full py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90"
             >
               Crear con Asistente
             </Link>
@@ -96,10 +113,10 @@ export default function VipBenefitsPage() {
           {/* Avanzado */}
           <div className="text-center">
             <h2 className="text-xl font-bold text-white mb-2">Avanzado</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white mb-4">
               Control total sobre el diseño.
             </p>
-            <ul className="text-sm text-gray-400 space-y-1 mb-4 text-left max-w-xs mx-auto">
+            <ul className="text-sm text-white space-y-1 mb-4 text-left max-w-xs mx-auto">
               <li className="flex items-center gap-2">
                 <span className="text-[var(--brand-4)]">✓</span> Edición libre
               </li>
@@ -112,7 +129,7 @@ export default function VipBenefitsPage() {
             </ul>
             <Link
               href={businessId ? `/vip-benefits/new?businessId=${businessId}` : "/vip-benefits/new"}
-              className="block w-full max-w-xs mx-auto py-3 text-center rounded-lg bg-[var(--brand-1)] text-white font-semibold hover:opacity-90"
+className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-black font-semibold hover:opacity-90"
             >
               Crear en modo Avanzado
             </Link>
@@ -130,9 +147,9 @@ export default function VipBenefitsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-400">Cargando...</div>
+          <div className="text-center py-8 text-white">Cargando...</div>
         ) : benefits.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-white">
             <p>No hay beneficios todavía</p>
             <p className="text-sm mt-1">Crea uno usando el botón de arriba</p>
           </div>
@@ -154,7 +171,7 @@ export default function VipBenefitsPage() {
                         {benefit.value}
                       </span>
                     )}
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-white">
                       {new Date(benefit.created_at).toLocaleDateString("es-ES")}
                     </span>
                   </div>
@@ -179,5 +196,13 @@ export default function VipBenefitsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VipBenefitsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm">Cargando...</div>}>
+      <VipBenefitsContent />
+    </Suspense>
   );
 }

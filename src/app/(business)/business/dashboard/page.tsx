@@ -69,7 +69,7 @@ export default function BusinessDashboard() {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-gray-400">Cargando...</div>;
+    return <div className="p-6 text-white">Cargando...</div>;
   }
 
   // Una vez autenticado y con businessId, redirigimos directamente a Estadísticas

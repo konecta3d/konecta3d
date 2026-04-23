@@ -42,7 +42,7 @@ input[type="range"]::-moz-range-thumb {
 
 .dark {
   --background: #0a1118;
-  --foreground: #e8eef4;
+  --foreground: #ffffff;
   --card: #0f1720;
   --border: rgba(255, 255, 255, 0.08);
   --brand-1: #9fd1d6;
@@ -79,7 +79,7 @@ body {
 
 :not(.dark) .lm-wizard .text-white,
 :not(.dark) .vb-wizard .text-white {
-  color: #111827; /* texto principal oscuro */
+  color: #ffffff; /* texto blanco */
 }
 
 :not(.dark) .lm-wizard .text-gray-300,

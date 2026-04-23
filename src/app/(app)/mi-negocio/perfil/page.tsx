@@ -33,27 +33,32 @@ export default function PerfilPage() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         router.push("/business/login?redirect=/mi-negocio/perfil");
         return;
       }
-      
-      const role = localStorage.getItem("konecta-role");
-      if (role !== "business") {
+
+      const userEmail = session.user?.email || "";
+      if (!userEmail) {
         router.push("/business/login?redirect=/mi-negocio/perfil");
         return;
       }
 
-      const bid = localStorage.getItem("konecta-business-id") || "";
-      if (!bid) {
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+
+      if (!biz?.id) {
         router.push("/business/login?redirect=/mi-negocio/perfil");
         return;
       }
-      
-      setBusinessId(bid);
+
+      setBusinessId(biz.id);
       setCheckingAuth(false);
-      loadData(bid);
+      loadData(biz.id);
     };
 
     checkAuth();
@@ -79,7 +84,7 @@ export default function PerfilPage() {
 
     // Cargar estadísticas
     const [landingsRes, leadsRes, benefitsRes] = await Promise.all([
-      supabase.from("landings").select("id", { count: "exact" }).eq("business_id", bid),
+      supabase.from("landing_configs").select("id", { count: "exact" }).eq("business_id", bid),
       supabase.from("leads").select("id", { count: "exact" }).eq("business_id", bid),
       supabase.from("benefits").select("id", { count: "exact" }).eq("business_id", bid),
     ]);
@@ -127,8 +132,10 @@ export default function PerfilPage() {
     formData.append("businessId", businessId);
     
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/landing/upload", {
         method: "POST",
+        headers: { "Authorization": `Bearer ${session?.access_token || ""}` },
         body: formData,
       });
       const data = await res.json();
@@ -151,7 +158,7 @@ export default function PerfilPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)] mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando...</p>
+          <p className="text-white">Cargando...</p>
         </div>
       </div>
     );
@@ -161,7 +168,7 @@ export default function PerfilPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Mi Perfil</h1>
-        <p className="text-sm text-gray-400">Gestiona los datos de tu negocio</p>
+        <p className="text-sm text-white">Gestiona los datos de tu negocio</p>
       </div>
 
       {/* Mensaje */}
@@ -175,13 +182,13 @@ export default function PerfilPage() {
       <div className="flex gap-2 border-b border-[var(--border)] pb-2">
         <button
           onClick={() => setActiveTab("datos")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-gray-400 hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Datos del Negocio
         </button>
         <button
           onClick={() => setActiveTab("stats")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-gray-400 hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Estadísticas
         </button>
@@ -208,7 +215,7 @@ export default function PerfilPage() {
                   <span>Subir logo</span>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
                 </label>
-                <p className="text-xs text-gray-500 mt-2">PNG, JPG o SVG. Máximo 2MB.</p>
+                <p className="text-xs text-white mt-2">PNG, JPG o SVG. Máximo 2MB.</p>
               </div>
             </div>
           </div>
@@ -230,7 +237,7 @@ export default function PerfilPage() {
               <div>
                 <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Slug (enlace)</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">konecta3d.com/l/</span>
+                  <span className="text-sm text-white">konecta3d.com/l/</span>
                   <input
                     type="text"
                     value={slug}
@@ -256,7 +263,7 @@ export default function PerfilPage() {
                   disabled
                   className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 opacity-50"
                 />
-                <p className="text-xs text-gray-500 mt-1">El email no se puede cambiar</p>
+                <p className="text-xs text-white mt-1">El email no se puede cambiar</p>
               </div>
               <div className="md:col-span-2">
                 <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Descripción</label>
@@ -291,7 +298,7 @@ export default function PerfilPage() {
           {/* Info de contraseña */}
           <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-6">
             <h2 className="text-lg font-semibold mb-2">Contraseña de acceso</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white mb-4">
               Si necesitas cambiar tu contraseña, contacta con el administrador de Konecta3D.
             </p>
           </div>
@@ -304,19 +311,19 @@ export default function PerfilPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
               <div className="text-3xl font-bold text-[var(--brand-1)]">{stats.landings}</div>
-              <div className="text-xs text-gray-500">Landings</div>
+              <div className="text-xs text-white">Landings</div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
               <div className="text-3xl font-bold text-green-500">{stats.leadMagnets}</div>
-              <div className="text-xs text-gray-500">Lead Magnets</div>
+              <div className="text-xs text-white">Lead Magnets</div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
               <div className="text-3xl font-bold text-blue-500">{stats.benefits}</div>
-              <div className="text-xs text-gray-500">Beneficios VIP</div>
+              <div className="text-xs text-white">Beneficios VIP</div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
               <div className="text-3xl font-bold text-purple-500">{stats.leads}</div>
-              <div className="text-xs text-gray-500">Leads</div>
+              <div className="text-xs text-white">Leads</div>
             </div>
           </div>
 
@@ -326,7 +333,7 @@ export default function PerfilPage() {
               <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--background)]">
                 <div>
                   <div className="font-medium">Landing pública</div>
-                  <div className="text-xs text-gray-500">konecta3d.com/l/{slug}</div>
+                  <div className="text-xs text-white">konecta3d.com/l/{slug}</div>
                 </div>
                 <a href={`/l/${slug}`} target="_blank" className="px-3 py-1 rounded-lg border border-[var(--border)] text-xs hover:bg-white/5">
                   Ver

@@ -42,19 +42,21 @@ function AdminConfigContent() {
     module_whatsapp: true,
   });
 
-  // Modal editar negocio
-  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
+// Modal editar negocio
+const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+const [showEditModal, setShowEditModal] = useState(false);
 
-  // Modal reset password
-  const [resetPasswordBusiness, setResetPasswordBusiness] = useState<Business | null>(null);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [resetting, setResetting] = useState(false);
+// Modal reset password
+const [resetPasswordBusiness, setResetPasswordBusiness] = useState<Business | null>(null);
+const [showResetModal, setShowResetModal] = useState(false);
+const [newPassword, setNewPassword] = useState("");
+const [showResetPassword, setShowResetPassword] = useState(false);
+const [copiedResetMsg, setCopiedResetMsg] = useState("");
+const [resetting, setResetting] = useState(false);
 
-  const searchParams = useSearchParams();
-  const rawTab = searchParams.get("tab");
-  const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "actividad", "personalizacion"];
+const searchParams = useSearchParams();
+const rawTab = searchParams.get("tab");
+const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "actividad", "personalizacion"];
 
   useEffect(() => {
     setTab(validTabs.includes(rawTab || "") ? (rawTab || "negocios") : "negocios");
@@ -116,9 +118,14 @@ function AdminConfigContent() {
     setMsg("Creando...");
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
       const res = await fetch("/api/admin/create-business", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify(newBusiness),
       });
 
@@ -148,40 +155,51 @@ function AdminConfigContent() {
     setTimeout(() => setMsg(""), 4000);
   };
 
-  // Reset password
-  const resetPassword = async () => {
-    if (!resetPasswordBusiness?.contact_email || !newPassword) return;
+// Reset password
+const resetPassword = async () => {
+  if (!resetPasswordBusiness?.contact_email || !newPassword) return;
+  setResetting(true);
+  setMsg("Reseteando...");
 
-    setResetting(true);
-    setMsg("Reseteando...");
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token || "";
 
-    try {
-      const res = await fetch("/api/admin/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: resetPasswordBusiness.contact_email,
-          newPassword: newPassword,
-        }),
-      });
+    const res = await fetch("/api/admin/reset-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+body: JSON.stringify({
+  email: resetPasswordBusiness.contact_email,
+  businessId: resetPasswordBusiness.id,
+  newPassword,
+}),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        setMsg(data.error || "Error al resetear");
-      } else {
-        setMsg(data.isNewUser ? "Usuario creado con password" : "Password actualizado");
-        setShowResetModal(false);
-        setNewPassword("");
-      }
-    } catch (err) {
-      setMsg("Error de conexión");
+    if (!res.ok) {
+      setMsg(data.error || "Error al resetear");
+    } else {
+      setMsg(data.isNewUser ? "Usuario creado con password" : "Password actualizado");
+
+      // Actualiza el negocio en memoria (para que no vuelva a mostrar el DNI)
+      setBusinesses((prev) =>
+        prev.map((b) => b.id === resetPasswordBusiness.id ? { ...b } : b)
+      );
+
+      setShowResetModal(false);
+      setNewPassword("");
     }
+  } catch (err) {
+    setMsg("Error de conexión");
+  }
 
-    setResetting(false);
-    setTimeout(() => setMsg(""), 4000);
-  };
-
+  setResetting(false);
+  setTimeout(() => setMsg(""), 4000);
+};
   // Actualizar negocio
   const updateBusiness = async () => {
     if (!editingBusiness) return;
@@ -322,36 +340,45 @@ function AdminConfigContent() {
               {filtered.map((b) => (
                 <div key={b.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <button
-                      type="button"
-                      onClick={() => openBusinessAsClient(b)}
-                      className="w-12 h-12 rounded-lg bg-[var(--brand-1)] flex items-center justify-center text-xl font-bold text-black hover:opacity-80 transition-opacity"
-                      title="Abrir panel del negocio"
-                    >
-                      {b.name.charAt(0).toUpperCase()}
-                    </button>
+<button
+  type="button"
+  onClick={() => window.open(`/business/select-profile?businessId=${b.id}&fromAdmin=1`, "_blank")}
+  className="w-12 h-12 rounded-lg bg-[var(--brand-1)] flex items-center justify-center text-xl font-bold text-black hover:opacity-80 transition-opacity"
+  title="Abrir selector de perfil"
+>
+  {b.name.charAt(0).toUpperCase()}
+</button>
                     <div className="flex gap-1">
                       <button
-                        onClick={() => { setResetPasswordBusiness(b); setShowResetModal(true); }}
-                        className="text-xs px-2 py-1 rounded border border-[var(--brand-4)] text-[var(--brand-4)] hover:bg-[var(--brand-4)]/10"
-                        title="Cambiar contraseña"
-                      >
-                        🔑
-                      </button>
-                      <button
-                        onClick={() => { setEditingBusiness(b); setShowEditModal(true); }}
-                        className="text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-white/5"
-                        title="Editar"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => deleteBusiness(b.id)}
-                        className="text-xs px-2 py-1 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10"
-                        title="Eliminar"
-                      >
-                        🗑️
-                      </button>
+  onClick={() => {
+    setResetPasswordBusiness(b);
+    setNewPassword("");
+    setShowResetPassword(false);
+    setCopiedResetMsg("");
+    setShowResetModal(true);
+  }}
+  className="text-xs px-2 py-1 rounded border border-[var(--brand-4)] text-[var(--brand-4)] hover:bg-[var(--brand-4)]/10"
+  title="Cambiar contraseña"
+>
+  Reset
+</button>
+<button
+  onClick={() => {
+    setEditingBusiness(b);
+    setShowEditModal(true);
+  }}
+  className="text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-white/5"
+  title="Editar"
+>
+  Editar
+</button>
+<button
+  onClick={() => deleteBusiness(b.id)}
+  className="text-xs px-2 py-1 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10"
+  title="Eliminar"
+>
+  Eliminar
+</button>
                     </div>
                   </div>
 
@@ -526,7 +553,7 @@ function AdminConfigContent() {
                   </button>
                 </div>
               </div>
-            </div>
+</div>
           )}
 
           {/* Modal: Reset Password */}
@@ -543,16 +570,52 @@ function AdminConfigContent() {
                     <p>Email: <span className="text-white">{resetPasswordBusiness.contact_email}</span></p>
                   </div>
 
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
-                    />
-                  </div>
+<div>
+  <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Nueva Contraseña</label>
+  <div className="flex items-center gap-2">
+    <input
+      type={showResetPassword ? "text" : "password"}
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+      placeholder="Mínimo 6 caracteres"
+      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+    />
+    <button
+      type="button"
+      onClick={() => setShowResetPassword((v) => !v)}
+      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+    >
+      {showResetPassword ? "Ocultar" : "Ver"}
+    </button>
+    <button
+      type="button"
+      onClick={() => {
+        if (!newPassword) return;
+        navigator.clipboard.writeText(newPassword);
+        setCopiedResetMsg("Copiada");
+        setTimeout(() => setCopiedResetMsg(""), 1500);
+      }}
+      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+    >
+      Copiar
+    </button>
+    <button
+      type="button"
+      onClick={() => {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+        let pwd = "";
+        for (let i = 0; i < 8; i++) {
+          pwd += chars[Math.floor(Math.random() * chars.length)];
+        }
+        setNewPassword(pwd);
+      }}
+      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+    >
+      Generar
+    </button>
+  </div>
+  {copiedResetMsg && <div className="text-xs text-green-500 mt-1">{copiedResetMsg}</div>}
+</div>
 
                   <button
                     onClick={resetPassword}

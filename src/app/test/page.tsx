@@ -3,6 +3,7 @@
 export default function TestPage() {
   const testReset = async () => {
     const result = document.getElementById('result');
+    if (!result) return;
     result.textContent = 'Testing...';
     
     try {

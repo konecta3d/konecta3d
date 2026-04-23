@@ -34,30 +34,37 @@ export default function Sidebar({ links, title }: SidebarProps) {
     useEffect(() => setMounted(true), []);
 
     // Cargar módulos del negocio
-    React.useEffect(() => {
-        const loadModules = async () => {
-            const businessId = localStorage.getItem("konecta-business-id");
-            if (!businessId) {
-                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true });
-                return;
-            }
-            const { data } = await supabase
-                .from("businesses")
-                .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools")
-                .eq("id", businessId)
-                .single();
-
-            if (data) {
-                setModules({
-                    module_vip_benefits: data.module_vip_benefits ?? true,
-                    module_lead_magnet: data.module_lead_magnet ?? true,
-                    module_whatsapp: data.module_whatsapp ?? true,
-                    module_tools: data.module_tools ?? true,
-                });
-            }
-        };
-        if (showBusinessSidebar) loadModules();
-    }, [pathname, showBusinessSidebar]);
+    // Cargar businessId desde sesión
+useEffect(() => {
+  const load = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData?.session?.user?.email || "";
+    if (!userEmail) return;
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .single();
+    if (!biz?.id) return;
+    const { data } = await supabase
+      .from("businesses")
+      .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms")
+      .eq("id", biz.id)
+      .single();
+    if (data) {
+      setModules({
+        module_vip_benefits: data.module_vip_benefits ?? true,
+        module_lead_magnet: data.module_lead_magnet ?? true,
+        module_whatsapp: data.module_whatsapp ?? true,
+        module_tools: data.module_tools ?? true,
+        module_forms: data.module_forms ?? true,
+      });
+    } else {
+      setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true });
+    }
+  };
+  if (showBusinessSidebar) load();
+}, [pathname, showBusinessSidebar]);
 
     // Cargar nombres personalizados
     React.useEffect(() => {
@@ -114,7 +121,7 @@ export default function Sidebar({ links, title }: SidebarProps) {
             : "bg-[var(--brand-4)] text-black font-semibold";
 
         const inactiveClasses = darkMode
-            ? "hover:bg-white/5 text-gray-300"
+            ? "hover:bg-white/5 text-white"
             : "text-gray-700 hover:bg-black/5";
 
         return (

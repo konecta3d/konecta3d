@@ -35,18 +35,25 @@ export default function OnboardingPage() {
         return;
       }
 
-      const storedId = localStorage.getItem("konecta-business-id");
-      if (!storedId) {
+      const userEmail = user.email || "";
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+
+      const resolvedId = biz?.id;
+      if (!resolvedId) {
         router.push("/business/login?redirect=/mi-negocio/onboarding");
         return;
       }
 
-      setBusinessId(storedId);
+      setBusinessId(resolvedId);
 
       const { data } = await supabase
         .from("businesses")
         .select("name, sector, city, ideal_client, problems, offer_name, offer_benefits, offer_cta")
-        .eq("id", storedId)
+        .eq("id", resolvedId)
         .single();
 
       if (data) {
@@ -124,13 +131,13 @@ export default function OnboardingPage() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-semibold mb-2">Configurar mi negocio</h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-white">
           Responde a estas preguntas básicas. Con esta información podremos generar tu landing, recursos y mensajes.
         </p>
       </div>
 
       {/* Paso indicador */}
-      <div className="flex items-center gap-2 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-white">
         <span className={step === 1 ? "text-[var(--brand-4)]" : ""}>1. Negocio</span>
         <span>›</span>
         <span className={step === 2 ? "text-[var(--brand-4)]" : ""}>2. Cliente ideal</span>

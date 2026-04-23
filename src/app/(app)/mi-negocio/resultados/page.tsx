@@ -22,18 +22,25 @@ export default function ResultadosPage() {
         return;
       }
 
-      const storedId = localStorage.getItem("konecta-business-id");
-      if (!storedId) {
+      const userEmail = user.email || "";
+      const { data: bizId } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+
+      const resolvedId = bizId?.id;
+      if (!resolvedId) {
         router.push("/business/login?redirect=/mi-negocio/resultados");
         return;
       }
 
-      setBusinessId(storedId);
+      setBusinessId(resolvedId);
 
       const { data: biz } = await supabase
         .from("businesses")
         .select("name, slug")
-        .eq("id", storedId)
+        .eq("id", resolvedId)
         .single();
 
       if (biz) {
@@ -42,8 +49,8 @@ export default function ResultadosPage() {
       }
 
       const [{ count: leads }, { count: landings }] = await Promise.all([
-        supabase.from("leads").select("id", { count: "exact", head: true }).eq("business_id", storedId),
-        supabase.from("landings").select("id", { count: "exact", head: true }).eq("business_id", storedId),
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("business_id", resolvedId),
+        supabase.from("landing_configs").select("id", { count: "exact", head: true }).eq("business_id", resolvedId),
       ]);
 
       setLeadCount(leads || 0);
@@ -67,7 +74,7 @@ export default function ResultadosPage() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-semibold mb-2">Resultados</h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-white">
           Aquí verás los activos que se han generado para tu negocio y los resultados principales.
         </p>
       </div>
@@ -77,8 +84,8 @@ export default function ResultadosPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex flex-col justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-1">Landing pública</h2>
-            <p className="text-sm text-gray-400 mb-2">Esta es la página que puedes compartir con tus clientes.</p>
-            <p className="text-xs text-gray-500 break-words">konecta3d.com/l/{publicSlug}</p>
+            <p className="text-sm text-white mb-2">Esta es la página que puedes compartir con tus clientes.</p>
+            <p className="text-xs text-white break-words">konecta3d.com/l/{publicSlug}</p>
           </div>
           <div className="mt-3 flex gap-2">
             <a
@@ -94,7 +101,7 @@ export default function ResultadosPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex flex-col justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-1">Lead Magnet / Documentos</h2>
-            <p className="text-sm text-gray-400 mb-2">
+            <p className="text-sm text-white mb-2">
               Recursos descargables que puedes usar para captar y nutrir a tus leads.
             </p>
           </div>
@@ -125,18 +132,18 @@ export default function ResultadosPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
           <div className="text-2xl font-bold text-[var(--brand-1)]">{landingCount}</div>
-          <div className="text-xs text-gray-500">Landings creadas</div>
+          <div className="text-xs text-white">Landings creadas</div>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
           <div className="text-2xl font-bold text-green-500">{leadCount}</div>
-          <div className="text-xs text-gray-500">Leads capturados</div>
+          <div className="text-xs text-white">Leads capturados</div>
         </div>
       </div>
 
       {/* Recordatorio acción */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
         <h2 className="text-lg font-semibold mb-2">Qué hacer ahora</h2>
-        <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+        <ul className="list-disc list-inside text-sm text-white space-y-1">
           <li>Comparte tu landing con tus clientes por WhatsApp o redes sociales.</li>
           <li>Usa tus lead magnets como gancho para capturar contactos.</li>
           <li>Revisa tus leads frecuentemente y haz seguimiento.</li>

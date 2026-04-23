@@ -26,11 +26,10 @@ export async function POST(req: Request) {
       businessId = biz.id;
     }
 
-    // TODO: reactivar verificación de propiedad cuando el cliente envíe token.
-    // const hasOwnership = await verifyBusinessOwnership(req, businessId);
-    // if (!hasOwnership) {
-    //   return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    // }
+    const hasOwnership = await verifyBusinessOwnership(req, businessId);
+    if (!hasOwnership) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
 
     // Ensure slug
     if (slug) {

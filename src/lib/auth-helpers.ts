@@ -16,18 +16,20 @@ export async function verifyAdminSession(req: Request): Promise<{ isAdmin: boole
   const { data } = await anonClient.auth.getUser(token);
   if (!data?.user) return { isAdmin: false, userId: "" };
 
+  const email = (data.user.email || "").toLowerCase();
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: business } = await supabaseAdmin
-    .from("businesses")
-    .select("user_id")
-    .eq("user_id", data.user.id)
+  const { data: admin } = await supabaseAdmin
+    .from("admins")
+    .select("email")
+    .eq("email", email)
     .single();
 
-  return { isAdmin: !!business, userId: data.user.id };
+  return { isAdmin: !!admin, userId: data.user.id };
 }
 
 /**

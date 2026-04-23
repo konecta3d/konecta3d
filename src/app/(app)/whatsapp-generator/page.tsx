@@ -23,16 +23,27 @@ export default function WhatsAppGeneratorPage() {
   const [businessId, setBusinessId] = useState("");
 
   useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id");
-    if (bid) {
-      setBusinessId(bid);
-      loadSavedLinks(bid);
-    }
-    // Cargar link guardado previamente
-    const savedLink = localStorage.getItem("konecta-whatsapp-link");
-    if (savedLink) {
-      setLink(savedLink);
-    }
+    const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData?.session?.user?.email || "";
+      if (!userEmail) return;
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      const bid = biz?.id || "";
+      if (bid) {
+        setBusinessId(bid);
+        loadSavedLinks(bid);
+      }
+      // Cargar link guardado previamente
+      const savedLink = localStorage.getItem("konecta-whatsapp-link");
+      if (savedLink) {
+        setLink(savedLink);
+      }
+    };
+    load();
   }, []);
 
   const loadSavedLinks = async (bid: string) => {
@@ -197,7 +208,7 @@ export default function WhatsAppGeneratorPage() {
               <div key={savedLink.id} className="flex items-center justify-between p-3 bg-[var(--background)] rounded-lg">
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{savedLink.name}</div>
-                  <div className="text-xs text-gray-500 truncate">{savedLink.phone} - {savedLink.message}</div>
+                  <div className="text-xs text-white truncate">{savedLink.phone} - {savedLink.message}</div>
                 </div>
                 <div className="flex gap-2 ml-3">
                   <button

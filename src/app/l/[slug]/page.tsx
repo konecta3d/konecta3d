@@ -36,6 +36,14 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
     .eq("business_id", business.id)
     .single();
 
+  // Cargar formularios activos del negocio (máx 1 para mostrar)
+  const { data: activeForms } = await supabase
+    .from("forms")
+    .select("id, title, type, questions, data_collection")
+    .eq("business_id", business.id)
+    .eq("active", true)
+    .limit(1);
+
   // Extraer la versión correcta (publicada)
   let resolvedConfig = landingConfig?.config || {};
   if (resolvedConfig.versions) {
@@ -44,10 +52,11 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
   }
 
   const config = {
-    ...defaultLandingConfig,
-    ...resolvedConfig,
-    businessName: business.name,
-  };
+  ...defaultLandingConfig,
+  ...resolvedConfig,
+  businessName: business.name,
+  businessId: business.id,
+};
 
-  return <LandingRenderer config={config} />;
+  return <LandingRenderer config={config} activeForms={activeForms || []} />;
 }

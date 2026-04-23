@@ -129,19 +129,19 @@ export default function AdminSettings() {
       <div className="flex gap-2 border-b border-[var(--border)] pb-2">
         <button
           onClick={() => setActiveSection("email")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "email" ? "bg-[var(--brand-4)] text-black" : "text-gray-400 hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "email" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Email
         </button>
         <button
           onClick={() => setActiveSection("security")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "security" ? "bg-[var(--brand-4)] text-black" : "text-gray-400 hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "security" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Seguridad
         </button>
         <button
           onClick={() => setActiveSection("subscription")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "subscription" ? "bg-[var(--brand-4)] text-black" : "text-gray-400 hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "subscription" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Suscripciones
         </button>
@@ -251,7 +251,7 @@ export default function AdminSettings() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
           <div>
             <h2 className="text-lg font-semibold mb-4">Planes de Suscripción</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white mb-4">
               Configura los límites para cada plan de suscripción. Esta funcionalidad estará disponible en futuras actualizaciones.
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function AdminSettings() {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="rounded-lg border border-[var(--border)] p-4">
               <h3 className="font-semibold mb-2">Gratis</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
+              <ul className="text-sm text-white space-y-1">
                 <li>1 negocio</li>
                 <li>3 landings</li>
                 <li>10 leads/mes</li>
@@ -268,7 +268,7 @@ export default function AdminSettings() {
             </div>
             <div className="rounded-lg border border-[var(--brand-4)] bg-[var(--brand-4)]/10 p-4">
               <h3 className="font-semibold mb-2">Básico</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
+              <ul className="text-sm text-white space-y-1">
                 <li>5 negocios</li>
                 <li>Landings ilimitadas</li>
                 <li>100 leads/mes</li>
@@ -277,7 +277,7 @@ export default function AdminSettings() {
             </div>
             <div className="rounded-lg border border-[var(--border)] p-4">
               <h3 className="font-semibold mb-2">Pro</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
+              <ul className="text-sm text-white space-y-1">
                 <li>Negocios ilimitados</li>
                 <li>Todo incluido</li>
                 <li>Leads ilimitados</li>

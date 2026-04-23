@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import puppeteer from "puppeteer-core";
 import { escapeHtml, sanitizeUrl, sanitizeFilename } from "@/lib/sanitize";
 import { verifyBusinessOwnership } from "@/lib/auth-helpers";
+import { launchBrowser } from "@/lib/pdf-browser";
+
+export const maxDuration = 60; // Vercel Pro: hasta 60s para PDF generation
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -97,6 +99,7 @@ export async function GET(req: Request) {
 
     // Marco tipo móvil - dimensiones similares a un teléfono
     const frameWidth = 340;
+    const frameHeight = 600;
     const frameRadius = 40;
     const paddingX = 20;
     const paddingY = 28;
@@ -208,57 +211,35 @@ export async function GET(req: Request) {
 </body>
 </html>`;
 
-    // Buscar Chrome/Chromium
-    const possiblePaths = [
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files\\Chromium\\Application\\chromium.exe',
-      process.env.CHROME_PATH,
-    ].filter(Boolean);
+    const browser = await launchBrowser();
 
-    let executablePath = '';
-    for (const path of possiblePaths) {
-      try {
-        const fs = require('fs');
-        if (fs.existsSync(path)) {
-          executablePath = path;
-          break;
-        }
-      } catch {}
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+
+      const pdfBuffer = await page.pdf({
+        width: "400px",
+        height: "750px",
+        printBackground: true,
+        margin: { top: 0, bottom: 0, left: 0, right: 0 },
+      });
+
+      await browser.close();
+
+      const filename = `beneficio-${sanitizeFilename(bizName || "VIP")}.pdf`;
+      return new Response(Buffer.from(pdfBuffer), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      });
+    } catch (e) {
+      await browser.close().catch(() => {});
+      throw e;
     }
-
-    if (!executablePath) {
-      return new Response("Chrome no encontrado. Instala Chrome o define CHROME_PATH.", { status: 500 });
-    }
-
-    const browser = await puppeteer.launch({
-      executablePath,
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-
-    const pdfBuffer = await page.pdf({
-      width: '400px',
-      height: '750px',
-      printBackground: true,
-      margin: { top: 0, bottom: 0, left: 0, right: 0 }
-    });
-
-    await browser.close();
-
-    // Devolver el PDF directamente con headers correctos
-    const filename = `beneficio-${sanitizeFilename(bizName || "VIP")}.pdf`;
-    return new Response(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-      },
-    });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Error al generar PDF";
     console.error("PDF generate error:", e);
-    return new Response(e?.message || e?.toString() || "Generate PDF error", { status: 500 });
+    return new Response(msg, { status: 500 });
   }
 }

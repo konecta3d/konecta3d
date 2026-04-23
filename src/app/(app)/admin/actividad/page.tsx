@@ -95,7 +95,7 @@ export default function AdminActividad() {
     if (action.includes("creado") || action.includes("login") && action.includes("exitoso")) return "text-green-400";
     if (action.includes("eliminado")) return "text-red-400";
     if (action.includes("actualizado") || action.includes("editado")) return "text-blue-400";
-    return "text-gray-400";
+    return "text-white";
   };
 
   if (loading) {
@@ -151,7 +151,7 @@ export default function AdminActividad() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 text-sm text-gray-400">
+      <div className="flex gap-4 text-sm text-white">
         <span>{filteredActivity.length} registros</span>
         <span>|</span>
         <span>Total: {activity.length}</span>
@@ -161,7 +161,7 @@ export default function AdminActividad() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[var(--background)] text-xs uppercase text-gray-400">
+            <thead className="bg-[var(--background)] text-xs uppercase text-white">
               <tr>
                 <th className="px-4 py-3 text-left">Fecha</th>
                 <th className="px-4 py-3 text-left">Negocio</th>
@@ -172,16 +172,16 @@ export default function AdminActividad() {
             <tbody>
               {filteredActivity.map((log) => (
                 <tr key={log.id} className="border-t border-[var(--border)] hover:bg-white/5">
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap text-white">
                     {new Date(log.created_at).toLocaleString("es-ES")}
                   </td>
                   <td className="px-4 py-3">
-                    {log.business_name || <span className="text-gray-500">Sistema</span>}
+                    {log.business_name || <span className="text-white">Sistema</span>}
                   </td>
                   <td className={`px-4 py-3 font-medium ${getActionColor(log.action)}`}>
                     {formatAction(log.action)}
                   </td>
-                  <td className="px-4 py-3 text-gray-400 max-w-xs truncate">
+                  <td className="px-4 py-3 text-white max-w-xs truncate">
                     {log.details ? (
                       typeof log.details === "string" ? log.details : JSON.stringify(log.details)
                     ) : "—"}
@@ -192,7 +192,7 @@ export default function AdminActividad() {
           </table>
         </div>
         {filteredActivity.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-white">
             No hay actividad que mostrar
           </div>
         )}

@@ -48,14 +48,34 @@ export default function CatalogoPage() {
 
   const CATEGORIES = ["Producto", "Servicio", "Paquete"];
 
-  useEffect(() => {
-    const bid = new URLSearchParams(window.location.search).get("businessId") 
-      || localStorage.getItem("konecta-business-id") 
-      || "";
+useEffect(() => {
+  const load = async () => {
+    const urlBusinessId = new URLSearchParams(window.location.search).get("businessId");
+    let bid = urlBusinessId || "";
+
+    if (!bid) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData.session?.user?.email || "";
+
+      if (userEmail) {
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("contact_email", userEmail)
+          .single();
+
+        bid = biz?.id || "";
+      }
+    }
+
     setBusinessId(bid);
+
     if (bid) loadData(bid);
     else setLoading(false);
-  }, []);
+  };
+
+  load();
+}, []);
 
   const loadData = async (bid: string) => {
     const { data } = await supabase
@@ -202,7 +222,12 @@ export default function CatalogoPage() {
     form.append("kind", "product");
     form.append("businessId", businessId);
     
-    const res = await fetch("/api/landing/upload", { method: "POST", body: form });
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/landing/upload", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${session?.access_token || ""}` },
+      body: form,
+    });
     if (res.ok) {
       const data = await res.json();
       setImages([...images, data.url]);
@@ -390,15 +415,15 @@ export default function CatalogoPage() {
           <div key={item.id} className={`flex items-start justify-between rounded-lg border p-4 ${item.featured ? "border-[var(--brand-3)] bg-[var(--brand-3)]/5" : "border-[var(--border)]"}`}>
             <div className="flex gap-3">
               <div className="flex flex-col gap-1 mt-1">
-                <button onClick={() => moveUp(item, index)} className="text-xs text-gray-400 hover:text-black">▲</button>
-                <button onClick={() => moveDown(item, index)} className="text-xs text-gray-400 hover:text-black">▼</button>
+                <button onClick={() => moveUp(item, index)} className="text-xs text-white hover:text-black">▲</button>
+                <button onClick={() => moveDown(item, index)} className="text-xs text-white hover:text-black">▼</button>
               </div>
               {item.images?.[0] && (
                 <img src={item.images[0]} alt="" className="h-16 w-16 object-cover rounded-lg" />
               )}
               <div>
                 <div className="flex items-center gap-2">
-                  <span className={`font-semibold ${!item.active && "text-gray-400 line-through"}`}>
+                  <span className={`font-semibold ${!item.active && "text-white line-through"}`}>
                     {item.name}
                   </span>
                   {item.featured && <span className="text-xs bg-[var(--brand-3)] text-white px-2 py-0.5 rounded">Destacado</span>}
@@ -407,7 +432,7 @@ export default function CatalogoPage() {
                 <div className="flex items-center gap-2 mt-1">
                   <span className="rounded bg-[var(--brand-3)] px-2 py-0.5 text-xs text-white">{item.category}</span>
                   {item.price && (
-                    <span className={`font-semibold ${item.price_offer && "line-through text-gray-400"}`}>
+                    <span className={`font-semibold ${item.price_offer && "line-through text-white"}`}>
                       {item.price}
                     </span>
                   )}

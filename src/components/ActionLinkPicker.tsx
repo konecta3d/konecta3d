@@ -31,14 +31,25 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [businessId, setBusinessId] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id");
-    if (bid) {
-      setBusinessId(bid);
-      loadLinks(bid);
-    }
-  }, []);
+  const load = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData?.session?.user?.email || "";
+    if (!userEmail) { setLoading(false); return; }
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .single();
+    const bid = biz?.id || "";
+    setBusinessId(bid);
+    if (bid) loadLinks(bid);
+    setLoading(false);
+  };
+  load();
+}, []);
 
   const loadLinks = async (bid: string) => {
     // Cargar únicamente desde Supabase
@@ -73,17 +84,17 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
 
   const getIcon = (type: string) => {
     const icons: Record<string, string> = {
-      whatsapp: "💬",
-      calendar: "📅",
-      location: "📍",
-      reviews: "⭐",
-      payment: "💳",
-      video: "📹",
-      form: "📋",
-      catalog: "🛍️",
-      social: "📱"
+      whatsapp: "",
+      calendar: "",
+      location: "",
+      reviews: "",
+      payment: "",
+      video: "",
+      form: "",
+      catalog: "",
+      social: ""
     };
-    return icons[type] || "🔗";
+    return icons[type] || "";
   };
 
   const selectedLink = links.find(l => l.url === value);
@@ -105,10 +116,10 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
                 <span className="truncate text-slate-100">{selectedLink.name}</span>
               </>
             ) : (
-              <span className="text-slate-300">Seleccionar link...</span>
+              <span className="text-white">Seleccionar link...</span>
             )}
           </span>
-          <span className="text-slate-400">{isOpen ? "▲" : "▼"}</span>
+          <span className="text-white">{isOpen ? "▲" : "▼"}</span>
         </button>
 
         {isOpen && (
@@ -126,7 +137,7 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
             
             <div className="max-h-60 overflow-y-auto">
               {links.length === 0 ? (
-                <div className="p-4 text-center text-slate-300 text-sm">
+                <div className="p-4 text-center text-white text-sm">
                   No hay links guardados. <br />
                   <a href="/acciones" target="_blank" className="text-[#39a1a9] hover:underline">
                     Crear en Acciones →
@@ -134,7 +145,7 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
                 </div>
               ) : Object.entries(groupedLinks).map(([type, typeLinks]) => (
                 <div key={type}>
-                  <div className="px-3 py-2 text-xs text-slate-400 uppercase bg-white/5 flex items-center gap-2">
+                  <div className="px-3 py-2 text-xs text-white uppercase bg-white/5 flex items-center gap-2">
                     <span>{getIcon(type)}</span>
                     <span>{type}</span>
                   </div>
@@ -151,7 +162,7 @@ export default function ActionLinkPicker({ value, onChange, label = "Seleccionar
                       }`}
                     >
                       <span className="truncate flex-1 text-slate-100">{link.name}</span>
-                      <span className="text-xs text-slate-400 truncate max-w-[100px]">{link.url}</span>
+                      <span className="text-xs text-white truncate max-w-[100px]">{link.url}</span>
                     </button>
                   ))}
                 </div>
@@ -176,11 +187,21 @@ export function useActionLinks() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id");
-    if (bid) {
-      loadLinks(bid);
-    }
-  }, []);
+  const load = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData?.session?.user?.email || "";
+    if (!userEmail) { setLoading(false); return; }
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .single();
+    const bid = biz?.id || "";
+    if (bid) loadLinks(bid);
+    setLoading(false);
+  };
+  load();
+}, []);
 
   const loadLinks = async (bid: string) => {
     setLoading(true);
@@ -201,7 +222,22 @@ export function useActionLinks() {
   const getLinkByUrl = (url: string) => links.find(l => l.url === url);
 
   return { links, loading, getLinksByType, getLinkByUrl, reload: () => {
-    const bid = localStorage.getItem("konecta-business-id");
+    const [bid, setBid] = useState("");
+
+useEffect(() => {
+  const load = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData?.session?.user?.email || "";
+    if (!userEmail) { setBid(""); return; }
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .single();
+    setBid(biz?.id || "");
+  };
+  load();
+}, []);
     if (bid) loadLinks(bid);
   }};
 }

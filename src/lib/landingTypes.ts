@@ -89,10 +89,14 @@ export interface LandingConfig {
     url: string;      // enlace
     }>;
 
+    // Campo legado — sólo para migración de datos antiguos
+    toolsIds?: string[];
+
+    // ID del negocio (para analytics, no se persiste en la config)
+    businessId?: string;
+
     // Estilos de botones
     ctaBg: string;
-    ctaTextColor: string;
-
     ctaTextColor: string;
     ctaBorderColor: string;
     ctaBorderWidth: number;
@@ -177,12 +181,13 @@ export const defaultLandingConfig: LandingConfig = {
     finalImageSize: "medium",
     finalImageFramed: true,
     finalImageShadow: true,
+    finalImageHeight: 0,
 
     // Bloque final
     finalBlockMode: "none",
     toolsTitle: "",
     toolsSubtitle: "",
-    toolsIds: [],
+    tools: [],
 
     ctaBg: "#ffffff",
 

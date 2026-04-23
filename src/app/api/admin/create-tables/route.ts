@@ -8,13 +8,6 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Create table using RPC or direct SQL through admin
-    // First check if table exists
-    const { data: tableExists } = await supabaseAdmin.rpc('pg_table_is_visible', { 
-      table_oid: 'settings'::regclass::oid 
-    }).catch(() => ({ data: null }));
-
-    // Try to create table using raw SQL through admin client
     const { error } = await supabaseAdmin.from("settings").select("*").limit(1);
 
     if (error && error.message.includes("does not exist")) {

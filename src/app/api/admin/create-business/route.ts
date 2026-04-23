@@ -1,8 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { verifyAdminSession } from "@/lib/auth-helpers";
 
 export async function POST(req: Request) {
+  // Solo admins pueden crear negocios
+  const { isAdmin } = await verifyAdminSession(req);
+  if (!isAdmin) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { name, email, phone, sector, module_vip_benefits, module_lead_magnet, module_whatsapp } = body;
@@ -68,7 +75,7 @@ export async function POST(req: Request) {
     }
 
     // Create business
-    const businessData = {
+    const businessData: Record<string, unknown> = {
       name: name,
       sector: sector || "",
       slug: slug,
@@ -78,6 +85,8 @@ export async function POST(req: Request) {
       module_vip_benefits: module_vip_benefits ?? true,
       module_lead_magnet: module_lead_magnet ?? true,
       module_whatsapp: module_whatsapp ?? true,
+      module_tools: true,
+      module_forms: true,
     };
 
     if (userId) {

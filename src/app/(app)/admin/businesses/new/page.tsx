@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function NewBusinessPage() {
   const [name, setName] = useState("");
@@ -26,9 +27,15 @@ export default function NewBusinessPage() {
     setError(null);
     setSuccess(null);
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || "";
+
     const res = await fetch("/api/admin/create-business", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
       body: JSON.stringify({ name, sector, email, password }),
     });
 
@@ -36,8 +43,8 @@ export default function NewBusinessPage() {
     if (!res.ok) {
       setError(data.error || "Error al crear negocio");
     } else {
-      setSuccess("Negocio creado. Copia la contraseña y envíala al cliente.");
-      setTimeout(() => (window.location.href = "/admin/businesses"), 1200);
+      setSuccess(`Negocio creado. Contraseña: ${password} — Cópiala y envíala al cliente.`);
+      setTimeout(() => (window.location.href = "/admin/businesses"), 3000);
     }
     setSaving(false);
   };
@@ -59,20 +66,31 @@ export default function NewBusinessPage() {
           <input className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">Contraseña</label>
+          <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">Contraseña inicial</label>
           <div className="flex gap-2">
-            <input className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <button type="button" onClick={generarPassword} className="mt-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
+            <input
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-mono"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+            <button type="button" onClick={generarPassword} className="mt-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm whitespace-nowrap">
               Generar
             </button>
           </div>
+          <p className="text-xs text-white/50 mt-1">La contraseña se muestra solo al crearla. Cópiala antes de continuar.</p>
         </div>
         <div className="md:col-span-2">
-          <button disabled={saving} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black">
-            {saving ? "Creando…" : "Crear"}
+          <button disabled={saving} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black disabled:opacity-50">
+            {saving ? "Creando…" : "Crear negocio"}
           </button>
           {error && <div className="mt-2 text-sm text-red-500">{error}</div>}
-          {success && <div className="mt-2 text-sm text-green-600">{success}</div>}
+          {success && (
+            <div className="mt-2 p-3 rounded-lg bg-green-500/20 text-green-400 text-sm font-mono">
+              {success}
+            </div>
+          )}
         </div>
       </form>
     </div>

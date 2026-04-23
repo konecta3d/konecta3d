@@ -24,9 +24,15 @@ export default function LoginPage() {
       return;
     }
 
-    const userEmail = data.user?.email || "";
-    if (userEmail.toLowerCase() !== "info@konecta3d.com") {
-      // No permitimos acceso al panel admin a otros usuarios
+    const userEmail = (data.user?.email || "").toLowerCase();
+
+    const { data: adminRow } = await supabase
+      .from("admins")
+      .select("email")
+      .eq("email", userEmail)
+      .single();
+
+    if (!adminRow) {
       setError("Este usuario no tiene acceso al panel de administración.");
       setLoading(false);
       await supabase.auth.signOut();

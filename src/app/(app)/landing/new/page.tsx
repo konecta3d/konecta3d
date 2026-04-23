@@ -14,18 +14,6 @@ interface Benefit {
 
 export default function LandingNew() {
   const [config, setConfig] = useState<LandingConfig>(defaultLandingConfig);
-// Migración: si toolsIds existe pero tools no, convertir (ejecutado tras mount)
-useEffect(() => {
-  if (config.toolsIds && !config.tools) {
-    const migrated = (config.toolsIds as string[]).map((url, i) => ({
-      id: `tool-${i}-${Date.now()}`,
-      label: "Abrir enlace",
-      url,
-    }));
-    update({ tools: migrated });
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
   const [businessId, setBusinessId] = useState("");
   const [slug, setSlug] = useState("");
   const [saveStatus, setSaveStatus] = useState("Pendiente");
@@ -39,72 +27,74 @@ useEffect(() => {
   const slugify = (s: string) =>
     s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
 
-  // Resolver businessId
+  // Migración: si toolsIds existe pero tools no, convertir (ejecutado tras mount)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlBusinessId = params.get("businessId");
-    const storedId = localStorage.getItem("konecta-business-id") || "";
-    const bid = urlBusinessId || storedId;
-
-    if (urlBusinessId) {
-      localStorage.setItem("konecta-business-id", urlBusinessId);
+    if (config.toolsIds && !config.tools) {
+      const migrated = (config.toolsIds as string[]).map((url, i) => ({
+        id: `tool-${i}-${Date.now()}`,
+        label: "Abrir enlace",
+        url,
+      }));
+      update({ tools: migrated });
     }
-
-    if (!bid) return;
-    setBusinessId(bid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cargar config + datos de negocio + beneficios
+  // Resolver businessId desde URL o sesión
   useEffect(() => {
-    if (!businessId) return;
-
     const load = async () => {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("name, slug, logo_url")
-        .eq("id", businessId)
-        .single();
-
-      const businessName = biz?.name || "";
-      const businessLogo = biz?.logo_url || "";
-
-      if (biz?.slug) setSlug(biz.slug);
-
-      const { data } = await supabase
-        .from("landing_configs")
-        .select("config")
-        .eq("business_id", businessId)
-        .single();
-
-      const c = data?.config || null;
-      if (!c) {
-        setConfig({
-          ...defaultLandingConfig,
-          businessName,
-          logoUrl: businessLogo,
-        });
-      } else {
-        const merged = { ...defaultLandingConfig, ...c };
-        setConfig({
-          ...merged,
-          businessName: merged.businessName || businessName,
-          logoUrl: merged.logoUrl || businessLogo,
-        });
-      }
-
-      // Beneficios VIP para asociar a CTAs
-      const { data: benefitsData } = await supabase
-        .from("benefits")
-        .select("id, title")
-        .eq("business_id", businessId)
-        .eq("active", true)
-        .order("created_at", { ascending: false });
-
-      setBenefits((benefitsData as Benefit[]) || []);
+      const paramId = new URLSearchParams(window.location.search).get("businessId");
+      if (paramId) { setBusinessId(paramId); return; }
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userEmail = sessionData?.session?.user?.email || "";
+        if (!userEmail) return;
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("contact_email", userEmail)
+          .single();
+        setBusinessId(biz?.id || "");
+      } catch { }
     };
-
     load();
-  }, [businessId]);
+  }, []);
+
+// Cargar config + datos de negocio + beneficios
+useEffect(() => {
+  if (!businessId) return;
+
+  const load = async () => {
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("name, slug, logo_url")
+      .eq("id", businessId)
+      .single();
+
+    const businessName = biz?.name || "";
+    const businessLogo = biz?.logo_url || "";
+
+    if (biz?.slug) setSlug(biz.slug);
+
+    const { data } = await supabase
+      .from("landing_configs")
+      .select("config")
+      .eq("business_id", businessId)
+      .single();
+
+    const c = data?.config || null;
+
+    if (!c) {
+      setConfig({ ...defaultLandingConfig, businessName, logoUrl: businessLogo });
+    } else {
+      const merged = { ...defaultLandingConfig, ...c };
+      setConfig({ ...merged, businessName: merged.businessName || businessName, logoUrl: merged.logoUrl || businessLogo });
+    }
+  };
+
+  load();
+}, [businessId]);
+
 
   // Guardar config
   const saveNow = async () => {
@@ -114,9 +104,14 @@ useEffect(() => {
 
     try {
       setSaveStatus("Guardando...");
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
       const res = await fetch("/api/landing/save", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({
           businessId,
           slug: s,
@@ -150,8 +145,10 @@ useEffect(() => {
     form.append("file", file);
     form.append("kind", kind);
     form.append("businessId", businessId);
+    const { data: { session: uploadSession } } = await supabase.auth.getSession();
     const res = await fetch("/api/landing/upload", {
       method: "POST",
+      headers: { "Authorization": `Bearer ${uploadSession?.access_token || ""}` },
       body: form,
     });
     if (!res.ok) {
@@ -180,20 +177,23 @@ useEffect(() => {
         {/* Cabecera */}
         <header className="space-y-1">
           <h1 className="text-xl md:text-2xl font-bold">Editor de Landing</h1>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-white">
             Configura el contenido, el diseño y las herramientas de tu landing.
           </p>
         </header>
 
         {/* Barra de guardado */}
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={saveNow}
-              className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black"
-            >
-              Guardar cambios
-            </button>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+  <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={() => {
+    localStorage.setItem("konecta-landing-preview", JSON.stringify(config));
+    window.open(`/l/${slug}/NFC?preview=1`, "_blank");
+  }}>
+    Previsualizar Landing
+  </button>
+  <div className="flex items-center gap-3">
+    <button onClick={saveNow} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black" >
+      Guardar cambios
+    </button>
             <div className="text-xs text-[var(--brand-1)]">
               {saveStatus}
               {lastSaved ? ` · ${lastSaved}` : ""}
@@ -208,7 +208,7 @@ useEffect(() => {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Panel de controles */}
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-6 md:p-6">
 
@@ -603,7 +603,7 @@ useEffect(() => {
         Título
       </label>
       <input
-        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        className="flex-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
         value={config.toolsTitle}
         onChange={(e) => update({ toolsTitle: e.target.value })}
         placeholder="Herramientas para tu cliente"
@@ -614,7 +614,7 @@ useEffect(() => {
         Subtítulo
       </label>
       <input
-        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+        className="flex-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
         value={config.toolsSubtitle}
         onChange={(e) => update({ toolsSubtitle: e.target.value })}
         placeholder="Accede rápido a tus enlaces principales"
@@ -1115,7 +1115,7 @@ useEffect(() => {
                     window.open(`/l/${slug}/NFC?preview=1`, "_blank");
                   }}
                 >
-                  Ver en tamaño real
+                  Previsualizar Landing
                 </button>
               </div>
             </div>

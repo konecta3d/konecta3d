@@ -10,7 +10,8 @@ type Business = {
   module_vip_benefits: boolean;
   module_lead_magnet: boolean;
   module_whatsapp: boolean;
-  module_tools: boolean; // NUEVO
+  module_tools: boolean;
+  module_forms: boolean;
   created_at: string;
 };
 
@@ -27,13 +28,26 @@ export default function AdminModulos() {
 
 const loadBusinesses = async () => {
   setLoading(true);
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("businesses")
     .select(
-      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools"
+      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, created_at"
     )
     .order("name");
-  setBusinesses(data || []);
+
+  if (error) {
+    console.error("Error cargando negocios:", error);
+    setLoading(false);
+    return;
+  }
+
+  const businessesWithDefaults = (data || []).map(b => ({
+    ...b,
+    module_tools: b.module_tools ?? true,
+    module_forms: b.module_forms ?? true,
+  }));
+
+  setBusinesses(businessesWithDefaults as Business[]);
   setLoading(false);
 };
 
@@ -55,6 +69,7 @@ const { error } = await supabase
     module_lead_magnet: b.module_lead_magnet,
     module_whatsapp: b.module_whatsapp,
     module_tools: b.module_tools,
+    module_forms: b.module_forms,
   })
   .eq("id", b.id);
 
@@ -95,12 +110,21 @@ const { error } = await supabase
     setBusinesses(businesses.map(b => ({ ...b, module_whatsapp: false })));
   };
 
+  const activateAllForms = () => {
+    setBusinesses(businesses.map(b => ({ ...b, module_forms: true })));
+  };
+
+  const deactivateAllForms = () => {
+    setBusinesses(businesses.map(b => ({ ...b, module_forms: false })));
+  };
+
   const filteredBusinesses = businesses.filter(b => {
     if (filter === "all") return true;
     if (filter === "lm") return b.module_lead_magnet;
     if (filter === "vip") return b.module_vip_benefits;
     if (filter === "wa") return b.module_whatsapp;
-    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp;
+    if (filter === "forms") return b.module_forms;
+    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms;
     return true;
   });
 
@@ -109,6 +133,7 @@ const { error } = await supabase
     lm: businesses.filter(b => b.module_lead_magnet).length,
     vip: businesses.filter(b => b.module_vip_benefits).length,
     wa: businesses.filter(b => b.module_whatsapp).length,
+    forms: businesses.filter(b => b.module_forms).length,
   };
 
   if (loading) {
@@ -134,19 +159,23 @@ const { error } = await supabase
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
           <div className="text-2xl font-bold">{counts.total}</div>
-          <div className="text-xs text-gray-400">Total Negocios</div>
+          <div className="text-xs text-white">Total Negocios</div>
         </div>
         <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center">
           <div className="text-2xl font-bold text-green-500">{counts.lm}</div>
-          <div className="text-xs text-gray-400">Lead Magnet</div>
+          <div className="text-xs text-white">Lead Magnet</div>
         </div>
         <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 text-center">
           <div className="text-2xl font-bold text-blue-500">{counts.vip}</div>
-          <div className="text-xs text-gray-400">VIP Benefits</div>
+          <div className="text-xs text-white">VIP Benefits</div>
         </div>
         <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4 text-center">
           <div className="text-2xl font-bold text-purple-500">{counts.wa}</div>
-          <div className="text-xs text-gray-400">WhatsApp</div>
+          <div className="text-xs text-white">WhatsApp</div>
+        </div>
+        <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-center">
+          <div className="text-2xl font-bold text-orange-500">{counts.forms}</div>
+          <div className="text-xs text-white">Formularios</div>
         </div>
       </div>
 
@@ -178,6 +207,12 @@ const { error } = await supabase
             WA ({counts.wa})
           </button>
           <button
+            onClick={() => setFilter("forms")}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "forms" ? "bg-orange-500 text-black" : "border border-[var(--border)]"}`}
+          >
+            Forms ({counts.forms})
+          </button>
+          <button
             onClick={() => setFilter("none")}
             className={`px-3 py-1 rounded-lg text-sm ${filter === "none" ? "bg-red-500 text-white" : "border border-[var(--border)]"}`}
           >
@@ -190,7 +225,7 @@ const { error } = await supabase
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[var(--background)] text-xs uppercase text-gray-400">
+            <thead className="bg-[var(--background)] text-xs uppercase text-white">
               <tr>
                 <th className="px-4 py-3 text-left">Negocio</th>
                 <th className="px-4 py-3 text-center">Sector</th>
@@ -198,13 +233,14 @@ const { error } = await supabase
                 <th className="px-4 py-3 text-center">VIP Benefits</th>
                 <th className="px-4 py-3 text-center">WhatsApp</th>
                 <th className="px-4 py-3 text-center">Herramientas</th>
+                <th className="px-4 py-3 text-center">Formularios</th>
               </tr>
             </thead>
             <tbody>
               {filteredBusinesses.map((b) => (
                 <tr key={b.id} className="border-t border-[var(--border)] hover:bg-white/5">
                   <td className="px-4 py-3 font-medium">{b.name}</td>
-                  <td className="px-4 py-3 text-center text-gray-400">{b.sector || "—"}</td>
+                  <td className="px-4 py-3 text-center text-white">{b.sector || "—"}</td>
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => toggleModule(b.id, "module_lead_magnet", !b.module_lead_magnet)}
@@ -237,20 +273,28 @@ const { error } = await supabase
                       <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_tools ? "translate-x-6" : "translate-x-0.5"}`}></div>
                     </button>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => toggleModule(b.id, "module_forms", !b.module_forms)}
+                      className={`w-12 h-6 rounded-full transition-colors ${b.module_forms ? "bg-orange-500" : "bg-gray-600"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_forms ? "translate-x-6" : "translate-x-0.5"}`}></div>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {filteredBusinesses.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No hay negocios</div>
+          <div className="text-center py-8 text-white">No hay negocios</div>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-gray-400">Activar todos:</span>
+          <span className="text-sm text-white">Activar todos:</span>
           <button onClick={activateAllLM} className="px-2 py-1 text-xs rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">
             LM
           </button>
@@ -260,15 +304,21 @@ const { error } = await supabase
           <button onClick={activateAllWA} className="px-2 py-1 text-xs rounded bg-purple-500/20 text-purple-500 hover:bg-purple-500/30">
             WA
           </button>
-          <span className="text-sm text-gray-400 ml-2">Desactivar todos:</span>
-          <button onClick={deactivateAllLM} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-gray-500 hover:bg-gray-500/30">
+          <button onClick={activateAllForms} className="px-2 py-1 text-xs rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/30">
+            Forms
+          </button>
+          <span className="text-sm text-white ml-2">Desactivar todos:</span>
+          <button onClick={deactivateAllLM} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             LM
           </button>
-          <button onClick={deactivateAllVIP} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-gray-500 hover:bg-gray-500/30">
+          <button onClick={deactivateAllVIP} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             VIP
           </button>
-          <button onClick={deactivateAllWA} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-gray-500 hover:bg-gray-500/30">
+          <button onClick={deactivateAllWA} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             WA
+          </button>
+          <button onClick={deactivateAllForms} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
+            Forms
           </button>
         </div>
         <button

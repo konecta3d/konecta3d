@@ -1,17 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { verifyAdminSession } from "@/lib/auth-helpers";
 
 export async function POST(req: Request) {
   try {
-    // Verify admin authentication
-    const { isAdmin, userId } = await verifyAdminSession(req);
-    if (!isAdmin) {
+    // Verify admin session via Authorization header
+    const token = (req.headers.get("authorization") || "").replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const anonClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: userData } = await anonClient.auth.getUser(token);
+    const adminEmail = (userData?.user?.email || "").toLowerCase();
+
+    if (!adminEmail || adminEmail !== "info@konecta3d.com") {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { email, newPassword } = body;
+const { email, businessId, newPassword } = body;
 
     if (!email?.trim()) {
       return NextResponse.json({ error: "El email es obligatorio" }, { status: 400 });
@@ -28,19 +38,28 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Use getUserByEmail instead of listing all users
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // Buscar usuario por email (compatibilidad SDK)
+    const { data: listData, error: userError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
 
-    if (userData?.user) {
+    const targetUser = listData?.users?.find(
+      (u) => (u.email || "").toLowerCase() === email.toLowerCase()
+    );
+
+    if (targetUser) {
       // User exists, update password
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        userData.user.id,
+        targetUser.id,
         { password: newPassword }
       );
 
       if (updateError) {
         return NextResponse.json({ error: "Error al actualizar contraseña: " + updateError.message }, { status: 500 });
       }
+
+// Nota: la contraseña NO se persiste en la base de datos por seguridad.
 
       return NextResponse.json({
         success: true,
@@ -59,6 +78,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Error al crear usuario: " + createError.message }, { status: 500 });
       }
 
+// Nota: la contraseña NO se persiste en la base de datos por seguridad.
       return NextResponse.json({
         success: true,
         message: "Usuario creado con contraseña",

@@ -14,20 +14,37 @@ export default function HistorialPage() {
   }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id") || "";
-    if (!bid) return;
+useEffect(() => {
+  const load = async () => {
+    let bid = "";
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData.session?.user?.email || "";
+
+    if (userEmail) {
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+
+      bid = biz?.id || "";
+    }
+
+    if (!bid) {
+      setLoading(false);
+      return;
+    }
+
     setBusinessId(bid);
+    setLoading(true);
 
-    const load = async () => {
-      setLoading(true);
-
-      // Cargar cliente-beneficios asignados (envíos)
-      const { data } = await supabase
-        .from("client_benefits")
-        .select("id, client_id, benefit_id, created_at")
-        .eq("business_id", bid)
-        .order("created_at", { ascending: false });
+    // Cargar cliente-beneficios asignados (envíos)
+    const { data } = await supabase
+      .from("client_benefits")
+      .select("id, client_id, benefit_id, created_at")
+      .eq("business_id", bid)
+      .order("created_at", { ascending: false });
 
       if (data && data.length > 0) {
         // Obtener nombres de clientes y beneficios

@@ -1,11 +1,21 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { LandingConfig } from "@/lib/landingTypes";
+import FormModal from "./FormModal";
+import { supabase } from "@/lib/supabase";
+
+interface ActiveForm {
+  id: string;
+  title: string;
+  type: string;
+  questions: Array<{ id: string; question_text: string; question_type: string; options?: string[] }>;
+  data_collection: string;
+}
 
 function normalizeUrl(url?: string | null): string {
   if (!url) return "#";
   const trimmed = url.trim();
 
-  // Ya es absoluta o es un esquema especial
   if (
     trimmed.startsWith("http://") ||
     trimmed.startsWith("https://") ||
@@ -18,18 +28,22 @@ function normalizeUrl(url?: string | null): string {
     return trimmed;
   }
 
-  // Si el usuario pone solo "konecta3d.com" o "www.algo.com"
   return `https://${trimmed.replace(/^\/+/, "")}`;
 }
 
 export default function LandingRenderer({
   config,
   toolsEnabled = true,
+  activeForms = [],
 }: {
   config: LandingConfig;
   toolsEnabled?: boolean;
+  activeForms?: ActiveForm[];
 }) {
   if (!config) return null;
+
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const activeForm = activeForms[0] as ActiveForm | undefined;
 
   const ctaStyle = {
     backgroundColor: config.ctaBg || "#ffffff",
@@ -59,12 +73,25 @@ export default function LandingRenderer({
   const bgSize = config.bgSize ?? 120;
   const bgPosition = config.bgPosition ?? "center center";
 
-const showColorBg =
-  config.showBg && (!config.bgUrl || config.bgMode === "color");
+  const showColorBg =
+    config.showBg && (!config.bgUrl || config.bgMode === "color");
+    // Analytics tracking
+const trackEvent = async (eventType: string, entityType: string, entityId: string, metadata: Record<string, unknown> = {}) => {
+  try {
+    await supabase.from("analytics_events").insert({
+      business_id: config.businessId,
+      event_type: eventType,
+      entity_type: entityType,
+      entity_id: entityId,
+      metadata,
+    });
+  } catch (e) {
+    // Silently fail - analytics should not break the page
+  }
+};
 
-return (
-  <div className="min-h-screen bg-transparent">
-
+  return (
+    <div className="min-h-screen bg-transparent">
       <div
         className="min-h-screen w-full bg-no-repeat bg-center relative"
         style={{
@@ -75,7 +102,6 @@ return (
           backgroundRepeat: "no-repeat",
         }}
       >
-        {/* Capa de color por detrás si no hay imagen o modo color */}
         <div
           className="absolute inset-0"
           style={{
@@ -135,14 +161,14 @@ return (
                     {config.businessName || "Nombre"}
                   </div>
                 )}
-{config.showSubtitle && config.subtitle && (
-  <div
-    className="mt-2"
-    style={{ fontSize: subtitleSize, color: textColor }}
-  >
-    {config.subtitle}
-  </div>
-)}
+                {config.showSubtitle && config.subtitle && (
+                  <div
+                    className="mt-2"
+                    style={{ fontSize: subtitleSize, color: textColor }}
+                  >
+                    {config.subtitle}
+                  </div>
+                )}
               </div>
 
               {/* ── CTAs ── */}
@@ -168,15 +194,7 @@ return (
                 />
 
                 {config.showCta1 && (
-  <a
-href={
-  config.cta1BenefitId
-    ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}`
-    : normalizeUrl(config.cta1Link)
-}
-    className="block"
-    download={Boolean(config.cta1BenefitId)}
-  >
+                  <a href={ config.cta1BenefitId ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}` : normalizeUrl(config.cta1Link) } className="block" download={Boolean(config.cta1BenefitId)} onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })} >
                     <div
                       className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                       style={ctaStyle}
@@ -187,15 +205,7 @@ href={
                 )}
 
                 {config.showCta2 && (
-                  <a
-href={
-  config.cta2BenefitId
-    ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}`
-    : normalizeUrl(config.cta1Link)
-}
-                    className="block"
-                    download={Boolean(config.cta2BenefitId)}
-                  >
+                  <a href={ config.cta2BenefitId ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}` : normalizeUrl(config.cta2Link) } className="block" download={Boolean(config.cta2BenefitId)} onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })} >
                     <div
                       className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                       style={ctaStyle}
@@ -206,15 +216,7 @@ href={
                 )}
 
                 {config.showCta3 && (
-                  <a
-href={
-  config.cta3BenefitId
-    ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}`
-    : normalizeUrl(config.cta3Link)
-}
-                    className="block"
-                    download={Boolean(config.cta3BenefitId)}
-                  >
+                  <a href={ config.cta3BenefitId ? `/api/benefits/generate-pdf?id=${config.cta3BenefitId}` : normalizeUrl(config.cta3Link) } className="block" download={Boolean(config.cta3BenefitId)} onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })} >
                     <div
                       className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                       style={ctaStyle}
@@ -225,12 +227,7 @@ href={
                 )}
 
                 {config.showMoreButtons && config.showCta4 && (
-                  <a
-                    href={normalizeUrl(config.cta4Link)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block"
-                  >
+                  <a href={normalizeUrl(config.cta4Link)} target="_blank" rel="noreferrer" className="block" onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 4 })} >
                     <div
                       className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                       style={ctaStyle}
@@ -241,12 +238,7 @@ href={
                 )}
 
                 {config.showMoreButtons && config.showCta5 && (
-                  <a
-                    href={normalizeUrl(config.cta5Link)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block"
-                  >
+                  <a href={normalizeUrl(config.cta5Link)} target="_blank" rel="noreferrer" className="block" onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 5 })} >
                     <div
                       className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                       style={ctaStyle}
@@ -254,6 +246,24 @@ href={
                       {config.cta5Text || "CTA 5"}
                     </div>
                   </a>
+                )}
+
+                {/* ── Formulario button ── */}
+                {activeForm && (
+                  <button
+                    onClick={() => setFormModalOpen(true)}
+                    className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
+                    style={{
+                      backgroundColor: "#2D7A74",
+                      borderWidth: "2px",
+                      borderStyle: "solid",
+                      borderColor: "#2D7A74",
+                      borderRadius: "16px",
+                      fontSize: "15px",
+                    }}
+                  >
+                    Formulario
+                  </button>
                 )}
               </div>
 
@@ -267,40 +277,34 @@ href={
                 }}
               >
                 {/* Herramientas */}
-{config.finalBlockMode === "tools" && (
-  <div className="rounded-2xl border border-white/20 bg-white/10 p-5 text-white space-y-3 text-center">
-    <div className="text-base font-semibold">
-      {config.toolsTitle || "Herramientas del negocio"}
-    </div>
-    <div className="text-sm text-white/80">
-      {config.toolsSubtitle ||
-        "Configura esta sección desde el editor."}
-    </div>
+                {config.finalBlockMode === "tools" && (
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-5 text-white space-y-3 text-center">
+                    <div className="text-base font-semibold">
+                      {config.toolsTitle || "Herramientas del negocio"}
+                    </div>
+                    <div className="text-sm text-white/80">
+                      {config.toolsSubtitle ||
+                        "Configura esta sección desde el editor."}
+                    </div>
 
-    {toolsEnabled && config.tools?.length > 0 ? (
-      <div className="mt-3 flex flex-col gap-2">
-        {config.tools.map((tool) => (
-          <a
-            key={tool.id}
-            href={normalizeUrl(tool.url)}
-            target="_blank"
-            rel="noreferrer"
-            className="block"
-          >
-            <div className="w-full max-w-[260px] mx-auto rounded-full bg-white text-black px-4 py-2 text-sm font-semibold">
-              {tool.label || "Abrir enlace"}
-            </div>
-          </a>
-        ))}
-      </div>
-    ) : (
-      <div className="mt-3 text-xs text-white/60">
-        Añade al menos una herramienta en el editor para
-        mostrarla aquí.
-      </div>
-    )}
-  </div>
-)}
+                    {toolsEnabled && config.tools?.length > 0 ? (
+                      <div className="mt-3 flex flex-col gap-2">
+                        {config.tools.map((tool) => (
+  <a key={tool.id} href={normalizeUrl(tool.url)} target="_blank" rel="noreferrer" className="block" onClick={() => trackEvent("link_click", "tool", tool.id, { tool_label: tool.label })} >
+                            <div className="w-full max-w-[260px] mx-auto rounded-full bg-white text-black px-4 py-2 text-sm font-semibold">
+                              {tool.label || "Abrir enlace"}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-3 text-xs text-white/60">
+                        Añade al menos una herramienta en el editor para
+                        mostrarla aquí.
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* Invita a un amigo */}
                 {config.finalBlockMode === "invite" && (
                   <div className="rounded-2xl border border-white/20 bg-white/10 p-5 text-white space-y-3 text-center">
@@ -312,12 +316,7 @@ href={
                         "Comparte esta landing con alguien a quien pueda ayudar."}
                     </div>
                     {config.inviteBtnLink && (
-                      <a
-                        href={normalizeUrl(config.inviteBtnLink)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block mt-2"
-                      >
+                      <a href={normalizeUrl(config.inviteBtnLink)} target="_blank" rel="noreferrer" className="block mt-2" onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: "invite" })} >
                         <div className="w-full max-w-[260px] mx-auto rounded-full bg-white text-black px-4 py-2 text-sm font-semibold">
                           {config.inviteBtnText || "Compartir enlace"}
                         </div>
@@ -339,11 +338,7 @@ href={
                       .filter(Boolean)
                       .join(" ")}
                   >
-                    <a
-                      href={normalizeUrl(config.reviewLink)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={normalizeUrl(config.reviewLink)} target="_blank" rel="noreferrer" onClick={() => trackEvent("link_click", "review_image", config.businessId || "")} >
                       <img
                         src={config.reviewImage}
                         alt="Bloque final"
@@ -354,14 +349,12 @@ href={
                             : "0.75rem",
                           objectFit: "cover",
                           height: (() => {
-                            // Si hay altura manual, usarla
                             if (config.finalImageHeight) {
                               return config.finalImageHeight;
                             }
-                            // Si no, usar preset por tamaño
                             if (config.finalImageSize === "small") return 140;
                             if (config.finalImageSize === "large") return 260;
-                            return 200; // medium
+                            return 200;
                           })(),
                         }}
                       />
@@ -373,6 +366,15 @@ href={
           </div>
         </div>
       </div>
+
+      {/* Form Modal */}
+      {activeForm && (
+        <FormModal
+          isOpen={formModalOpen}
+          onClose={() => setFormModalOpen(false)}
+          form={activeForm}
+        />
+      )}
     </div>
   );
 }

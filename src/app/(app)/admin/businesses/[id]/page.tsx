@@ -40,6 +40,8 @@ export default function BusinessDetail() {
     font_family: ""
   });
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [copiedMsg, setCopiedMsg] = useState("");
   const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
@@ -115,9 +117,10 @@ export default function BusinessDetail() {
     setIsResetting(true);
     setMsg(null);
     try {
+      const authHeader = await getAuthHeader();
       const res = await fetch("/api/admin/reset-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({ email: business.contact_email, newPassword })
       });
       const data = await res.json();
@@ -133,7 +136,14 @@ export default function BusinessDetail() {
     setIsResetting(false);
     setTimeout(() => setMsg(null), 3000);
   };
+  const openAsProfile = async (profile: "fidelizacion" | "captacion") => {
+    await supabase
+      .from("businesses")
+      .update({ active_profile: profile })
+      .eq("id", id);
 
+    window.open(`/business/select-profile?businessId=${id}`, "_blank");
+  };
   if (!business) {
     return <div className="p-8 text-center">Cargando...</div>;
   }
@@ -144,8 +154,8 @@ export default function BusinessDetail() {
       <div className="border-b border-[var(--border)] p-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <a className="text-[var(--brand-1)]" href="/admin/configuracion">← Admin</a>
-          <span className="text-gray-500">/</span>
-          <span className="text-gray-400">{business.name}</span>
+          <span className="text-white">/</span>
+          <span className="text-white">{business.name}</span>
         </div>
       </div>
 
@@ -155,7 +165,7 @@ export default function BusinessDetail() {
           <div className="mb-6">
             <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mb-2">Negocio</div>
             <div className="font-semibold text-lg">{business.name}</div>
-            <div className="text-xs text-gray-500">{business.sector || "Sin sector"}</div>
+            <div className="text-xs text-white">{business.sector || "Sin sector"}</div>
           </div>
 
           <nav className="space-y-1 text-sm">
@@ -166,11 +176,14 @@ export default function BusinessDetail() {
                 {editMode ? "Cerrar" : "Editar"}
               </button>
             </div>
-            <div className="px-2 py-1 text-xs text-gray-500">
+            <div className="px-2 py-1 text-xs text-white space-y-1">
               <div>Slug: {business.slug || "—"}</div>
               <div>Email: {business.contact_email || "—"}</div>
               <div>Teléfono: {business.phone || "—"}</div>
               <div>Fuente: {business.font_family || "—"}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50">Contraseña: usa Reset para establecerla</span>
+              </div>
             </div>
 
             {/* MÓDULOS */}
@@ -204,58 +217,35 @@ export default function BusinessDetail() {
             </label>
 
             {/* VER COMO NEGOCIO */}
-            <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mt-6 mb-2">Ver como el negocio</div>
-            <a
-              href={`/dashboard?businessId=${id}`}
-              target="_blank"
-              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-[var(--brand-1)]"
-            >
-              <span>📊</span> Dashboard
-            </a>
-            <a
-              href={`/landing/new?businessId=${id}`}
-              target="_blank"
-              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5"
-            >
-              <span>🎨</span> Landing
-            </a>
-            {business.module_lead_magnet && (
-              <a
-                href={`/lead-magnet/new?businessId=${id}`}
-                target="_blank"
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5"
+            <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mt-6 mb-2">
+              Entrar al perfil del negocio
+            </div>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => openAsProfile("fidelizacion")}
+                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-white/5 text-left"
               >
-                <span>📄</span> Lead Magnet
-              </a>
-            )}
-            {business.module_vip_benefits && (
-              <a
-                href={`/vip-benefits/new?businessId=${id}`}
-                target="_blank"
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5"
+                Fidelización (activo)
+              </button>
+              <button
+                type="button"
+                onClick={() => openAsProfile("captacion")}
+                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-white/5 text-left"
               >
-                <span>⭐</span> VIP Benefits
-              </a>
-            )}
-            {business.module_whatsapp && (
-              <a
-                href={`/whatsapp-generator?businessId=${id}`}
-                target="_blank"
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5"
-              >
-                <span>💬</span> WhatsApp
-              </a>
-            )}
+                Captación (en desarrollo)
+              </button>
+            </div>
 
             {/* LANDING PÚBLICA */}
             <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mt-6 mb-2">Landing Pública</div>
             <a
-              href={business.slug ? `/l/${business.slug}/NFC` : "#"}
-              target="_blank"
-              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-green-500"
-            >
-              <span>🌐</span> Ver landing
-            </a>
+  href={business.slug ? `/l/${business.slug}/NFC` : "#"}
+  target="_blank"
+  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-green-500"
+>
+  Ver landing
+</a>
           </nav>
 
           {msg && (
@@ -283,7 +273,7 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-4">Editar Información</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Nombre</label>
+                  <label className="block text-xs text-white mb-1">Nombre</label>
                   <input
                     type="text"
                     value={editData.name}
@@ -292,7 +282,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Sector</label>
+                  <label className="block text-xs text-white mb-1">Sector</label>
                   <input
                     type="text"
                     value={editData.sector}
@@ -301,7 +291,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Slug (URL)</label>
+                  <label className="block text-xs text-white mb-1">Slug (URL)</label>
                   <input
                     type="text"
                     value={editData.slug}
@@ -311,7 +301,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Email</label>
+                  <label className="block text-xs text-white mb-1">Email</label>
                   <input
                     type="email"
                     value={editData.contact_email}
@@ -320,7 +310,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Teléfono</label>
+                  <label className="block text-xs text-white mb-1">Teléfono</label>
                   <input
                     type="tel"
                     value={editData.phone}
@@ -329,7 +319,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Fuente (Font)</label>
+                  <label className="block text-xs text-white mb-1">Fuente (Font)</label>
                   <input
                     type="text"
                     value={editData.font_family}
@@ -387,7 +377,7 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-3">Configuración Landing</h2>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Landing Multiple</span>
-                <span className={`text-xs px-2 py-1 rounded ${business.multi_landing_enabled ? "bg-green-500/20 text-green-500" : "bg-gray-500/20 text-gray-500"}`}>
+                <span className={`text-xs px-2 py-1 rounded ${business.multi_landing_enabled ? "bg-green-500/20 text-green-500" : "bg-gray-500/20 text-white"}`}>
                   {business.multi_landing_enabled ? "Activado" : "Desactivado"}
                 </span>
               </div>
@@ -398,14 +388,50 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-3 text-red-400">Control de Acceso (Peligro)</h2>
               <div className="flex flex-col md:flex-row gap-3 items-end">
                 <div className="flex-1 w-full">
-                  <label className="block text-xs text-gray-400 mb-1">Nueva Contraseña para {business.contact_email || "usuario"}</label>
-                  <input
-                    type="text"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-                    placeholder="Escribe la nueva clave..."
-                  />
+                  <label className="block text-xs text-white mb-1">Nueva Contraseña para {business.contact_email || "usuario"}</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                      placeholder="Escribe la nueva clave..."
+                    />
+                    <button
+                      type="button"
+                      onMouseDown={() => setShowNewPassword(true)}
+                      onMouseUp={() => setShowNewPassword(false)}
+                      onMouseLeave={() => setShowNewPassword(false)}
+                      onTouchStart={() => setShowNewPassword(true)}
+                      onTouchEnd={() => setShowNewPassword(false)}
+                      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newPassword) return;
+                        navigator.clipboard.writeText(newPassword);
+                        setCopiedMsg("Copiada");
+                        setTimeout(() => setCopiedMsg(""), 1500);
+                      }}
+                      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+                    >
+                      Copiar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const pwd = Math.random().toString(36).slice(2, 10);
+                        setNewPassword(pwd);
+                      }}
+                      className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+                    >
+                      Generar
+                    </button>
+                  </div>
+                  {copiedMsg && <div className="text-xs text-green-500 mt-1">{copiedMsg}</div>}
                 </div>
                 <button
                   onClick={handlePasswordReset}
@@ -421,24 +447,21 @@ export default function BusinessDetail() {
             </div>
           </div>
 
-          {/* ACCESOS RÁPIDOS */}
-          <div className="mt-6">
-            <h2 className="text-sm font-semibold mb-3">Accesos Rápidos</h2>
-            <div className="grid md:grid-cols-3 gap-3">
-              <a href={`/dashboard?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
-                <div className="text-2xl mb-1">📊</div>
-                <div className="text-sm">Dashboard</div>
-              </a>
-              <a href={`/landing/new?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
-                <div className="text-2xl mb-1">🎨</div>
-                <div className="text-sm">Generar Landing</div>
-              </a>
-              <a href={business.slug ? `/l/${business.slug}/NFC` : "#"} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
-                <div className="text-2xl mb-1">🌐</div>
-                <div className="text-sm">Ver Landing</div>
-              </a>
-            </div>
-          </div>
+{/* ACCESOS RÁPIDOS */}
+<div className="mt-6">
+  <h2 className="text-sm font-semibold mb-3">Accesos Rápidos</h2>
+  <div className="grid md:grid-cols-3 gap-3">
+    <a href={`/dashboard?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+      <div className="text-sm font-medium">Dashboard</div>
+    </a>
+    <a href={`/landing/new?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+      <div className="text-sm font-medium">Generar Landing</div>
+    </a>
+    <a href={business.slug ? `/l/${business.slug}/NFC` : "#"} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+      <div className="text-sm font-medium">Ver Landing</div>
+    </a>
+  </div>
+</div>
         </main>
       </div>
     </div>

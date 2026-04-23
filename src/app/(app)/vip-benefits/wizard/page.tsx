@@ -83,22 +83,27 @@ function VipBenefitsWizardInner() {
 
   // Cargar datos del negocio
   useEffect(() => {
-    const bid = localStorage.getItem("konecta-business-id") || "";
-    if (!bid) return;
-    setBusinessId(bid);
-    
-    const loadBiz = async () => {
+    const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData?.session?.user?.email || "";
+      if (!userEmail) return;
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      const bid = biz?.id || "";
+      if (!bid) return;
+      setBusinessId(bid);
       const { data } = await supabase
         .from("businesses")
         .select("name, logo_url")
         .eq("id", bid)
         .single();
       if (data?.name) setBusinessName(data.name);
-      if (data?.logo_url) {
-        setDocLogo(data.logo_url);
-      }
+      if (data?.logo_url) setDocLogo(data.logo_url);
     };
-    loadBiz();
+    load();
   }, []);
 
   // Aplicar plantilla según tipo
@@ -182,7 +187,7 @@ function VipBenefitsWizardInner() {
             <div className="text-center py-8">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-white mb-4">Crea beneficios exclusivos para tus clientes</h2>
-                <p className="text-gray-400 text-lg max-w-xl mx-auto">
+                <p className="text-white text-lg max-w-xl mx-auto">
                   Genera documentos PDF con descuentos, regalos y ofertas especiales que tus clientes daran usar.
                 </p>
               </div>
@@ -190,21 +195,21 @@ function VipBenefitsWizardInner() {
 
             <div className="bg-gradient-to-r from-[#0a323c] to-[#001e3c] rounded-xl p-6 border border-[#39a1a9]/30">
               <h3 className="text-lg font-bold text-white mb-3">Qué vas a crear?</h3>
-              <p className="text-gray-300 text-sm mb-4">
+              <p className="text-white text-sm mb-4">
                 Un documento PDF profesional que puedes entregar a tus clientes. Incluye el beneficio, código de descuento y llamada a la acción.
               </p>
-              <ul className="text-sm text-gray-300 space-y-2">
+              <ul className="text-sm text-white space-y-2">
                 <li className="flex items-center gap-2">
-                  <span className="text-[#ffb400]">✓</span> Descuentos y ofertas exclusivas
+                  <span className="text-[#ffb400]">+</span> Descuentos y ofertas exclusivas
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-[#ffb400]">✓</span> 2x1 y productos de regalo
+                  <span className="text-[#ffb400]">+</span> 2x1 y productos de regalo
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-[#ffb400]">✓</span> Upgrades y servicios gratis
+                  <span className="text-[#ffb400]">+</span> Upgrades y servicios gratis
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-[#ffb400]">✓</span> Botones de acción directa
+                  <span className="text-[#ffb400]">+</span> Botones de acción directa
                 </li>
               </ul>
             </div>
@@ -222,7 +227,7 @@ function VipBenefitsWizardInner() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-white mb-2">Cuál es tu objetivo?</h2>
-              <p className="text-gray-400">Selecciona el propósito de tu beneficio</p>
+              <p className="text-white">Selecciona el propósito de tu beneficio</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,8 +245,8 @@ function VipBenefitsWizardInner() {
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: info.color }}></div>
                     <h3 className="text-lg font-bold text-white">{info.title}</h3>
                   </div>
-                  <p className="text-sm text-gray-400 mb-3">{info.description}</p>
-                  <div className="text-xs text-gray-500 italic">Ej: {info.example}</div>
+                  <p className="text-sm text-white mb-3">{info.description}</p>
+                  <div className="text-xs text-white italic">Ej: {info.example}</div>
                 </button>
               ))}
             </div>
@@ -259,7 +264,7 @@ function VipBenefitsWizardInner() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-white mb-2">Qué tipo de beneficio es?</h2>
-              <p className="text-gray-400">Elige el formato de tu oferta</p>
+              <p className="text-white">Elige el formato de tu oferta</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -274,7 +279,7 @@ function VipBenefitsWizardInner() {
                   }}
                 >
                   <h3 className="font-bold text-white mb-1">{info.title}</h3>
-                  <p className="text-xs text-gray-400">{info.description}</p>
+                  <p className="text-xs text-white">{info.description}</p>
                 </button>
               ))}
             </div>
@@ -295,7 +300,7 @@ function VipBenefitsWizardInner() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">Personaliza el contenido</h2>
-              <p className="text-gray-400">Define los detalles de tu beneficio</p>
+              <p className="text-white">Define los detalles de tu beneficio</p>
             </div>
             
             <div className="space-y-4">
@@ -381,7 +386,7 @@ function VipBenefitsWizardInner() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">Personalización</h2>
-              <p className="text-gray-400">Configura los colores y el botón de acción</p>
+              <p className="text-white">Configura los colores y el botón de acción</p>
             </div>
             
             {/* Colores básicos */}
@@ -389,45 +394,45 @@ function VipBenefitsWizardInner() {
               <h3 className="text-white font-bold mb-4">Colores del documento</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Fondo</label>
+                  <label className="block text-xs text-white mb-2">Fondo</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docBg} onChange={(e) => setDocBg(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docBg}</span>
+                    <span className="text-xs text-white">{docBg}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Texto</label>
+                  <label className="block text-xs text-white mb-2">Texto</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docText} onChange={(e) => setDocText(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docText}</span>
+                    <span className="text-xs text-white">{docText}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Acento</label>
+                  <label className="block text-xs text-white mb-2">Acento</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docAccent} onChange={(e) => setDocAccent(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docAccent}</span>
+                    <span className="text-xs text-white">{docAccent}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Borde</label>
+                  <label className="block text-xs text-white mb-2">Borde</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docBorder} onChange={(e) => setDocBorder(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docBorder}</span>
+                    <span className="text-xs text-white">{docBorder}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Botón fondo</label>
+                  <label className="block text-xs text-white mb-2">Botón fondo</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docButtonBg} onChange={(e) => setDocButtonBg(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docButtonBg}</span>
+                    <span className="text-xs text-white">{docButtonBg}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Botón texto</label>
+                  <label className="block text-xs text-white mb-2">Botón texto</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docButtonText} onChange={(e) => setDocButtonText(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-gray-400">{docButtonText}</span>
+                    <span className="text-xs text-white">{docButtonText}</span>
                   </div>
                 </div>
               </div>
@@ -437,7 +442,7 @@ function VipBenefitsWizardInner() {
             <div className="bg-white/5 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-bold">Botón de acción (CTA)</h3>
-                <label className="flex items-center gap-2 text-sm text-gray-400">
+                <label className="flex items-center gap-2 text-sm text-white">
                   <input 
                     type="checkbox" 
                     checked={ctaEnabled} 
@@ -451,7 +456,7 @@ function VipBenefitsWizardInner() {
               {ctaEnabled && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Texto del botón</label>
+                    <label className="block text-xs text-white mb-1">Texto del botón</label>
                     <input
                       type="text"
                       value={ctaText}
@@ -461,7 +466,7 @@ function VipBenefitsWizardInner() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Enlace</label>
+                    <label className="block text-xs text-white mb-1">Enlace</label>
                     <ActionLinkPicker 
                       value={ctaLink} 
                       onChange={setCtaLink}
@@ -581,9 +586,9 @@ function VipBenefitsWizardInner() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-[#ffb400] text-lg font-extrabold tracking-widest uppercase">Asistente Beneficios VIP</h1>
-            <p className="text-gray-400 text-sm">Crea ofertas exclusivas para tus clientes</p>
+            <p className="text-white text-sm">Crea ofertas exclusivas para tus clientes</p>
           </div>
-          <a href="/vip-benefits" className="text-gray-400 hover:text-white text-sm">Volver al panel</a>
+          <a href="/vip-benefits" className="text-white hover:text-white text-sm">Volver al panel</a>
         </div>
 
         {/* Progress steps */}
@@ -596,7 +601,7 @@ function VipBenefitsWizardInner() {
                     ? "bg-[#ffb400] text-black" 
                     : steps.indexOf(step) > i 
                       ? "bg-green-500 text-white"
-                      : "bg-white/10 text-gray-400"
+                      : "bg-white/10 text-white"
                 }`}
               >
                 {i + 1}

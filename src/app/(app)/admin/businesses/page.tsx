@@ -114,11 +114,18 @@ export default function BusinessesPage() {
                   <td className="py-2 font-medium">{b.name}</td>
                   <td className="py-2">{b.sector || "—"}</td>
                   <td className="py-2">{b.contact_email || "—"}</td>
-                  <td className="py-2">
-                    <a className="text-[var(--brand-3)]" href={`/admin/businesses/${b.id}`}>
-                      Editar
-                    </a>
-                  </td>
+                  <td className="py-2 flex gap-3">
+  <a className="text-[var(--brand-3)]" href={`/admin/businesses/${b.id}`}>
+    Editar
+  </a>
+  <a
+    className="text-[var(--brand-1)]"
+    href={`/business/select-profile?businessId=${b.id}`}
+    target="_blank"
+  >
+    Entrar
+  </a>
+</td>
                 </tr>
               ))}
             </tbody>

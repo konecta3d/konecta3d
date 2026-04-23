@@ -49,17 +49,37 @@ export default function ClientesPage() {
   const TAG_OPTIONS = ["VIP", "Nuevo", "Frecuente", "Pendiente", "Lead"];
 
   useEffect(() => {
-    const bid = new URLSearchParams(window.location.search).get("businessId") 
-      || localStorage.getItem("konecta-business-id") 
-      || "";
+  const load = async () => {
+    const urlBusinessId = new URLSearchParams(window.location.search).get("businessId");
+    let bid = urlBusinessId || "";
+
+    if (!bid) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData.session?.user?.email || "";
+
+      if (userEmail) {
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("contact_email", userEmail)
+          .single();
+
+        bid = biz?.id || "";
+      }
+    }
+
     setBusinessId(bid);
+
     if (bid) {
-      loadClients(bid);
-      loadBenefits(bid);
+      await loadClients(bid);
+      await loadBenefits(bid);
     } else {
       setLoading(false);
     }
-  }, []);
+  };
+
+  load();
+}, []);
 
   const loadClients = async (bid: string) => {
     const { data } = await supabase
@@ -290,7 +310,7 @@ export default function ClientesPage() {
           <div key={client.id} className="flex items-start justify-between rounded-lg border border-[var(--border)] p-4">
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className={`font-semibold ${!client.active && "text-gray-400 line-through"}`}>
+                <span className={`font-semibold ${!client.active && "text-white line-through"}`}>
                   {client.name}
                 </span>
                 {client.tags?.map(tag => (
@@ -305,9 +325,9 @@ export default function ClientesPage() {
                 {client.email && <span>{client.email}</span>}
               </div>
               {client.notes && (
-                <div className="mt-1 text-xs text-gray-500 italic">{client.notes}</div>
+                <div className="mt-1 text-xs text-white italic">{client.notes}</div>
               )}
-              <div className="mt-1 text-xs text-gray-400">
+              <div className="mt-1 text-xs text-white">
                 Registrado: {new Date(client.created_at).toLocaleDateString("es-ES")}
               </div>
             </div>

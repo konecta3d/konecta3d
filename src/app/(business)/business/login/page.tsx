@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 export default function BusinessLogin() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -67,7 +68,7 @@ export default function BusinessLogin() {
       console.error("Login error:", error);
       // Mostrar mensaje más específico
       if (error.message.includes("Invalid login credentials")) {
-        setMsg("Contraseña incorrecta. Usa el botón '🔑' en Admin para generar una nueva contraseña.");
+        setMsg("Contraseña incorrecta. Usa el botón 'Generar contraseña' en Admin para crear una nueva.");
       } else if (error.message.includes("User not found")) {
         setMsg("Usuario no existe. Contacta al administrador para crear tu acceso.");
       } else {
@@ -77,18 +78,34 @@ export default function BusinessLogin() {
     }
 
     // Login exitoso
-    const businessId = localStorage.getItem("konecta-business-id");
-    
-    if (!remember) {
-      await supabase.auth.setSession({ access_token: (await supabase.auth.getSession()).data.session?.access_token || "", refresh_token: "" });
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .ilike("contact_email", email.trim())
+      .single();
+
+    // Limpiar y fijar negocio actual
+    localStorage.removeItem("konecta-business-id");
+
+    if (biz?.id) {
+      localStorage.setItem("konecta-business-id", biz.id);
+    } else {
+      setMsg("Negocio no encontrado para este email.");
+      return;
     }
 
     localStorage.setItem("konecta-role", "business");
-    window.location.href = "/business/dashboard";
+    window.location.href = "/business/select-profile";
   };
 
   return (
-    <div className="max-w-md mx-auto rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleLogin();
+      }}
+      className="max-w-md mx-auto rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4"
+    >
       <h1 className="text-2xl font-semibold">Acceso negocios</h1>
       <div>
         <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">EMAIL, TELÉFONO O ID</label>
@@ -96,14 +113,34 @@ export default function BusinessLogin() {
       </div>
       <div>
         <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">Contraseña</label>
-        <input type="password" className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <div className="mt-1 flex items-center gap-2">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onMouseDown={() => setShowPassword(true)}
+            onMouseUp={() => setShowPassword(false)}
+            onMouseLeave={() => setShowPassword(false)}
+            onTouchStart={() => setShowPassword(true)}
+            onTouchEnd={() => setShowPassword(false)}
+            className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
+          >
+            Ver
+          </button>
+        </div>
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
         Recordar sesión
       </label>
-      <button onClick={handleLogin} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black w-full">Entrar</button>
+      <button type="submit" className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black w-full">
+        Entrar
+      </button>
       {msg && <div className="text-sm text-red-400">{msg}</div>}
-    </div>
+    </form>
   );
 }

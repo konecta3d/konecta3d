@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -15,7 +15,7 @@ interface LeadMagnet {
   pdf_url: string | null;
 }
 
-export default function LeadMagnetPage() {
+function LeadMagnetListContent() {
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -23,9 +23,22 @@ export default function LeadMagnetPage() {
 
   useEffect(() => {
     const paramId = searchParams.get("businessId");
-    const storedId = typeof window !== "undefined" ? localStorage.getItem("konecta-business-id") : null;
-    const id = paramId || storedId || "";
-    setBusinessId(id);
+    if (paramId) {
+      setBusinessId(paramId);
+      return;
+    }
+    const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData?.session?.user?.email || "";
+      if (!userEmail) { setBusinessId(""); return; }
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      setBusinessId(biz?.id || "");
+    };
+    load();
   }, [searchParams]);
 
   useEffect(() => {
@@ -75,10 +88,10 @@ export default function LeadMagnetPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Lead Magnet</h1>
-        <p className="text-sm text-[var(--brand-1)]">
-          Crea recursos de valor para tus clientes
-        </p>
+        <h1 className="text-2xl font-bold">Recurso de Valor</h1>
+<p className="text-sm text-[var(--brand-1)]">
+  Crea contenido útil para fidelizar a tus clientes
+</p>
       </div>
 
       {/* Opciones de creación */}
@@ -87,11 +100,11 @@ export default function LeadMagnetPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
           <div className="text-center mb-4">
             <h2 className="text-lg md:text-xl font-bold text-white">Asistente</h2>
-            <p className="text-xs md:text-sm text-gray-400 mt-2">
+            <p className="text-xs md:text-sm text-white mt-2">
               Creación guiada paso a paso. Ideal para principiantes.
             </p>
           </div>
-          <ul className="text-xs md:text-sm text-gray-400 space-y-2 mb-6">
+          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
             <li className="flex items-center gap-2">
               <span className="text-[var(--brand-4)]">✓</span> 5 pasos guiados
             </li>
@@ -109,7 +122,7 @@ export default function LeadMagnetPage() {
             href={businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard"}
             className="block w-full py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90"
           >
-            Crear con Asistente
+            Crear Recurso con Asistente
           </Link>
         </div>
 
@@ -117,11 +130,11 @@ export default function LeadMagnetPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold text-white">Avanzado</h2>
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-sm text-white mt-2">
               Control total sobre el diseño y contenido.
             </p>
           </div>
-          <ul className="text-xs md:text-sm text-gray-400 space-y-2 mb-6">
+          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
             <li className="flex items-center gap-2">
               <span className="text-[var(--brand-4)]">✓</span> Edición libre
             </li>
@@ -135,29 +148,29 @@ export default function LeadMagnetPage() {
               <span className="text-[var(--brand-4)]">✓</span> Productos/Servicios
             </li>
           </ul>
-          <Link
-            href={businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new"}
-            className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-white font-semibold hover:opacity-90"
-          >
-            Crear en modo Avanzado
-          </Link>
+<Link
+  href={businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new"}
+  className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-black font-semibold hover:opacity-90"
+>
+  Crear Recurso en modo Avanzado
+</Link>
         </div>
       </div>
 
       {/* Lead Magnets generados */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-          <h2 className="text-base md:text-lg font-bold">Lead Magnets generados</h2>
+          <h2 className="text-base md:text-lg font-bold">Recursos de Valor generados</h2>
           <span className="text-xs px-2 py-1 bg-[var(--brand-1)]/20 text-[var(--brand-1)] rounded">
             {leadMagnets.length} recurso{leadMagnets.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-400">Cargando...</div>
+          <div className="text-center py-8 text-white">Cargando...</div>
         ) : leadMagnets.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <p>No hay Lead Magnets todavía</p>
+          <div className="text-center py-8 text-white">
+            <p>No hay Recursos de Valor todavía</p>
             <p className="text-sm mt-1">Crea uno usando el Asistente o el modo Avanzado</p>
           </div>
         ) : (
@@ -174,11 +187,11 @@ export default function LeadMagnetPage() {
                       {getTypeLabel(lm.type)}
                     </span>
                     {lm.objective && (
-                      <span className="text-gray-500">
+                      <span className="text-white">
                         {getObjectiveLabel(lm.objective)}
                       </span>
                     )}
-                    <span className="text-gray-500">
+                    <span className="text-white">
                       {new Date(lm.created_at).toLocaleDateString("es-ES")}
                     </span>
                   </div>
@@ -215,5 +228,13 @@ export default function LeadMagnetPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LeadMagnetPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm">Cargando...</div>}>
+      <LeadMagnetListContent />
+    </Suspense>
   );
 }
