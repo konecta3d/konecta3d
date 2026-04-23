@@ -29,6 +29,8 @@ export default function AdminSettings() {
   const [msg, setMsg] = useState("");
   const [activeSection, setActiveSection] = useState("email");
   const [saving, setSaving] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<null | { results: Record<string, string>; hasMissing: boolean; sql?: string | null }>(null);
+  const [migrationLoading, setMigrationLoading] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -144,6 +146,12 @@ export default function AdminSettings() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "subscription" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Suscripciones
+        </button>
+        <button
+          onClick={() => setActiveSection("database")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "database" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+        >
+          Base de datos
         </button>
       </div>
 
@@ -291,6 +299,83 @@ export default function AdminSettings() {
               Los planes de suscripción y el sistema de facturación se implementarán en futuras actualizaciones.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Database Section */}
+      {activeSection === "database" && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Diagnóstico de tablas</h2>
+            <p className="text-sm text-white mb-4">
+              Comprueba que todas las tablas necesarias existen en Supabase.
+              Si falta alguna, se mostrará el SQL que debes ejecutar en el Editor SQL de Supabase.
+            </p>
+            <button
+              onClick={async () => {
+                setMigrationLoading(true);
+                setMigrationResult(null);
+                try {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const res = await fetch("/api/admin/run-migration", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${session?.access_token || ""}` },
+                  });
+                  const json = await res.json();
+                  setMigrationResult(json);
+                } catch (e) {
+                  alert("Error: " + String(e));
+                }
+                setMigrationLoading(false);
+              }}
+              disabled={migrationLoading}
+              className="px-4 py-2 rounded-lg bg-[var(--brand-4)] text-black font-semibold disabled:opacity-50"
+            >
+              {migrationLoading ? "Comprobando..." : "Comprobar tablas"}
+            </button>
+          </div>
+
+          {migrationResult && (
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                {Object.entries(migrationResult.results).map(([table, status]) => (
+                  <div key={table} className="flex items-center gap-3 rounded-lg border border-[var(--border)] p-3">
+                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${status === "OK" ? "bg-green-500" : "bg-red-500"}`} />
+                    <span className="font-mono text-sm font-semibold">{table}</span>
+                    <span className={`text-sm ${status === "OK" ? "text-green-400" : "text-red-400"}`}>{status}</span>
+                  </div>
+                ))}
+              </div>
+
+              {migrationResult.hasMissing && migrationResult.sql && (
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-yellow-400">
+                    ⚠ Tablas faltantes detectadas. Copia el SQL de abajo y ejecútalo en
+                    Supabase Dashboard → SQL Editor → New query.
+                  </p>
+                  <textarea
+                    readOnly
+                    className="w-full rounded-lg border border-[var(--border)] bg-black p-3 font-mono text-xs text-green-400"
+                    rows={30}
+                    value={migrationResult.sql}
+                    onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                  />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(migrationResult.sql!); }}
+                    className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm"
+                  >
+                    Copiar SQL al portapapeles
+                  </button>
+                </div>
+              )}
+
+              {!migrationResult.hasMissing && (
+                <div className="rounded-lg bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-400">
+                  ✓ Todas las tablas están presentes y accesibles.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

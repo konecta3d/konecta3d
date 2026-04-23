@@ -1121,14 +1121,14 @@ useEffect(() => {
             </div>
             <div
               ref={previewRef}
-              className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent p-4 flex justify-center"
-              style={{ width: 360, height: 780, overflow: "hidden" }}
+              className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent overflow-hidden"
+              style={{ width: 360, height: 760 }}
             >
               <div
                 style={{
-                  width: 390,
-                  transform: "scale(0.92)",
-                  transformOrigin: "top center",
+                  width: 375,
+                  transformOrigin: "top left",
+                  transform: "scale(0.96)",
                 }}
               >
                 <div className="rounded-[24px] overflow-hidden">

@@ -54,11 +54,19 @@ export async function verifyBusinessOwnership(req: Request, businessId: string):
 
   const { data: business } = await supabaseAdmin
     .from("businesses")
-    .select("user_id")
+    .select("user_id, contact_email")
     .eq("id", businessId)
     .single();
 
-  return business?.user_id === data.user.id;
+  if (!business) return false;
+
+  // Verificar por user_id (preferido) O por contact_email (fallback para
+  // negocios creados antes de que existiera la columna user_id)
+  const matchesUserId = business.user_id && business.user_id === data.user.id;
+  const matchesEmail  = business.contact_email &&
+    business.contact_email.toLowerCase() === (data.user.email || "").toLowerCase();
+
+  return !!(matchesUserId || matchesEmail);
 }
 
 /**

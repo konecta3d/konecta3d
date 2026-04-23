@@ -179,16 +179,26 @@ export default function VipBenefitsNew() {
     };
 
     try {
+      const { data: { session: pdfSession } } = await supabase.auth.getSession();
       const res = await fetch("/api/benefits/generate-pdf", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ benefitId: "temp-" + Date.now(), businessId, title: title || bizName || "", value, conditions }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${pdfSession?.access_token || ""}`,
+        },
+        body: JSON.stringify({ businessId, title: title || bizName || "", value, conditions }),
       });
-      if (!res.ok) throw new Error("Error");
-      const data = await res.json();
-      if (data.url) window.open(data.url, "_blank");
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `beneficio-${Date.now()}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch (e) {
-      alert("Error al generar PDF");
+      console.error("Error PDF:", e);
+      alert("Error al generar PDF: " + (e instanceof Error ? e.message : e));
     }
   };
 

@@ -133,7 +133,12 @@ export default function ClientesPage() {
     setSaving(false);
     if (error) {
       console.error("Error guardando cliente:", error);
-      setMessage("Error: " + error.message);
+      const isTableMissing = error.message?.includes("does not exist") || error.code === "42P01";
+      setMessage(
+        isTableMissing
+          ? "Error: la tabla 'clients' no existe. Pide al admin que ejecute la migración en Configuración → Base de datos."
+          : "Error: " + error.message
+      );
     } else {
       setMessage("Guardado correctamente");
       loadClients(businessId);
@@ -294,7 +299,11 @@ export default function ClientesPage() {
           {editingId && (
             <button onClick={resetForm} className="text-sm underline">Cancelar</button>
           )}
-          {message && <span className="text-sm text-green-500">{message}</span>}
+          {message && (
+            <span className={`text-sm ${message.startsWith("Error") ? "text-red-400" : "text-green-500"}`}>
+              {message}
+            </span>
+          )}
         </div>
       </div>
 

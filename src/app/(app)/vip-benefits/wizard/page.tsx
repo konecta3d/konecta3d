@@ -154,26 +154,31 @@ function VipBenefitsWizardInner() {
     };
 
     try {
+      const { data: { session: pdfSession } } = await supabase.auth.getSession();
       const res = await fetch("/api/benefits/generate-pdf", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${pdfSession?.access_token || ""}`,
+        },
         body: JSON.stringify({
-          benefitId: "temp-wizard-" + Date.now(),
           businessId,
           title: title || businessName || "",
           value: value || "",
-          description: "",
           conditions,
-          instructions,
         }),
       });
-      if (!res.ok) throw new Error("Error generando PDF");
-      const data = await res.json();
-      if (data.url) {
-        window.open(data.url, "_blank");
-      }
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `beneficio-${Date.now()}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch (e) {
-      alert("Error al generar PDF");
+      console.error("Error PDF:", e);
+      alert("Error al generar PDF: " + (e instanceof Error ? e.message : e));
     }
     setPdfGenerating(false);
   };

@@ -20,7 +20,6 @@ const businessLinks: SidebarLink[] = [
   { label: "Perfil", href: "/mi-negocio/perfil", category: "Mi Negocio" },
   { label: "Clientes", href: "/mi-negocio/cliente-ideal", category: "Mi Negocio" },
   { label: "Catálogo P/S", href: "/mi-negocio/catalogo", category: "Mi Negocio" },
-  { label: "Historial", href: "/mi-negocio/historial", category: "Mi Negocio" },
   { label: "Estadísticas", href: "/mi-negocio/estadisticas", category: "Mi Negocio" },
   { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
   { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },

@@ -113,22 +113,36 @@ useEffect(() => {
       active: true,
     };
 
+    let saveError = null;
     if (editingId) {
       const existing = items.find(i => i.id === editingId);
-      await supabase
+      const { error } = await supabase
         .from("products_services")
         .update({ ...payload, sort_order: existing?.sort_order || 0 })
         .eq("id", editingId);
+      saveError = error;
     } else {
-      await supabase
+      const { error } = await supabase
         .from("products_services")
         .insert(payload);
+      saveError = error;
     }
 
     setSaving(false);
-    setMessage("Guardado correctamente");
-    loadData(businessId);
-    resetForm();
+
+    if (saveError) {
+      console.error("Error guardando producto/servicio:", saveError);
+      const isTableMissing = saveError.message?.includes("does not exist") || saveError.code === "42P01";
+      setMessage(
+        isTableMissing
+          ? "Error: la tabla no existe. Pide al admin que ejecute la migración en Configuración → Base de datos."
+          : "Error: " + saveError.message
+      );
+    } else {
+      setMessage("Guardado correctamente");
+      loadData(businessId);
+      resetForm();
+    }
   };
 
   const resetForm = () => {
@@ -401,7 +415,11 @@ useEffect(() => {
           {editingId && (
             <button onClick={resetForm} className="text-sm underline">Cancelar</button>
           )}
-          {message && <span className="text-sm text-green-500">{message}</span>}
+          {message && (
+            <span className={`text-sm ${message.startsWith("Error") ? "text-red-400" : "text-green-500"}`}>
+              {message}
+            </span>
+          )}
         </div>
       </div>
 
