@@ -7,7 +7,7 @@ import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
-type Objective = "captar" | "volvieron" | "conversion" | "referidos";
+type Objective = "volvieron" | "conversion" | "referidos";
 type WizardStep = "bienvenida" | "objetivo" | "tipo" | "contenido" | "personalizacion";
 
 const OBJECTIVE_INFO: Record<Objective, {
@@ -16,12 +16,6 @@ const OBJECTIVE_INFO: Record<Objective, {
   example: string;
   color: string;
 }> = {
-  captar: {
-    title: "Captar nuevos clientes",
-    description: "Atrae a personas que aún no te conocen con un recurso útil y claro.",
-    example: "Guía rápida para aliviar dolor lumbar en casa.",
-    color: "#39a1a9"
-  },
   volvieron: {
     title: "Que vuelvan",
     description: "Motiva el retorno de clientes actuales con continuidad y seguimiento.",
@@ -50,20 +44,6 @@ const OBJECTIVE_GUIDE: Record<Objective, {
   format: string;
   example: string;
 }> = {
-  captar: {
-    short: "Atrae nuevos clientes con un recurso útil y claro.",
-    whatIs: "Generar confianza inicial y convertir a quien aún no te conoce.",
-    subObjectives: [
-      "Generar confianza inicial",
-      "Mostrar lo que ofreces",
-      "Resolver una duda frecuente",
-      "Reducir el miedo a probar",
-      "Facilitar el primer contacto"
-    ],
-    create: "Recurso breve que resuelva un problema común.",
-    format: "Guía breve o checklist.",
-    example: "Guía rápida para aliviar dolor lumbar en casa."
-  },
   volvieron: {
     short: "Motiva el retorno con continuidad y seguimiento.",
     whatIs: "Aumentar recurrencia de clientes actuales.",
@@ -123,11 +103,6 @@ const CTA_PRESETS = [
 ];
 
 const TEMPLATES: Record<Objective, Record<LeadMagnetType, { title: string; intro: string; content: string; cta1: string; cta2: string }>> = {
-  captar: {
-    guia: { title: "GUÍA: Cómo conseguir el mejor resultado", intro: "Esta guía te muestra los pasos clave.", content: "En esta guía vas a acompañar al lector desde el problema hasta la solución.\n\nEmpieza explicando en qué situación se encuentra tu cliente ideal y qué error comete normalmente. Después, desarrolla 3–5 ideas clave que quieras que entienda antes de tomar una decisión.\n\nCierra el contenido resumiendo qué debería tener claro el lector antes de pasar a la siguiente acción (por ejemplo, reservar una cita o solicitar más información).", cta1: "Descargar guía", cta2: "Reservar cita" },
-    checklist: { title: "CHECKLIST: Lo que debes saber", intro: "No compres sin verificar estos puntos.", content: "Verificar licencias\nComparar opciones\nRevisar garantías\nPreguntar por mantenimiento\nPedir referencias", cta1: "Descargar", cta2: "Solicitar info" },
-    recomendacion: { title: "TOP 5 recomendaciones", intro: "Las opciones más recomendadas.", content: "Opción 1\nOpción 2\nOpción 3\nOpción 4\nOpción 5", cta1: "Ver", cta2: "Contactar" }
-  },
   volvieron: {
     guia: { title: "GUÍA: Sacarle máximo partido a tu compra", intro: "Aprende a usar tu producto correctamente.", content: "En esta guía vas a ayudar al cliente a sacar el máximo provecho de lo que ya ha comprado.\n\nEmpieza recordándole cómo debería usarlo en el día a día y qué errores debe evitar. Después, añade recomendaciones prácticas para alargar la vida del producto y disfrutarlo más.\n\nCierra el contenido invitando al lector a aprovechar una revisión, un plan de mantenimiento o un beneficio extra que ofrezcas a tus clientes actuales.", cta1: "Descargar", cta2: "Ver beneficios" },
     checklist: { title: "CHECKLIST: Mantenimiento", intro: "Asegura la durabilidad.", content: "Limpieza semanal\nRevisión mensual\nMantenimiento trimestral", cta1: "Descargar", cta2: "Ver tips" },
@@ -160,7 +135,7 @@ function LeadMagnetWizardInner() {
   const [saved, setSaved] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [step, setStep] = useState<WizardStep>("bienvenida");
-  const [objective, setObjective] = useState<Objective>("captar");
+  const [objective, setObjective] = useState<Objective>("volvieron");
   const [openGuide, setOpenGuide] = useState<Objective | null>(null);
   const [type, setType] = useState<LeadMagnetType>("guia");
   const [businessName, setBusinessName] = useState("");

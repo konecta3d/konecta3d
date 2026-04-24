@@ -1119,19 +1119,23 @@ useEffect(() => {
                 </button>
               </div>
             </div>
+            {/* Marco de móvil — 390px de contenido escalado a 360px visible */}
             <div
               ref={previewRef}
               className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent overflow-hidden"
-              style={{ width: 360, height: 760 }}
+              style={{ width: 360, height: 760, position: "relative" }}
             >
               <div
                 style={{
-                  width: 375,
+                  width: 390,
+                  transform: "scale(0.923)",
                   transformOrigin: "top left",
-                  transform: "scale(0.96)",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
                 }}
               >
-                <div className="rounded-[24px] overflow-hidden">
+                <div className="overflow-hidden">
                   <LandingRenderer config={config} toolsEnabled={true} />
                 </div>
               </div>

@@ -12,7 +12,7 @@ import puppeteer, { Browser } from "puppeteer-core";
 
 const CHROMIUM_REMOTE_URL =
   process.env.CHROMIUM_REMOTE_EXEC_URL ||
-  "https://github.com/Sparticuz/chromium/releases/download/v147.0.0/chromium-v147.0.0-pack.tar";
+  "https://github.com/Sparticuz/chromium/releases/download/v147.0.0/chromium-v147.0.0-pack.x64.tar";
 
 const LOCAL_CHROME_PATHS = [
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",

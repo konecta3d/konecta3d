@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
-type Objective = "captar" | "vuelvan" | "conversion" | "referidos";
+type Objective = "vuelvan" | "conversion" | "referidos";
 
 const BASE_TITLE_PLACEHOLDER = "Tu recurso de valor";
 const BASE_INTRO_PLACEHOLDER = "Introducción al documento";
@@ -110,11 +110,6 @@ const INTRO_SUGGESTIONS: Record<LeadMagnetType, string> = {
 };
 
 const ORIENTATION_MESSAGES: Record<string, Record<string, string>> = {
-  captar: {
-    servicio: "Una **Guía breve** o **Recomendación técnica** demuestra tu autoridad y resuelve dudas iniciales del cliente.",
-    producto: "Un **Checklist** o **Recomendación práctica** ayuda a que el cliente vea el valor inmediato de tu producto sin barreras.",
-    ambos: "Cualquier formato que resuelva un problema específico y rápido será efectivo para captar leads.",
-  },
   vuelvan: {
     servicio: "Una **Recomendación técnica personalizada** tras el servicio asegura que el cliente se sienta cuidado y regrese.",
     producto: "Una **Guía de uso avanzado** o mantenimiento alarga la vida del producto y fomenta que el cliente vuelva a confiar en ti.",
@@ -129,19 +124,12 @@ const ORIENTATION_MESSAGES: Record<string, Record<string, string>> = {
 };
 
 const CTA_SUGGESTIONS: Record<Objective, string[]> = {
-  captar: ["Descargar Guía Gratis", "Ver Masterclass", "Obtener Cupón"],
   vuelvan: ["Agendar Revisión", "Ver Novedades", "Acceso Club VIP"],
   conversion: ["Comprar Ahora", "Solicitar Presupuesto", "Ver Demo En Vivo"],
   referidos: ["Regalar a un Amigo", "Compartir en WhatsApp", "Invitar y Ganar"],
 };
 
 const SN_SUGGESTIONS: Record<Objective, { s1: string[]; s2: string[]; s3: string[]; s4: string[] }> = {
-  captar: {
-    s1: ["Aplica este diagnóstico hoy mismo", "Usa esta plantilla en tu reunión", "Prueba este método con 1 cliente"],
-    s2: ["Detectarás fugas de dinero", "Ganarás 1 hora extra al día", "Mayor claridad en tu proceso"],
-    s3: ["Para automatizar esto, pulsa abajo", "Si quieres el software, agenda cita", "Mira cómo lo hacemos nosotros"],
-    s4: ["Reserva tu auditoría gratuita", "Hablar con un asesor técnico", "Ver video demostrativo"],
-  },
   vuelvan: {
     s1: ["Envía esta encuesta a tus clientes", "Regala este cupón en el próximo ticket", "Añade este detalle en tu packaging"],
     s2: ["Aumentarás tu recurrencia mensual", "Clientes más felices y fieles", "Más recomendaciones positivas"],
@@ -176,7 +164,7 @@ function LeadMagnetNewContent() {
   const [state, setState] = useState<LeadMagnetState>({
     businessName: "",
     businessType: "servicio",
-    objective: "captar",
+    objective: "vuelvan",
     type: "guia",
     typeLabel: "GUÍA ESTRATÉGICA",
     title: "",
@@ -667,9 +655,9 @@ function LeadMagnetNewContent() {
                 <h3 className="text-[var(--brand-1)] text-sm uppercase tracking-widest mb-4">Estrategia del Recurso</h3>
                 <label className="text-[var(--brand-4)] text-xs uppercase tracking-widest block mb-2">Objetivo Principal</label>
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  {(["captar", "vuelvan", "conversion", "referidos"] as Objective[]).map(o => (
+                  {(["vuelvan", "conversion", "referidos"] as Objective[]).map(o => (
                     <button key={o} onClick={() => update({ objective: o })} className={`py-3 rounded-xl text-xs font-extrabold uppercase transition-all ${state.objective === o ? "border-2 border-[var(--brand-3)] bg-[#0f1720] text-white" : "border border-[var(--brand-3)] bg-[#0f1720] text-white/70"}`}>
-                      {o === "captar" ? "CAPTAR" : o === "vuelvan" ? "FIDELIZACIÓN" : o === "conversion" ? "CONVERSIÓN" : "REFERIDOS"}
+                      {o === "vuelvan" ? "FIDELIZACIÓN" : o === "conversion" ? "CONVERSIÓN" : "REFERIDOS"}
                     </button>
                   ))}
                 </div>
