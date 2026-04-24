@@ -42,6 +42,7 @@ export default function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
   const [benefits, setBenefits] = useState<Benefit[]>([]);
+  const [moduleVipBenefits, setModuleVipBenefits] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -71,11 +72,20 @@ export default function ClientesPage() {
         if (userEmail) {
           const { data: biz } = await supabase
             .from("businesses")
-            .select("id")
+            .select("id, module_vip_benefits")
             .eq("contact_email", userEmail)
             .single();
           bid = biz?.id || "";
+          setModuleVipBenefits(biz?.module_vip_benefits ?? false);
         }
+      } else {
+        // Si viene por URL (admin viendo negocio), cargar el flag también
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("module_vip_benefits")
+          .eq("id", bid)
+          .single();
+        setModuleVipBenefits(biz?.module_vip_benefits ?? false);
       }
 
       setBusinessId(bid);
@@ -289,7 +299,9 @@ export default function ClientesPage() {
             </div>
             <div className="flex flex-col gap-1 text-xs">
               <button onClick={() => editClient(client)} className="underline">Editar</button>
-              <button onClick={() => openBenefitsModal(client.id)} className="underline text-[var(--brand-3)]">Asignar beneficios</button>
+              {moduleVipBenefits && (
+                <button onClick={() => openBenefitsModal(client.id)} className="underline text-[var(--brand-3)]">Asignar beneficios</button>
+              )}
               <button onClick={() => toggleActive(client)} className="underline">{client.active ? "Desactivar" : "Activar"}</button>
               <button onClick={() => deleteClient(client.id)} className="text-red-500">Eliminar</button>
             </div>
@@ -297,8 +309,8 @@ export default function ClientesPage() {
         ))}
       </div>
 
-      {/* Modal beneficios */}
-      {showBenefitsModal && (
+      {/* Modal beneficios — solo si el módulo está activo */}
+      {moduleVipBenefits && showBenefitsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-xl bg-[var(--card)] p-6">
             <div className="mb-4 flex items-center justify-between">

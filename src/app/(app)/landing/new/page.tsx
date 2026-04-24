@@ -1083,8 +1083,8 @@ useEffect(() => {
             </CollapsibleSection>
           </div>
 
-          {/* Vista previa */}
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
+          {/* Vista previa — oculta en móvil, disponible desde botón "Previsualizar Landing" */}
+          <div className="hidden md:block rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold">Vista previa (móvil)</div>
               <div className="flex gap-2">
