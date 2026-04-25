@@ -640,7 +640,7 @@ function LeadMagnetNewContent() {
                   </div>
                   <div>
                     <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">¿Qué comercializas?</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {(["servicio", "producto", "ambos"] as BusinessType[]).map(t => (
                         <button key={t} onClick={() => update({ businessType: t })} className={`py-3 rounded-xl text-xs font-extrabold uppercase transition-all ${state.businessType === t ? "border-2 border-[var(--brand-3)] bg-[#0f1720] text-white" : "border border-[var(--brand-3)] bg-[#0f1720] text-white/70"}`}>
                           {t === "servicio" ? "SERVICIO" : t === "producto" ? "PRODUCTO" : "AMBOS"}
@@ -654,7 +654,7 @@ function LeadMagnetNewContent() {
               <div className="border-2 border-[var(--brand-3)] rounded-2xl p-4 mb-6">
                 <h3 className="text-[var(--brand-1)] text-sm uppercase tracking-widest mb-4">Estrategia del Recurso</h3>
                 <label className="text-[var(--brand-4)] text-xs uppercase tracking-widest block mb-2">Objetivo Principal</label>
-                <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                   {(["vuelvan", "conversion", "referidos"] as Objective[]).map(o => (
                     <button key={o} onClick={() => update({ objective: o })} className={`py-3 rounded-xl text-xs font-extrabold uppercase transition-all ${state.objective === o ? "border-2 border-[var(--brand-3)] bg-[#0f1720] text-white" : "border border-[var(--brand-3)] bg-[#0f1720] text-white/70"}`}>
                       {o === "vuelvan" ? "FIDELIZACIÓN" : o === "conversion" ? "CONVERSIÓN" : "REFERIDOS"}
@@ -684,7 +684,7 @@ function LeadMagnetNewContent() {
               <div className="space-y-4">
                 <div>
                   <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">Formato del Recurso</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {([{ t: "guia" as LeadMagnetType, l: "GUÍA" }, { t: "checklist" as LeadMagnetType, l: "CHECKLIST" }, { t: "recomendacion" as LeadMagnetType, l: "RECOMENDACIÓN" }]).map(x => (
                       <button key={x.t} onClick={() => setResourceType(x.t)} className={`py-3 rounded-xl text-xs font-extrabold uppercase transition-all ${state.type === x.t ? "border-2 border-[var(--brand-3)] bg-[#0f1720] text-white" : "border border-[var(--brand-3)] bg-[#0f1720] text-white/70"}`}>
                         {x.l}
@@ -705,12 +705,12 @@ function LeadMagnetNewContent() {
 
                 <div>
                   <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">Contenido Principal (Aporte de Valor)</label>
-                  <textarea value={state.content} onChange={(e) => update({ content: e.target.value })} placeholder="Escribe aquí el contenido técnico..." rows={8} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[var(--brand-3)] resize-none" />
+                  <textarea value={state.content} onChange={(e) => update({ content: e.target.value })} placeholder="Escribe aquí el contenido técnico..." rows={5} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[var(--brand-3)] resize-none" />
                   <p className="text-white text-xs mt-1">Usa **texto** para negrita.</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-6">
                 <button onClick={() => goToStep(1)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-white hover:bg-white/5 transition-colors">Atrás</button>
                 <button onClick={() => goToStep(3)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider bg-[var(--brand-4)] text-black hover:opacity-90 transition-opacity">Siguiente</button>
               </div>
@@ -739,7 +739,7 @@ function LeadMagnetNewContent() {
                     <textarea value={state[item.k as keyof LeadMagnetState] as string} onChange={(e) => update({ [item.k]: e.target.value })} rows={2} maxLength={item.max} className="w-full px-3 py-2 rounded-lg border border-[#0f1720] bg-[#0f1720] text-white text-xs outline-none focus:border-[var(--brand-3)] resize-none" />
                     <div className="flex flex-wrap gap-1 mt-2">
                       {item.sug.map(s => (
-                        <button key={s} onClick={() => applySnSuggestion(item.n, s)} className="text-[10px] px-2 py-1 rounded-full bg-[var(--brand-3)]/10 text-[var(--brand-3)] border border-[var(--brand-3)]/20 hover:bg-[var(--brand-3)] hover:text-black transition-colors">+ {s}</button>
+                        <button key={s} onClick={() => applySnSuggestion(item.n, s)} className="text-[9px] md:text-[10px] px-2 py-1 rounded-full bg-[var(--brand-3)]/10 text-[var(--brand-3)] border border-[var(--brand-3)]/20 hover:bg-[var(--brand-3)] hover:text-black transition-colors">+ {s}</button>
                       ))}
                     </div>
                     <div className="text-right text-[var(--brand-3)] text-xs mt-1">{(state[item.k as keyof LeadMagnetState] as string || "").length} / {item.max}</div>
@@ -747,7 +747,7 @@ function LeadMagnetNewContent() {
                 ))}
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-6">
                 <button onClick={() => goToStep(2)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-white/10 text-white hover:bg-white/5 transition-colors">Atrás</button>
                 <button onClick={() => goToStep(4)} className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider bg-[var(--brand-4)] text-black hover:opacity-90 transition-opacity">Siguiente</button>
               </div>
@@ -767,7 +767,7 @@ function LeadMagnetNewContent() {
 
               <div className="space-y-4 mb-6">
                 {/* Botones y acciones (CTA 1 y CTA 2) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-2">
                   {/* CTA 1 */}
                   <div className="bg-white/5 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -915,7 +915,7 @@ function LeadMagnetNewContent() {
                 </div>
 
                 {/* Identidad visual del PDF */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 md:gap-3">
                   <div>
                     <label className="text-[#C5A059] text-xs uppercase tracking-widest block mb-2">Tamaño del Título</label>
                     <div className="flex items-center gap-3">
@@ -968,7 +968,7 @@ function LeadMagnetNewContent() {
                     <h3 className="text-[var(--brand-3)] text-sm uppercase tracking-widest">
                       Colores personalizados
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 md:gap-3">
                       {[{ l: "Marca/Cabecera", k: "colorBrand" }, { l: "Etiqueta Perfil", k: "colorTag" }, { l: "Título Principal", k: "colorTitle" }, { l: "Botones de Acción", k: "colorButton" }].map((c) => (
                         <div key={c.k}>
                           <label className="text-[#C5A059] text-xs uppercase tracking-widest block mb-2">{c.l}</label>
@@ -992,7 +992,7 @@ function LeadMagnetNewContent() {
                   </div>
                 </details>
 
-                <div className="flex gap-3 mt-6">
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-6">
                   <button
                     onClick={() => goToStep(3)}
                     className="flex-1 py-3 rounded-full text-sm font-bold uppercase tracking-wider border border-[#0f1720] text-white/70 hover:opacity-90 transition-colors"

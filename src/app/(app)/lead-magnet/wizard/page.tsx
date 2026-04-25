@@ -404,15 +404,15 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4" style={{ color: "#ffffff" }}>
+              <h2 className="text-xl md:text-3xl font-bold mb-4" style={{ color: "#ffffff" }}>
                 Convierte tu conocimiento en un activo para tu negocio
               </h2>
-              <p className="text-lg text-white max-w-2xl mx-auto">
+              <p className="text-sm md:text-lg text-white max-w-2xl mx-auto">
                 Este asistente te ayuda a transformar tu experiencia profesional y conocimiento de negocio en un recurso valioso que tus clientes pueden descargar.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
               <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                 <div className="w-12 h-12 rounded-full bg-[#39a1a9] flex items-center justify-center mb-4 mx-auto">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -465,7 +465,7 @@ function LeadMagnetWizardInner() {
             <div className="flex justify-center mt-8">
               <button
                 onClick={() => setStep("objetivo")}
-                className="px-10 py-4 rounded-full bg-[#ffb400] text-black font-bold text-lg"
+                className="px-6 md:px-10 py-3 md:py-4 rounded-full bg-[#ffb400] text-black font-bold text-base md:text-lg w-full sm:w-auto"
               >
                 Comenzar a crear mi recurso
               </button>
@@ -477,7 +477,7 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Cuál es tu objetivo?</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Cuál es tu objetivo?</h2>
               <p className="text-white">Selecciona el propósito de tu recurso de valor</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -488,7 +488,7 @@ function LeadMagnetWizardInner() {
                 return (
                   <div
                     key={key}
-                    className="p-6 rounded-xl transition-all border-2"
+                    className="p-4 md:p-6 rounded-xl transition-all border-2"
                     style={{
                       borderColor: objective === key ? info.color : "rgba(255,255,255,0.1)",
                       backgroundColor: objective === key ? `${info.color}15` : "rgba(255,255,255,0.05)"
@@ -538,7 +538,7 @@ function LeadMagnetWizardInner() {
               })}
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
               <button
                 onClick={() => setStep("bienvenida")}
                 className="px-6 py-3 rounded-full border border-white/20"
@@ -560,15 +560,15 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Qué tipo de recurso es?</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Qué tipo de recurso es?</h2>
               <p className="text-white">Elige el formato</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
               {Object.entries(TYPE_INFO).map(([key, info]) => (
                 <button
                   key={key}
                   onClick={() => setType(key as LeadMagnetType)}
-                  className="p-6 rounded-xl text-center transition-all border-2"
+                  className="p-4 md:p-6 rounded-xl text-center transition-all border-2"
                   style={{
                     borderColor: type === key ? "#ffb400" : "rgba(255,255,255,0.1)",
                     backgroundColor: type === key ? "rgba(255,180,0,0.1)" : "rgba(255,255,255,0.05)"
@@ -585,7 +585,7 @@ function LeadMagnetWizardInner() {
               {renderPreview()}
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
               <button
                 onClick={() => setStep("objetivo")}
                 className="px-6 py-3 rounded-full border border-white/20"
@@ -612,7 +612,7 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personaliza tu contenido</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personaliza tu contenido</h2>
               <p className="text-white">Edita los datos generados</p>
             </div>
 
@@ -651,7 +651,7 @@ function LeadMagnetWizardInner() {
                         setCustomContent(e.target.value);
                       }
                     }}
-                    rows={8}
+                    rows={5}
                     className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white text-sm resize-none"
                     placeholder="Escribe aquí el contenido de tu guía en formato texto seguido..."
                     style={{ color: "#ffffff" }}
@@ -689,7 +689,7 @@ function LeadMagnetWizardInner() {
                     </button>
                   </div>
 
-                  <div className="space-y-2 max-h-64 overflow-y-auto bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto bg-white/5 rounded-lg p-3 border border-white/10">
                     {parsedPoints.length === 0 ? (
                       <p className="text-white text-sm">No hay puntos disponibles</p>
                     ) : (
@@ -808,11 +808,11 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personalizacion de botones y colores</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personalizacion de botones y colores</h2>
               <p className="text-white">Configura los botones CTA y los colores del documento</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-6">
               <div className="bg-white/5 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-bold">Boton Principal (CTA 1)</h3>
@@ -912,9 +912,9 @@ function LeadMagnetWizardInner() {
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-xl p-6 mb-6">
+            <div className="bg-white/5 rounded-xl p-4 md:p-6 mb-6">
               <h3 className="text-white font-bold mb-4">Colores del documento</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                   <label className="block text-xs text-white mb-2">Color marca (texto nombre negocio, borde)</label>
                   <div className="flex items-center gap-3">
