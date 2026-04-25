@@ -553,8 +553,8 @@ function LeadMagnetNewContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1720] p-4 md:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0f1720] overflow-x-hidden">
+      <div className="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-[#C5A059] text-sm font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
@@ -1014,7 +1014,7 @@ function LeadMagnetNewContent() {
 
         {/* Preview PDF — scrollable horizontalmente en móvil */}
         <div className="lg:sticky lg:top-6">
-          <div className="rounded-xl border border-[var(--border)] bg-[#0f1720] p-2 md:p-4 shadow-xl overflow-auto">
+          <div className="rounded-xl border border-[var(--border)] bg-[#0f1720] p-2 md:p-4 shadow-xl" style={{ overflowX: "auto", overflowY: "visible" }}>
             <div className="text-center mb-2">
               <span className="text-[var(--brand-3)] text-xs tracking-widest uppercase">Vista Previa PDF Final</span>
             </div>

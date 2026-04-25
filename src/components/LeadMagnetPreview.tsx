@@ -164,7 +164,7 @@ export function LeadMagnetPreview({
         background: "var(--card)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "center", padding: "20px", minWidth: "max-content" }}>
+      <div style={{ padding: "20px" }}>
       <div
         style={{
           width: previewWidth,

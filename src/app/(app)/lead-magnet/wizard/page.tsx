@@ -1006,8 +1006,8 @@ function LeadMagnetWizardInner() {
   const steps: WizardStep[] = ["bienvenida", "objetivo", "tipo", "contenido", "personalizacion"];
 
   return (
-    <div className="min-h-screen bg-[#0f1720] p-4 md:p-6 lg:p-8 overflow-x-auto">
-      <div className="max-w-[1400px] mx-auto">
+    <div className="min-h-screen bg-[#0f1720] overflow-x-hidden">
+      <div className="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
