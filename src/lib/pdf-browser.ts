@@ -10,8 +10,9 @@
 
 import puppeteer, { Browser } from "puppeteer-core";
 
+// URL fija del binario Chromium para Vercel (x64). No usar variable de entorno
+// para evitar que un valor incorrecto en Vercel sobreescriba esta URL.
 const CHROMIUM_REMOTE_URL =
-  process.env.CHROMIUM_REMOTE_EXEC_URL ||
   "https://github.com/Sparticuz/chromium/releases/download/v147.0.0/chromium-v147.0.0-pack.x64.tar";
 
 const LOCAL_CHROME_PATHS = [

@@ -154,16 +154,17 @@ export function LeadMagnetPreview({
   };
 
   return (
+    /* Contenedor scrollable en móvil: el PDF A4 (210mm≈794px) se puede ver
+       desplazando horizontalmente cuando el ancho de pantalla es pequeño */
     <div
-      className="flex justify-center overflow-auto"
       style={{
-        minHeight: "800px",
+        overflowX: "auto",
         border: "1px solid var(--border)",
         borderRadius: "8px",
-        padding: "30px",
         background: "var(--card)",
       }}
     >
+      <div style={{ display: "flex", justifyContent: "center", padding: "20px", minWidth: "max-content" }}>
       <div
         style={{
           width: previewWidth,
@@ -386,6 +387,7 @@ export function LeadMagnetPreview({
             </a>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1012,8 +1012,8 @@ function LeadMagnetNewContent() {
           )}
         </div>
 
-        {/* Preview — oculto en móvil (A4=210mm), disponible en tablet/desktop */}
-        <div className="hidden md:block lg:sticky lg:top-6">
+        {/* Preview PDF — scrollable horizontalmente en móvil */}
+        <div className="lg:sticky lg:top-6">
           <div className="rounded-xl border border-[var(--border)] bg-[#0f1720] p-2 md:p-4 shadow-xl overflow-auto">
             <div className="text-center mb-2">
               <span className="text-[var(--brand-3)] text-xs tracking-widest uppercase">Vista Previa PDF Final</span>

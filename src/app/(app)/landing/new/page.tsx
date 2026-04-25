@@ -20,6 +20,23 @@ export default function LandingNew() {
   const [lastSaved, setLastSaved] = useState("");
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
+  // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
+  const previewWrapRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(0.923);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (previewWrapRef.current) {
+        const available = previewWrapRef.current.clientWidth;
+        // La landing interior tiene 390px; escalar para encajar en el contenedor
+        const scale = Math.min(0.923, available / 390);
+        setPreviewScale(scale);
+      }
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
 
   const update = (patch: Partial<LandingConfig>) =>
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -1083,8 +1100,8 @@ useEffect(() => {
             </CollapsibleSection>
           </div>
 
-          {/* Vista previa — oculta en móvil, disponible desde botón "Previsualizar Landing" */}
-          <div className="hidden md:block rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
+          {/* Vista previa — responsiva, se escala al ancho disponible */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold">Vista previa (móvil)</div>
               <div className="flex gap-2">
@@ -1119,24 +1136,30 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            {/* Marco de móvil — 390px de contenido escalado a 360px visible */}
-            <div
-              ref={previewRef}
-              className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent overflow-hidden"
-              style={{ width: 360, height: 760, position: "relative" }}
-            >
+            {/* Marco de móvil — 390px escalado dinámicamente al ancho disponible */}
+            <div ref={previewWrapRef} className="w-full">
               <div
+                ref={previewRef}
+                className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent overflow-hidden"
                 style={{
-                  width: 390,
-                  transform: "scale(0.923)",
-                  transformOrigin: "top left",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
+                  width: Math.round(390 * previewScale),
+                  height: Math.round(760 * (previewScale / 0.923)),
+                  position: "relative",
                 }}
               >
-                <div className="overflow-hidden">
-                  <LandingRenderer config={config} toolsEnabled={true} />
+                <div
+                  style={{
+                    width: 390,
+                    transform: `scale(${previewScale})`,
+                    transformOrigin: "top left",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <LandingRenderer config={config} toolsEnabled={true} />
+                  </div>
                 </div>
               </div>
             </div>

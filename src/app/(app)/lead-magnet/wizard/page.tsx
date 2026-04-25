@@ -580,7 +580,7 @@ function LeadMagnetWizardInner() {
                 </button>
               ))}
             </div>
-            <div className="hidden md:block mb-6">
+            <div className="mb-6">
               <div className="text-xs uppercase tracking-widest text-[#39a1a9] mb-3">VISTA PREVIA</div>
               {renderPreview()}
             </div>
@@ -780,7 +780,7 @@ function LeadMagnetWizardInner() {
               </div>
             </div>
 
-            <div className="hidden md:block mb-6">
+            <div className="mb-6">
               <div className="text-xs uppercase tracking-widest text-[#39a1a9] mb-3">VISTA PREVIA</div>
               {renderPreview()}
             </div>
@@ -970,7 +970,7 @@ function LeadMagnetWizardInner() {
               </div>
             </div>
 
-            <div className="hidden md:block mb-6">
+            <div className="mb-6">
               <div className="text-xs uppercase tracking-widest text-[#39a1a9] mb-3">VISTA PREVIA</div>
               {renderPreview()}
             </div>
