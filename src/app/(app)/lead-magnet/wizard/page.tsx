@@ -1006,8 +1006,8 @@ function LeadMagnetWizardInner() {
   const steps: WizardStep[] = ["bienvenida", "objetivo", "tipo", "contenido", "personalizacion"];
 
   return (
-    <div className="min-h-screen bg-[#0f1720] overflow-x-hidden">
-      <div className="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
+    <div className="min-h-screen bg-[#0f1720]">
+      <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
@@ -1018,13 +1018,13 @@ function LeadMagnetWizardInner() {
           </Link>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mb-8 overflow-x-auto pb-2">
+        <div className="flex items-center justify-center gap-1 mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
               <button
                 type="button"
                 onClick={() => setStep(s)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0 ${
                   step === s
                     ? "bg-[#ffb400] text-black"
                     : steps.indexOf(step) > i
@@ -1036,14 +1036,14 @@ function LeadMagnetWizardInner() {
               </button>
               {i < steps.length - 1 && (
                 <div
-                  className={`w-12 h-0.5 mx-1 ${steps.indexOf(step) > i ? "bg-green-500" : "bg-white/10"}`}
+                  className={`w-4 md:w-8 h-0.5 mx-0.5 flex-shrink-0 ${steps.indexOf(step) > i ? "bg-green-500" : "bg-white/10"}`}
                 />
               )}
             </div>
           ))}
         </div>
 
-        <div className="bg-[#0f1720]/50 rounded-2xl border border-white/10 p-6 md:p-10">
+        <div className="bg-[#0f1720]/50 rounded-2xl border border-white/10 p-4 md:p-8">
           {renderStep()}
         </div>
       </div>

@@ -553,8 +553,8 @@ function LeadMagnetNewContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1720] overflow-x-hidden">
-      <div className="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
+    <div className="min-h-screen bg-[#0f1720]">
+      <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-[#C5A059] text-sm font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
@@ -589,7 +589,7 @@ function LeadMagnetNewContent() {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[#0f1720] p-6 md:p-10 lg:p-12 mb-6 shadow-xl">
+        <div className="rounded-2xl border border-[var(--border)] bg-[#0f1720] p-4 md:p-8 lg:p-10 mb-6 shadow-xl">
           {state.activeStep === 1 && (
             <>
               <button onClick={() => goToStep(1)} className="w-full text-left mb-6">
