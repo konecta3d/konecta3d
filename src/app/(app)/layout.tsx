@@ -147,8 +147,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`block rounded-lg px-3 py-2 ${
                       isActive
-                        ? "bg-[var(--brand-4)] text-black font-semibold"
-                        : "text-white hover:bg-white/5"
+                        ? "bg-[var(--brand-1)] text-white font-semibold"
+                        : "text-[var(--foreground)] hover:bg-[var(--brand-1)]/10"
                     }`}
                   >
                     {label}

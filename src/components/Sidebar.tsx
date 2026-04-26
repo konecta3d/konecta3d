@@ -102,16 +102,25 @@ useEffect(() => {
         }
     });
 
+    const [darkMode, setDarkMode] = useState(true);
     const [fromAdminBusiness, setFromAdminBusiness] = useState(false);
+
+    const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
 
     const renderLink = (link: SidebarLink) => {
         const linkPathname = link.href.split('?')[0];
         const isActive = pathname === linkPathname;
         const label = (link.nameKey && customNames[link.nameKey]) || link.label;
 
-        const baseClasses = "block rounded-lg px-3 py-2 text-sm transition-colors";
-        const activeClasses = "bg-white/10 text-white font-medium";
-        const inactiveClasses = "hover:bg-white/5 text-white";
+        const baseClasses = "block rounded-lg px-3 py-2 text-sm transition-colors font-medium";
+        // Modo oscuro: fondo blanco/10, texto blanco
+        // Modo claro: fondo brand-1 sólido, texto blanco / texto brand-1
+        const activeClasses = darkMode
+            ? "bg-white/10 text-white"
+            : "bg-[var(--brand-1)] text-white";
+        const inactiveClasses = darkMode
+            ? "text-white/70 hover:bg-white/5 hover:text-white"
+            : "text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10";
 
         return (
             <Link
@@ -124,15 +133,28 @@ useEffect(() => {
         );
     };
 
-    // Forzar siempre modo oscuro
+    // Cargar preferencia de tema y aplicar al DOM
     React.useEffect(() => {
-        document.documentElement.classList.add("dark");
+        const saved = typeof window !== "undefined" ? localStorage.getItem(themeKey) : null;
+        // Por defecto, modo oscuro
+        const isDark = saved ? saved === "dark" : true;
+        setDarkMode(isDark);
+        if (isDark) document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
 
         if (!isAdminMode && typeof window !== "undefined") {
             const fromAdmin = localStorage.getItem("konecta-from-admin-business") === "true";
             setFromAdminBusiness(fromAdmin);
         }
-    }, [isAdminMode]);
+    }, [themeKey, isAdminMode]);
+
+    const toggleTheme = () => {
+        const next = !darkMode;
+        setDarkMode(next);
+        localStorage.setItem(themeKey, next ? "dark" : "light");
+        if (next) document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+    };
 
     const [businessName, setBusinessName] = useState<string | null>(null);
 
@@ -196,6 +218,20 @@ useEffect(() => {
                             Volver al panel admin
                         </button>
                     )}
+                    {/* Toggle modo claro / oscuro */}
+                    <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center flex items-center justify-center gap-2 hover:bg-[var(--brand-1)]/10 transition-colors"
+                        style={{ color: "var(--foreground)" }}
+                    >
+                        {darkMode ? (
+                            <><span>☀</span> Modo claro</>
+                        ) : (
+                            <><span>🌙</span> Modo oscuro</>
+                        )}
+                    </button>
+
                     <button
                         type="button"
                         onClick={async () => {
@@ -208,6 +244,7 @@ useEffect(() => {
                             }
                         }}
                         className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center"
+                        style={{ color: "var(--foreground)" }}
                     >
                         Cerrar sesión
                     </button>

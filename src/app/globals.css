@@ -1,5 +1,141 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────
+   TOKENS DE COLOR — MODO CLARO (por defecto)
+   Paleta Konecta3D
+───────────────────────────────────────────── */
+:root {
+  /* Marca */
+  --brand-1: #0a323c;   /* teal oscuro — títulos, nav activo, botones primarios */
+  --brand-2: #072d30;   /* teal muy oscuro — bordes de contenedor */
+  --brand-3: #39a1a9;   /* teal medio — chips, iconos, acentos, focus rings */
+  --brand-4: #ffb400;   /* dorado — CTAs principales */
+  --brand-5: #ffffff;
+
+  /* Superficie */
+  --background: #f7fcfc;
+  --card:       #ffffff;
+  --foreground: #000000;
+  --border:     rgba(7, 45, 48, 0.14);   /* #072d30 al 14% */
+
+  /* Sidebar */
+  --sidebar-title-color: #0a323c;
+  --sidebar-title-size:  18px;
+}
+
+/* ─────────────────────────────────────────────
+   TOKENS DE COLOR — MODO OSCURO
+───────────────────────────────────────────── */
+.dark {
+  --brand-1: #9fd1d6;   /* teal claro — labels y acentos sobre oscuro */
+  --brand-2: #001e3c;
+  --brand-3: #39a1a9;   /* mismo teal — funciona en ambos fondos */
+  --brand-4: #ffb400;
+  --brand-5: #ffffff;
+
+  --background: #0a1118;
+  --card:       #0f1720;
+  --foreground: #ffffff;
+  --border:     rgba(255, 255, 255, 0.08);
+
+  --sidebar-title-color: #ffb400;
+}
+
+/* ─────────────────────────────────────────────
+   TEMA — integración con Tailwind
+───────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit);
+}
+
+/* ─────────────────────────────────────────────
+   BASE
+───────────────────────────────────────────── */
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  filter: brightness(var(--brightness, 100%));
+}
+
+/* ─────────────────────────────────────────────
+   CONTRASTE INTELIGENTE — modo claro
+   Convierte text-white en texto oscuro cuando
+   el fondo no es de color (capa 1 global).
+   Las excepciones de texto blanco sobre fondos
+   de color se definen en la capa 2 de abajo.
+───────────────────────────────────────────── */
+:not(.dark) .text-white {
+  color: var(--foreground);
+}
+
+/* Capa 2: preservar blanco dentro de elementos
+   que tienen fondo de color explícito */
+:not(.dark) [style*="background"][style*="#"]:not([style*="#fff"]):not([style*="#f7"]) .text-white,
+:not(.dark) .bg-\[\#0a323c\] .text-white,
+:not(.dark) .bg-\[\#39a1a9\] .text-white,
+:not(.dark) .bg-\[\#ffb400\] .text-white,
+:not(.dark) [class*="bg-[var(--brand-"]:not([class*="bg-[var(--brand-4)"]) .text-white {
+  color: #ffffff;
+}
+
+/* Inputs y placeholders en modo claro */
+:not(.dark) input,
+:not(.dark) textarea,
+:not(.dark) select {
+  color: var(--foreground);
+}
+:not(.dark) input::placeholder,
+:not(.dark) textarea::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Bordes semitransparentes blancos → oscuros en modo claro */
+:not(.dark) .border-white\/10 { border-color: rgba(7, 45, 48, 0.12); }
+:not(.dark) .border-white\/20 { border-color: rgba(7, 45, 48, 0.18); }
+:not(.dark) .border-white\/30 { border-color: rgba(7, 45, 48, 0.25); }
+
+/* Fondos semitransparentes blancos → teal/neutros en modo claro */
+:not(.dark) .bg-white\/5  { background-color: rgba(7, 45, 48, 0.04); }
+:not(.dark) .bg-white\/10 { background-color: rgba(7, 45, 48, 0.07); }
+:not(.dark) .bg-white\/20 { background-color: rgba(7, 45, 48, 0.10); }
+
+/* Gradientes azul oscuro → blancos en modo claro */
+:not(.dark) .bg-gradient-to-r.from-\[\#0a323c\],
+:not(.dark) .bg-gradient-to-r.from-\[\#001e3c\] {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Fondos totalmente oscuros de los editores wizard */
+:not(.dark) .bg-\[\#0f1720\]   { background-color: var(--background); }
+:not(.dark) .bg-\[\#0f1720\]\/50 { background-color: rgba(247, 252, 252, 0.7); }
+:not(.dark) .bg-\[\#0a1118\]   { background-color: var(--background); }
+
+/* ─────────────────────────────────────────────
+   SELECTS (siempre con fondo blanco para legibilidad)
+───────────────────────────────────────────── */
+select {
+  background: #ffffff;
+  color: #000000;
+}
+select option {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* ─────────────────────────────────────────────
+   RANGE INPUTS
+───────────────────────────────────────────── */
 input[type="range"] {
   height: 6px;
   width: 50%;
@@ -18,59 +154,4 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 9999px;
   background: #f6c453;
   border: 2px solid #0b121a;
-}
-
-/* La plataforma opera siempre en modo oscuro */
-:root {
-  --brand-1: #9fd1d6;
-  --brand-2: #001e3c;
-  --brand-3: #39a1a9;
-  --brand-4: #ffb400;
-  --brand-5: #ffffff;
-  --background: #0a1118;
-  --foreground: #ffffff;
-  --card: #0f1720;
-  --border: rgba(255, 255, 255, 0.08);
-  --sidebar-title-color: #ffb400;
-  --sidebar-title-size: 18px;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-outfit);
-}
-
-/* Clase .dark mantenida por compatibilidad — siempre activa */
-.dark {
-  --background: #0a1118;
-  --foreground: #ffffff;
-  --card: #0f1720;
-  --border: rgba(255, 255, 255, 0.08);
-  --brand-1: #9fd1d6;
-  --sidebar-title-color: #ffb400;
-}
-
-html {
-  overflow-x: hidden;
-  max-width: 100%;
-}
-
-body {
-  overflow-x: hidden;
-  max-width: 100%;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-outfit), system-ui, sans-serif;
-  filter: brightness(var(--brightness, 100%));
-}
-
-/* Selects en modo oscuro */
-select {
-  background: #ffffff;
-  color: #000000;
-}
-select option {
-  background: #ffffff;
-  color: #000000;
 }
