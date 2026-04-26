@@ -167,7 +167,7 @@ export default function PerfilPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Mi Perfil</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Mi Perfil</h1>
         <p className="text-sm text-white">Gestiona los datos de tu negocio</p>
       </div>
 
@@ -179,16 +179,16 @@ export default function PerfilPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-[var(--border)] pb-2">
+      <div className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-2">
         <button
           onClick={() => setActiveTab("datos")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Datos del Negocio
         </button>
         <button
           onClick={() => setActiveTab("stats")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Estadísticas
         </button>
@@ -236,13 +236,13 @@ export default function PerfilPage() {
               </div>
               <div>
                 <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Slug (enlace)</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white">konecta3d.com/l/</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
+                  <span className="text-xs text-white whitespace-nowrap">konecta3d.com/l/</span>
                   <input
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                    className="w-full flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
                   />
                 </div>
               </div>

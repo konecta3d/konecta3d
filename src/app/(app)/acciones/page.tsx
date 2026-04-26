@@ -285,24 +285,24 @@ useEffect(() => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Herramientas del Negocio</h1>
-          <p className="text-white">Genera y guarda links de acción para usar en tus recursos</p>
+          <h1 className="text-xl md:text-2xl font-bold">Herramientas del Negocio</h1>
+          <p className="text-sm text-white">Genera y guarda links de acción para usar en tus recursos</p>
         </div>
 
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
           <strong>Consejo:</strong> Si ya usas una o varias de estas herramientas, pega el link generado y centralízalas en una página con un objetivo concreto.
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
           {Object.entries(ACTION_CATEGORIES).map(([key, category]) => {
             const count = savedLinks.filter(l => l.type === key).length;
             return (
               <button
                 key={key}
                 onClick={() => setActiveCategory(key as ActionType)}
-                className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] text-left hover:border-[var(--brand-1)] transition-all"
+                className="p-4 md:p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] text-left hover:border-[var(--brand-1)] transition-all"
               >
-                <h3 className="font-bold text-lg mb-1">{category.title}</h3>
+                <h3 className="font-bold text-base md:text-lg mb-1">{category.title}</h3>
                 <p className="text-sm text-white mb-3">{category.description}</p>
                 <div className="flex flex-wrap gap-1">
                   {category.tools.slice(0, 3).map(tool => (
@@ -364,7 +364,7 @@ useEffect(() => {
           ← Volver
         </button>
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl md:text-2xl font-bold">
             {category.title}
           </h1>
           <p className="text-white">{category.description}</p>

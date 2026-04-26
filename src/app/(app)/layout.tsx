@@ -162,7 +162,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-screen">
         <Sidebar links={links} title={isAdminMode ? <SidebarTitle /> : undefined} />
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 overflow-x-hidden">
           <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--card)] px-4 py-3 md:hidden">
             <div className="flex items-center justify-between">
               <MobileTitle />
