@@ -102,11 +102,7 @@ useEffect(() => {
         }
     });
 
-    const [darkMode, setDarkMode] = useState(true);
     const [fromAdminBusiness, setFromAdminBusiness] = useState(false);
-
-    // Clave de almacenamiento distinta para admin y negocio
-    const themeStorageKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
 
     const renderLink = (link: SidebarLink) => {
         const linkPathname = link.href.split('?')[0];
@@ -114,15 +110,8 @@ useEffect(() => {
         const label = (link.nameKey && customNames[link.nameKey]) || link.label;
 
         const baseClasses = "block rounded-lg px-3 py-2 text-sm transition-colors";
-
-        // En modo oscuro mantenemos el estilo anterior, en modo claro usamos brand-4
-        const activeClasses = darkMode
-            ? "bg-white/10 text-white font-medium"
-            : "bg-[var(--brand-4)] text-black font-semibold";
-
-        const inactiveClasses = darkMode
-            ? "hover:bg-white/5 text-white"
-            : "text-gray-700 hover:bg-black/5";
+        const activeClasses = "bg-white/10 text-white font-medium";
+        const inactiveClasses = "hover:bg-white/5 text-white";
 
         return (
             <Link
@@ -135,31 +124,15 @@ useEffect(() => {
         );
     };
 
+    // Forzar siempre modo oscuro
     React.useEffect(() => {
-        const saved = typeof window !== "undefined" ? localStorage.getItem(themeStorageKey) : null;
-        // Por defecto, modo oscuro si no hay preferencia guardada
-        const isDark = saved ? saved === "dark" : true;
-        setDarkMode(isDark);
-        if (isDark) document.documentElement.classList.add("dark");
-        else document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("dark");
 
         if (!isAdminMode && typeof window !== "undefined") {
             const fromAdmin = localStorage.getItem("konecta-from-admin-business") === "true";
             setFromAdminBusiness(fromAdmin);
         }
-    }, [themeStorageKey, isAdminMode]);
-
-    const toggleTheme = () => {
-        const next = !darkMode;
-        setDarkMode(next);
-        if (next) {
-            document.documentElement.classList.add("dark");
-            localStorage.setItem(themeStorageKey, "dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-            localStorage.setItem(themeStorageKey, "light");
-        }
-    };
+    }, [isAdminMode]);
 
     const [businessName, setBusinessName] = useState<string | null>(null);
 
@@ -223,9 +196,6 @@ useEffect(() => {
                             Volver al panel admin
                         </button>
                     )}
-                    <button type="button" onClick={toggleTheme} className="w-full rounded-lg border border-[var(--border)] px-3 py-2">
-                        {darkMode ? "Modo claro" : "Modo oscuro"}
-                    </button>
                     <button
                         type="button"
                         onClick={async () => {
