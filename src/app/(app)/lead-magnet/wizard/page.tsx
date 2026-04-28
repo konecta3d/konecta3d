@@ -1006,7 +1006,7 @@ function LeadMagnetWizardInner() {
   const steps: WizardStep[] = ["bienvenida", "objetivo", "tipo", "contenido", "personalizacion"];
 
   return (
-    <div className="min-h-screen bg-[#0f1720]">
+    <div className="min-h-screen bg-[var(--background)]">
       <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
@@ -1043,7 +1043,7 @@ function LeadMagnetWizardInner() {
           ))}
         </div>
 
-        <div className="bg-[#0f1720]/50 rounded-2xl border border-white/10 p-4 md:p-8">
+        <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 md:p-8">
           {renderStep()}
         </div>
       </div>

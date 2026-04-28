@@ -36,7 +36,6 @@ const adminLinks: SidebarLink[] = [
   { label: "Actividad", href: "/admin/actividad", category: "Panel Admin" },
 ];
 
-// Todos los módulos activos por defecto para evitar parpadeo al cargar
 const DEFAULT_MODULES: Record<string, boolean> = {
   module_vip_benefits: true,
   module_lead_magnet: true,
@@ -53,8 +52,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
 
+  // ── Tema claro/oscuro ────────────────────────────────────────────────────
+  const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
+  const [darkMode, setDarkMode] = useState(true);
+
   useEffect(() => {
-    // Cargar nombres personalizados con protección ante JSON corrupto
+    const saved = localStorage.getItem(themeKey);
+    const isDark = saved ? saved === "dark" : true;
+    setDarkMode(isDark);
+    if (isDark) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, [themeKey]);
+
+  const toggleTheme = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem(themeKey, next ? "dark" : "light");
+    if (next) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem("konecta-sidebar-names");
       if (saved) setCustomNames(JSON.parse(saved));
@@ -79,7 +98,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       const userEmail = sessionData?.session?.user?.email;
       if (!userEmail) return;
 
-      // Una sola query en lugar de dos
       const { data, error } = await supabase
         .from("businesses")
         .select("module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms")
@@ -156,23 +174,53 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 );
               })}
             </nav>
+
+            {/* Toggle tema en el drawer móvil */}
+            <div className="pt-3 border-t border-[var(--border)]">
+              <button
+                type="button"
+                onClick={() => { toggleTheme(); }}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm transition-colors hover:bg-[var(--brand-1)]/10"
+                style={{ color: "var(--foreground)" }}
+              >
+                {darkMode ? <><span>☀</span> Modo claro</> : <><span>🌙</span> Modo oscuro</>}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       <div className="flex min-h-screen">
-        <Sidebar links={links} title={isAdminMode ? <SidebarTitle /> : undefined} />
+        <Sidebar
+          links={links}
+          title={isAdminMode ? <SidebarTitle /> : undefined}
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+        />
         <div className="flex-1 min-w-0 overflow-x-hidden">
+          {/* Header móvil */}
           <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--card)] px-4 py-3 md:hidden">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <MobileTitle />
-              <button
-                type="button"
-                className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold"
-                onClick={() => setMobileMenuOpen(true)}
-              >
-                Menú
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Toggle tema (móvil) */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="rounded-lg border border-[var(--border)] px-2 py-2 text-base leading-none transition-colors hover:bg-[var(--brand-1)]/10"
+                  title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                  style={{ color: "var(--foreground)" }}
+                >
+                  {darkMode ? "☀" : "🌙"}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold"
+                  onClick={() => setMobileMenuOpen(true)}
+                >
+                  Menú
+                </button>
+              </div>
             </div>
           </header>
           <main className="p-4 md:p-8">{children}</main>

@@ -254,10 +254,10 @@ const trackEvent = async (eventType: string, entityType: string, entityId: strin
                     onClick={() => setFormModalOpen(true)}
                     className="rounded-xl px-5 py-3 text-center font-semibold text-white drop-shadow w-full max-w-[260px] mx-auto"
                     style={{
-                      backgroundColor: "#2D7A74",
+                      backgroundColor: "#39a1a9",
                       borderWidth: "2px",
                       borderStyle: "solid",
-                      borderColor: "#2D7A74",
+                      borderColor: "#39a1a9",
                       borderRadius: "16px",
                       fontSize: "15px",
                     }}

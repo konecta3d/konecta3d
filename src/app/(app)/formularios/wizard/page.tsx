@@ -320,8 +320,8 @@ export default function FormulariosWizardPage() {
                   onClick={() => setObjective(obj.key as Objective)}
                   className="p-6 rounded-xl text-left transition-all border-2"
                   style={{
-                    borderColor: objective === obj.key ? "#C5A059" : "rgba(255,255,255,0.1)",
-                    backgroundColor: objective === obj.key ? "rgba(197,160,89,0.1)" : "rgba(255,255,255,0.05)",
+                    borderColor: objective === obj.key ? "#39a1a9" : "rgba(255,255,255,0.1)",
+                    backgroundColor: objective === obj.key ? "rgba(57,161,169,0.1)" : "rgba(255,255,255,0.05)",
                   }}
                 >
                   <h3 className="text-lg font-bold text-white mb-2">{obj.label}</h3>
@@ -347,8 +347,8 @@ export default function FormulariosWizardPage() {
                   onClick={() => setBasis(base.key as Basis)}
                   className="p-8 rounded-xl text-left transition-all border-2"
                   style={{
-                    borderColor: basis === base.key ? "#C5A059" : "rgba(255,255,255,0.1)",
-                    backgroundColor: basis === base.key ? "rgba(197,160,89,0.1)" : "rgba(255,255,255,0.05)",
+                    borderColor: basis === base.key ? "#39a1a9" : "rgba(255,255,255,0.1)",
+                    backgroundColor: basis === base.key ? "rgba(57,161,169,0.1)" : "rgba(255,255,255,0.05)",
                   }}
                 >
                   <div className="text-xs uppercase tracking-widest text-white mb-2">Base</div>
@@ -467,8 +467,8 @@ export default function FormulariosWizardPage() {
                   onClick={() => setDataCollection(opt.key as DataCollection)}
                   className="p-6 rounded-xl text-left transition-all border-2"
                   style={{
-                    borderColor: dataCollection === opt.key ? "#C5A059" : "rgba(255,255,255,0.1)",
-                    backgroundColor: dataCollection === opt.key ? "rgba(197,160,89,0.1)" : "rgba(255,255,255,0.05)",
+                    borderColor: dataCollection === opt.key ? "#39a1a9" : "rgba(255,255,255,0.1)",
+                    backgroundColor: dataCollection === opt.key ? "rgba(57,161,169,0.1)" : "rgba(255,255,255,0.05)",
                   }}
                 >
                   <div className="text-xs uppercase tracking-widest text-white mb-2">Datos</div>
@@ -510,7 +510,7 @@ export default function FormulariosWizardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1720] p-4 md:p-6 lg:p-8 overflow-x-auto">
+    <div className="min-h-screen bg-[var(--background)] p-4 md:p-6 lg:p-8 overflow-x-auto">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>

@@ -182,13 +182,13 @@ export default function PerfilPage() {
       <div className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-2">
         <button
           onClick={() => setActiveTab("datos")}
-          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "datos" ? "bg-[var(--brand-4)] text-black" : "text-[var(--foreground)] hover:text-[var(--brand-1)]"}`}
         >
           Datos del Negocio
         </button>
         <button
           onClick={() => setActiveTab("stats")}
-          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+          className={`px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ${activeTab === "stats" ? "bg-[var(--brand-4)] text-black" : "text-[var(--foreground)] hover:text-[var(--brand-1)]"}`}
         >
           Estadísticas
         </button>

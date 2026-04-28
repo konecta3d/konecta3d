@@ -190,25 +190,25 @@ const { error } = await supabase
           </button>
           <button
             onClick={() => setFilter("lm")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "lm" ? "bg-green-500 text-black" : "border border-[var(--border)]"}`}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "lm" ? "bg-green-500 text-white" : "border border-[var(--border)]"}`}
           >
             LM ({counts.lm})
           </button>
           <button
             onClick={() => setFilter("vip")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "vip" ? "bg-blue-500 text-black" : "border border-[var(--border)]"}`}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "vip" ? "bg-blue-500 text-white" : "border border-[var(--border)]"}`}
           >
             VIP ({counts.vip})
           </button>
           <button
             onClick={() => setFilter("wa")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "wa" ? "bg-purple-500 text-black" : "border border-[var(--border)]"}`}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "wa" ? "bg-purple-500 text-white" : "border border-[var(--border)]"}`}
           >
             WA ({counts.wa})
           </button>
           <button
             onClick={() => setFilter("forms")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "forms" ? "bg-orange-500 text-black" : "border border-[var(--border)]"}`}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "forms" ? "bg-orange-500 text-white" : "border border-[var(--border)]"}`}
           >
             Forms ({counts.forms})
           </button>

@@ -144,6 +144,7 @@ export function LeadMagnetPreview({
         {/* A4 page scaled from top-left corner */}
         <div style={{ transformOrigin: "top left", transform: `scale(${scale})`, position: "absolute", top: "20px", left: "20px" }}>
           <div
+            className="pdf-preview-content"
             style={{
               width: "210mm",
               minHeight: "297mm",

@@ -553,11 +553,11 @@ function LeadMagnetNewContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1720]">
+    <div className="min-h-screen bg-[var(--background)]">
       <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-[#C5A059] text-sm font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
+            <h1 className="text-[var(--brand-3)] text-sm font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
           </div>
           <div className="flex gap-3 items-center">
             {/* Toggle between Wizard and Advanced */}
@@ -580,7 +580,7 @@ function LeadMagnetNewContent() {
         <div className="flex items-center justify-center gap-1 md:gap-2 mb-8">
           {[1, 2, 3, 4].map((step, idx) => (
             <div key={step} className="flex items-center">
-              <button onClick={() => goToStep(step)} className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full transition-all text-xs font-bold ${state.activeStep === step ? "bg-[#C5A059] text-[#0A0A0B]" : "border border-white/10 text-white"}`}>
+              <button onClick={() => goToStep(step)} className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full transition-all text-xs font-bold ${state.activeStep === step ? "bg-[var(--brand-3)] text-white" : "border border-white/10 text-white"}`}>
                 <span>{step}</span>
                 <span className="hidden md:inline">{stepTitles[idx]}</span>
               </button>
@@ -589,7 +589,7 @@ function LeadMagnetNewContent() {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[#0f1720] p-4 md:p-8 lg:p-10 mb-6 shadow-xl">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-8 lg:p-10 mb-6 shadow-xl">
           {state.activeStep === 1 && (
             <>
               <button onClick={() => goToStep(1)} className="w-full text-left mb-6">
@@ -917,7 +917,7 @@ function LeadMagnetNewContent() {
                 {/* Identidad visual del PDF */}
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
                   <div>
-                    <label className="text-[#C5A059] text-xs uppercase tracking-widest block mb-2">Tamaño del Título</label>
+                    <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">Tamaño del Título</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="range"
@@ -942,7 +942,7 @@ function LeadMagnetNewContent() {
                       <span className="text-xs text-white/80">Mostrar logo en el PDF</span>
                     </div>
                     <div>
-                      <label className="text-[#C5A059] text-xs uppercase tracking-widest block mb-1">Tamaño del Logo</label>
+                      <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-1">Tamaño del Logo</label>
                       <div className="flex items-center gap-3">
                         <input
                           type="range"
@@ -971,7 +971,7 @@ function LeadMagnetNewContent() {
                     <div className="grid grid-cols-2 gap-2 md:gap-3">
                       {[{ l: "Marca/Cabecera", k: "colorBrand" }, { l: "Etiqueta Perfil", k: "colorTag" }, { l: "Título Principal", k: "colorTitle" }, { l: "Botones de Acción", k: "colorButton" }].map((c) => (
                         <div key={c.k}>
-                          <label className="text-[#C5A059] text-xs uppercase tracking-widest block mb-2">{c.l}</label>
+                          <label className="text-[var(--brand-3)] text-xs uppercase tracking-widest block mb-2">{c.l}</label>
                           <div className="flex gap-2">
                             <input
                               type="color"
@@ -1014,7 +1014,7 @@ function LeadMagnetNewContent() {
 
         {/* Preview PDF — scrollable horizontalmente en móvil */}
         <div className="lg:sticky lg:top-6">
-          <div className="rounded-xl border border-[var(--border)] bg-[#0f1720] p-2 md:p-4 shadow-xl" style={{ overflowX: "auto", overflowY: "visible" }}>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 md:p-4 shadow-xl" style={{ overflowX: "auto", overflowY: "visible" }}>
             <div className="text-center mb-2">
               <span className="text-[var(--brand-3)] text-xs tracking-widest uppercase">Vista Previa PDF Final</span>
             </div>

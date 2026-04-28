@@ -204,14 +204,14 @@ function FormulariosNewContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f1720] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-white">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1720] p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-[var(--background)] p-4 md:p-6 lg:p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>

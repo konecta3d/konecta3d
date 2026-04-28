@@ -122,8 +122,8 @@ export default function FormModal({ isOpen, onClose, form }: FormModalProps) {
         </div>
 
         {isCaptacion && (
-          <div className="mb-4 p-3 bg-[#2D7A74]/20 border border-[#2D7A74]/30 rounded-lg">
-            <p className="text-sm text-[#2D7A74]">
+          <div className="mb-4 p-3 bg-[#39a1a9]/20 border border-[#39a1a9]/30 rounded-lg">
+            <p className="text-sm text-[#39a1a9]">
                Complete sus datos para enviar el formulario
             </p>
           </div>
@@ -194,7 +194,7 @@ export default function FormModal({ isOpen, onClose, form }: FormModalProps) {
                       key={i}
                       className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
                         answers[question.id] === option
-                          ? "bg-[#2D7A74]/30 border-[#2D7A74]"
+                          ? "bg-[#39a1a9]/30 border-[#39a1a9]"
                           : "bg-white/5 border-white/10 hover:border-white/30"
                       }`}
                     >
@@ -204,7 +204,7 @@ export default function FormModal({ isOpen, onClose, form }: FormModalProps) {
                         value={option}
                         checked={answers[question.id] === option}
                         onChange={(e) => handleAnswer(question.id, e.target.value)}
-                        className="w-4 h-4 accent-[#2D7A74]"
+                        className="w-4 h-4 accent-[#39a1a9]"
                       />
                       <span className="text-white">{option}</span>
                     </label>
@@ -221,7 +221,7 @@ export default function FormModal({ isOpen, onClose, form }: FormModalProps) {
                       onClick={() => handleAnswer(question.id, String(num))}
                       className={`w-12 h-12 rounded-lg font-bold transition-colors ${
                         answers[question.id] === String(num)
-                          ? "bg-[#2D7A74] text-white"
+                          ? "bg-[#39a1a9] text-white"
                           : "bg-white/10 text-white hover:bg-white/20"
                       }`}
                     >
@@ -242,7 +242,7 @@ export default function FormModal({ isOpen, onClose, form }: FormModalProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 rounded-xl bg-[#2D7A74] text-white font-bold hover:bg-[#2D7A74]/90 disabled:opacity-50"
+            className="w-full py-4 rounded-xl bg-[#39a1a9] text-white font-bold hover:bg-[#39a1a9]/90 disabled:opacity-50"
           >
             {submitting ? "Enviando..." : isCaptacion ? "Enviar datos" : "Enviar respuesta"}
           </button>

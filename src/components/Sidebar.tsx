@@ -17,54 +17,89 @@ interface SidebarLink {
 interface SidebarProps {
     links: SidebarLink[];
     title?: React.ReactNode;
+    /** Estado del tema controlado desde el layout */
+    darkMode?: boolean;
+    /** Callback para cambiar el tema desde el layout */
+    onToggleTheme?: () => void;
 }
 
-export default function Sidebar({ links, title }: SidebarProps) {
+export default function Sidebar({ links, title, darkMode: darkModeProp, onToggleTheme: onToggleThemeProp }: SidebarProps) {
     const pathname = usePathname();
     const [customNames, setCustomNames] = React.useState<Record<string, string>>({});
     const [modules, setModules] = React.useState<Record<string, boolean>>({});
 
-    // Detect admin mode
     const isAdminMode = pathname.startsWith("/admin");
-    const isBusinessMode = pathname.startsWith("/business");
     const showBusinessSidebar = !isAdminMode;
 
-    // Hydration ready state
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    const [fromAdminBusiness, setFromAdminBusiness] = useState(false);
+
+    // ── Tema: controlado externamente si se pasan props, interno como fallback ──
+    const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
+    const [internalDarkMode, setInternalDarkMode] = useState(true);
+
+    // Si el layout pasa darkMode como prop, úsalo; si no, usa el estado interno
+    const darkMode = darkModeProp !== undefined ? darkModeProp : internalDarkMode;
+
+    // Cargar tema solo cuando no viene controlado externamente
+    React.useEffect(() => {
+        if (darkModeProp !== undefined) return;
+        const saved = typeof window !== "undefined" ? localStorage.getItem(themeKey) : null;
+        const isDark = saved ? saved === "dark" : true;
+        setInternalDarkMode(isDark);
+        if (isDark) document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+
+        if (!isAdminMode && typeof window !== "undefined") {
+            const fromAdmin = localStorage.getItem("konecta-from-admin-business") === "true";
+            setFromAdminBusiness(fromAdmin);
+        }
+    }, [themeKey, isAdminMode, darkModeProp]);
+
+    const internalToggleTheme = () => {
+        const next = !internalDarkMode;
+        setInternalDarkMode(next);
+        localStorage.setItem(themeKey, next ? "dark" : "light");
+        if (next) document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+    };
+
+    const toggleTheme = onToggleThemeProp ?? internalToggleTheme;
+    // ────────────────────────────────────────────────────────────────────────
+
     // Cargar módulos del negocio
-    // Cargar businessId desde sesión
-useEffect(() => {
-  const load = async () => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userEmail = sessionData?.session?.user?.email || "";
-    if (!userEmail) return;
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("id")
-      .eq("contact_email", userEmail)
-      .single();
-    if (!biz?.id) return;
-    const { data } = await supabase
-      .from("businesses")
-      .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms")
-      .eq("id", biz.id)
-      .single();
-    if (data) {
-      setModules({
-        module_vip_benefits: data.module_vip_benefits ?? true,
-        module_lead_magnet: data.module_lead_magnet ?? true,
-        module_whatsapp: data.module_whatsapp ?? true,
-        module_tools: data.module_tools ?? true,
-        module_forms: data.module_forms ?? true,
-      });
-    } else {
-      setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true });
-    }
-  };
-  if (showBusinessSidebar) load();
-}, [pathname, showBusinessSidebar]);
+    useEffect(() => {
+        const load = async () => {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const userEmail = sessionData?.session?.user?.email || "";
+            if (!userEmail) return;
+            const { data: biz } = await supabase
+                .from("businesses")
+                .select("id")
+                .eq("contact_email", userEmail)
+                .single();
+            if (!biz?.id) return;
+            const { data } = await supabase
+                .from("businesses")
+                .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms")
+                .eq("id", biz.id)
+                .single();
+            if (data) {
+                setModules({
+                    module_vip_benefits: data.module_vip_benefits ?? true,
+                    module_lead_magnet: data.module_lead_magnet ?? true,
+                    module_whatsapp: data.module_whatsapp ?? true,
+                    module_tools: data.module_tools ?? true,
+                    module_forms: data.module_forms ?? true,
+                });
+            } else {
+                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true });
+            }
+        };
+        if (showBusinessSidebar) load();
+    }, [pathname, showBusinessSidebar]);
 
     // Cargar nombres personalizados
     React.useEffect(() => {
@@ -82,14 +117,13 @@ useEffect(() => {
 
     // Filtrar links
     const filteredLinks = links.filter((l) => {
-        // En modo negocio, filtrar módulos desactivados
         if (showBusinessSidebar && l.module && modules[l.module] === false) {
             return false;
         }
         return true;
     });
 
-    // Group links by category
+    // Agrupar por categoría
     const categories: Record<string, SidebarLink[]> = {};
     const noCategory: SidebarLink[] = [];
 
@@ -102,19 +136,12 @@ useEffect(() => {
         }
     });
 
-    const [darkMode, setDarkMode] = useState(true);
-    const [fromAdminBusiness, setFromAdminBusiness] = useState(false);
-
-    const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
-
     const renderLink = (link: SidebarLink) => {
         const linkPathname = link.href.split('?')[0];
         const isActive = pathname === linkPathname;
         const label = (link.nameKey && customNames[link.nameKey]) || link.label;
 
         const baseClasses = "block rounded-lg px-3 py-2 text-sm transition-colors font-medium";
-        // Modo oscuro: fondo blanco/10, texto blanco
-        // Modo claro: fondo brand-1 sólido, texto blanco / texto brand-1
         const activeClasses = darkMode
             ? "bg-white/10 text-white"
             : "bg-[var(--brand-1)] text-white";
@@ -133,32 +160,8 @@ useEffect(() => {
         );
     };
 
-    // Cargar preferencia de tema y aplicar al DOM
-    React.useEffect(() => {
-        const saved = typeof window !== "undefined" ? localStorage.getItem(themeKey) : null;
-        // Por defecto, modo oscuro
-        const isDark = saved ? saved === "dark" : true;
-        setDarkMode(isDark);
-        if (isDark) document.documentElement.classList.add("dark");
-        else document.documentElement.classList.remove("dark");
-
-        if (!isAdminMode && typeof window !== "undefined") {
-            const fromAdmin = localStorage.getItem("konecta-from-admin-business") === "true";
-            setFromAdminBusiness(fromAdmin);
-        }
-    }, [themeKey, isAdminMode]);
-
-    const toggleTheme = () => {
-        const next = !darkMode;
-        setDarkMode(next);
-        localStorage.setItem(themeKey, next ? "dark" : "light");
-        if (next) document.documentElement.classList.add("dark");
-        else document.documentElement.classList.remove("dark");
-    };
-
     const [businessName, setBusinessName] = useState<string | null>(null);
 
-    // Cargar nombre del negocio para mostrarlo bajo el título cuando estamos en modo negocio
     useEffect(() => {
         const loadName = async () => {
             try {
@@ -218,6 +221,7 @@ useEffect(() => {
                             Volver al panel admin
                         </button>
                     )}
+
                     {/* Toggle modo claro / oscuro */}
                     <button
                         type="button"
@@ -248,7 +252,7 @@ useEffect(() => {
                     >
                         Cerrar sesión
                     </button>
-                    {/* Mostrar enlaces sin categoría (Ayuda) */}
+
                     {noCategory.map(renderLink)}
                 </div>
             )}

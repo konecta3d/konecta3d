@@ -74,17 +74,62 @@ body {
    Las excepciones de texto blanco sobre fondos
    de color se definen en la capa 2 de abajo.
 ───────────────────────────────────────────── */
-:not(.dark) .text-white {
+:not(.dark) .text-white,
+:not(.dark) .text-white\/70,
+:not(.dark) .text-white\/80,
+:not(.dark) .text-white\/60,
+:not(.dark) .text-white\/50,
+:not(.dark) .text-white\/40 {
+  color: var(--foreground);
+}
+
+/* hover:text-white también se convierte en modo claro */
+:not(.dark) .hover\:text-white:hover {
   color: var(--foreground);
 }
 
 /* Capa 2: preservar blanco dentro de elementos
-   que tienen fondo de color explícito */
-:not(.dark) [style*="background"][style*="#"]:not([style*="#fff"]):not([style*="#f7"]) .text-white,
+   que tienen fondo de color explícito.
+   Cubre tanto el mismo elemento (clase compuesta)
+   como hijos directos/descendientes.            */
+
+/* Fondos de marca Konecta3D */
+:not(.dark) .bg-\[\#0a323c\].text-white,
 :not(.dark) .bg-\[\#0a323c\] .text-white,
+:not(.dark) .bg-\[\#39a1a9\].text-white,
 :not(.dark) .bg-\[\#39a1a9\] .text-white,
-:not(.dark) .bg-\[\#ffb400\] .text-white,
-:not(.dark) [class*="bg-[var(--brand-"]:not([class*="bg-[var(--brand-4)"]) .text-white {
+:not(.dark) .bg-\[\#ffb400\].text-white,
+:not(.dark) [class*="bg-[var(--brand-"]:not([class*="bg-[var(--brand-4)"])>.text-white,
+:not(.dark) [class*="bg-[var(--brand-"]:not([class*="bg-[var(--brand-4)"])[class*="text-white"] {
+  color: #ffffff;
+}
+
+/* Fondos semánticos (estados, badges, botones de acción) */
+:not(.dark) .bg-green-500.text-white,
+:not(.dark) .bg-green-500 .text-white,
+:not(.dark) .bg-green-600.text-white,
+:not(.dark) .bg-green-600 .text-white,
+:not(.dark) .bg-red-500.text-white,
+:not(.dark) .bg-red-500 .text-white,
+:not(.dark) .bg-red-600.text-white,
+:not(.dark) .bg-red-600 .text-white,
+:not(.dark) .bg-blue-500.text-white,
+:not(.dark) .bg-blue-500 .text-white,
+:not(.dark) .bg-blue-600.text-white,
+:not(.dark) .bg-blue-600 .text-white,
+:not(.dark) .bg-purple-500.text-white,
+:not(.dark) .bg-purple-500 .text-white,
+:not(.dark) .bg-orange-500.text-white,
+:not(.dark) .bg-orange-500 .text-white,
+:not(.dark) .bg-indigo-500.text-white,
+:not(.dark) .bg-indigo-500 .text-white,
+:not(.dark) .bg-teal-500.text-white,
+:not(.dark) .bg-teal-500 .text-white {
+  color: #ffffff;
+}
+
+/* Fondos inline de color (style="background: #xxx") */
+:not(.dark) [style*="background"][style*="#"]:not([style*="#fff"]):not([style*="#f7"]) .text-white {
   color: #ffffff;
 }
 
@@ -104,10 +149,13 @@ body {
 :not(.dark) .border-white\/20 { border-color: rgba(7, 45, 48, 0.18); }
 :not(.dark) .border-white\/30 { border-color: rgba(7, 45, 48, 0.25); }
 
-/* Fondos semitransparentes blancos → teal/neutros en modo claro */
-:not(.dark) .bg-white\/5  { background-color: rgba(7, 45, 48, 0.04); }
-:not(.dark) .bg-white\/10 { background-color: rgba(7, 45, 48, 0.07); }
-:not(.dark) .bg-white\/20 { background-color: rgba(7, 45, 48, 0.10); }
+/* Fondos semitransparentes blancos → fondos sólidos con variables CSS
+   En modo oscuro evita los "cajones blancos" semi-transparentes.
+   En modo claro da fondos de tarjeta con contraste real.
+   Se aplica en AMBOS modos (sin :not(.dark)).                     */
+.bg-white\/5  { background-color: var(--card); }
+.bg-white\/10 { background-color: var(--card); }
+:not(.dark) .bg-white\/20 { background-color: rgba(7, 45, 48, 0.08); }
 
 /* Gradientes azul oscuro → blancos en modo claro */
 :not(.dark) .bg-gradient-to-r.from-\[\#0a323c\],
@@ -116,10 +164,13 @@ body {
   border-color: var(--border);
 }
 
-/* Fondos totalmente oscuros de los editores wizard */
-:not(.dark) .bg-\[\#0f1720\]   { background-color: var(--background); }
-:not(.dark) .bg-\[\#0f1720\]\/50 { background-color: rgba(247, 252, 252, 0.7); }
-:not(.dark) .bg-\[\#0a1118\]   { background-color: var(--background); }
+/* Fondos totalmente oscuros de los editores wizard
+   #0f1720 → var(--card)  [blanco] para tarjetas internas
+   #0a1118 → var(--background) [gris muy claro] para fondo de página
+   Así en modo claro hay diferenciación visual entre fondo y tarjeta */
+:not(.dark) .bg-\[\#0f1720\]     { background-color: var(--card); }
+:not(.dark) .bg-\[\#0f1720\]\/50 { background-color: var(--card); }
+:not(.dark) .bg-\[\#0a1118\]     { background-color: var(--background); }
 
 /* ─────────────────────────────────────────────
    SELECTS (siempre con fondo blanco para legibilidad)
@@ -145,13 +196,51 @@ input[type="range"]::-webkit-slider-thumb {
   height: 14px;
   width: 14px;
   border-radius: 9999px;
-  background: #f6c453;
-  border: 2px solid #0b121a;
+  background: #ffb400;
+  border: 2px solid #072d30;
 }
 input[type="range"]::-moz-range-thumb {
   height: 14px;
   width: 14px;
   border-radius: 9999px;
-  background: #f6c453;
-  border: 2px solid #0b121a;
+  background: #ffb400;
+  border: 2px solid #072d30;
+}
+
+/* ─────────────────────────────────────────────
+   INLINE WHITE TEXT — modo claro
+   Los estilos inline color:#fff / color:white
+   no los cubre la regla de .text-white, así
+   que los sobreescribimos aquí con !important.
+   Excepción: .pdf-preview-content y sus hijos
+   conservan sus colores originales del PDF.
+───────────────────────────────────────────── */
+:not(.dark) *[style*="color: #ffffff"],
+:not(.dark) *[style*="color:#ffffff"],
+:not(.dark) *[style*="color: white"] {
+  color: var(--foreground) !important;
+}
+
+/* Restaurar colores reales dentro del preview PDF */
+:not(.dark) .pdf-preview-content *[style*="color: #ffffff"],
+:not(.dark) .pdf-preview-content *[style*="color:#ffffff"],
+:not(.dark) .pdf-preview-content *[style*="color: white"] {
+  color: #ffffff !important;
+}
+
+/* ─────────────────────────────────────────────
+   INLINE DARK BACKGROUNDS en modo claro
+   Selects / inputs con fondo oscuro inline
+───────────────────────────────────────────── */
+:not(.dark) *[style*="background-color: rgba(255,255,255,0.1)"],
+:not(.dark) *[style*="backgroundColor: rgba(255,255,255,0.1)"] {
+  background-color: rgba(7, 45, 48, 0.06) !important;
+}
+:not(.dark) *[style*="background: rgba(255,255,255,0.05)"],
+:not(.dark) *[style*="background-color: rgba(255,255,255,0.05)"] {
+  background-color: rgba(7, 45, 48, 0.04) !important;
+}
+:not(.dark) *[style*="background-color: #1e293b"],
+:not(.dark) *[style*="backgroundColor: #1e293b"] {
+  background-color: var(--card) !important;
 }

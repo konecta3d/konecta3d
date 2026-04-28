@@ -586,7 +586,7 @@ function VipBenefitsWizardInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1720] p-4 md:p-6 lg:p-8 overflow-x-auto">
+    <div className="min-h-screen bg-[var(--background)] p-4 md:p-6 lg:p-8 overflow-x-auto">
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
