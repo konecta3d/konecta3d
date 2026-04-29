@@ -233,6 +233,20 @@ input[type="range"]::-moz-range-thumb {
   color: #ffffff !important;
 }
 
+/* Restaurar colores reales dentro de la landing pública
+   La landing tiene su propio fondo oscuro y no usa el tema claro/oscuro del app */
+:not(.dark) .landing-public *[style*="color: #ffffff"],
+:not(.dark) .landing-public *[style*="color:#ffffff"],
+:not(.dark) .landing-public *[style*="color: white"],
+:not(.dark) .landing-public .text-white,
+:not(.dark) .landing-public .text-white\/70,
+:not(.dark) .landing-public .text-white\/80,
+:not(.dark) .landing-public .text-white\/60,
+:not(.dark) .landing-public .text-white\/50,
+:not(.dark) .landing-public .text-white\/40 {
+  color: inherit !important;
+}
+
 /* ─────────────────────────────────────────────
    INLINE DARK BACKGROUNDS en modo claro
    Selects / inputs con fondo oscuro inline

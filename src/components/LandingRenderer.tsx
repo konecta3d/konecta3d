@@ -47,13 +47,13 @@ export default function LandingRenderer({
 
   const ctaStyle = {
     backgroundColor: config.ctaBg || "#ffffff",
-    color: config.ctaTextColor || "#ffffff",
+    color: config.ctaTextColor || "#0c1a24",
     borderColor: config.ctaBorderColor || "#ffffff",
-    borderWidth: `${config.ctaBorderWidth ?? 2}px`,
+    borderWidth: `${config.ctaBorderWidth ?? 0}px`,
     borderStyle: "solid",
     borderRadius: `${config.ctaRadius ?? 16}px`,
-    opacity: (config.ctaOpacity ?? 20) / 100,
-    fontSize: `${config.ctaFontSize ?? 14}px`,
+    opacity: (config.ctaOpacity ?? 100) / 100,
+    fontSize: `${config.ctaFontSize ?? 15}px`,
   } as React.CSSProperties;
 
   const heroPaddingTop = config.heroPaddingTop ?? 24;
@@ -91,7 +91,7 @@ const trackEvent = async (eventType: string, entityType: string, entityId: strin
 };
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="landing-public min-h-screen bg-transparent">
       <div
         className="min-h-screen w-full bg-no-repeat bg-center relative"
         style={{
