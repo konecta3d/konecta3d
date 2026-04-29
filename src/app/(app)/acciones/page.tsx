@@ -289,7 +289,7 @@ useEffect(() => {
           <p className="text-sm text-white">Genera y guarda links de acción para usar en tus recursos</p>
         </div>
 
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-800 dark:text-yellow-200">
           <strong>Consejo:</strong> Si ya usas una o varias de estas herramientas, pega el link generado y centralízalas en una página con un objetivo concreto.
         </div>
 

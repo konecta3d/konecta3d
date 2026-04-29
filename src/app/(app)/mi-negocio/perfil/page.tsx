@@ -226,7 +226,7 @@ export default function PerfilPage() {
             
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Nombre del negocio</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Nombre del negocio</label>
                 <input
                   type="text"
                   value={name}
@@ -235,7 +235,7 @@ export default function PerfilPage() {
                 />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Slug (enlace)</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Slug (enlace)</label>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
                   <span className="text-xs text-white whitespace-nowrap">konecta3d.com/l/</span>
                   <input
@@ -247,7 +247,7 @@ export default function PerfilPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Teléfono</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Teléfono</label>
                 <input
                   type="tel"
                   value={phone}
@@ -256,7 +256,7 @@ export default function PerfilPage() {
                 />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Email de contacto</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Email de contacto</label>
                 <input
                   type="email"
                   value={email}
@@ -266,7 +266,7 @@ export default function PerfilPage() {
                 <p className="text-xs text-white mt-1">El email no se puede cambiar</p>
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Descripción</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Descripción</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -276,7 +276,7 @@ export default function PerfilPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Dirección</label>
+                <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Dirección</label>
                 <input
                   type="text"
                   value={address}
