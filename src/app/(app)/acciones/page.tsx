@@ -475,7 +475,7 @@ useEffect(() => {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Opciones guardadas de {category.title}</h2>
-          <span className="text-xs px-2 py-1 bg-[var(--brand-1)]/20 text-[var(--brand-1)] rounded">
+          <span className="text-xs px-2 py-1 bg-[var(--brand-3)]/20 text-[var(--brand-3)] rounded">
             {filteredLinks.length} opción{filteredLinks.length !== 1 ? 'es' : ''}
           </span>
         </div>

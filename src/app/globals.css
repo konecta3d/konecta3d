@@ -133,15 +133,16 @@ body {
   color: #ffffff;
 }
 
-/* Inputs y placeholders en modo claro */
-:not(.dark) input,
-:not(.dark) textarea,
-:not(.dark) select {
+/* Inputs y placeholders — ambos modos
+   Sin esto el navegador aplica color negro por defecto en inputs,
+   invisible sobre fondos oscuros en dark mode.                    */
+input:not([type="color"]),
+textarea {
   color: var(--foreground);
 }
-:not(.dark) input::placeholder,
-:not(.dark) textarea::placeholder {
-  color: rgba(0, 0, 0, 0.4);
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
 }
 
 /* Bordes semitransparentes blancos → oscuros en modo claro */
@@ -173,15 +174,15 @@ body {
 :not(.dark) .bg-\[\#0a1118\]     { background-color: var(--background); }
 
 /* ─────────────────────────────────────────────
-   SELECTS (siempre con fondo blanco para legibilidad)
+   SELECTS — respetan el tema claro/oscuro
 ───────────────────────────────────────────── */
 select {
-  background: #ffffff;
-  color: #000000;
+  background: var(--card);
+  color: var(--foreground);
 }
 select option {
-  background: #ffffff;
-  color: #000000;
+  background: var(--card);
+  color: var(--foreground);
 }
 
 /* ─────────────────────────────────────────────
