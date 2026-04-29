@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Activa el variant dark: basado en la clase .dark del elemento html
+   (no en prefers-color-scheme). Necesario para Tailwind v4.          */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─────────────────────────────────────────────
    TOKENS DE COLOR — MODO CLARO (por defecto)
    Paleta Konecta3D
