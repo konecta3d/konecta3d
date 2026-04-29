@@ -150,7 +150,7 @@ function LeadMagnetListContent() {
           </ul>
 <Link
   href={businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new"}
-  className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-white font-semibold hover:opacity-90"
+  className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-white dark:text-black font-semibold hover:opacity-90"
 >
   Crear Recurso en modo Avanzado
 </Link>

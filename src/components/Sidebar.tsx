@@ -194,6 +194,23 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 </div>
             )}
 
+            {/* Botón Dashboard — solo en modo negocio */}
+            {showBusinessSidebar && (
+                <Link
+                    href="/mi-negocio/estadisticas"
+                    className={`flex items-center gap-2 mb-4 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                        pathname === "/mi-negocio/estadisticas"
+                            ? "bg-[var(--brand-4)] text-black"
+                            : "bg-[var(--brand-3)]/15 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/25"
+                    }`}
+                >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Dashboard
+                </Link>
+            )}
+
             <nav className="space-y-4 text-sm">
                 {Object.entries(categories).map(([category, catLinks]) => (
                     <div key={category} className="space-y-1">
