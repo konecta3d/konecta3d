@@ -197,9 +197,9 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             {/* Botón Dashboard — solo en modo negocio */}
             {showBusinessSidebar && (
                 <Link
-                    href="/mi-negocio/estadisticas"
+                    href="/mi-negocio/dashboard"
                     className={`flex items-center gap-2 mb-4 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                        pathname === "/mi-negocio/estadisticas"
+                        pathname === "/mi-negocio/dashboard"
                             ? "bg-[var(--brand-4)] text-black"
                             : "bg-[var(--brand-3)]/15 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/25"
                     }`}
