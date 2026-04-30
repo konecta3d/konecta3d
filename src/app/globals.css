@@ -233,18 +233,15 @@ input[type="range"]::-moz-range-thumb {
   color: #ffffff !important;
 }
 
-/* Restaurar colores reales dentro de la landing pública
-   La landing tiene su propio fondo oscuro y no usa el tema claro/oscuro del app */
+/* Restaurar colores reales dentro de la landing pública.
+   La landing usa su propio fondo oscuro (teal) y gestiona sus colores
+   via inline styles — no heredar el sistema de tema claro/oscuro del app.
+   IMPORTANTE: no usar !important en clases genéricas (.text-white) porque
+   sobreescribiría los colores inline que sí queremos aplicar en los botones. */
 :not(.dark) .landing-public *[style*="color: #ffffff"],
 :not(.dark) .landing-public *[style*="color:#ffffff"],
-:not(.dark) .landing-public *[style*="color: white"],
-:not(.dark) .landing-public .text-white,
-:not(.dark) .landing-public .text-white\/70,
-:not(.dark) .landing-public .text-white\/80,
-:not(.dark) .landing-public .text-white\/60,
-:not(.dark) .landing-public .text-white\/50,
-:not(.dark) .landing-public .text-white\/40 {
-  color: inherit !important;
+:not(.dark) .landing-public *[style*="color: white"] {
+  color: #ffffff !important;
 }
 
 /* ─────────────────────────────────────────────
