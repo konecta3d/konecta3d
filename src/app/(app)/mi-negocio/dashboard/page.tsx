@@ -241,24 +241,6 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {business?.slug && (
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-lg bg-[var(--background)] border border-[var(--border)]">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-[var(--brand-3)]">Tu landing pública</p>
-              <p className="text-sm truncate" style={{ color: "var(--foreground)", opacity: 0.8 }}>
-                konecta3d.vercel.app/l/{business.slug}/NFC
-              </p>
-            </div>
-            <a
-              href={`/l/${business.slug}/NFC`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
-            >
-              Ver landing →
-            </a>
-          </div>
-        )}
       </div>
 
       {/* Mi Negocio — secciones de gestión */}
