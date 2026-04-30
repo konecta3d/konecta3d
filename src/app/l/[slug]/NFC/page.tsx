@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import LandingRenderer from "@/components/LandingRenderer";
 import PreviewClient from "./PreviewClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicLanding({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> }) {
   const { slug = "" } = await params;
   const sp = await searchParams;
@@ -16,7 +18,7 @@ export default async function PublicLanding({ params, searchParams }: { params: 
 
   const { data: biz, error: bizError } = await supabase
     .from("businesses")
-    .select("id, slug, module_tools")
+    .select("id, slug, name, module_tools")
     .eq("slug", slug.toLowerCase())
     .limit(1)
     .maybeSingle();
@@ -36,7 +38,15 @@ export default async function PublicLanding({ params, searchParams }: { params: 
   }
 
   const raw = configRow.config;
-  const config = raw?.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"]) : raw;
+  const resolvedConfig = raw?.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"]) : raw;
+
+  // Garantizar businessName y businessId en el config para que el LandingRenderer
+  // muestre el nombre correcto y registre analytics correctamente.
+  const config = {
+    ...resolvedConfig,
+    businessName: resolvedConfig?.businessName || biz.name || "",
+    businessId: biz.id,
+  };
 
   // Herramientas solo activas si el negocio tiene el módulo tools habilitado
   const toolsEnabled = !!biz.module_tools;
