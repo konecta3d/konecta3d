@@ -47,7 +47,7 @@ export default function DashboardPage() {
       setBusiness(biz);
 
       // Solo consultar módulos activos
-      const queries: Promise<{ count: number | null }>[] = [
+      const queries: PromiseLike<{ count: number | null }>[] = [
         supabase.from("landing_configs").select("id", { count: "exact", head: true }).eq("business_id", biz.id).then(r => ({ count: r.count })),
         supabase.from("leads").select("id", { count: "exact", head: true }).eq("business_id", biz.id).then(r => ({ count: r.count })),
       ];
