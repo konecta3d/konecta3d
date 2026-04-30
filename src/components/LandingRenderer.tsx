@@ -12,6 +12,40 @@ interface ActiveForm {
   data_collection: string;
 }
 
+/** Devuelve un color de texto con contraste suficiente contra el fondo.
+ *  Si el ratio WCAG entre text y bg es menor de 3, fuerza blanco o negro. */
+function ensureContrast(bg: string, text: string): string {
+  const parseHex = (hex: string) => {
+    const h = (hex || "").replace("#", "");
+    if (h.length !== 6) return null;
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16),
+    };
+  };
+  const luminance = (r: number, g: number, b: number) => {
+    const s = [r, g, b].map((c) => {
+      const v = c / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+  };
+  const bgRgb = parseHex(bg);
+  const textRgb = parseHex(text);
+  if (!bgRgb || !textRgb) return text;
+  const bgL = luminance(bgRgb.r, bgRgb.g, bgRgb.b);
+  const textL = luminance(textRgb.r, textRgb.g, textRgb.b);
+  const lighter = Math.max(bgL, textL);
+  const darker = Math.min(bgL, textL);
+  const ratio = (lighter + 0.05) / (darker + 0.05);
+  if (ratio < 3) {
+    // Contraste insuficiente → usar color opuesto al fondo
+    return bgL > 0.4 ? "#0c1a24" : "#ffffff";
+  }
+  return text;
+}
+
 function normalizeUrl(url?: string | null): string {
   if (!url) return "#";
   const trimmed = url.trim();
@@ -45,9 +79,12 @@ export default function LandingRenderer({
   const [formModalOpen, setFormModalOpen] = useState(false);
   const activeForm = activeForms[0] as ActiveForm | undefined;
 
+  const ctaBg = config.ctaBg || "#ffffff";
+  const ctaTextColor = ensureContrast(ctaBg, config.ctaTextColor || "#0c1a24");
+
   const ctaStyle = {
-    backgroundColor: config.ctaBg || "#ffffff",
-    color: config.ctaTextColor || "#0c1a24",
+    backgroundColor: ctaBg,
+    color: ctaTextColor,
     borderColor: config.ctaBorderColor || "#ffffff",
     borderWidth: `${config.ctaBorderWidth ?? 0}px`,
     borderStyle: "solid",
