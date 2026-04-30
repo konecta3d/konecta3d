@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 import LandingRenderer from "@/components/LandingRenderer";
 import { defaultLandingConfig } from "@/lib/landingTypes";
+
+// Forzar renderizado dinámico en cada petición — evita que Vercel
+// sirva una versión cacheada con estilos desactualizados.
+export const dynamic = "force-dynamic";
 
 export default async function LandingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

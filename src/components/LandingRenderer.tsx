@@ -94,19 +94,19 @@ export default function LandingRenderer({
   // ── Estilos de botón CTA ─────────────────────────────────────────────────
   // La opacidad se aplica SOLO al fondo (rgba) para que el texto sea siempre legible.
   // ensureContrast corrige configs antiguas con texto y fondo del mismo color.
+  // Los estilos se inyectan con <style> para que ninguna regla CSS de clase
+  // pueda sobreescribir el color (independiente del modo claro/oscuro del app).
   const ctaBg = config.ctaBg || "#ffffff";
   const ctaOpacity = config.ctaOpacity ?? 100;
   const ctaTextColor = ensureContrast(ctaBg, config.ctaTextColor || "#0c1a24");
+  const ctaBgRgba = hexToRgba(ctaBg, ctaOpacity);
 
-  const ctaStyle: React.CSSProperties = {
-    backgroundColor: hexToRgba(ctaBg, ctaOpacity),
-    color: ctaTextColor,
+  const ctaBaseStyle: React.CSSProperties = {
     borderColor: config.ctaBorderColor || "transparent",
     borderWidth: `${config.ctaBorderWidth ?? 0}px`,
     borderStyle: "solid",
     borderRadius: `${config.ctaRadius ?? 16}px`,
     fontSize: `${config.ctaFontSize ?? 15}px`,
-    // Sin 'opacity' aquí — afectaría también al texto
   };
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -154,6 +154,14 @@ export default function LandingRenderer({
 
   return (
     <div className="landing-public min-h-screen bg-transparent">
+      {/* Estilos de botones CTA inyectados directamente — no pueden ser
+          sobreescritos por ninguna regla de clase CSS del tema global */}
+      <style>{`
+        .landing-cta {
+          background-color: ${ctaBgRgba} !important;
+          color: ${ctaTextColor} !important;
+        }
+      `}</style>
       <div
         className="min-h-screen w-full bg-no-repeat bg-center relative"
         style={{
@@ -236,7 +244,7 @@ export default function LandingRenderer({
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
                   >
                     {/* Sin text-white — el color lo controla ctaStyle.color */}
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaStyle}>
+                    <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta1Text || "WhatsApp"}
                     </div>
                   </a>
@@ -249,7 +257,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta2BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaStyle}>
+                    <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta2Text || "Instagram"}
                     </div>
                   </a>
@@ -262,7 +270,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta3BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaStyle}>
+                    <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta3Text || "Página Web"}
                     </div>
                   </a>
@@ -276,7 +284,7 @@ export default function LandingRenderer({
                     className="block"
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 4 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaStyle}>
+                    <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta4Text || "CTA 4"}
                     </div>
                   </a>
@@ -290,7 +298,7 @@ export default function LandingRenderer({
                     className="block"
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 5 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaStyle}>
+                    <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta5Text || "CTA 5"}
                     </div>
                   </a>
