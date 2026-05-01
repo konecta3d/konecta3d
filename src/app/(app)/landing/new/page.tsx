@@ -12,6 +12,12 @@ interface Benefit {
   title: string;
 }
 
+interface LeadMagnet {
+  id: string;
+  title: string;
+  pdf_url: string | null;
+}
+
 export default function LandingNew() {
   const [config, setConfig] = useState<LandingConfig>(defaultLandingConfig);
   const [businessId, setBusinessId] = useState("");
@@ -19,6 +25,7 @@ export default function LandingNew() {
   const [saveStatus, setSaveStatus] = useState("Pendiente");
   const [lastSaved, setLastSaved] = useState("");
   const [benefits, setBenefits] = useState<Benefit[]>([]);
+  const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -77,30 +84,27 @@ export default function LandingNew() {
     load();
   }, []);
 
-// Cargar config + datos de negocio + beneficios
+// Cargar config + datos de negocio + beneficios + recursos de valor
 useEffect(() => {
   if (!businessId) return;
 
   const load = async () => {
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("name, slug, logo_url")
-      .eq("id", businessId)
-      .single();
+    const [bizRes, landingRes, benefitsRes, leadMagnetsRes] = await Promise.all([
+      supabase.from("businesses").select("name, slug, logo_url").eq("id", businessId).single(),
+      supabase.from("landing_configs").select("config").eq("business_id", businessId).single(),
+      supabase.from("benefits").select("id, title").eq("business_id", businessId).eq("active", true).order("created_at", { ascending: false }),
+      supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).eq("active", true).order("created_at", { ascending: false }),
+    ]);
 
+    const biz = bizRes.data;
     const businessName = biz?.name || "";
     const businessLogo = biz?.logo_url || "";
-
     if (biz?.slug) setSlug(biz.slug);
 
-    const { data } = await supabase
-      .from("landing_configs")
-      .select("config")
-      .eq("business_id", businessId)
-      .single();
+    setBenefits((benefitsRes.data || []) as Benefit[]);
+    setLeadMagnets((leadMagnetsRes.data || []) as LeadMagnet[]);
 
-    const c = data?.config || null;
-
+    const c = landingRes.data?.config || null;
     if (!c) {
       setConfig({ ...defaultLandingConfig, businessName, logoUrl: businessLogo });
     } else {
@@ -382,73 +386,121 @@ useEffect(() => {
                     textKey: "cta1Text" as const,
                     linkKey: "cta1Link" as const,
                     benefitKey: "cta1BenefitId" as const,
+                    leadMagnetKey: "cta1LeadMagnetId" as const,
                     label: "CTA 1",
                   },
                   {
                     textKey: "cta2Text" as const,
                     linkKey: "cta2Link" as const,
                     benefitKey: "cta2BenefitId" as const,
+                    leadMagnetKey: "cta2LeadMagnetId" as const,
                     label: "CTA 2",
                   },
                   {
                     textKey: "cta3Text" as const,
                     linkKey: "cta3Link" as const,
                     benefitKey: "cta3BenefitId" as const,
+                    leadMagnetKey: "cta3LeadMagnetId" as const,
                     label: "CTA 3",
                   },
-                ].map(({ textKey, linkKey, benefitKey, label }) => (
-                  <div key={textKey} className="space-y-1">
+                ].map(({ textKey, linkKey, benefitKey, leadMagnetKey, label }) => {
+                  // Determinar tipo de recurso activo para este CTA
+                  const activeResourceType = config[leadMagnetKey]
+                    ? "leadmagnet"
+                    : config[benefitKey]
+                    ? "benefit"
+                    : "link";
+
+                  const hasResources = benefits.length > 0 || leadMagnets.length > 0;
+
+                  return (
+                  <div key={textKey} className="rounded-lg border border-[var(--border)] p-3 space-y-2">
+                    {/* Texto del botón */}
                     <input
-                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold"
+                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold text-sm"
                       value={config[textKey]}
-                      onChange={(e) =>
-                        update({ [textKey]: e.target.value } as any)
-                      }
+                      onChange={(e) => update({ [textKey]: e.target.value } as any)}
                       placeholder={label}
                       style={ctaStyle}
                     />
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                      <div className="flex-1 flex gap-2">
+
+                    {/* Selector de tipo: Link / Recurso */}
+                    {hasResources && (
+                      <div className="flex gap-1.5">
+                        {(["link", "benefit", "leadmagnet"] as const).map((t) => {
+                          const labels = { link: "🔗 Link", benefit: "⭐ Beneficio VIP", leadmagnet: "📄 Recurso de Valor" };
+                          const available = t === "benefit" ? benefits.length > 0 : t === "leadmagnet" ? leadMagnets.length > 0 : true;
+                          if (!available) return null;
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => {
+                                // Limpiar el otro tipo al cambiar
+                                if (t === "link") update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
+                                if (t === "benefit") update({ [leadMagnetKey]: "" } as any);
+                                if (t === "leadmagnet") update({ [benefitKey]: "" } as any);
+                              }}
+                              className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
+                                activeResourceType === t
+                                  ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)]"
+                                  : "border-[var(--border)] text-[var(--foreground)]/50 hover:border-[var(--brand-3)]"
+                              }`}
+                            >
+                              {labels[t]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Contenido según tipo */}
+                    {activeResourceType === "link" && (
+                      <div className="flex gap-2 items-center">
                         <input
-                          className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
+                          className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
                           value={config[linkKey]}
-                          onChange={(e) =>
-                            update({ [linkKey]: e.target.value } as any)
-                          }
-                          placeholder={`Link ${label}`}
+                          onChange={(e) => update({ [linkKey]: e.target.value } as any)}
+                          placeholder={`URL para ${label}`}
                         />
                         <ActionLinkPicker
                           value={config[linkKey] as string}
-                          onChange={(url) =>
-                            update({ [linkKey]: url } as any)
-                          }
+                          onChange={(url) => update({ [linkKey]: url } as any)}
                           label=""
                         />
                       </div>
-                      {benefits.length > 0 && (
-                        <div className="w-full md:w-[220px]">
-                          <label className="text-[10px] uppercase tracking-wide text-[var(--brand-1)]">
-                            Beneficio VIP (opcional)
-                          </label>
-                          <select
-                            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
-                            value={(config[benefitKey] as string) || ""}
-                            onChange={(e) =>
-                              update({ [benefitKey]: e.target.value } as any)
-                            }
-                          >
-                            <option value="">Sin beneficio asociado</option>
-                            {benefits.map((b) => (
-                              <option key={b.id} value={b.id}>
-                                {b.title}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
+                    )}
+
+                    {activeResourceType === "benefit" && (
+                      <select
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
+                        value={(config[benefitKey] as string) || ""}
+                        onChange={(e) => update({ [benefitKey]: e.target.value } as any)}
+                      >
+                        <option value="">— Seleccionar Beneficio VIP —</option>
+                        {benefits.map((b) => (
+                          <option key={b.id} value={b.id}>{b.title}</option>
+                        ))}
+                      </select>
+                    )}
+
+                    {activeResourceType === "leadmagnet" && (
+                      <select
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
+                        value={(config[leadMagnetKey] as string) || ""}
+                        onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
+                      >
+                        <option value="">— Seleccionar Recurso de Valor —</option>
+                        {leadMagnets.map((lm) => (
+                          <option key={lm.id} value={lm.id} disabled={!lm.pdf_url}>
+                            {lm.title}{!lm.pdf_url ? " (sin PDF)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
 
                 {/* Botones extra 4 y 5 */}
                 <div className="pt-2 border-t border-[var(--border)] space-y-2">

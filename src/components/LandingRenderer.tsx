@@ -238,12 +238,17 @@ export default function LandingRenderer({
 
                 {config.showCta1 && (
                   <a
-                    href={config.cta1BenefitId ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}` : normalizeUrl(config.cta1Link)}
+                    href={
+                      config.cta1LeadMagnetId
+                        ? `/api/lead-magnet/download?id=${config.cta1LeadMagnetId}`
+                        : config.cta1BenefitId
+                        ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}`
+                        : normalizeUrl(config.cta1Link)
+                    }
                     className="block"
-                    download={Boolean(config.cta1BenefitId)}
+                    download={Boolean(config.cta1LeadMagnetId || config.cta1BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
                   >
-                    {/* Sin text-white — el color lo controla ctaStyle.color */}
                     <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta1Text || "WhatsApp"}
                     </div>
@@ -252,9 +257,15 @@ export default function LandingRenderer({
 
                 {config.showCta2 && (
                   <a
-                    href={config.cta2BenefitId ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}` : normalizeUrl(config.cta2Link)}
+                    href={
+                      config.cta2LeadMagnetId
+                        ? `/api/lead-magnet/download?id=${config.cta2LeadMagnetId}`
+                        : config.cta2BenefitId
+                        ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}`
+                        : normalizeUrl(config.cta2Link)
+                    }
                     className="block"
-                    download={Boolean(config.cta2BenefitId)}
+                    download={Boolean(config.cta2LeadMagnetId || config.cta2BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })}
                   >
                     <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
@@ -265,9 +276,15 @@ export default function LandingRenderer({
 
                 {config.showCta3 && (
                   <a
-                    href={config.cta3BenefitId ? `/api/benefits/generate-pdf?id=${config.cta3BenefitId}` : normalizeUrl(config.cta3Link)}
+                    href={
+                      config.cta3LeadMagnetId
+                        ? `/api/lead-magnet/download?id=${config.cta3LeadMagnetId}`
+                        : config.cta3BenefitId
+                        ? `/api/benefits/generate-pdf?id=${config.cta3BenefitId}`
+                        : normalizeUrl(config.cta3Link)
+                    }
                     className="block"
-                    download={Boolean(config.cta3BenefitId)}
+                    download={Boolean(config.cta3LeadMagnetId || config.cta3BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })}
                   >
                     <div className="landing-cta rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
