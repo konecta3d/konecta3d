@@ -27,18 +27,21 @@ export interface LandingConfig {
     cta1Text: string;
     cta1Link: string;
     cta1Icon: string;
+    cta1Type: "link" | "benefit" | "leadmagnet";
     cta1BenefitId: string;
     cta1LeadMagnetId: string;
     showCta1: boolean;
     cta2Text: string;
     cta2Link: string;
     cta2Icon: string;
+    cta2Type: "link" | "benefit" | "leadmagnet";
     cta2BenefitId: string;
     cta2LeadMagnetId: string;
     showCta2: boolean;
     cta3Text: string;
     cta3Link: string;
     cta3Icon: string;
+    cta3Type: "link" | "benefit" | "leadmagnet";
     cta3BenefitId: string;
     cta3LeadMagnetId: string;
     showCta3: boolean;
@@ -143,18 +146,21 @@ export const defaultLandingConfig: LandingConfig = {
     cta1Text: "WhatsApp",
     cta1Link: "",
     cta1Icon: "none",
+    cta1Type: "link",
     cta1BenefitId: "",
     cta1LeadMagnetId: "",
     showCta1: true,
     cta2Text: "Instagram",
     cta2Link: "",
     cta2Icon: "none",
+    cta2Type: "link",
     cta2BenefitId: "",
     cta2LeadMagnetId: "",
     showCta2: true,
     cta3Text: "Página Web",
     cta3Link: "",
     cta3Icon: "none",
+    cta3Type: "link",
     cta3BenefitId: "",
     cta3LeadMagnetId: "",
     showCta3: true,

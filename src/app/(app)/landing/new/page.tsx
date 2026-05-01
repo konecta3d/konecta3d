@@ -385,6 +385,7 @@ useEffect(() => {
                   {
                     textKey: "cta1Text" as const,
                     linkKey: "cta1Link" as const,
+                    typeKey: "cta1Type" as const,
                     benefitKey: "cta1BenefitId" as const,
                     leadMagnetKey: "cta1LeadMagnetId" as const,
                     label: "CTA 1",
@@ -392,6 +393,7 @@ useEffect(() => {
                   {
                     textKey: "cta2Text" as const,
                     linkKey: "cta2Link" as const,
+                    typeKey: "cta2Type" as const,
                     benefitKey: "cta2BenefitId" as const,
                     leadMagnetKey: "cta2LeadMagnetId" as const,
                     label: "CTA 2",
@@ -399,92 +401,140 @@ useEffect(() => {
                   {
                     textKey: "cta3Text" as const,
                     linkKey: "cta3Link" as const,
+                    typeKey: "cta3Type" as const,
                     benefitKey: "cta3BenefitId" as const,
                     leadMagnetKey: "cta3LeadMagnetId" as const,
                     label: "CTA 3",
                   },
-                ].map(({ textKey, linkKey, benefitKey, leadMagnetKey, label }) => {
-                  // Valor actual del selector unificado: "lm:<id>", "benefit:<id>" o ""
-                  const currentResourceValue = config[leadMagnetKey]
-                    ? `lm:${config[leadMagnetKey]}`
-                    : config[benefitKey]
-                    ? `benefit:${config[benefitKey]}`
-                    : "";
+                ].map(({ textKey, linkKey, typeKey, benefitKey, leadMagnetKey, label }) => {
+                  // El tipo se lee directamente del config — sin estado local
+                  // Migración automática: si viene de una versión anterior sin typeKey,
+                  // se infiere del valor guardado
+                  const ctaType: "link" | "benefit" | "leadmagnet" =
+                    (config[typeKey] as "link" | "benefit" | "leadmagnet") ||
+                    (config[leadMagnetKey] ? "leadmagnet" : config[benefitKey] ? "benefit" : "link");
 
-                  const hasResources = benefits.length > 0 || leadMagnets.length > 0;
-
-                  const handleResourceChange = (val: string) => {
-                    if (!val) {
-                      update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
-                    } else if (val.startsWith("lm:")) {
-                      update({ [leadMagnetKey]: val.slice(3), [benefitKey]: "" } as any);
-                    } else if (val.startsWith("benefit:")) {
-                      update({ [benefitKey]: val.slice(8), [leadMagnetKey]: "" } as any);
-                    }
+                  const selectType = (t: "link" | "benefit" | "leadmagnet") => {
+                    // Guardar el tipo en config y limpiar los campos del tipo anterior
+                    const patch: Record<string, string> = { [typeKey]: t };
+                    if (t !== "benefit") patch[benefitKey] = "";
+                    if (t !== "leadmagnet") patch[leadMagnetKey] = "";
+                    if (t !== "link") patch[linkKey] = "";
+                    update(patch as any);
                   };
 
-                  return (
-                  <div key={textKey} className="rounded-lg border border-[var(--border)] p-3 space-y-2">
-                    {/* Texto del botón */}
-                    <input
-                      className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold text-sm"
-                      value={config[textKey]}
-                      onChange={(e) => update({ [textKey]: e.target.value } as any)}
-                      placeholder={label}
-                      style={ctaStyle}
-                    />
+                  const TYPE_OPTIONS = [
+                    {
+                      id: "link" as const,
+                      icon: "🔗",
+                      label: "Link",
+                      desc: "URL o acción guardada",
+                      show: true,
+                    },
+                    {
+                      id: "leadmagnet" as const,
+                      icon: "📄",
+                      label: "Recurso de Valor",
+                      desc: "Descarga un PDF",
+                      show: leadMagnets.length > 0,
+                    },
+                    {
+                      id: "benefit" as const,
+                      icon: "⭐",
+                      label: "Beneficio VIP",
+                      desc: "Descarga un cupón PDF",
+                      show: benefits.length > 0,
+                    },
+                  ].filter((o) => o.show);
 
-                    {/* Link + selector de acción — siempre visible */}
-                    <div className="flex gap-2 items-center">
+                  return (
+                  <div key={textKey} className="rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                    {/* Cabecera: texto del botón */}
+                    <div className="px-3 pt-3 pb-2">
+                      <label className="text-[10px] uppercase tracking-wide text-[var(--brand-1)] mb-1 block">{label}</label>
                       <input
-                        className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
-                        value={config[linkKey]}
-                        onChange={(e) => update({ [linkKey]: e.target.value } as any)}
-                        placeholder={`URL para ${label}`}
-                      />
-                      <ActionLinkPicker
-                        value={config[linkKey] as string}
-                        onChange={(url) => update({ [linkKey]: url } as any)}
-                        label=""
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold text-sm"
+                        value={config[textKey]}
+                        onChange={(e) => update({ [textKey]: e.target.value } as any)}
+                        placeholder={`Texto del botón`}
+                        style={ctaStyle}
                       />
                     </div>
 
-                    {/* Selector unificado de recurso (opcional) */}
-                    {hasResources && (
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wide text-[var(--brand-1)] mb-1 block">
-                          Recurso adjunto (opcional — sustituye al link)
-                        </label>
-                        <select
-                          className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-2 text-xs"
-                          value={currentResourceValue}
-                          onChange={(e) => handleResourceChange(e.target.value)}
-                        >
-                          <option value="">— Sin recurso adjunto —</option>
-                          {benefits.length > 0 && (
-                            <optgroup label="⭐ Beneficios VIP">
-                              {benefits.map((b) => (
-                                <option key={b.id} value={`benefit:${b.id}`}>{b.title}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                          {leadMagnets.length > 0 && (
-                            <optgroup label="📄 Recursos de Valor">
-                              {leadMagnets.map((lm) => (
-                                <option key={lm.id} value={`lm:${lm.id}`}>
-                                  {lm.title}{!lm.pdf_url ? " ⚠ sin PDF" : ""}
-                                </option>
-                              ))}
-                            </optgroup>
-                          )}
-                        </select>
-                        {currentResourceValue && (
-                          <p className="text-[10px] text-[var(--brand-3)] mt-1">
-                            ✓ Al pulsar el botón se descargará el recurso en PDF
-                          </p>
-                        )}
+                    {/* Paso 1 — Elegir tipo */}
+                    <div className="px-3 pb-2">
+                      <p className="text-[10px] uppercase tracking-wide text-[var(--foreground)]/40 mb-1.5">¿Qué hace este botón?</p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {TYPE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => selectType(opt.id)}
+                            className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg border text-center transition-all ${
+                              ctaType === opt.id
+                                ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10 text-[var(--brand-4)]"
+                                : "border-[var(--border)] text-[var(--foreground)]/60 hover:border-[var(--brand-3)] hover:text-[var(--foreground)]"
+                            }`}
+                          >
+                            <span className="text-base leading-none">{opt.icon}</span>
+                            <span className="text-[10px] font-semibold leading-tight">{opt.label}</span>
+                          </button>
+                        ))}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Paso 2 — Opciones según tipo */}
+                    <div className="px-3 pb-3 pt-1 border-t border-[var(--border)]/50">
+                      {ctaType === "link" && (
+                        <div className="flex gap-2 items-center mt-2">
+                          <input
+                            className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
+                            value={config[linkKey]}
+                            onChange={(e) => update({ [linkKey]: e.target.value } as any)}
+                            placeholder="Pega la URL aquí..."
+                          />
+                          <ActionLinkPicker
+                            value={config[linkKey] as string}
+                            onChange={(url) => update({ [linkKey]: url } as any)}
+                            label=""
+                          />
+                        </div>
+                      )}
+
+                      {ctaType === "benefit" && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-[10px] text-[var(--foreground)]/50">El cliente descargará el cupón PDF al pulsar</p>
+                          <select
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
+                            value={(config[benefitKey] as string) || ""}
+                            onChange={(e) => update({ [benefitKey]: e.target.value } as any)}
+                          >
+                            <option value="">— Seleccionar beneficio —</option>
+                            {benefits.map((b) => (
+                              <option key={b.id} value={b.id}>{b.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {ctaType === "leadmagnet" && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-[10px] text-[var(--foreground)]/50">El cliente descargará el recurso PDF al pulsar</p>
+                          <select
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
+                            value={(config[leadMagnetKey] as string) || ""}
+                            onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
+                          >
+                            <option value="">— Seleccionar recurso —</option>
+                            {leadMagnets.map((lm) => (
+                              <option key={lm.id} value={lm.id}>
+                                {lm.title}{!lm.pdf_url ? " ⚠ sin PDF aún" : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   );
                 })}
