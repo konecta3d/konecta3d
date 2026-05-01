@@ -26,8 +26,6 @@ export default function LandingNew() {
   const [lastSaved, setLastSaved] = useState("");
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
-  // Estado local para el modo de recurso de cada CTA (no se persiste en config)
-  const [ctaMode, setCtaMode] = useState<Record<string, "link" | "benefit" | "leadmagnet">>({});
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -406,24 +404,23 @@ useEffect(() => {
                     label: "CTA 3",
                   },
                 ].map(({ textKey, linkKey, benefitKey, leadMagnetKey, label }) => {
-                  // El modo activo se lee del estado local primero (para que el tab
-                  // sea interactivo antes de seleccionar un recurso), y si no hay
-                  // estado local se infiere de lo que ya está guardado en config.
-                  const savedMode: "link" | "benefit" | "leadmagnet" = config[leadMagnetKey]
-                    ? "leadmagnet"
+                  // Valor actual del selector unificado: "lm:<id>", "benefit:<id>" o ""
+                  const currentResourceValue = config[leadMagnetKey]
+                    ? `lm:${config[leadMagnetKey]}`
                     : config[benefitKey]
-                    ? "benefit"
-                    : "link";
-                  const activeResourceType = ctaMode[textKey] ?? savedMode;
+                    ? `benefit:${config[benefitKey]}`
+                    : "";
 
                   const hasResources = benefits.length > 0 || leadMagnets.length > 0;
 
-                  const switchMode = (t: "link" | "benefit" | "leadmagnet") => {
-                    setCtaMode((prev) => ({ ...prev, [textKey]: t }));
-                    // Al cambiar de modo limpiamos el valor del modo anterior
-                    if (t === "link") update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
-                    if (t === "benefit") update({ [leadMagnetKey]: "" } as any);
-                    if (t === "leadmagnet") update({ [benefitKey]: "" } as any);
+                  const handleResourceChange = (val: string) => {
+                    if (!val) {
+                      update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
+                    } else if (val.startsWith("lm:")) {
+                      update({ [leadMagnetKey]: val.slice(3), [benefitKey]: "" } as any);
+                    } else if (val.startsWith("benefit:")) {
+                      update({ [benefitKey]: val.slice(8), [leadMagnetKey]: "" } as any);
+                    }
                   };
 
                   return (
@@ -437,74 +434,56 @@ useEffect(() => {
                       style={ctaStyle}
                     />
 
-                    {/* Tabs: Link / Beneficio VIP / Recurso de Valor */}
+                    {/* Link + selector de acción — siempre visible */}
+                    <div className="flex gap-2 items-center">
+                      <input
+                        className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
+                        value={config[linkKey]}
+                        onChange={(e) => update({ [linkKey]: e.target.value } as any)}
+                        placeholder={`URL para ${label}`}
+                      />
+                      <ActionLinkPicker
+                        value={config[linkKey] as string}
+                        onChange={(url) => update({ [linkKey]: url } as any)}
+                        label=""
+                      />
+                    </div>
+
+                    {/* Selector unificado de recurso (opcional) */}
                     {hasResources && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {(["link", "benefit", "leadmagnet"] as const).map((t) => {
-                          const tabLabels = { link: "🔗 Link", benefit: "⭐ Beneficio VIP", leadmagnet: "📄 Recurso de Valor" };
-                          const available = t === "benefit" ? benefits.length > 0 : t === "leadmagnet" ? leadMagnets.length > 0 : true;
-                          if (!available) return null;
-                          return (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => switchMode(t)}
-                              className={`text-[10px] px-2.5 py-1 rounded-full border transition-colors ${
-                                activeResourceType === t
-                                  ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)] font-semibold"
-                                  : "border-[var(--border)] text-[var(--foreground)]/60 hover:border-[var(--brand-3)] hover:text-[var(--foreground)]"
-                              }`}
-                            >
-                              {tabLabels[t]}
-                            </button>
-                          );
-                        })}
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wide text-[var(--brand-1)] mb-1 block">
+                          Recurso adjunto (opcional — sustituye al link)
+                        </label>
+                        <select
+                          className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-2 text-xs"
+                          value={currentResourceValue}
+                          onChange={(e) => handleResourceChange(e.target.value)}
+                        >
+                          <option value="">— Sin recurso adjunto —</option>
+                          {benefits.length > 0 && (
+                            <optgroup label="⭐ Beneficios VIP">
+                              {benefits.map((b) => (
+                                <option key={b.id} value={`benefit:${b.id}`}>{b.title}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {leadMagnets.length > 0 && (
+                            <optgroup label="📄 Recursos de Valor">
+                              {leadMagnets.map((lm) => (
+                                <option key={lm.id} value={`lm:${lm.id}`}>
+                                  {lm.title}{!lm.pdf_url ? " ⚠ sin PDF" : ""}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                        {currentResourceValue && (
+                          <p className="text-[10px] text-[var(--brand-3)] mt-1">
+                            ✓ Al pulsar el botón se descargará el recurso en PDF
+                          </p>
+                        )}
                       </div>
-                    )}
-
-                    {/* Contenido según modo activo */}
-                    {activeResourceType === "link" && (
-                      <div className="flex gap-2 items-center">
-                        <input
-                          className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
-                          value={config[linkKey]}
-                          onChange={(e) => update({ [linkKey]: e.target.value } as any)}
-                          placeholder={`URL para ${label}`}
-                        />
-                        <ActionLinkPicker
-                          value={config[linkKey] as string}
-                          onChange={(url) => update({ [linkKey]: url } as any)}
-                          label=""
-                        />
-                      </div>
-                    )}
-
-                    {activeResourceType === "benefit" && (
-                      <select
-                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
-                        value={(config[benefitKey] as string) || ""}
-                        onChange={(e) => update({ [benefitKey]: e.target.value } as any)}
-                      >
-                        <option value="">— Seleccionar Beneficio VIP —</option>
-                        {benefits.map((b) => (
-                          <option key={b.id} value={b.id}>{b.title}</option>
-                        ))}
-                      </select>
-                    )}
-
-                    {activeResourceType === "leadmagnet" && (
-                      <select
-                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-2 text-xs"
-                        value={(config[leadMagnetKey] as string) || ""}
-                        onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
-                      >
-                        <option value="">— Seleccionar Recurso de Valor —</option>
-                        {leadMagnets.map((lm) => (
-                          <option key={lm.id} value={lm.id}>
-                            {lm.title}{!lm.pdf_url ? " ⚠ sin PDF" : ""}
-                          </option>
-                        ))}
-                      </select>
                     )}
                   </div>
                   );
