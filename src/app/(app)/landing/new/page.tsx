@@ -26,6 +26,8 @@ export default function LandingNew() {
   const [lastSaved, setLastSaved] = useState("");
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
+  // Estado local para el modo de recurso de cada CTA (no se persiste en config)
+  const [ctaMode, setCtaMode] = useState<Record<string, "link" | "benefit" | "leadmagnet">>({});
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -404,14 +406,25 @@ useEffect(() => {
                     label: "CTA 3",
                   },
                 ].map(({ textKey, linkKey, benefitKey, leadMagnetKey, label }) => {
-                  // Determinar tipo de recurso activo para este CTA
-                  const activeResourceType = config[leadMagnetKey]
+                  // El modo activo se lee del estado local primero (para que el tab
+                  // sea interactivo antes de seleccionar un recurso), y si no hay
+                  // estado local se infiere de lo que ya está guardado en config.
+                  const savedMode: "link" | "benefit" | "leadmagnet" = config[leadMagnetKey]
                     ? "leadmagnet"
                     : config[benefitKey]
                     ? "benefit"
                     : "link";
+                  const activeResourceType = ctaMode[textKey] ?? savedMode;
 
                   const hasResources = benefits.length > 0 || leadMagnets.length > 0;
+
+                  const switchMode = (t: "link" | "benefit" | "leadmagnet") => {
+                    setCtaMode((prev) => ({ ...prev, [textKey]: t }));
+                    // Al cambiar de modo limpiamos el valor del modo anterior
+                    if (t === "link") update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
+                    if (t === "benefit") update({ [leadMagnetKey]: "" } as any);
+                    if (t === "leadmagnet") update({ [benefitKey]: "" } as any);
+                  };
 
                   return (
                   <div key={textKey} className="rounded-lg border border-[var(--border)] p-3 space-y-2">
@@ -424,37 +437,32 @@ useEffect(() => {
                       style={ctaStyle}
                     />
 
-                    {/* Selector de tipo: Link / Recurso */}
+                    {/* Tabs: Link / Beneficio VIP / Recurso de Valor */}
                     {hasResources && (
-                      <div className="flex gap-1.5">
+                      <div className="flex flex-wrap gap-1.5">
                         {(["link", "benefit", "leadmagnet"] as const).map((t) => {
-                          const labels = { link: "🔗 Link", benefit: "⭐ Beneficio VIP", leadmagnet: "📄 Recurso de Valor" };
+                          const tabLabels = { link: "🔗 Link", benefit: "⭐ Beneficio VIP", leadmagnet: "📄 Recurso de Valor" };
                           const available = t === "benefit" ? benefits.length > 0 : t === "leadmagnet" ? leadMagnets.length > 0 : true;
                           if (!available) return null;
                           return (
                             <button
                               key={t}
                               type="button"
-                              onClick={() => {
-                                // Limpiar el otro tipo al cambiar
-                                if (t === "link") update({ [benefitKey]: "", [leadMagnetKey]: "" } as any);
-                                if (t === "benefit") update({ [leadMagnetKey]: "" } as any);
-                                if (t === "leadmagnet") update({ [benefitKey]: "" } as any);
-                              }}
-                              className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
+                              onClick={() => switchMode(t)}
+                              className={`text-[10px] px-2.5 py-1 rounded-full border transition-colors ${
                                 activeResourceType === t
-                                  ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)]"
-                                  : "border-[var(--border)] text-[var(--foreground)]/50 hover:border-[var(--brand-3)]"
+                                  ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)] font-semibold"
+                                  : "border-[var(--border)] text-[var(--foreground)]/60 hover:border-[var(--brand-3)] hover:text-[var(--foreground)]"
                               }`}
                             >
-                              {labels[t]}
+                              {tabLabels[t]}
                             </button>
                           );
                         })}
                       </div>
                     )}
 
-                    {/* Contenido según tipo */}
+                    {/* Contenido según modo activo */}
                     {activeResourceType === "link" && (
                       <div className="flex gap-2 items-center">
                         <input
@@ -492,8 +500,8 @@ useEffect(() => {
                       >
                         <option value="">— Seleccionar Recurso de Valor —</option>
                         {leadMagnets.map((lm) => (
-                          <option key={lm.id} value={lm.id} disabled={!lm.pdf_url}>
-                            {lm.title}{!lm.pdf_url ? " (sin PDF)" : ""}
+                          <option key={lm.id} value={lm.id}>
+                            {lm.title}{!lm.pdf_url ? " ⚠ sin PDF" : ""}
                           </option>
                         ))}
                       </select>
