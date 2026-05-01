@@ -450,7 +450,6 @@ function LeadMagnetNewContent() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       load();
-      alert("PDF guardado correctamente.");
       return id;
     } finally {
       setLoading(false);
@@ -466,77 +465,97 @@ function LeadMagnetNewContent() {
 
     setPdfGenerating(true);
 
-      const effectiveTitle = state.title || BASE_TITLE_PLACEHOLDER;
-      const effectiveIntro = state.intro || BASE_INTRO_PLACEHOLDER;
-      const effectiveContent = state.content || BASE_CONTENT_PLACEHOLDER;
-
-    let lmId = editingId;
-    if (!lmId) {
-      lmId = await saveAndGetId();
+    try {
+      // Siempre guardar el registro primero (igual que el modo Asistente)
+      // Esto asegura que el ID esté en BD antes de generar el PDF
+      const lmId = await saveAndGetId();
       if (!lmId) {
         setPdfGenerating(false);
         return;
       }
-    }
 
-      let contentHtml = effectiveContent;
-    if (state.type === "checklist") {
-      contentHtml = effectiveContent
-  .split("\n")
-        .filter((l) => l.trim())
-        .map(
-          (l) =>
-            `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${state.colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${l}</span></li>`
-        )
-        .join("");
-      contentHtml = `<ul style="list-style:none;padding:0">${contentHtml}</ul>`;
-    } else if (state.type === "recomendacion") {
-      contentHtml = state.content
-        .split("\n")
-        .filter((l) => l.trim())
-        .map(
-          (l, i) =>
-            `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000"><span style="font-weight:bold;color:${state.colorBrand}">${i + 1}.</span> ${l}</li>`
-        )
-        .join("");
-      contentHtml = `<ol style="padding-left:1.5rem;color:#000000;list-style:decimal;">${contentHtml}</ol>`;
-    }
+      // ── Construir HTML del PDF ───────────────────────────────────────────
+      const docTitle   = state.title   || BASE_TITLE_PLACEHOLDER;
+      const docIntro   = state.intro   || BASE_INTRO_PLACEHOLDER;
+      const docContent = state.content || BASE_CONTENT_PLACEHOLDER;
 
-    // Título 40% más pequeño
-    const titleSizeSmall = Math.round(state.titleSize * 0.6 * 10) / 10;
-
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${state.colorBrand};padding-bottom:20px;margin-bottom:30px}.brand{font-size:1.2rem;font-weight:900;color:${state.colorBrand};text-transform:uppercase}.tag{background:${state.colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${state.colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:1.1rem;color:#4B5563;margin-bottom:40px}.section{margin-bottom:30px}.section h4{color:${state.colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${state.colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:0.9rem;color:#374151;line-height:1.8;white-space:pre-line}.sn-section{padding:1.2rem;border-top:1px dashed rgba(0,0,0,0.1);border-bottom:1px dashed rgba(0,0,0,0.1);margin-bottom:20px;border-radius:8px;font-size:0.85rem;line-height:1.4;color:#000000;background:#f9fafb}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:12px 25px;border-radius:8px;background:${state.colorButton};color:#fff;font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.cta-btn-outline{padding:12px 25px;border-radius:8px;border:2px solid ${state.colorButton};color:${state.colorButton};font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.footer{position:absolute;bottom:20px;left:20mm;right:20mm;border-top:1px solid #E5E7EB;padding-top:20px;font-size:0.7rem;color:#9CA3AF;text-align:center}</style></head><body><div class="container"><div class="header"><div class="brand">${(state.businessName || "MI NEGOCIO").toUpperCase()}</div><div class="tag">${state.typeLabel}</div></div><div class="title">${effectiveTitle}
-</div>${effectiveIntro ? `<div class="subtitle">${effectiveIntro}</div>` : ""}${state.intro ? `<div class="subtitle">${state.intro}</div>` : ""}<div class="section"><h4>${state.typeLabel}</h4><div class="content">${contentHtml}</div></div>${(state.sn1En && state.sn1) || (state.sn2En && state.sn2) || (state.sn3En && state.sn3) || (state.sn4En && state.sn4) ? `<div class="sn-section">${state.sn1En && state.sn1 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn1}</div>` : ""}${state.sn2En && state.sn2 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn2}</div>` : ""}${state.sn3En && state.sn3 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn3}</div>` : ""}${state.sn4En && state.sn4 ? `<div style="margin-top:10px;margin-bottom:15px;font-weight:bold;text-align:center;color:#000000">${state.sn4}</div>` : ""}</div>` : ""}<div class="cta-box"><a href="${state.cta1Link || "#"}" class="cta-btn" target="_blank">${state.cta1Text || "ACCION"}</a>${state.cta2Enabled && state.cta2Text ? `<a href="${state.cta2Link || "#"}" class="cta-btn-outline" target="_blank">${state.cta2Text}</a>` : ""}</div><div class="footer">Personalizado para ti por ${state.businessName || "Mi Negocio"}</div></div></body></html>`;
-
-    const { data: { session: pdfSession } } = await supabase.auth.getSession();
-    const res = await fetch("/api/lead-magnet/generate-pdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${pdfSession?.access_token || ""}`,
-      },
-      body: JSON.stringify({
-        html,
-        businessId,
-        title: state.title,
-        leadMagnetId: lmId,
-      }),
-    });
-
-    const data = await res.json();
-    if (data.error) {
-      alert("Error al guardar el PDF: " + data.error);
-    } else {
-      // Refuerzo: actualizar pdf_url tambien desde el cliente para este Recurso de Valor
-      if (data.url && lmId) {
-        await supabase
-          .from("lead_magnets")
-          .update({ pdf_url: data.url })
-          .eq("id", lmId);
+      let contentHtml = docContent;
+      if (state.type === "checklist") {
+        contentHtml = docContent
+          .split("\n")
+          .filter((l) => l.trim())
+          .map(
+            (l) =>
+              `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${state.colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${l}</span></li>`
+          )
+          .join("");
+        contentHtml = `<ul style="list-style:none;padding:0">${contentHtml}</ul>`;
+      } else if (state.type === "recomendacion") {
+        contentHtml = docContent
+          .split("\n")
+          .filter((l) => l.trim())
+          .map(
+            (l, i) =>
+              `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000"><span style="font-weight:bold;color:${state.colorBrand}">${i + 1}.</span> ${l}</li>`
+          )
+          .join("");
+        contentHtml = `<ol style="padding-left:1.5rem;color:#000000;list-style:decimal;">${contentHtml}</ol>`;
       }
-      alert("PDF guardado correctamente en la plataforma.");
+
+      const titleSizeSmall = Math.round(state.titleSize * 0.6 * 10) / 10;
+
+      const logoHtml = state.showLogo && state.logoUrl
+        ? `<img src="${state.logoUrl}" alt="logo" style="height:${state.logoSize}px;width:${state.logoSize}px;object-fit:contain;border-radius:9999px;margin-right:12px" />`
+        : "";
+
+      const snSection = (state.sn1En && state.sn1) || (state.sn2En && state.sn2) || (state.sn3En && state.sn3) || (state.sn4En && state.sn4)
+        ? `<div class="sn-section">${state.sn1En && state.sn1 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn1}</div>` : ""}${state.sn2En && state.sn2 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn2}</div>` : ""}${state.sn3En && state.sn3 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${state.sn3}</div>` : ""}${state.sn4En && state.sn4 ? `<div style="margin-top:10px;margin-bottom:15px;font-weight:bold;text-align:center;color:#000000">${state.sn4}</div>` : ""}</div>`
+        : "";
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${state.colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center}.brand{font-size:1.2rem;font-weight:900;color:${state.colorBrand};text-transform:uppercase}.tag{background:${state.colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${state.colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:1.1rem;color:#4B5563;margin-bottom:40px}.section{margin-bottom:30px}.section h4{color:${state.colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${state.colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:0.9rem;color:#374151;line-height:1.8;white-space:pre-line}.sn-section{padding:1.2rem;border-top:1px dashed rgba(0,0,0,0.1);border-bottom:1px dashed rgba(0,0,0,0.1);margin-bottom:20px;border-radius:8px;font-size:0.85rem;line-height:1.4;color:#000000;background:#f9fafb}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:12px 25px;border-radius:8px;background:${state.colorButton};color:#fff;font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.cta-btn-outline{padding:12px 25px;border-radius:8px;border:2px solid ${state.colorButton};color:${state.colorButton};font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.footer{position:absolute;bottom:20px;left:20mm;right:20mm;border-top:1px solid #E5E7EB;padding-top:20px;font-size:0.7rem;color:#9CA3AF;text-align:center}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${logoHtml}<div class="brand">${(state.businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${state.typeLabel}</div></div><div class="title">${docTitle}</div>${docIntro ? `<div class="subtitle">${docIntro}</div>` : ""}<div class="section"><h4>${state.typeLabel}</h4><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${state.cta1Enabled && state.cta1Text ? `<a href="${state.cta1Link || "#"}" class="cta-btn" target="_blank">${state.cta1Text}</a>` : ""}${state.cta2Enabled && state.cta2Text ? `<a href="${state.cta2Link || "#"}" class="cta-btn-outline" target="_blank">${state.cta2Text}</a>` : ""}</div><div class="footer">Personalizado para ti por ${state.businessName || "Mi Negocio"}</div></div></body></html>`;
+      // ────────────────────────────────────────────────────────────────────
+
+      const { data: { session: pdfSession } } = await supabase.auth.getSession();
+      const res = await fetch("/api/lead-magnet/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${pdfSession?.access_token || ""}`,
+        },
+        body: JSON.stringify({
+          html,
+          businessId,
+          title: state.title || BASE_TITLE_PLACEHOLDER,
+          leadMagnetId: lmId,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => `HTTP ${res.status}`);
+        throw new Error(`Error del servidor (${res.status}): ${text.slice(0, 200)}`);
+      }
+
+      const resData = await res.json();
+      if (resData.error) {
+        alert("Error al generar el PDF: " + resData.error);
+      } else {
+        // Asegurar que pdf_url queda guardado en el registro (el API ya lo hace,
+        // pero lo duplicamos desde el cliente como seguro de fallo)
+        if (resData.url && lmId) {
+          await supabase
+            .from("lead_magnets")
+            .update({ pdf_url: resData.url })
+            .eq("id", lmId);
+        }
+        load();
+        alert("PDF guardado correctamente en la plataforma.");
+      }
+    } catch (err) {
+      console.error("savePdf error:", err);
+      alert("Error inesperado al generar el PDF: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setPdfGenerating(false);
     }
-    setPdfGenerating(false);
   };
 
   const stepTitles = ["Estrategia Base", "Contenido de Valor", "El Cierre (SN)", "Personalización"];

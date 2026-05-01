@@ -26,6 +26,7 @@ export default function LandingNew() {
   const [lastSaved, setLastSaved] = useState("");
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
+  const [modules, setModules] = useState({ vip_benefits: true, lead_magnet: true });
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ useEffect(() => {
 
   const load = async () => {
     const [bizRes, landingRes, benefitsRes, leadMagnetsRes] = await Promise.all([
-      supabase.from("businesses").select("name, slug, logo_url").eq("id", businessId).single(),
+      supabase.from("businesses").select("name, slug, logo_url, module_vip_benefits, module_lead_magnet").eq("id", businessId).single(),
       supabase.from("landing_configs").select("config").eq("business_id", businessId).single(),
       supabase.from("benefits").select("id, title").eq("business_id", businessId).order("created_at", { ascending: false }),
       supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).order("created_at", { ascending: false }),
@@ -100,6 +101,10 @@ useEffect(() => {
     const businessName = biz?.name || "";
     const businessLogo = biz?.logo_url || "";
     if (biz?.slug) setSlug(biz.slug);
+    setModules({
+      vip_benefits: biz?.module_vip_benefits ?? true,
+      lead_magnet: biz?.module_lead_magnet ?? true,
+    });
 
     setBenefits((benefitsRes.data || []) as Benefit[]);
     setLeadMagnets((leadMagnetsRes.data || []) as LeadMagnet[]);
@@ -410,9 +415,14 @@ useEffect(() => {
                   // El tipo se lee directamente del config — sin estado local
                   // Migración automática: si viene de una versión anterior sin typeKey,
                   // se infiere del valor guardado
-                  const ctaType: "link" | "benefit" | "leadmagnet" =
+                  const rawCtaType: "link" | "benefit" | "leadmagnet" =
                     (config[typeKey] as "link" | "benefit" | "leadmagnet") ||
                     (config[leadMagnetKey] ? "leadmagnet" : config[benefitKey] ? "benefit" : "link");
+                  // Si el módulo de este tipo está desactivado, forzar a "link"
+                  const ctaType: "link" | "benefit" | "leadmagnet" =
+                    (rawCtaType === "leadmagnet" && !modules.lead_magnet) ? "link" :
+                    (rawCtaType === "benefit" && !modules.vip_benefits) ? "link" :
+                    rawCtaType;
 
                   const selectType = (t: "link" | "benefit" | "leadmagnet") => {
                     const patch: Record<string, string> = { [typeKey]: t };
@@ -422,12 +432,12 @@ useEffect(() => {
                     update(patch as any);
                   };
 
-                  // Los 3 botones se muestran SIEMPRE — no dependen de si los datos cargaron
+                  // Los botones se filtran según módulos activos del negocio
                   const TYPE_OPTIONS = [
-                    { id: "link" as const,        icon: "🔗", label: "Link"             },
-                    { id: "leadmagnet" as const,   icon: "📄", label: "Recurso de Valor" },
-                    { id: "benefit" as const,      icon: "⭐", label: "Beneficio VIP"    },
-                  ];
+                    { id: "link" as const,        icon: "🔗", label: "Link",             show: true                   },
+                    { id: "leadmagnet" as const,   icon: "📄", label: "Recurso de Valor", show: modules.lead_magnet    },
+                    { id: "benefit" as const,      icon: "⭐", label: "Beneficio VIP",    show: modules.vip_benefits   },
+                  ].filter(o => o.show);
 
                   return (
                   <div key={textKey} className="rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
@@ -446,7 +456,7 @@ useEffect(() => {
                     {/* Paso 1 — Elegir tipo (siempre 3 botones) */}
                     <div className="px-3 pb-2">
                       <p className="text-[10px] uppercase tracking-wide text-[var(--foreground)]/40 mb-1.5">¿Qué hace este botón?</p>
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <div className={`grid gap-1.5 ${TYPE_OPTIONS.length === 1 ? "grid-cols-1" : TYPE_OPTIONS.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
                         {TYPE_OPTIONS.map((opt) => (
                           <button
                             key={opt.id}
@@ -510,18 +520,36 @@ useEffect(() => {
                         <div className="mt-2 space-y-1">
                           <p className="text-[10px] text-[var(--foreground)]/50">El cliente descargará el recurso PDF al pulsar</p>
                           {leadMagnets.length > 0 ? (
-                            <select
-                              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
-                              value={(config[leadMagnetKey] as string) || ""}
-                              onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
-                            >
-                              <option value="">— Seleccionar recurso —</option>
-                              {leadMagnets.map((lm) => (
-                                <option key={lm.id} value={lm.id}>
-                                  {lm.title}{!lm.pdf_url ? " ⚠ sin PDF aún" : ""}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="space-y-1.5">
+                              <select
+                                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
+                                value={(config[leadMagnetKey] as string) || ""}
+                                onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
+                              >
+                                <option value="">— Seleccionar recurso —</option>
+                                {leadMagnets.map((lm) => (
+                                  <option key={lm.id} value={lm.id}>
+                                    {lm.title}{!lm.pdf_url ? " ⚠ sin PDF" : ""}
+                                  </option>
+                                ))}
+                              </select>
+                              {/* Aviso si el recurso seleccionado no tiene PDF */}
+                              {(config[leadMagnetKey] as string) && (() => {
+                                const sel = leadMagnets.find(lm => lm.id === (config[leadMagnetKey] as string));
+                                return sel && !sel.pdf_url ? (
+                                  <p className="text-[10px] text-amber-400 leading-snug">
+                                    ⚠ Este recurso no tiene PDF generado.{" "}
+                                    <a
+                                      href={`/lead-magnet/new?edit=${sel.id}`}
+                                      target="_blank"
+                                      className="underline hover:text-amber-300"
+                                    >
+                                      Ir a generarlo →
+                                    </a>
+                                  </p>
+                                ) : null;
+                              })()}
+                            </div>
                           ) : (
                             <p className="text-xs text-[var(--foreground)]/40 italic">
                               Aún no tienes recursos de valor creados.{" "}
