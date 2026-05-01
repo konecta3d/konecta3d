@@ -175,8 +175,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            {/* Toggle tema en el drawer móvil */}
-            <div className="pt-3 border-t border-[var(--border)]">
+            {/* Pie del drawer móvil */}
+            <div className="pt-3 border-t border-[var(--border)] space-y-2">
               <button
                 type="button"
                 onClick={() => { toggleTheme(); }}
@@ -185,6 +185,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 {darkMode ? <><span>☀</span> Modo claro</> : <><span>🌙</span> Modo oscuro</>}
               </button>
+              {isAdminMode && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const { supabase: sb } = await import("@/lib/supabase");
+                    await sb.auth.signOut();
+                    localStorage.removeItem("konecta-role");
+                    window.location.href = "/login";
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  Cerrar sesión
+                </button>
+              )}
             </div>
           </div>
         </div>
