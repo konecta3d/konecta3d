@@ -92,8 +92,8 @@ useEffect(() => {
     const [bizRes, landingRes, benefitsRes, leadMagnetsRes] = await Promise.all([
       supabase.from("businesses").select("name, slug, logo_url").eq("id", businessId).single(),
       supabase.from("landing_configs").select("config").eq("business_id", businessId).single(),
-      supabase.from("benefits").select("id, title").eq("business_id", businessId).eq("active", true).order("created_at", { ascending: false }),
-      supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).eq("active", true).order("created_at", { ascending: false }),
+      supabase.from("benefits").select("id, title").eq("business_id", businessId).order("created_at", { ascending: false }),
+      supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).order("created_at", { ascending: false }),
     ]);
 
     const biz = bizRes.data;
@@ -415,7 +415,6 @@ useEffect(() => {
                     (config[leadMagnetKey] ? "leadmagnet" : config[benefitKey] ? "benefit" : "link");
 
                   const selectType = (t: "link" | "benefit" | "leadmagnet") => {
-                    // Guardar el tipo en config y limpiar los campos del tipo anterior
                     const patch: Record<string, string> = { [typeKey]: t };
                     if (t !== "benefit") patch[benefitKey] = "";
                     if (t !== "leadmagnet") patch[leadMagnetKey] = "";
@@ -423,29 +422,12 @@ useEffect(() => {
                     update(patch as any);
                   };
 
+                  // Los 3 botones se muestran SIEMPRE — no dependen de si los datos cargaron
                   const TYPE_OPTIONS = [
-                    {
-                      id: "link" as const,
-                      icon: "🔗",
-                      label: "Link",
-                      desc: "URL o acción guardada",
-                      show: true,
-                    },
-                    {
-                      id: "leadmagnet" as const,
-                      icon: "📄",
-                      label: "Recurso de Valor",
-                      desc: "Descarga un PDF",
-                      show: leadMagnets.length > 0,
-                    },
-                    {
-                      id: "benefit" as const,
-                      icon: "⭐",
-                      label: "Beneficio VIP",
-                      desc: "Descarga un cupón PDF",
-                      show: benefits.length > 0,
-                    },
-                  ].filter((o) => o.show);
+                    { id: "link" as const,        icon: "🔗", label: "Link"             },
+                    { id: "leadmagnet" as const,   icon: "📄", label: "Recurso de Valor" },
+                    { id: "benefit" as const,      icon: "⭐", label: "Beneficio VIP"    },
+                  ];
 
                   return (
                   <div key={textKey} className="rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
@@ -456,12 +438,12 @@ useEffect(() => {
                         className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-semibold text-sm"
                         value={config[textKey]}
                         onChange={(e) => update({ [textKey]: e.target.value } as any)}
-                        placeholder={`Texto del botón`}
+                        placeholder="Texto del botón"
                         style={ctaStyle}
                       />
                     </div>
 
-                    {/* Paso 1 — Elegir tipo */}
+                    {/* Paso 1 — Elegir tipo (siempre 3 botones) */}
                     <div className="px-3 pb-2">
                       <p className="text-[10px] uppercase tracking-wide text-[var(--foreground)]/40 mb-1.5">¿Qué hace este botón?</p>
                       <div className="grid grid-cols-3 gap-1.5">
@@ -504,6 +486,7 @@ useEffect(() => {
                       {ctaType === "benefit" && (
                         <div className="mt-2 space-y-1">
                           <p className="text-[10px] text-[var(--foreground)]/50">El cliente descargará el cupón PDF al pulsar</p>
+                          {benefits.length > 0 ? (
                           <select
                             className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
                             value={(config[benefitKey] as string) || ""}
@@ -514,24 +497,37 @@ useEffect(() => {
                               <option key={b.id} value={b.id}>{b.title}</option>
                             ))}
                           </select>
+                          ) : (
+                            <p className="text-xs text-[var(--foreground)]/40 italic">
+                              Aún no tienes beneficios VIP creados.{" "}
+                              <a href="/vip-benefits" target="_blank" className="text-[var(--brand-3)] hover:underline">Crear uno →</a>
+                            </p>
+                          )}
                         </div>
                       )}
 
                       {ctaType === "leadmagnet" && (
                         <div className="mt-2 space-y-1">
                           <p className="text-[10px] text-[var(--foreground)]/50">El cliente descargará el recurso PDF al pulsar</p>
-                          <select
-                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
-                            value={(config[leadMagnetKey] as string) || ""}
-                            onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
-                          >
-                            <option value="">— Seleccionar recurso —</option>
-                            {leadMagnets.map((lm) => (
-                              <option key={lm.id} value={lm.id}>
-                                {lm.title}{!lm.pdf_url ? " ⚠ sin PDF aún" : ""}
-                              </option>
-                            ))}
-                          </select>
+                          {leadMagnets.length > 0 ? (
+                            <select
+                              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-2 text-sm"
+                              value={(config[leadMagnetKey] as string) || ""}
+                              onChange={(e) => update({ [leadMagnetKey]: e.target.value } as any)}
+                            >
+                              <option value="">— Seleccionar recurso —</option>
+                              {leadMagnets.map((lm) => (
+                                <option key={lm.id} value={lm.id}>
+                                  {lm.title}{!lm.pdf_url ? " ⚠ sin PDF aún" : ""}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-xs text-[var(--foreground)]/40 italic">
+                              Aún no tienes recursos de valor creados.{" "}
+                              <a href="/lead-magnet" target="_blank" className="text-[var(--brand-3)] hover:underline">Crear uno →</a>
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
