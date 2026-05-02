@@ -25,6 +25,9 @@ interface OnboardingDrawerProps {
   businessId: string;
   moduleGpt?: boolean;
   gptUrl?: string;
+  /** Control externo del estado abierto/cerrado (para botón en el header) */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 type Stage = "contexto" | "primeros-pasos" | "optimizacion" | "maestria";
@@ -223,8 +226,12 @@ export default function OnboardingDrawer({
   businessId,
   moduleGpt = false,
   gptUrl = "https://chatgpt.com/",
+  open: openProp,
+  onOpenChange,
 }: OnboardingDrawerProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  // Si viene controlado externamente, usar esa prop; si no, el estado interno
+  const open = openProp !== undefined ? openProp : internalOpen;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("primeros-pasos");
   const [stepIndex, setStepIndex] = useState(0);
@@ -260,13 +267,15 @@ export default function OnboardingDrawer({
 
   const toggle = () => {
     const next = !open;
-    setOpen(next);
+    if (onOpenChange) onOpenChange(next);
+    else setInternalOpen(next);
     persist({ open: next });
   };
 
   const handleDismiss = () => {
     setDismissed(true);
-    setOpen(false);
+    if (onOpenChange) onOpenChange(false);
+    else setInternalOpen(false);
     persist({ dismissed: true });
   };
 
@@ -287,17 +296,7 @@ export default function OnboardingDrawer({
 
   return (
     <>
-      {/* ── Trigger button — top right, solo visible cuando el drawer está cerrado ── */}
-      {!open && (
-        <button
-          type="button"
-          onClick={toggle}
-          title="Guía de configuración"
-          className="fixed top-4 right-6 z-40 hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg shadow-md text-xs font-semibold bg-[var(--card)] border border-[var(--brand-1)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-all"
-        >
-          Guía
-        </button>
-      )}
+      {/* El botón de apertura lo gestiona el padre (header de la página) */}
 
       {/* ── Mobile banner (top, visible cuando el modal está cerrado) ── */}
       {!mobileOpen && (

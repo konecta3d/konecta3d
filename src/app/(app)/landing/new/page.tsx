@@ -30,6 +30,7 @@ export default function LandingNew() {
   const [modules, setModules] = useState({ vip_benefits: true, lead_magnet: true });
   const [moduleGpt, setModuleGpt] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
+  const [guideOpen, setGuideOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -212,13 +213,15 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      {/* Onboarding drawer — botón flotante + panel lateral */}
+      {/* Onboarding drawer — panel lateral controlado desde el header */}
       {businessId && (
         <OnboardingDrawer
           context="landing"
           businessId={businessId}
           moduleGpt={moduleGpt}
           gptUrl={gptUrl}
+          open={guideOpen}
+          onOpenChange={setGuideOpen}
         />
       )}
       <div className="max-w-6xl mx-auto py-6 px-4 md:px-0 space-y-6">
@@ -232,12 +235,27 @@ useEffect(() => {
 
         {/* Barra de guardado */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-  <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={() => {
-    localStorage.setItem("konecta-landing-preview", JSON.stringify(config));
-    window.open(`/l/${slug}/NFC?preview=1`, "_blank");
-  }}>
-    Previsualizar Landing
-  </button>
+          <div className="flex items-center gap-2">
+            <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={() => {
+              localStorage.setItem("konecta-landing-preview", JSON.stringify(config));
+              window.open(`/l/${slug}/NFC?preview=1`, "_blank");
+            }}>
+              Previsualizar Landing
+            </button>
+            {businessId && (
+              <button
+                type="button"
+                onClick={() => setGuideOpen(!guideOpen)}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
+                  guideOpen
+                    ? "bg-[var(--brand-1)] border-[var(--brand-1)] text-white"
+                    : "border-[var(--brand-1)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10"
+                }`}
+              >
+                {guideOpen ? "Cerrar guía" : "Guía"}
+              </button>
+            )}
+          </div>
   <div className="flex items-center gap-3">
     <button onClick={saveNow} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black" >
       Guardar cambios
