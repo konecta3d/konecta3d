@@ -245,7 +245,7 @@ export default function OnboardingDrawer({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.dismissed) { setDismissed(true); return; }
-        if (parsed.open !== undefined) setOpen(parsed.open);
+        if (parsed.open !== undefined && onOpenChange === undefined) setInternalOpen(parsed.open);
         if (parsed.stepIndex !== undefined) setStepIndex(parsed.stepIndex);
       }
     } catch { /* ignore */ }
