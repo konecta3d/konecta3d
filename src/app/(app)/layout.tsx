@@ -35,6 +35,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Módulos", href: "/admin/modulos", category: "Panel Admin" },
   { label: "Configuración", href: "/admin/settings", category: "Panel Admin" },
   { label: "Actividad", href: "/admin/actividad", category: "Panel Admin" },
+  { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
 ];
 
 const DEFAULT_MODULES: Record<string, boolean> = {

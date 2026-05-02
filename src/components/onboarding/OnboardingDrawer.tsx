@@ -13,12 +13,23 @@
  * - gptUrl: string       → URL del GPT
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type OnboardingContext = "landing" | "resources";
+
+interface DbStep {
+  id: string;
+  context: OnboardingContext;
+  stage: Stage;
+  step_order: number;
+  title: string;
+  body: string;
+  tip: string | null;
+  active: boolean;
+}
 
 interface OnboardingDrawerProps {
   context: OnboardingContext;
@@ -100,8 +111,8 @@ const LANDING_STEPS: Record<Stage, Step[]> = {
       body: "Ve a la sección 'Clientes' para ver quién ha rellenado el formulario. Identifica patrones: ¿qué sector? ¿qué hora del día?",
     },
     {
-      title: "Crea una landing por servicio",
-      body: "Si ofreces varios servicios, cada uno merece su propia landing. Contacta con Konecta3D para activar el modo multi-landing.",
+      title: "Optimiza cada sección",
+      body: "Revisa el rendimiento de cada bloque de tu landing. Experimenta con diferentes textos en los botones y mide cuál convierte mejor.",
     },
   ],
 };
@@ -232,6 +243,21 @@ export default function OnboardingDrawer({
   const [internalOpen, setInternalOpen] = useState(false);
   // Si viene controlado externamente, usar esa prop; si no, el estado interno
   const open = openProp !== undefined ? openProp : internalOpen;
+
+  // Steps cargados desde la BD (vacío = usar hardcoded como fallback)
+  const [dbSteps, setDbSteps] = useState<DbStep[] | null>(null);
+  const dbLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (dbLoadedRef.current) return;
+    dbLoadedRef.current = true;
+    supabase
+      .from("onboarding_steps")
+      .select("*")
+      .eq("active", true)
+      .order("step_order")
+      .then(({ data }) => { if (data) setDbSteps(data as DbStep[]); });
+  }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("primeros-pasos");
   const [stepIndex, setStepIndex] = useState(0);
@@ -279,7 +305,12 @@ export default function OnboardingDrawer({
     persist({ dismissed: true });
   };
 
-  const steps = (context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[stage] ?? [];
+  // Usar pasos de la BD si están disponibles, sino los hardcodeados como fallback
+  const steps: Step[] = dbSteps
+    ? dbSteps
+        .filter(s => s.context === context && s.stage === stage)
+        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined }))
+    : (context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[stage] ?? [];
   const currentStep = steps[stepIndex] ?? steps[0];
   const totalSteps = steps.length;
   const isLast = stepIndex >= totalSteps - 1;
