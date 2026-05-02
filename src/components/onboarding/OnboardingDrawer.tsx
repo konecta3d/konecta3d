@@ -48,7 +48,7 @@ const LANDING_STEPS: Record<Stage, Step[]> = {
   "primeros-pasos": [
     {
       title: "¿Cuál es el objetivo de tu landing?",
-      body: "Una landing enfocada convierte mejor. Elige UN objetivo principal:\n\n• 📄 Que descarguen un recurso de valor\n• 💬 Que te contacten por WhatsApp\n• 📅 Que agenden una cita",
+      body: "Una landing enfocada convierte mejor. Elige UN objetivo principal:\n\n• Que descarguen un recurso de valor\n• Que te contacten por WhatsApp\n• Que agenden una cita",
       tip: "Pídele al GPT que te ayude a elegir el objetivo según tu sector →",
     },
     {
@@ -63,11 +63,11 @@ const LANDING_STEPS: Record<Stage, Step[]> = {
     },
     {
       title: "Personaliza el diseño",
-      body: "Ajusta colores, fuentes y logo para que la landing refleje tu marca. Usa las secciones 'Colores' y 'Logo' del panel.\n\n💡 Consistencia visual genera más confianza.",
+      body: "Ajusta colores, fuentes y logo para que la landing refleje tu marca. Usa las secciones 'Colores' y 'Logo' del panel.\n\nConsistencia visual genera más confianza.",
     },
     {
       title: "Publica tu landing",
-      body: "Cuando estés satisfecho, pulsa 'Guardar cambios' y luego 'Previsualizar Landing' para ver el resultado en móvil.\n\n🎉 ¡Ya tienes tu landing activa! Compártela o activa el NFC de tu llavero.",
+      body: "Cuando estés satisfecho, pulsa 'Guardar cambios' y luego 'Previsualizar Landing' para ver el resultado en móvil.\n\nTu landing ya está activa. Compártela o activa el NFC de tu llavero.",
     },
   ],
   "optimizacion": [
@@ -119,7 +119,7 @@ const RESOURCE_STEPS: Record<Stage, Step[]> = {
     },
     {
       title: "Elige el formato adecuado",
-      body: "• 📋 Checklist → Procesos paso a paso\n• 📖 Guía → Explicaciones con contexto\n• ⭐ Recomendaciones → Listas de herramientas/consejos\n\nEl más descargado: checklist (rápido de leer).",
+      body: "• Checklist → Procesos paso a paso\n• Guía → Explicaciones con contexto\n• Recomendaciones → Listas de herramientas/consejos\n\nEl más descargado: checklist (rápido de leer).",
     },
     {
       title: "Crea un título con gancho",
@@ -137,11 +137,11 @@ const RESOURCE_STEPS: Record<Stage, Step[]> = {
     },
     {
       title: "Aplica tu estilo de marca",
-      body: "Usa los colores de tu negocio. La consistencia visual entre landing y recurso genera más confianza.\n\n💡 Si no tienes colores definidos, usa verde oscuro + blanco (funciona en todos los sectores).",
+      body: "Usa los colores de tu negocio. La consistencia visual entre landing y recurso genera más confianza.\n\nSi no tienes colores definidos, usa verde oscuro + blanco (funciona en todos los sectores).",
     },
     {
       title: "Genera y descarga el PDF",
-      body: "Pulsa 'Generar PDF' para obtener el archivo. Compártelo por WhatsApp, Instagram o vincúlalo en tu landing como CTA1.\n\n🎉 ¡Tu primer recurso de valor está listo!",
+      body: "Pulsa 'Generar PDF' para obtener el archivo. Compártelo por WhatsApp, Instagram o vincúlalo en tu landing como CTA1.\n\nTu primer recurso de valor está listo.",
     },
   ],
   "optimizacion": [
@@ -287,39 +287,30 @@ export default function OnboardingDrawer({
 
   return (
     <>
-      {/* ── Trigger button (always visible) ── */}
-      <button
-        type="button"
-        onClick={toggle}
-        title="Guía de configuración"
-        className={`
-          fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3 py-2.5 rounded-full shadow-lg
-          text-sm font-semibold transition-all
-          ${open
-            ? "bg-[var(--brand-1)] text-white"
-            : "bg-[var(--card)] border border-[var(--brand-1)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10"
-          }
-        `}
-      >
-        <span>🎯</span>
-        <span className="hidden sm:inline">{open ? "Cerrar guía" : "Guía"}</span>
-      </button>
+      {/* ── Trigger button — top right, solo visible cuando el drawer está cerrado ── */}
+      {!open && (
+        <button
+          type="button"
+          onClick={toggle}
+          title="Guía de configuración"
+          className="fixed top-4 right-6 z-40 hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg shadow-md text-xs font-semibold bg-[var(--card)] border border-[var(--brand-1)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-all"
+        >
+          Guía
+        </button>
+      )}
 
-      {/* ── Mobile banner (top, visible when closed) ── */}
-      {!open && !mobileOpen && (
+      {/* ── Mobile banner (top, visible cuando el modal está cerrado) ── */}
+      {!mobileOpen && (
         <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-2 bg-[var(--brand-1)]/10 border-b border-[var(--brand-1)]/20 text-xs">
-          <div className="flex items-center gap-2">
-            <span>🎯</span>
-            <span className="font-medium text-[var(--brand-1)]">
-              {STAGE_LABEL[stage]} — Paso {stepIndex + 1} de {totalSteps}
-            </span>
-          </div>
+          <span className="font-medium text-[var(--brand-1)]">
+            {STAGE_LABEL[stage]} — Paso {stepIndex + 1} de {totalSteps}
+          </span>
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
             className="px-2.5 py-1 rounded-lg bg-[var(--brand-1)] text-white font-semibold"
           >
-            Ver
+            Ver guía
           </button>
         </div>
       )}
@@ -331,7 +322,7 @@ export default function OnboardingDrawer({
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-full max-h-[80vh] overflow-y-auto rounded-t-2xl bg-[var(--card)] border-t border-[var(--border)] p-5 space-y-4">
+          <div className="relative w-full flex flex-col max-h-[80vh] rounded-t-2xl bg-[var(--card)] border-t border-[var(--border)]">
             <DrawerContent
               stage={stage}
               step={currentStep}
@@ -349,9 +340,9 @@ export default function OnboardingDrawer({
         </div>
       )}
 
-      {/* ── Desktop drawer (fixed right panel) ── */}
+      {/* ── Desktop drawer — panel fijo derecho, sin overflow en el contenedor exterior ── */}
       {open && (
-        <div className="hidden lg:flex fixed top-0 right-0 h-full z-40 flex-col w-80 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl overflow-y-auto">
+        <div className="hidden lg:flex fixed top-0 right-0 h-full z-40 flex-col w-80 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl">
           <DrawerContent
             stage={stage}
             step={currentStep}
@@ -446,7 +437,6 @@ function DrawerContent({
             rel="noopener noreferrer"
             className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition group"
           >
-            <span className="text-base leading-none mt-0.5">💡</span>
             <div>
               <div className="text-xs font-semibold text-amber-500 group-hover:underline">
                 {step.tip}
@@ -481,7 +471,7 @@ function DrawerContent({
         ) : (
           <div className="text-center space-y-2">
             <div className="text-xs text-emerald-500 font-semibold">
-              🎉 ¡Has completado todos los pasos de esta etapa!
+              Has completado todos los pasos de esta etapa
             </div>
           </div>
         )}
