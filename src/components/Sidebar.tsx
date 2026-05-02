@@ -83,7 +83,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             if (!biz?.id) return;
             const { data } = await supabase
                 .from("businesses")
-                .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms")
+                .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms,module_gpt")
                 .eq("id", biz.id)
                 .single();
             if (data) {
@@ -93,9 +93,10 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     module_whatsapp: data.module_whatsapp ?? true,
                     module_tools: data.module_tools ?? true,
                     module_forms: data.module_forms ?? true,
+                    module_gpt: data.module_gpt ?? false,
                 });
             } else {
-                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true });
+                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true, module_gpt: false });
             }
         };
         if (showBusinessSidebar) load();

@@ -21,6 +21,7 @@ type Business = {
   module_vip_benefits: boolean;
   module_lead_magnet: boolean;
   module_whatsapp: boolean;
+  module_gpt: boolean;
   multi_landing_enabled: boolean;
 };
 
@@ -215,6 +216,15 @@ export default function BusinessDetail() {
               />
               <span className={business.module_whatsapp ? "" : "opacity-50"}>WhatsApp</span>
             </label>
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+              <input
+                type="checkbox"
+                checked={business.module_gpt ?? false}
+                onChange={(e) => updateModule("module_gpt", e.target.checked)}
+                className="accent-amber-500"
+              />
+              <span className={business.module_gpt ? "text-amber-400 font-medium" : "opacity-50"}>GPT de Fidelización</span>
+            </label>
 
             {/* VER COMO NEGOCIO */}
             <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mt-6 mb-2">
@@ -367,6 +377,12 @@ export default function BusinessDetail() {
                   <span className="text-sm">WhatsApp</span>
                   <span className={`text-xs px-2 py-1 rounded ${business.module_whatsapp ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>
                     {business.module_whatsapp ? "Activo" : "Inactivo"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">GPT de Fidelización</span>
+                  <span className={`text-xs px-2 py-1 rounded ${business.module_gpt ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}>
+                    {business.module_gpt ? "Activo" : "Inactivo"}
                   </span>
                 </div>
               </div>
