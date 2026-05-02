@@ -6,6 +6,7 @@ import LandingRenderer from "@/components/LandingRenderer";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
+import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 
 interface Benefit {
   id: string;
@@ -27,6 +28,8 @@ export default function LandingNew() {
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
   const [modules, setModules] = useState({ vip_benefits: true, lead_magnet: true });
+  const [moduleGpt, setModuleGpt] = useState(false);
+  const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const previewRef = useRef<HTMLDivElement>(null);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -90,11 +93,12 @@ useEffect(() => {
   if (!businessId) return;
 
   const load = async () => {
-    const [bizRes, landingRes, benefitsRes, leadMagnetsRes] = await Promise.all([
-      supabase.from("businesses").select("name, slug, logo_url, module_vip_benefits, module_lead_magnet").eq("id", businessId).single(),
+    const [bizRes, landingRes, benefitsRes, leadMagnetsRes, settingsRes] = await Promise.all([
+      supabase.from("businesses").select("name, slug, logo_url, module_vip_benefits, module_lead_magnet, module_gpt").eq("id", businessId).single(),
       supabase.from("landing_configs").select("config").eq("business_id", businessId).single(),
       supabase.from("benefits").select("id, title").eq("business_id", businessId).order("created_at", { ascending: false }),
       supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).order("created_at", { ascending: false }),
+      supabase.from("settings").select("value").eq("key", "gpt_url").single(),
     ]);
 
     const biz = bizRes.data;
@@ -105,6 +109,15 @@ useEffect(() => {
       vip_benefits: biz?.module_vip_benefits ?? true,
       lead_magnet: biz?.module_lead_magnet ?? true,
     });
+    setModuleGpt(biz?.module_gpt ?? false);
+    if (settingsRes.data?.value) {
+      try {
+        const url = typeof settingsRes.data.value === "string"
+          ? JSON.parse(settingsRes.data.value)
+          : settingsRes.data.value;
+        if (url) setGptUrl(url);
+      } catch { /* keep default */ }
+    }
 
     setBenefits((benefitsRes.data || []) as Benefit[]);
     setLeadMagnets((leadMagnetsRes.data || []) as LeadMagnet[]);
@@ -199,6 +212,15 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      {/* Onboarding drawer — botón flotante + panel lateral */}
+      {businessId && (
+        <OnboardingDrawer
+          context="landing"
+          businessId={businessId}
+          moduleGpt={moduleGpt}
+          gptUrl={gptUrl}
+        />
+      )}
       <div className="max-w-6xl mx-auto py-6 px-4 md:px-0 space-y-6">
         {/* Cabecera */}
         <header className="space-y-1">
