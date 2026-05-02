@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
+import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
 type Objective = "volvieron" | "conversion" | "referidos";
@@ -132,6 +133,8 @@ export default function LeadMagnetWizard() {
 function LeadMagnetWizardInner() {
   const router = useRouter();
   const [businessId, setBusinessId] = useState("");
+  const [moduleGpt, setModuleGpt] = useState(false);
+  const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -179,13 +182,22 @@ function LeadMagnetWizardInner() {
       const bid = biz?.id || "";
       if (!bid) return;
       setBusinessId(bid);
-      const { data } = await supabase
-        .from("businesses")
-        .select("name, logo_url")
-        .eq("id", bid)
-        .single();
+      const [bizData, settingsData] = await Promise.all([
+        supabase.from("businesses").select("name, logo_url, module_gpt").eq("id", bid).single(),
+        supabase.from("settings").select("value").eq("key", "gpt_url").single(),
+      ]);
+      const data = bizData.data;
       if (data?.name) setBusinessName(data.name);
       if (data?.logo_url) setLogoUrl(data.logo_url);
+      setModuleGpt(data?.module_gpt ?? false);
+      if (settingsData.data?.value) {
+        try {
+          const url = typeof settingsData.data.value === "string"
+            ? JSON.parse(settingsData.data.value)
+            : settingsData.data.value;
+          if (url) setGptUrl(url);
+        } catch { /* keep default */ }
+      }
     };
     load();
   }, []);
@@ -1009,6 +1021,15 @@ function LeadMagnetWizardInner() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
+      {/* Onboarding drawer — guía paso a paso */}
+      {businessId && (
+        <OnboardingDrawer
+          context="resources"
+          businessId={businessId}
+          moduleGpt={moduleGpt}
+          gptUrl={gptUrl}
+        />
+      )}
       <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
