@@ -252,7 +252,7 @@ useEffect(() => {
                     : "border-[var(--brand-1)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10"
                 }`}
               >
-                {guideOpen ? "Cerrar guía" : "Guía"}
+                {guideOpen ? "Cerrar guía" : "Guía de Personalización"}
               </button>
             )}
           </div>
