@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
@@ -129,6 +130,7 @@ export default function LeadMagnetWizard() {
 }
 
 function LeadMagnetWizardInner() {
+  const router = useRouter();
   const [businessId, setBusinessId] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -391,11 +393,11 @@ function LeadMagnetWizardInner() {
     const data = await res.json();
     if (data.error) {
       alert("Error al guardar el PDF: " + data.error);
+      setPdfGenerating(false);
     } else {
-      alert("PDF guardado correctamente en la plataforma.");
+      setPdfGenerating(false);
+      router.push("/lead-magnet");
     }
-
-    setPdfGenerating(false);
   };
 
   const renderStep = () => {

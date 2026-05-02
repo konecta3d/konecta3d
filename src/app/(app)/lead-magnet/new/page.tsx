@@ -547,8 +547,7 @@ function LeadMagnetNewContent() {
             .update({ pdf_url: resData.url })
             .eq("id", lmId);
         }
-        load();
-        alert("PDF guardado correctamente en la plataforma.");
+        router.push("/lead-magnet");
       }
     } catch (err) {
       console.error("savePdf error:", err);
