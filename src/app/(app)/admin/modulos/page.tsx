@@ -12,6 +12,7 @@ type Business = {
   module_whatsapp: boolean;
   module_tools: boolean;
   module_forms: boolean;
+  module_gpt: boolean;
   created_at: string;
 };
 
@@ -31,7 +32,7 @@ const loadBusinesses = async () => {
   const { data, error } = await supabase
     .from("businesses")
     .select(
-      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, created_at"
+      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, created_at"
     )
     .order("name");
 
@@ -45,6 +46,7 @@ const loadBusinesses = async () => {
     ...b,
     module_tools: b.module_tools ?? true,
     module_forms: b.module_forms ?? true,
+    module_gpt: b.module_gpt ?? false,
   }));
 
   setBusinesses(businessesWithDefaults as Business[]);
@@ -70,6 +72,7 @@ const { error } = await supabase
     module_whatsapp: b.module_whatsapp,
     module_tools: b.module_tools,
     module_forms: b.module_forms,
+    module_gpt: b.module_gpt,
   })
   .eq("id", b.id);
 
@@ -124,7 +127,8 @@ const { error } = await supabase
     if (filter === "vip") return b.module_vip_benefits;
     if (filter === "wa") return b.module_whatsapp;
     if (filter === "forms") return b.module_forms;
-    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms;
+    if (filter === "gpt") return b.module_gpt;
+    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms && !b.module_gpt;
     return true;
   });
 
@@ -134,6 +138,7 @@ const { error } = await supabase
     vip: businesses.filter(b => b.module_vip_benefits).length,
     wa: businesses.filter(b => b.module_whatsapp).length,
     forms: businesses.filter(b => b.module_forms).length,
+    gpt: businesses.filter(b => b.module_gpt).length,
   };
 
   if (loading) {
@@ -177,6 +182,10 @@ const { error } = await supabase
           <div className="text-2xl font-bold text-orange-500">{counts.forms}</div>
           <div className="text-xs text-white">Formularios</div>
         </div>
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
+          <div className="text-2xl font-bold text-amber-400">{counts.gpt}</div>
+          <div className="text-xs text-white">GPT Fidelización</div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -213,6 +222,12 @@ const { error } = await supabase
             Forms ({counts.forms})
           </button>
           <button
+            onClick={() => setFilter("gpt")}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "gpt" ? "bg-amber-500 text-black" : "border border-[var(--border)]"}`}
+          >
+            GPT ({counts.gpt})
+          </button>
+          <button
             onClick={() => setFilter("none")}
             className={`px-3 py-1 rounded-lg text-sm ${filter === "none" ? "bg-red-500 text-white" : "border border-[var(--border)]"}`}
           >
@@ -234,6 +249,7 @@ const { error } = await supabase
                 <th className="px-4 py-3 text-center">WhatsApp</th>
                 <th className="px-4 py-3 text-center">Herramientas</th>
                 <th className="px-4 py-3 text-center">Formularios</th>
+                <th className="px-4 py-3 text-center">GPT</th>
               </tr>
             </thead>
             <tbody>
@@ -281,6 +297,14 @@ const { error } = await supabase
                       <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_forms ? "translate-x-6" : "translate-x-0.5"}`}></div>
                     </button>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => toggleModule(b.id, "module_gpt", !b.module_gpt)}
+                      className={`w-12 h-6 rounded-full transition-colors ${b.module_gpt ? "bg-amber-500" : "bg-gray-600"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_gpt ? "translate-x-6" : "translate-x-0.5"}`}></div>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -307,6 +331,9 @@ const { error } = await supabase
           <button onClick={activateAllForms} className="px-2 py-1 text-xs rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/30">
             Forms
           </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: true })))} className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30">
+            GPT
+          </button>
           <span className="text-sm text-white ml-2">Desactivar todos:</span>
           <button onClick={deactivateAllLM} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             LM
@@ -319,6 +346,9 @@ const { error } = await supabase
           </button>
           <button onClick={deactivateAllForms} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             Forms
+          </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
+            GPT
           </button>
         </div>
         <button
