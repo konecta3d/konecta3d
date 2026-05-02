@@ -305,6 +305,11 @@ export default function OnboardingDrawer({
     persist({ dismissed: true });
   };
 
+  const handleRestart = () => {
+    setStepIndex(0);
+    persist({ stepIndex: 0 });
+  };
+
   // Usar pasos de la BD si están disponibles, sino los hardcodeados como fallback
   const steps: Step[] = dbSteps
     ? dbSteps
@@ -329,16 +334,16 @@ export default function OnboardingDrawer({
     <>
       {/* El botón de apertura lo gestiona el padre (header de la página) */}
 
-      {/* ── Mobile banner (top, visible cuando el modal está cerrado) ── */}
-      {!mobileOpen && (
-        <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-2 bg-[var(--brand-1)]/10 border-b border-[var(--brand-1)]/20 text-xs">
-          <span className="font-medium text-[var(--brand-1)]">
+      {/* ── Mobile banner — solo si NO está en el último paso completado ── */}
+      {!mobileOpen && !isLast && (
+        <div className="lg:hidden flex items-center justify-between gap-3 px-4 py-2 bg-[var(--brand-1)]/10 border-b border-[var(--brand-1)]/20 text-xs">
+          <span className="font-medium text-[var(--brand-1)] truncate">
             {STAGE_LABEL[stage]} — Paso {stepIndex + 1} de {totalSteps}
           </span>
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="px-2.5 py-1 rounded-lg bg-[var(--brand-1)] text-white font-semibold"
+            className="shrink-0 px-2.5 py-1 rounded-lg bg-[var(--brand-1)] text-white font-semibold"
           >
             Ver guía
           </button>
@@ -364,6 +369,7 @@ export default function OnboardingDrawer({
               onNext={goNext}
               onSkip={goSkip}
               onDismiss={handleDismiss}
+              onRestart={handleRestart}
               onClose={() => setMobileOpen(false)}
             />
           </div>
@@ -384,6 +390,7 @@ export default function OnboardingDrawer({
             onNext={goNext}
             onSkip={goSkip}
             onDismiss={handleDismiss}
+            onRestart={handleRestart}
             onClose={toggle}
           />
         </div>
@@ -405,6 +412,7 @@ interface DrawerContentProps {
   onNext: () => void;
   onSkip: () => void;
   onDismiss: () => void;
+  onRestart: () => void;
   onClose: () => void;
 }
 
@@ -419,6 +427,7 @@ function DrawerContent({
   onNext,
   onSkip,
   onDismiss,
+  onRestart,
   onClose,
 }: DrawerContentProps) {
   return (
@@ -482,37 +491,52 @@ function DrawerContent({
       {/* Footer actions */}
       <div className="px-4 pb-5 pt-3 border-t border-[var(--border)] space-y-2">
         {!isLast ? (
-          <div className="flex gap-2">
+          <>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onSkip}
+                className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] text-xs text-[var(--foreground)]/50 hover:bg-[var(--border)]/50 transition"
+              >
+                Saltar paso
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                className="flex-1 px-3 py-2 rounded-lg bg-[var(--brand-1)] text-white text-xs font-semibold hover:opacity-90 transition"
+              >
+                Siguiente →
+              </button>
+            </div>
             <button
               type="button"
-              onClick={onSkip}
-              className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] text-xs text-[var(--foreground)]/50 hover:bg-[var(--border)]/50 transition"
+              onClick={onDismiss}
+              className="w-full text-[10px] text-[var(--foreground)]/30 hover:text-[var(--foreground)]/60 transition"
             >
-              Saltar paso
+              No volver a mostrar esta guía
             </button>
-            <button
-              type="button"
-              onClick={onNext}
-              className="flex-1 px-3 py-2 rounded-lg bg-[var(--brand-1)] text-white text-xs font-semibold hover:opacity-90 transition"
-            >
-              Siguiente →
-            </button>
-          </div>
+          </>
         ) : (
-          <div className="text-center space-y-2">
-            <div className="text-xs text-emerald-500 font-semibold">
+          <div className="space-y-2">
+            <div className="text-xs text-emerald-500 font-semibold text-center py-1">
               Has completado todos los pasos de esta etapa
             </div>
+            <button
+              type="button"
+              onClick={onRestart}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--brand-1)] text-[var(--brand-1)] text-xs font-semibold hover:bg-[var(--brand-1)]/10 transition"
+            >
+              Volver a ver la guía desde el inicio
+            </button>
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="w-full text-[10px] text-[var(--foreground)]/30 hover:text-[var(--foreground)]/60 transition"
+            >
+              No volver a mostrar esta guía
+            </button>
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="w-full text-[10px] text-[var(--foreground)]/30 hover:text-[var(--foreground)]/60 transition"
-        >
-          No volver a mostrar esta guía
-        </button>
       </div>
     </div>
   );
