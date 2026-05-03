@@ -211,15 +211,36 @@ export default function GuiaPersonalizacionAdmin() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Guía de Personalización</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-1">
             Edita los mensajes que recibe el negocio en el panel lateral de guía
           </p>
         </div>
-        <div className="text-xs text-[var(--foreground)]/40">
-          {steps.filter(s => s.active).length} pasos activos de {steps.length} totales
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-[var(--foreground)]/40">
+            {steps.filter(s => s.active).length} activos · {steps.length} totales
+          </div>
+          {steps.filter(s => !s.active).length > 0 && (
+            <button
+              type="button"
+              onClick={async () => {
+                const ids = steps.filter(s => !s.active).map(s => s.id);
+                const { error } = await supabase
+                  .from("onboarding_steps")
+                  .update({ active: true, updated_at: new Date().toISOString() })
+                  .in("id", ids);
+                if (!error) {
+                  setSteps(steps.map(s => ({ ...s, active: true })));
+                  showToast(`${ids.length} pasos reactivados`);
+                }
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors font-semibold"
+            >
+              ⚠ {steps.filter(s => !s.active).length} paso{steps.filter(s => !s.active).length !== 1 ? "s" : ""} oculto{steps.filter(s => !s.active).length !== 1 ? "s" : ""} — Activar todos
+            </button>
+          )}
         </div>
       </div>
 

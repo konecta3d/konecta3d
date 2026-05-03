@@ -13,7 +13,7 @@
  * - gptUrl: string       → URL del GPT
  */
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +47,7 @@ interface Step {
   title: string;
   body: string;
   tip?: string; // solo si moduleGpt
+  stage?: Stage;
 }
 
 // ─── Content ──────────────────────────────────────────────────────────────────
@@ -184,42 +185,7 @@ const RESOURCE_STEPS: Record<Stage, Step[]> = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function getStage(
-  businessId: string,
-  context: OnboardingContext,
-  moduleGpt: boolean
-): Promise<Stage> {
-  try {
-    const [gptRes, landingRes, resourcesRes] = await Promise.all([
-      moduleGpt
-        ? supabase
-            .from("gpt_context_answers")
-            .select("id", { count: "exact", head: true })
-            .eq("business_id", businessId)
-        : Promise.resolve({ count: 1 }), // skip if no GPT
-      supabase
-        .from("landing_configs")
-        .select("id")
-        .eq("business_id", businessId)
-        .single(),
-      supabase
-        .from("lead_magnets")
-        .select("id", { count: "exact", head: true })
-        .eq("business_id", businessId),
-    ]);
-
-    const hasGptAnswers = !moduleGpt || (gptRes.count ?? 0) > 0;
-    const hasLanding = !!landingRes.data;
-    const hasResources = (resourcesRes.count ?? 0) > 0;
-
-    if (!hasGptAnswers && context === "landing") return "contexto";
-    if (!hasLanding) return "primeros-pasos";
-    if (!hasResources) return "optimizacion";
-    return "maestria";
-  } catch {
-    return "primeros-pasos";
-  }
-}
+const STAGE_ORDER: Stage[] = ["contexto", "primeros-pasos", "optimizacion", "maestria"];
 
 const STAGE_LABEL: Record<Stage, string> = {
   "contexto": "Antes de empezar",
@@ -228,13 +194,14 @@ const STAGE_LABEL: Record<Stage, string> = {
   "maestria": "Estrategia avanzada",
 };
 
-const STORAGE_KEY = "konecta-onboarding-drawer";
+// La clave incluye el contexto para que landing y recursos sean independientes
+const storageKey = (context: OnboardingContext) => `konecta-onboarding-drawer-${context}`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function OnboardingDrawer({
   context,
-  businessId,
+  businessId: _businessId, // reservado para uso futuro (analytics, etc.)
   moduleGpt = false,
   gptUrl = "https://chatgpt.com/",
   open: openProp,
@@ -244,28 +211,41 @@ export default function OnboardingDrawer({
   // Si viene controlado externamente, usar esa prop; si no, el estado interno
   const open = openProp !== undefined ? openProp : internalOpen;
 
-  // Steps cargados desde la BD (vacío = usar hardcoded como fallback)
+  // Steps cargados desde la BD (null = aún cargando; [] o array = ya cargado)
   const [dbSteps, setDbSteps] = useState<DbStep[] | null>(null);
-  const dbLoadedRef = useRef(false);
 
   useEffect(() => {
-    if (dbLoadedRef.current) return;
-    dbLoadedRef.current = true;
+    let cancelled = false;
     supabase
       .from("onboarding_steps")
       .select("*")
       .eq("active", true)
+      .order("stage")
       .order("step_order")
-      .then(({ data }) => { if (data) setDbSteps(data as DbStep[]); });
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        console.log("[OnboardingDrawer] fetch result:", {
+          total: data?.length ?? 0,
+          forContext: data?.filter(s => s.context === context).length ?? 0,
+          error: error?.message ?? null,
+          sample: data?.slice(0, 3).map(s => `${s.context}/${s.stage}/${s.step_order}`),
+        });
+        if (data && data.length > 0) setDbSteps(data as DbStep[]);
+        // Si data es null o vacío, dejamos dbSteps en null → fallback hardcoded
+      });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [stage, setStage] = useState<Stage>("primeros-pasos");
   const [stepIndex, setStepIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
 
-  // Load persisted state
+  // Load persisted state (clave por contexto para que landing y recursos sean independientes)
+  const STORAGE_KEY = storageKey(context);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Limpiar clave antigua (sin contexto) para evitar estados obsoletos
+    localStorage.removeItem("konecta-onboarding-drawer");
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -275,21 +255,44 @@ export default function OnboardingDrawer({
         if (parsed.stepIndex !== undefined) setStepIndex(parsed.stepIndex);
       }
     } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Detect stage from actual business state
+  // Si el usuario pulsa explícitamente el botón "Guía de Personalización" (openProp → true)
+  // y la guía estaba descartada, la reactivamos para que pueda volver a usarla.
   useEffect(() => {
-    if (!businessId) return;
-    getStage(businessId, context, moduleGpt).then(setStage);
-  }, [businessId, context, moduleGpt]);
+    if (openProp !== true || !dismissed) return;
+    setDismissed(false);
+    try {
+      const key = storageKey(context);
+      const current = JSON.parse(localStorage.getItem(key) || "{}");
+      localStorage.setItem(key, JSON.stringify({ ...current, dismissed: false, stepIndex: 0 }));
+      setStepIndex(0);
+    } catch { /* ignore */ }
+  }, [openProp, dismissed, context]);
+
+  // Sincronizar el prop externo `open` con el modal móvil:
+  // El drawer de escritorio usa `hidden lg:flex` (invisible en móvil),
+  // así que cuando el padre abre la guía en móvil hay que abrir el modal.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.innerWidth < 1024;
+    if (openProp === true && isMobile) {
+      setMobileOpen(true);
+    }
+    if (openProp === false && isMobile) {
+      setMobileOpen(false);
+    }
+  }, [openProp]);
 
   const persist = useCallback((patch: { open?: boolean; stepIndex?: number; dismissed?: boolean }) => {
     if (typeof window === "undefined") return;
     try {
-      const current = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...patch }));
+      const key = storageKey(context);
+      const current = JSON.parse(localStorage.getItem(key) || "{}");
+      localStorage.setItem(key, JSON.stringify({ ...current, ...patch }));
     } catch { /* ignore */ }
-  }, []);
+  }, [context]);
 
   const toggle = () => {
     const next = !open;
@@ -310,18 +313,33 @@ export default function OnboardingDrawer({
     persist({ stepIndex: 0 });
   };
 
-  // Usar pasos de la BD si están disponibles, sino los hardcodeados como fallback
+  // Mostrar TODOS los pasos de todos los stages en orden (contexto → primeros-pasos → optimizacion → maestria)
   const steps: Step[] = dbSteps
     ? dbSteps
-        .filter(s => s.context === context && s.stage === stage)
-        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined }))
-    : (context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[stage] ?? [];
-  const currentStep = steps[stepIndex] ?? steps[0];
+        .filter(s => s.context === context)
+        .sort((a, b) => {
+          const stageA = STAGE_ORDER.indexOf(a.stage);
+          const stageB = STAGE_ORDER.indexOf(b.stage);
+          return stageA !== stageB ? stageA - stageB : a.step_order - b.step_order;
+        })
+        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined, stage: s.stage }))
+    : STAGE_ORDER.flatMap(st =>
+        ((context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[st] ?? []).map(
+          s => ({ ...s, stage: st as Stage })
+        )
+      );
+
   const totalSteps = steps.length;
-  const isLast = stepIndex >= totalSteps - 1;
+  // Si el stepIndex guardado en localStorage era de una sesión anterior con menos pasos,
+  // lo resetemos silenciosamente para no quedarnos en "último paso" con la guía recién ampliada
+  const safeIndex = totalSteps > 0 ? Math.min(stepIndex, totalSteps - 1) : 0;
+  const currentStep = steps[safeIndex] ?? steps[0];
+  const isLast = safeIndex >= totalSteps - 1;
+  // Stage del paso actual (para el header)
+  const currentStage: Stage = (currentStep as Step & { stage?: Stage }).stage ?? "primeros-pasos";
 
   const goNext = () => {
-    const next = Math.min(stepIndex + 1, totalSteps - 1);
+    const next = Math.min(safeIndex + 1, totalSteps - 1);
     setStepIndex(next);
     persist({ stepIndex: next });
   };
@@ -338,7 +356,7 @@ export default function OnboardingDrawer({
       {!mobileOpen && !isLast && (
         <div className="lg:hidden flex items-center justify-between gap-3 px-4 py-2 bg-[var(--brand-1)]/10 border-b border-[var(--brand-1)]/20 text-xs">
           <span className="font-medium text-[var(--brand-1)] truncate">
-            {STAGE_LABEL[stage]} — Paso {stepIndex + 1} de {totalSteps}
+            {STAGE_LABEL[currentStage]} — Paso {safeIndex + 1} de {totalSteps}
           </span>
           <button
             type="button"
@@ -355,13 +373,16 @@ export default function OnboardingDrawer({
         <div className="lg:hidden fixed inset-0 z-50 flex items-end">
           <div
             className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              setMobileOpen(false);
+              if (onOpenChange) onOpenChange(false);
+            }}
           />
-          <div className="relative w-full flex flex-col max-h-[80vh] rounded-t-2xl bg-[var(--card)] border-t border-[var(--border)]">
+          <div className="relative w-full flex flex-col max-h-[80vh] min-h-0 overflow-hidden rounded-t-2xl bg-[var(--card)] border-t border-[var(--border)]">
             <DrawerContent
-              stage={stage}
+              stage={currentStage}
               step={currentStep}
-              stepIndex={stepIndex}
+              stepIndex={safeIndex}
               totalSteps={totalSteps}
               isLast={isLast}
               moduleGpt={moduleGpt}
@@ -370,19 +391,23 @@ export default function OnboardingDrawer({
               onSkip={goSkip}
               onDismiss={handleDismiss}
               onRestart={handleRestart}
-              onClose={() => setMobileOpen(false)}
+              onClose={() => {
+                setMobileOpen(false);
+                // Notificar al padre para sincronizar el estado del botón
+                if (onOpenChange) onOpenChange(false);
+              }}
             />
           </div>
         </div>
       )}
 
-      {/* ── Desktop drawer — panel fijo derecho, sin overflow en el contenedor exterior ── */}
+      {/* ── Desktop drawer — panel fijo derecho, ocupa exactamente el alto del viewport ── */}
       {open && (
-        <div className="hidden lg:flex fixed top-0 right-0 h-full z-40 flex-col w-80 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl">
+        <div className="hidden lg:flex fixed top-0 right-0 h-screen z-40 flex-col w-80 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl">
           <DrawerContent
-            stage={stage}
+            stage={currentStage}
             step={currentStep}
-            stepIndex={stepIndex}
+            stepIndex={safeIndex}
             totalSteps={totalSteps}
             isLast={isLast}
             moduleGpt={moduleGpt}
@@ -431,7 +456,7 @@ function DrawerContent({
   onClose,
 }: DrawerContentProps) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-5 pb-3 border-b border-[var(--border)]">
         <div>
@@ -461,8 +486,8 @@ function DrawerContent({
         </div>
       </div>
 
-      {/* Step content */}
-      <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto">
+      {/* Step content — min-h-0 es necesario en flexbox para que overflow-y-auto funcione */}
+      <div className="flex-1 min-h-0 px-4 py-3 space-y-3 overflow-y-auto">
         <h3 className="font-bold text-sm leading-snug">{step.title}</h3>
         <p className="text-xs text-[var(--foreground)]/75 leading-relaxed whitespace-pre-line">
           {step.body}
