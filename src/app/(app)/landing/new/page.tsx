@@ -7,6 +7,7 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
+import LandingAiChat from "@/components/landing/LandingAiChat";
 
 interface Benefit {
   id: string;
@@ -31,7 +32,19 @@ export default function LandingNew() {
   const [moduleGpt, setModuleGpt] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const [guideOpen, setGuideOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [businessName, setBusinessName] = useState("");
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // El chat se abre por defecto en pantallas xl (≥1280px); colapsado debajo
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const apply = () => setChatOpen(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.923);
@@ -103,8 +116,9 @@ useEffect(() => {
     ]);
 
     const biz = bizRes.data;
-    const businessName = biz?.name || "";
+    const bizName = biz?.name || "";
     const businessLogo = biz?.logo_url || "";
+    setBusinessName(bizName);
     if (biz?.slug) setSlug(biz.slug);
     setModules({
       vip_benefits: biz?.module_vip_benefits ?? true,
@@ -125,10 +139,10 @@ useEffect(() => {
 
     const c = landingRes.data?.config || null;
     if (!c) {
-      setConfig({ ...defaultLandingConfig, businessName, logoUrl: businessLogo });
+      setConfig({ ...defaultLandingConfig, businessName: bizName, logoUrl: businessLogo });
     } else {
       const merged = { ...defaultLandingConfig, ...c };
-      setConfig({ ...merged, businessName: merged.businessName || businessName, logoUrl: merged.logoUrl || businessLogo });
+      setConfig({ ...merged, businessName: merged.businessName || bizName, logoUrl: merged.logoUrl || businessLogo });
     }
   };
 
@@ -255,6 +269,19 @@ useEffect(() => {
                 {guideOpen ? "Cerrar guía" : "Guía de Personalización"}
               </button>
             )}
+            {businessId && (
+              <button
+                type="button"
+                onClick={() => setChatOpen(!chatOpen)}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
+                  chatOpen
+                    ? "bg-[var(--brand-4)] border-[var(--brand-4)] text-black"
+                    : "border-[var(--brand-4)] text-[var(--brand-4)] hover:bg-[var(--brand-4)]/10"
+                }`}
+              >
+                {chatOpen ? "Cerrar Asistente IA" : "Asistente IA"}
+              </button>
+            )}
           </div>
   <div className="flex items-center gap-3">
     <button onClick={saveNow} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black" >
@@ -274,7 +301,18 @@ useEffect(() => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={`grid grid-cols-1 gap-6 ${chatOpen ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+          {/* Panel de chat IA — primera columna cuando está abierto */}
+          {chatOpen && businessId && (
+            <LandingAiChat
+              businessId={businessId}
+              businessName={businessName}
+              config={config}
+              onApply={(changes) => setConfig((prev) => ({ ...prev, ...changes }))}
+              onFinalize={saveNow}
+            />
+          )}
+
           {/* Panel de controles */}
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-6 md:p-6">
 
