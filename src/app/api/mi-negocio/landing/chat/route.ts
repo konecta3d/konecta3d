@@ -36,30 +36,30 @@ function stripForbidden(changes: Partial<LandingConfig> | null): Partial<Landing
 }
 
 // Campos que NO se envían al GPT (son URLs/binarios de imagen, irrelevantes
-// para la personalización conversacional). Sin esto, los base64 inflan
+// para la personalización conversacional). Además, el replacer recursivo
+// más abajo elimina cualquier base64 o string excesivamente largo que se
+// cuele en sub-objetos o arrays. Sin esto, las imágenes en base64 inflan
 // fácilmente el payload por encima de los 128k tokens del modelo.
-const OMITTED_FIELDS_FOR_GPT: ReadonlyArray<keyof LandingConfig> = [
+const OMITTED_FIELDS_FOR_GPT: ReadonlySet<string> = new Set([
   "bgUrl",
   "logoUrl",
   "reviewImage",
   "toolsIds",
-];
+]);
 
-function toGptPayload(config: LandingConfig): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(config)) {
-    if (OMITTED_FIELDS_FOR_GPT.includes(key as keyof LandingConfig)) continue;
-    // Defensa: cualquier otro string base64 o excesivamente largo lo descartamos también
-    if (typeof value === "string") {
-      if (value.startsWith("data:")) continue;
-      if (value.length > 300) {
-        out[key] = `[valor largo (${value.length} chars)]`;
-        continue;
+function toGptPayload(config: LandingConfig): string {
+  return JSON.stringify(
+    config,
+    (key, value) => {
+      if (OMITTED_FIELDS_FOR_GPT.has(key)) return undefined;
+      if (typeof value === "string") {
+        if (value.startsWith("data:")) return "[imagen omitida]";
+        if (value.length > 300) return `[valor largo (${value.length} chars)]`;
       }
-    }
-    out[key] = value;
-  }
-  return out;
+      return value;
+    },
+    2
+  );
 }
 
 export async function POST(req: Request) {
@@ -101,6 +101,15 @@ export async function POST(req: Request) {
       .map((q) => `P${q.question_order}. ${q.question_text}\nR: ${answerMap.get(q.id) || "(sin respuesta)"}`)
       .join("\n\n");
 
+    const configPayload = toGptPayload(currentConfig);
+    const messagesChars = messages.reduce((acc, m) => acc + (m.content?.length || 0), 0);
+    console.log("[chat] payload sizes (chars):", {
+      configPayload: configPayload.length,
+      businessProfile: businessProfile.length,
+      messagesHistory: messagesChars,
+      userMessage: userMessage.length,
+    });
+
     // ────────────────────────────────────────────────────────────────────────
     // System prompt — listo para cuando llegue la API key de OpenAI.
     // ────────────────────────────────────────────────────────────────────────
@@ -110,7 +119,7 @@ PERFIL DEL NEGOCIO:
 ${businessProfile}
 
 ESTADO ACTUAL DEL EDITOR (LandingConfig — campos textuales/numéricos):
-${JSON.stringify(toGptPayload(currentConfig), null, 2)}
+${configPayload}
 
 INSTRUCCIONES:
 - Guía la conversación SIEMPRE en este orden top-to-bottom: 1) Fondo, 2) Identidad (título y subtítulo), 3) CTAs, 4) Estilo de botones, 5) Bloque final, 6) Espaciado.
