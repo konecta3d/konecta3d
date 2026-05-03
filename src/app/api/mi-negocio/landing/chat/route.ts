@@ -93,11 +93,19 @@ INSTRUCCIONES:
 - Devuelve un JSON con esta forma: { "message": "texto natural en español", "changes": { /* Partial<LandingConfig> o null */ } }
 - Si no propones cambios en este turno, "changes" debe ser null.`;
 
+    const apiKey = process.env.OPENAI_API_KEY;
+    console.log("[chat] OPENAI_API_KEY check:", {
+      type: typeof apiKey,
+      length: apiKey?.length ?? 0,
+      prefix: apiKey?.slice(0, 10) ?? "(none)",
+      suffix: apiKey?.slice(-4) ?? "(none)",
+    });
+
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
