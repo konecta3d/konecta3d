@@ -35,6 +35,33 @@ function stripForbidden(changes: Partial<LandingConfig> | null): Partial<Landing
   return Object.keys(cleaned).length > 0 ? (cleaned as Partial<LandingConfig>) : null;
 }
 
+// Campos que NO se envían al GPT (son URLs/binarios de imagen, irrelevantes
+// para la personalización conversacional). Sin esto, los base64 inflan
+// fácilmente el payload por encima de los 128k tokens del modelo.
+const OMITTED_FIELDS_FOR_GPT: ReadonlyArray<keyof LandingConfig> = [
+  "bgUrl",
+  "logoUrl",
+  "reviewImage",
+  "toolsIds",
+];
+
+function toGptPayload(config: LandingConfig): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (OMITTED_FIELDS_FOR_GPT.includes(key as keyof LandingConfig)) continue;
+    // Defensa: cualquier otro string base64 o excesivamente largo lo descartamos también
+    if (typeof value === "string") {
+      if (value.startsWith("data:")) continue;
+      if (value.length > 300) {
+        out[key] = `[valor largo (${value.length} chars)]`;
+        continue;
+      }
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as ChatRequest;
@@ -82,8 +109,8 @@ export async function POST(req: Request) {
 PERFIL DEL NEGOCIO:
 ${businessProfile}
 
-ESTADO ACTUAL DEL EDITOR (LandingConfig):
-${JSON.stringify(currentConfig, null, 2)}
+ESTADO ACTUAL DEL EDITOR (LandingConfig — campos textuales/numéricos):
+${JSON.stringify(toGptPayload(currentConfig), null, 2)}
 
 INSTRUCCIONES:
 - Guía la conversación SIEMPRE en este orden top-to-bottom: 1) Fondo, 2) Identidad (título y subtítulo), 3) CTAs, 4) Estilo de botones, 5) Bloque final, 6) Espaciado.
@@ -93,19 +120,11 @@ INSTRUCCIONES:
 - Devuelve un JSON con esta forma: { "message": "texto natural en español", "changes": { /* Partial<LandingConfig> o null */ } }
 - Si no propones cambios en este turno, "changes" debe ser null.`;
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    console.log("[chat] OPENAI_API_KEY check:", {
-      type: typeof apiKey,
-      length: apiKey?.length ?? 0,
-      prefix: apiKey?.slice(0, 10) ?? "(none)",
-      suffix: apiKey?.slice(-4) ?? "(none)",
-    });
-
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
