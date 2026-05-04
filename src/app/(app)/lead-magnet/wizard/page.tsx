@@ -234,6 +234,7 @@ function LeadMagnetWizardInner() {
   const [businessId, setBusinessId] = useState("");
   const [moduleGpt, setModuleGpt] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
+  const [advancedEnabled, setAdvancedEnabled] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   // Tracks whether content fields have been customized (either by user edit or loaded from DB).
   // When true, changing objective/type in step 3 does NOT overwrite title/intro/content.
@@ -295,9 +296,10 @@ function LeadMagnetWizardInner() {
       if (!bid) return;
       setBusinessId(bid);
 
-      const [bizData, settingsData] = await Promise.all([
+      const [bizData, settingsData, featuresData] = await Promise.all([
         supabase.from("businesses").select("name, logo_url, module_gpt").eq("id", bid).single(),
         supabase.from("settings").select("value").eq("key", "gpt_url").single(),
+        supabase.from("settings").select("value").eq("key", "features").single(),
       ]);
       const data = bizData.data;
       if (data?.name) setBusinessName(data.name);
@@ -310,6 +312,16 @@ function LeadMagnetWizardInner() {
             : settingsData.data.value;
           if (url) setGptUrl(url);
         } catch { /* keep default */ }
+      }
+      if (featuresData.data?.value) {
+        try {
+          const f = typeof featuresData.data.value === "string"
+            ? JSON.parse(featuresData.data.value)
+            : featuresData.data.value;
+          if (typeof f.module_lead_magnet_advanced === "boolean") {
+            setAdvancedEnabled(f.module_lead_magnet_advanced);
+          }
+        } catch { /* keep default true */ }
       }
 
       // If editing an existing resource, load its data
@@ -1232,9 +1244,11 @@ function LeadMagnetWizardInner() {
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
             <p className="text-white text-xs md:text-sm">Convierte tu conocimiento en un recurso valioso para tus clientes</p>
           </div>
-          <Link href="/lead-magnet/new" className="text-white hover:text-white text-xs md:text-sm">
-            Volver al editor avanzado
-          </Link>
+          {advancedEnabled && (
+            <Link href="/lead-magnet/new" className="text-white hover:text-white text-xs md:text-sm">
+              Volver al editor avanzado
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-1 mb-8">
