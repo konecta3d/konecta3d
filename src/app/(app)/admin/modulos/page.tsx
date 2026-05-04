@@ -13,6 +13,8 @@ type Business = {
   module_tools: boolean;
   module_forms: boolean;
   module_gpt: boolean;
+  module_ai_landing: boolean;
+  module_ai_recursos: boolean;
   created_at: string;
 };
 
@@ -32,7 +34,7 @@ const loadBusinesses = async () => {
   const { data, error } = await supabase
     .from("businesses")
     .select(
-      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, created_at"
+      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, module_ai_landing, module_ai_recursos, created_at"
     )
     .order("name");
 
@@ -47,6 +49,8 @@ const loadBusinesses = async () => {
     module_tools: b.module_tools ?? true,
     module_forms: b.module_forms ?? true,
     module_gpt: b.module_gpt ?? false,
+    module_ai_landing: b.module_ai_landing ?? false,
+    module_ai_recursos: b.module_ai_recursos ?? false,
   }));
 
   setBusinesses(businessesWithDefaults as Business[]);
@@ -73,6 +77,8 @@ const { error } = await supabase
     module_tools: b.module_tools,
     module_forms: b.module_forms,
     module_gpt: b.module_gpt,
+    module_ai_landing: b.module_ai_landing,
+    module_ai_recursos: b.module_ai_recursos,
   })
   .eq("id", b.id);
 
@@ -128,7 +134,9 @@ const { error } = await supabase
     if (filter === "wa") return b.module_whatsapp;
     if (filter === "forms") return b.module_forms;
     if (filter === "gpt") return b.module_gpt;
-    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms && !b.module_gpt;
+    if (filter === "ai_landing") return b.module_ai_landing;
+    if (filter === "ai_recursos") return b.module_ai_recursos;
+    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms && !b.module_gpt && !b.module_ai_landing && !b.module_ai_recursos;
     return true;
   });
 
@@ -139,6 +147,8 @@ const { error } = await supabase
     wa: businesses.filter(b => b.module_whatsapp).length,
     forms: businesses.filter(b => b.module_forms).length,
     gpt: businesses.filter(b => b.module_gpt).length,
+    ai_landing: businesses.filter(b => b.module_ai_landing).length,
+    ai_recursos: businesses.filter(b => b.module_ai_recursos).length,
   };
 
   if (loading) {
@@ -186,6 +196,14 @@ const { error } = await supabase
           <div className="text-2xl font-bold text-amber-400">{counts.gpt}</div>
           <div className="text-xs text-white">GPT Fidelización</div>
         </div>
+        <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-center">
+          <div className="text-2xl font-bold text-cyan-400">{counts.ai_landing}</div>
+          <div className="text-xs text-white">IA Landing</div>
+        </div>
+        <div className="rounded-xl border border-pink-500/30 bg-pink-500/10 p-4 text-center">
+          <div className="text-2xl font-bold text-pink-400">{counts.ai_recursos}</div>
+          <div className="text-xs text-white">IA Recursos</div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -228,6 +246,18 @@ const { error } = await supabase
             GPT ({counts.gpt})
           </button>
           <button
+            onClick={() => setFilter("ai_landing")}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "ai_landing" ? "bg-cyan-500 text-black" : "border border-[var(--border)]"}`}
+          >
+            IA Landing ({counts.ai_landing})
+          </button>
+          <button
+            onClick={() => setFilter("ai_recursos")}
+            className={`px-3 py-1 rounded-lg text-sm ${filter === "ai_recursos" ? "bg-pink-500 text-white" : "border border-[var(--border)]"}`}
+          >
+            IA Recursos ({counts.ai_recursos})
+          </button>
+          <button
             onClick={() => setFilter("none")}
             className={`px-3 py-1 rounded-lg text-sm ${filter === "none" ? "bg-red-500 text-white" : "border border-[var(--border)]"}`}
           >
@@ -250,6 +280,8 @@ const { error } = await supabase
                 <th className="px-4 py-3 text-center">Herramientas</th>
                 <th className="px-4 py-3 text-center">Formularios</th>
                 <th className="px-4 py-3 text-center">GPT</th>
+                <th className="px-4 py-3 text-center text-cyan-400">IA Landing</th>
+                <th className="px-4 py-3 text-center text-pink-400">IA Recursos</th>
               </tr>
             </thead>
             <tbody>
@@ -305,6 +337,22 @@ const { error } = await supabase
                       <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_gpt ? "translate-x-6" : "translate-x-0.5"}`}></div>
                     </button>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => toggleModule(b.id, "module_ai_landing", !b.module_ai_landing)}
+                      className={`w-12 h-6 rounded-full transition-colors ${b.module_ai_landing ? "bg-cyan-500" : "bg-gray-600"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_ai_landing ? "translate-x-6" : "translate-x-0.5"}`}></div>
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => toggleModule(b.id, "module_ai_recursos", !b.module_ai_recursos)}
+                      className={`w-12 h-6 rounded-full transition-colors ${b.module_ai_recursos ? "bg-pink-500" : "bg-gray-600"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_ai_recursos ? "translate-x-6" : "translate-x-0.5"}`}></div>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -334,6 +382,12 @@ const { error } = await supabase
           <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: true })))} className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30">
             GPT
           </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_landing: true })))} className="px-2 py-1 text-xs rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
+            IA Landing
+          </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_recursos: true })))} className="px-2 py-1 text-xs rounded bg-pink-500/20 text-pink-400 hover:bg-pink-500/30">
+            IA Recursos
+          </button>
           <span className="text-sm text-white ml-2">Desactivar todos:</span>
           <button onClick={deactivateAllLM} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             LM
@@ -349,6 +403,12 @@ const { error } = await supabase
           </button>
           <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
             GPT
+          </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_landing: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
+            IA Landing
+          </button>
+          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_recursos: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
+            IA Recursos
           </button>
         </div>
         <button
