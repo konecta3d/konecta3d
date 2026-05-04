@@ -210,13 +210,18 @@ PASO tipo:
 
 PASO contenido:
   → Genera el contenido completo y específico al negocio.
-  → El título debe expresar el BENEFICIO, no el servicio:
+  → El título debe expresar el BENEFICIO, no el servicio (máx 80 caracteres):
      ✗ "Guía de fisioterapia"
-     ✓ "Cómo mantener los resultados entre sesiones y no empezar de cero"
-  → El intro (1-2 frases) debe hacer que el cliente piense "esto es para mí".
-  → El contenido debe ser accionable: verbos imperativos, pasos numerados,
-     párrafos cortos. Máximo 1200 caracteres en total.
-  → Cierra siempre con una frase que prepare al cliente para el botón de acción.
+     ✓ "Cómo mantener los resultados entre sesiones sin empezar de cero"
+  → El intro: 1-2 frases que hagan que el cliente piense "esto es para mí" (máx 120 caracteres).
+  → El contenido CENTRAL debe caber en la zona visible del PDF sin solaparse
+     con las líneas de cierre ni los botones:
+     - guia:          3-4 párrafos cortos, máx 900 caracteres en total
+     - checklist:     máx 6 puntos, cada uno máx 70 caracteres
+     - recomendacion: máx 5 puntos, cada uno máx 80 caracteres
+  → Cada punto o párrafo debe ser accionable: verbos imperativos, lenguaje directo.
+  → NO generes más puntos de los indicados aunque el tema "dé para más".
+     Es mejor 5 puntos perfectos que 9 que no caben en la página.
 
 PASO personalizacion:
   → Recomienda colores que refuercen la identidad del negocio (usa los del perfil).
@@ -224,17 +229,61 @@ PASO personalizacion:
   → CTA2 (opcional): solo si hay una segunda acción útil. Si no, omítelo.
   → Da el texto exacto de cada botón — verbo + acción, máximo 3 palabras.
 
+════════════════════════════════════════════════
+ESTRUCTURA FIJA DEL PDF — MUY IMPORTANTE
+════════════════════════════════════════════════
+El documento tiene UNA SOLA PÁGINA con esta estructura vertical fija:
+
+  ┌─────────────────────────────┐
+  │  Logo + nombre del negocio  │  ← cabecera fija
+  │  Badge de tipo de recurso   │
+  ├─────────────────────────────┤
+  │  TÍTULO                     │  ← campo "title"
+  │  Subtítulo / intro          │  ← campo "intro"
+  ├─────────────────────────────┤
+  │                             │
+  │  CONTENIDO CENTRAL          │  ← campo "content"
+  │  (zona de scroll restringida│
+  │   — NO puede salirse)       │
+  │                             │
+  ├─────────────────────────────┤
+  │  Línea de cierre 1          │  ← posición fija, no se mueve
+  │  Línea de cierre 2          │
+  ├─────────────────────────────┤
+  │  [CTA 1]    [CTA 2]         │  ← botones fijos al pie
+  └─────────────────────────────┘
+
+REGLAS DE CONTENIDO OBLIGATORIAS:
+1. El contenido central NO puede sobrepasar el espacio disponible.
+   Si el contenido es demasiado largo, el texto se solapará con las
+   líneas de cierre o quedará oculto detrás de ellas — esto arruina el PDF.
+
+2. Límites estrictos que DEBES respetar siempre:
+   - title:   máximo 80 caracteres (1-2 líneas)
+   - intro:   máximo 120 caracteres (1-2 frases cortas)
+   - content (guia):          máximo 900 caracteres (3-4 párrafos muy breves)
+   - content (checklist):     máximo 6 puntos, cada uno máximo 70 caracteres
+   - content (recomendacion): máximo 5 puntos, cada uno máximo 80 caracteres
+   - Líneas de cierre (sn1, sn2): máximo 100 caracteres cada una
+
+3. El contenido debe ser DENSO Y PRECISO, no extenso.
+   Cada línea tiene que aportar valor real. Nada de relleno o repetición.
+   Si hay que elegir entre más información y que el PDF quede bien → PDF bien.
+
+4. Cuando generes "content", cuenta mentalmente las líneas que ocupará
+   antes de proponerlo. Si excede los límites, recorta sin perder el mensaje clave.
+
 ════════════════════════════════════
 CAMPOS MODIFICABLES
 ════════════════════════════════════
 - objective: "volvieron"|"conversion"|"referidos"|"captar"|"reactivar"|"educar"|"temporada"|"lanzamiento"
 - type: "guia"|"checklist"|"recomendacion"
-- title: string — beneficio claro en el título
-- intro: string — máximo 2 frases de enganche
-- content: string — cuerpo del documento (usa \\n para separar puntos)
-- cta1Text: string — verbo + acción (ej: "Reservar cita")
+- title: string — beneficio claro, máx 80 caracteres
+- intro: string — 1-2 frases de enganche, máx 120 caracteres
+- content: string — cuerpo del documento respetando los límites de arriba (\\n para separar puntos)
+- cta1Text: string — verbo + acción, máx 3 palabras (ej: "Reservar cita")
 - cta1Link: string — URL o vacío
-- cta2Text: string — texto del botón secundario
+- cta2Text: string — texto botón secundario, máx 3 palabras
 - cta2Link: string — URL o vacío
 - colorBrand: string — hex del color de marca
 - colorButton: string — hex del color del botón CTA
