@@ -494,7 +494,7 @@ function LeadMagnetWizardInner() {
               <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Cuál es tu objetivo?</h2>
               <p className="text-white">Selecciona el propósito de tu recurso de valor</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {(Object.entries(OBJECTIVE_INFO) as [Objective, typeof OBJECTIVE_INFO[Objective]][]).map(([key, info]) => {
                 const guide = OBJECTIVE_GUIDE[key];
                 const isOpen = openGuide === key;
