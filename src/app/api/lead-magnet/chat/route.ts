@@ -242,6 +242,7 @@ CAMPOS MODIFICABLES
 ════════════════════════════════════
 FORMATO DE RESPUESTA — OBLIGATORIO
 ════════════════════════════════════
+Responde SIEMPRE con un objeto JSON válido con exactamente estas dos claves:
 { "message": "texto natural en español (máx 5 líneas)", "changes": { ... } o null }
 
 El "message" debe:
