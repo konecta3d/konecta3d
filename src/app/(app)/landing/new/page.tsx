@@ -215,17 +215,17 @@ useEffect(() => {
         }),
       });
       if (!res.ok) {
-        setSaveStatus("Error al guardar");
-        alert("No se pudo guardar. Revisa la consola/Network.");
+        const errData = await res.json().catch(() => ({}));
+        console.error("[save] API error", res.status, errData);
+        setSaveStatus(`Error ${res.status}`);
         return;
       }
-      setSaveStatus("Guardado");
+      setSaveStatus("Guardado ✓");
       setLastSaved(new Date().toLocaleTimeString());
       setHasUnsaved(false);
     } catch (e) {
-      console.error(e);
-      setSaveStatus("Error al guardar");
-      alert("Error al guardar. Mira consola/Network.");
+      console.error("[save] fetch error", e);
+      setSaveStatus("Error de red");
     }
   };
 

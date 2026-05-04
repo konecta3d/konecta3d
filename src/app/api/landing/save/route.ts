@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyBusinessOwnership } from "@/lib/auth-helpers";
+import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 
 export async function POST(req: Request) {
   try {
@@ -26,8 +26,15 @@ export async function POST(req: Request) {
       businessId = biz.id;
     }
 
-    const hasOwnership = await verifyBusinessOwnership(req, businessId);
-    if (!hasOwnership) {
+    // Permitir guardar si el usuario es el propietario del negocio O es admin.
+    // Sin esto, cuando el admin edita la landing de un cliente desde
+    // /landing/new?businessId=XXX obtiene 403 porque su sesión no coincide
+    // con el user_id / contact_email del negocio.
+    const [hasOwnership, { isAdmin }] = await Promise.all([
+      verifyBusinessOwnership(req, businessId),
+      verifyAdminSession(req),
+    ]);
+    if (!hasOwnership && !isAdmin) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
