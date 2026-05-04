@@ -20,6 +20,7 @@ function LeadMagnetListContent() {
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const [businessId, setBusinessId] = useState<string>("");
+  const [advancedEnabled, setAdvancedEnabled] = useState(true);
 
   useEffect(() => {
     const paramId = searchParams.get("businessId");
@@ -28,6 +29,21 @@ function LeadMagnetListContent() {
       return;
     }
     const load = async () => {
+      // Load feature flag
+      const { data: featuresData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "features")
+        .single();
+      if (featuresData?.value) {
+        const f = typeof featuresData.value === "string"
+          ? JSON.parse(featuresData.value)
+          : featuresData.value;
+        if (typeof f.module_lead_magnet_advanced === "boolean") {
+          setAdvancedEnabled(f.module_lead_magnet_advanced);
+        }
+      }
+
       const { data: sessionData } = await supabase.auth.getSession();
       const userEmail = sessionData?.session?.user?.email || "";
       if (!userEmail) { setBusinessId(""); return; }
@@ -95,7 +111,7 @@ function LeadMagnetListContent() {
       </div>
 
       {/* Opciones de creación */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className={`grid grid-cols-1 gap-4 md:gap-6 ${advancedEnabled ? "md:grid-cols-2" : ""}`}>
         {/* Asistente */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
           <div className="text-center mb-4">
@@ -126,8 +142,8 @@ function LeadMagnetListContent() {
           </Link>
         </div>
 
-        {/* Avanzado */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+        {/* Avanzado — solo si la funcionalidad está activa */}
+        {advancedEnabled && <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold text-white">Avanzado</h2>
             <p className="text-sm text-white mt-2">
@@ -154,7 +170,7 @@ function LeadMagnetListContent() {
 >
   Crear Recurso en modo Avanzado
 </Link>
-        </div>
+        </div>}
       </div>
 
       {/* Lead Magnets generados */}

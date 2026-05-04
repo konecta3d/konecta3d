@@ -13,6 +13,10 @@ type Settings = {
   force_password_change: boolean;
 };
 
+type Features = {
+  module_lead_magnet_advanced: boolean;
+};
+
 const defaultSettings: Settings = {
   email_from: "noreply@konecta3d.com",
   email_name: "Konecta3D",
@@ -23,12 +27,18 @@ const defaultSettings: Settings = {
   force_password_change: false,
 };
 
+const defaultFeatures: Features = {
+  module_lead_magnet_advanced: true,
+};
+
 export default function AdminSettings() {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [features, setFeatures] = useState<Features>(defaultFeatures);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [activeSection, setActiveSection] = useState("email");
   const [saving, setSaving] = useState(false);
+  const [savingFeatures, setSavingFeatures] = useState(false);
   const [migrationResult, setMigrationResult] = useState<null | { results: Record<string, string>; hasMissing: boolean; sql?: string | null }>(null);
   const [migrationLoading, setMigrationLoading] = useState(false);
 
@@ -49,7 +59,7 @@ export default function AdminSettings() {
       if (data?.value) {
         const savedSettings = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
         setSettings({ ...defaultSettings, ...savedSettings });
-        
+
         // Backup to localStorage
         localStorage.setItem("konecta-settings", JSON.stringify(savedSettings));
       } else {
@@ -58,6 +68,17 @@ export default function AdminSettings() {
         if (saved) {
           setSettings({ ...defaultSettings, ...JSON.parse(saved) });
         }
+      }
+
+      // Load features flag
+      const { data: featuresData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "features")
+        .single();
+      if (featuresData?.value) {
+        const saved = typeof featuresData.value === 'string' ? JSON.parse(featuresData.value) : featuresData.value;
+        setFeatures({ ...defaultFeatures, ...saved });
       }
     } catch (err) {
       // Fallback to localStorage
@@ -98,6 +119,24 @@ export default function AdminSettings() {
     }
 
     setSaving(false);
+    setTimeout(() => setMsg(""), 3000);
+  };
+
+  const saveFeatures = async () => {
+    setSavingFeatures(true);
+    setMsg("Guardando funcionalidades...");
+    try {
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "features", value: JSON.stringify(features), updated_at: new Date().toISOString() },
+          { onConflict: "key" }
+        );
+      setMsg("Funcionalidades guardadas");
+    } catch (e) {
+      setMsg("Error al guardar");
+    }
+    setSavingFeatures(false);
     setTimeout(() => setMsg(""), 3000);
   };
 
@@ -152,6 +191,12 @@ export default function AdminSettings() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "database" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Base de datos
+        </button>
+        <button
+          onClick={() => setActiveSection("features")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "features" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+        >
+          Funcionalidades
         </button>
       </div>
 
@@ -379,16 +424,83 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={saveSettings}
-          disabled={saving}
-          className="px-6 py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? "Guardando..." : "Guardar Configuración"}
-        </button>
-      </div>
+      {/* Features Section */}
+      {activeSection === "features" && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">Funcionalidades</h2>
+            <p className="text-sm text-[var(--foreground)]/60 mb-4">
+              Activa o desactiva funcionalidades para todos los negocios de la plataforma.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* Recurso de Valor — editor Avanzado */}
+            <div className="rounded-lg border border-[var(--border)] p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-medium text-sm">Editor Avanzado — Recursos de Valor</div>
+                  <div className="text-xs text-[var(--foreground)]/60 mt-1">
+                    Cuando está activo, los negocios ven la opción &quot;Avanzado&quot; además del Asistente.
+                    Si lo desactivas, solo verán el Asistente (ocupará el ancho completo).
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFeatures((f) => ({ ...f, module_lead_magnet_advanced: !f.module_lead_magnet_advanced }))
+                  }
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                    features.module_lead_magnet_advanced ? "bg-[var(--brand-4)]" : "bg-[var(--border)]"
+                  }`}
+                  role="switch"
+                  aria-checked={features.module_lead_magnet_advanced}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${
+                      features.module_lead_magnet_advanced ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+              <div className="mt-2">
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    features.module_lead_magnet_advanced
+                      ? "bg-green-500/15 text-green-400"
+                      : "bg-red-500/15 text-red-400"
+                  }`}
+                >
+                  {features.module_lead_magnet_advanced ? "Activo" : "Desactivado"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={saveFeatures}
+              disabled={savingFeatures}
+              className="px-6 py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {savingFeatures ? "Guardando..." : "Guardar Funcionalidades"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Button (hidden on features tab — that section has its own button) */}
+      {activeSection !== "features" && (
+        <div className="flex justify-end">
+          <button
+            onClick={saveSettings}
+            disabled={saving}
+            className="px-6 py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Guardando..." : "Guardar Configuración"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

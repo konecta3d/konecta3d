@@ -7,6 +7,7 @@ import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
+import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
 type Objective = "volvieron" | "conversion" | "referidos";
@@ -168,6 +169,7 @@ function LeadMagnetWizardInner() {
   const [sn2, setSn2] = useState("");
   const [sn2En, setSn2En] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
+  const [chatMessages, setChatMessages] = useState<WizardChatMessage[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -324,6 +326,20 @@ function LeadMagnetWizardInner() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleChatApply = (changes: WizardChanges) => {
+    if (changes.objective) setObjective(changes.objective);
+    if (changes.type) setType(changes.type as LeadMagnetType);
+    if (changes.title !== undefined) setCustomTitle(changes.title);
+    if (changes.intro !== undefined) setCustomIntro(changes.intro);
+    if (changes.content !== undefined) setCustomContent(changes.content);
+    if (changes.cta1Text !== undefined) setCta1Text(changes.cta1Text);
+    if (changes.cta1Link !== undefined) setCta1Link(changes.cta1Link);
+    if (changes.cta2Text !== undefined) setCta2Text(changes.cta2Text);
+    if (changes.cta2Link !== undefined) setCta2Link(changes.cta2Link);
+    if (changes.colorBrand !== undefined) setColorBrand(changes.colorBrand);
+    if (changes.colorButton !== undefined) setColorButton(changes.colorButton);
   };
 
   const savePdf = async () => {
@@ -1019,6 +1035,22 @@ function LeadMagnetWizardInner() {
 
   const steps: WizardStep[] = ["bienvenida", "objetivo", "tipo", "contenido", "personalizacion"];
 
+  const showChat = step !== "bienvenida" && !!businessId;
+
+  const currentState: Record<string, unknown> = {
+    objective,
+    type,
+    title: customTitle,
+    intro: customIntro,
+    content: customContent,
+    cta1Text,
+    cta1Link,
+    cta2Text,
+    cta2Link,
+    colorBrand,
+    colorButton,
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
       {/* Onboarding drawer — guía paso a paso */}
@@ -1030,7 +1062,7 @@ function LeadMagnetWizardInner() {
           gptUrl={gptUrl}
         />
       )}
-      <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
+      <div className={`${showChat ? "max-w-7xl" : "max-w-5xl"} mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6`}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
@@ -1066,8 +1098,28 @@ function LeadMagnetWizardInner() {
           ))}
         </div>
 
-        <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 md:p-8">
-          {renderStep()}
+        <div className={showChat ? "flex gap-6 items-start" : ""}>
+          {/* Main wizard card */}
+          <div className={showChat ? "flex-1 min-w-0" : ""}>
+            <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 md:p-8">
+              {renderStep()}
+            </div>
+          </div>
+
+          {/* AI Chat sidebar — steps 2-5 only, lg screens */}
+          {showChat && (
+            <div className="w-80 flex-shrink-0 hidden lg:block">
+              <LeadMagnetAiChat
+                businessId={businessId}
+                businessName={businessName}
+                currentStep={step}
+                currentState={currentState}
+                messages={chatMessages}
+                onMessages={setChatMessages}
+                onApply={handleChatApply}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
