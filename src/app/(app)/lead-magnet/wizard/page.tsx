@@ -10,7 +10,15 @@ import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
-type Objective = "volvieron" | "conversion" | "referidos";
+type Objective =
+  | "volvieron"   // Retención — que los clientes actuales vuelvan
+  | "conversion"  // Upsell — aumentar ticket medio
+  | "referidos"   // Boca a boca — recomendaciones
+  | "captar"      // Captación — atraer clientes nuevos
+  | "reactivar"   // Reactivación — recuperar inactivos
+  | "educar"      // Educación — onboarding / confianza
+  | "temporada"   // Estacional — aprovechar fechas clave
+  | "lanzamiento";// Lanzamiento — presentar algo nuevo
 type WizardStep = "bienvenida" | "objetivo" | "tipo" | "contenido" | "personalizacion";
 
 const OBJECTIVE_INFO: Record<Objective, {
@@ -18,29 +26,76 @@ const OBJECTIVE_INFO: Record<Objective, {
   description: string;
   example: string;
   color: string;
+  icon: string;      // emoji representativo
+  sectors: string[]; // sectores donde encaja mejor
 }> = {
   volvieron: {
     title: "Que vuelvan",
-    description: "Motiva el retorno de clientes actuales con continuidad y seguimiento.",
-    example: "Plan de seguimiento en 3 pasos.",
-    color: "#ffb400"
+    description: "Motiva que los clientes actuales regresen con continuidad y seguimiento.",
+    example: "Plan de seguimiento post-tratamiento en 3 pasos.",
+    color: "#ffb400",
+    icon: "🔁",
+    sectors: ["Salud", "Estética", "Fitness"]
   },
   conversion: {
-    title: "Aumentar conversión",
-    description: "Aumenta el ticket medio mostrando el valor de un servicio adicional.",
-    example: "Cómo potenciar tus resultados con sesiones de refuerzo.",
-    color: "#22c55e"
+    title: "Aumentar ventas",
+    description: "Sube el ticket medio mostrando el valor de un servicio o producto adicional.",
+    example: "Por qué añadir el pack de mantenimiento tiene sentido.",
+    color: "#22c55e",
+    icon: "📈",
+    sectors: ["Todos los sectores"]
   },
   referidos: {
     title: "Conseguir referidos",
-    description: "Facilita que tus clientes satisfechos te recomienden en un solo paso.",
-    example: "Cómo recomendar en 3 pasos.",
-    color: "#a78bfa"
+    description: "Facilita que clientes satisfechos te recomienden en un solo paso.",
+    example: "Cómo recomendar mi clínica en 3 pasos y qué ganas tú.",
+    color: "#a78bfa",
+    icon: "🤝",
+    sectors: ["Servicios", "Inmobiliaria", "Legal"]
+  },
+  captar: {
+    title: "Captar clientes nuevos",
+    description: "Atrae a personas que aún no te conocen con un recurso que demuestra tu valor.",
+    example: "5 señales de que necesitas un fisioterapeuta ahora mismo.",
+    color: "#06b6d4",
+    icon: "🎯",
+    sectors: ["Comercio", "Restauración", "Retail"]
+  },
+  reactivar: {
+    title: "Recuperar inactivos",
+    description: "Recupera clientes que dejaron de venir con un mensaje de valor y sin presión.",
+    example: "Lo que cambia cuando retomas tu tratamiento después de un tiempo.",
+    color: "#f97316",
+    icon: "💡",
+    sectors: ["Salud", "Estética", "Fitness"]
+  },
+  educar: {
+    title: "Educar al cliente",
+    description: "Explica cómo funciona tu servicio para que el cliente lo entienda y confíe más.",
+    example: "Qué esperar en tu primera consulta legal: guía paso a paso.",
+    color: "#3b82f6",
+    icon: "📚",
+    sectors: ["Legal", "Financiero", "Tecnología"]
+  },
+  temporada: {
+    title: "Campaña de temporada",
+    description: "Aprovecha una fecha clave o época del año para activar a tus clientes.",
+    example: "Tu plan de puesta a punto para este verano.",
+    color: "#ec4899",
+    icon: "📅",
+    sectors: ["Comercio", "Restauración", "Fitness"]
+  },
+  lanzamiento: {
+    title: "Lanzar un servicio",
+    description: "Presenta un servicio o producto nuevo y explica por qué es relevante para tu cliente.",
+    example: "Nuevo servicio de nutrición: qué es y por qué lo hemos creado para ti.",
+    color: "#10b981",
+    icon: "🚀",
+    sectors: ["Todos los sectores"]
   }
 };
 
 const OBJECTIVE_GUIDE: Record<Objective, {
-  short: string;
   whatIs: string;
   subObjectives: string[];
   create: string;
@@ -48,46 +103,60 @@ const OBJECTIVE_GUIDE: Record<Objective, {
   example: string;
 }> = {
   volvieron: {
-    short: "Motiva el retorno con continuidad y seguimiento.",
-    whatIs: "Aumentar recurrencia de clientes actuales.",
-    subObjectives: [
-      "Recordar beneficios de volver",
-      "Reforzar continuidad",
-      "Generar progreso",
-      "Evitar abandono",
-      "Proponer siguiente paso"
-    ],
+    whatIs: "Aumentar la recurrencia de clientes actuales.",
+    subObjectives: ["Recordar beneficios de volver", "Reforzar continuidad del servicio", "Proponer el siguiente paso concreto"],
     create: "Recurso de seguimiento y continuidad.",
     format: "Recomendación o checklist.",
     example: "Plan de seguimiento en 3 pasos."
   },
   conversion: {
-    short: "Aumenta ticket medio con valor percibido.",
-    whatIs: "Mostrar el valor de un servicio adicional.",
-    subObjectives: [
-      "Beneficios del extra",
-      "Valor antes del precio",
-      "Comparar resultados",
-      "Responder objeciones",
-      "Invitar al siguiente paso"
-    ],
-    create: "Recurso que justifique el servicio premium.",
+    whatIs: "Mostrar el valor de un servicio o producto adicional antes de que el precio sea el foco.",
+    subObjectives: ["Explicar beneficios del extra", "Comparar resultados con/sin el servicio", "Resolver objeciones frecuentes"],
+    create: "Recurso que justifique la compra adicional.",
     format: "Guía comparativa o recomendación.",
-    example: "Cómo potenciar tus resultados con sesiones de refuerzo."
+    example: "Cómo potenciar tus resultados con el pack premium."
   },
   referidos: {
-    short: "Facilita recomendaciones en un solo paso.",
     whatIs: "Conseguir recomendaciones de clientes satisfechos.",
-    subObjectives: [
-      "Recordar el valor recibido",
-      "Facilitar cómo recomendar",
-      "Dar una razón clara",
-      "Hacerlo simple",
-      "Incentivar sin presión"
-    ],
-    create: "Recurso breve para recomendar.",
+    subObjectives: ["Recordar el valor recibido", "Hacer que recomendar sea fácil", "Dar un incentivo claro"],
+    create: "Recurso breve y accionable para recomendar.",
     format: "Recomendación directa o checklist.",
     example: "Cómo recomendar en 3 pasos."
+  },
+  captar: {
+    whatIs: "Atraer clientes que aún no te conocen demostrando tu expertise.",
+    subObjectives: ["Resolver una duda frecuente de clientes nuevos", "Mostrar resultados reales", "Generar urgencia de actuar"],
+    create: "Recurso de valor gratuito que posiciona al negocio como experto.",
+    format: "Guía o recomendación introductoria.",
+    example: "5 señales de que necesitas este servicio ahora."
+  },
+  reactivar: {
+    whatIs: "Recuperar clientes que han dejado de venir sin presión.",
+    subObjectives: ["Recordar el valor del servicio", "Normalizar el retorno", "Ofrecer un primer paso fácil"],
+    create: "Recurso que reduce la barrera de volver.",
+    format: "Recomendación empática o guía breve.",
+    example: "Lo que cambia cuando retomas tu tratamiento."
+  },
+  educar: {
+    whatIs: "Ayudar al cliente a entender el servicio para que confíe y decida con información.",
+    subObjectives: ["Explicar el proceso del servicio", "Desmitificar dudas o miedos comunes", "Posicionar al profesional como referente"],
+    create: "Recurso educativo que genera confianza.",
+    format: "Guía paso a paso.",
+    example: "Qué esperar en tu primera consulta."
+  },
+  temporada: {
+    whatIs: "Activar a los clientes aprovechando un momento del año relevante para ellos.",
+    subObjectives: ["Conectar el servicio con la época/fecha", "Crear sensación de momento ideal", "Proponer una acción concreta y urgente"],
+    create: "Recurso estacional que crea urgencia natural.",
+    format: "Checklist o recomendación.",
+    example: "Tu plan de puesta a punto para este verano."
+  },
+  lanzamiento: {
+    whatIs: "Presentar algo nuevo (servicio, producto, oferta) de forma que genere deseo e interés.",
+    subObjectives: ["Explicar qué es y para quién", "Mostrar el beneficio principal", "Crear un momento para actuar ya"],
+    create: "Recurso de presentación y propuesta de valor.",
+    format: "Guía o recomendación.",
+    example: "Nuevo servicio: qué es y por qué te va a cambiar."
   }
 };
 
@@ -105,21 +174,47 @@ const CTA_PRESETS = [
   "Comenzar ahora"
 ];
 
+// Plantillas base (el asistente IA las personaliza al sector/negocio)
 const TEMPLATES: Record<Objective, Record<LeadMagnetType, { title: string; intro: string; content: string; cta1: string; cta2: string }>> = {
   volvieron: {
-    guia: { title: "GUÍA: Sacarle máximo partido a tu compra", intro: "Aprende a usar tu producto correctamente.", content: "En esta guía vas a ayudar al cliente a sacar el máximo provecho de lo que ya ha comprado.\n\nEmpieza recordándole cómo debería usarlo en el día a día y qué errores debe evitar. Después, añade recomendaciones prácticas para alargar la vida del producto y disfrutarlo más.\n\nCierra el contenido invitando al lector a aprovechar una revisión, un plan de mantenimiento o un beneficio extra que ofrezcas a tus clientes actuales.", cta1: "Descargar", cta2: "Ver beneficios" },
-    checklist: { title: "CHECKLIST: Mantenimiento", intro: "Asegura la durabilidad.", content: "Limpieza semanal\nRevisión mensual\nMantenimiento trimestral", cta1: "Descargar", cta2: "Ver tips" },
-    recomendacion: { title: "Productos complementarios", intro: "Complementa tu compra.", content: "Accesorio esencial\nProducto mantenimiento\nExtension garantia", cta1: "Ver Productos", cta2: "Agregar" }
+    guia: { title: "GUÍA: Saca el máximo partido a tu experiencia", intro: "Aprende a mantener y potenciar los resultados obtenidos.", content: "En esta guía vas a ayudar al cliente a sacar el máximo provecho de lo que ya ha recibido.\n\nEmpieza recordándole qué hábitos debe mantener en el día a día para no perder los resultados. Después, añade recomendaciones prácticas para consolidar el progreso.\n\nCierra invitando al lector a dar el siguiente paso contigo.", cta1: "Reservar cita", cta2: "Ver más" },
+    checklist: { title: "CHECKLIST: Mantén tus resultados", intro: "Comprueba que sigues los pasos correctos.", content: "Aplica lo aprendido en el día a día\nSigue las indicaciones recibidas\nContacta si tienes dudas\nPlanifica tu próxima revisión", cta1: "Reservar revisión", cta2: "Contactar" },
+    recomendacion: { title: "Recomendaciones para seguir avanzando", intro: "Los próximos pasos para no perder lo conseguido.", content: "Mantén la constancia en los hábitos acordados\nEvita los errores más comunes tras el tratamiento\nPrograma una revisión de seguimiento\nContáctanos ante cualquier cambio", cta1: "Reservar cita", cta2: "Ver beneficios" }
   },
   conversion: {
-    guia: { title: "GUÍA: Por qué elegirnos", intro: "Te mostramos por qué somos la mejor opción.", content: "En esta guía el objetivo es reducir las dudas finales de tu cliente antes de decir sí.\n\nExplica con tus palabras qué te diferencia (experiencia, garantías, casos reales) y en qué situaciones tu solución es la mejor opción. Usa ejemplos sencillos que el lector pueda imaginar en su propio negocio o vida.\n\nTermina recordando qué tiene que hacer ahora para aprovechar tu oferta (por ejemplo, solicitar presupuesto, reservar una sesión o iniciar una prueba).", cta1: "Conocer más", cta2: "Presupuesto" },
-    checklist: { title: "CHECKLIST: Momento ideal", intro: "Verifica si es el mejor momento.", content: "Presupuesto disponible\nMomento adecuado\nNecesidad actual", cta1: "Verificar", cta2: "Comprar" },
-    recomendacion: { title: "Mejor elección", intro: "Análisis objetivo.", content: "Beneficio principal\nSegundo beneficio\nDiferenciador", cta1: "Solicitar info", cta2: "Pedir demo" }
+    guia: { title: "GUÍA: Por qué dar el siguiente paso tiene sentido", intro: "Te explicamos el valor real de este servicio adicional.", content: "En esta guía el objetivo es que tu cliente entienda por qué el servicio adicional vale su inversión.\n\nExplica qué resultados concretos consigue quien lo añade, cómo se diferencia de no tenerlo y qué casos reales lo respaldan.\n\nTermina con una propuesta clara y sin presión para que dé el paso.", cta1: "Conocer más", cta2: "Solicitar info" },
+    checklist: { title: "CHECKLIST: ¿Es el momento de ampliar tu servicio?", intro: "Comprueba si estás listo para dar el siguiente paso.", content: "Ya has experimentado los resultados básicos\nQuieres ir más lejos en menos tiempo\nBuscas una solución más completa\nValoras la atención personalizada", cta1: "Ampliar mi plan", cta2: "Hablar con nosotros" },
+    recomendacion: { title: "Razones para elegir el servicio completo", intro: "Lo que marca la diferencia.", content: "Resultados más rápidos y duraderos\nAtención personalizada en cada paso\nAcceso a recursos exclusivos\nSeguimiento directo con nuestro equipo", cta1: "Solicitar info", cta2: "Pedir cita" }
   },
   referidos: {
-    guia: { title: "GUÍA: Comparte y gana", intro: "Invita a tus amigos.", content: "En esta guía quieres que tu cliente vea lo fácil que es invitar a otros y qué gana por hacerlo.\n\nPrimero, explica en una frase cómo funciona tu programa de referidos. Luego describe los pasos que debe seguir (por ejemplo, compartir un enlace, hablar con un amigo, enviar un código) pero sin necesidad de numerarlos como checklist.\n\nCierra reforzando el beneficio para ambos: qué gana quien invita y qué gana la persona invitada, y qué debe hacer ahora para conseguirlo.", cta1: "Invitar", cta2: "Ver programa" },
-    checklist: { title: "CHECKLIST: Maximizar referidos", intro: "Aprovecha el programa.", content: "Redes sociales\nFamiliares\nGrupos\nCodigo personalizado", cta1: "Comenzar", cta2: "Ver Mis Referidos" },
-    recomendacion: { title: "Gana con referidos", intro: "Por cada amigo ganas.", content: "1 referido = 10%\n3 = 15%\n5 = 20%", cta1: "Ver Programa", cta2: "Comenzar" }
+    guia: { title: "GUÍA: Cómo recomendar y qué ganas tú", intro: "Invitar es fácil y tiene recompensa.", content: "En esta guía quieres que tu cliente vea lo fácil que es invitar y qué gana por hacerlo.\n\nExplica en una frase cómo funciona. Luego describe los pasos concretos que debe seguir para hacer la recomendación.\n\nCierra recordando qué gana quien recomienda y qué gana quien llega.", cta1: "Invitar ahora", cta2: "Ver programa" },
+    checklist: { title: "CHECKLIST: Recomienda en 3 pasos", intro: "Solo te lleva un minuto.", content: "Piensa en alguien que se beneficiaría de este servicio\nComparte este documento o nuestro contacto\nAvísanos que viene de tu parte\nDisfruta de tu recompensa", cta1: "Empezar a recomendar", cta2: "Ver mi recompensa" },
+    recomendacion: { title: "Por qué vale la pena recomendar", intro: "Tu recomendación tiene valor para ambos.", content: "Tu amigo recibe una atención de primera\nTú acumulas beneficios por cada recomendación\nEs el gesto más sencillo y más valorado\nNos ayudas a crecer de forma honesta", cta1: "Recomendar ahora", cta2: "Contactar" }
+  },
+  captar: {
+    guia: { title: "GUÍA: Lo que necesitas saber antes de empezar", intro: "Toda la información para tomar la mejor decisión.", content: "Esta guía está pensada para quien aún no nos conoce pero tiene curiosidad.\n\nExplica qué problema resuelve tu servicio, a quién va dirigido y qué puede esperar en el primer contacto.\n\nTermina con una invitación sin compromiso para dar el primer paso.", cta1: "Reservar primera cita", cta2: "Conocer más" },
+    checklist: { title: "CHECKLIST: ¿Eres candidato ideal?", intro: "Comprueba si este servicio es para ti.", content: "Tienes esta necesidad o problema concreto\nBuscas una solución profesional y de confianza\nValoras el trato personalizado\nQuieres resultados reales y medibles", cta1: "Solicitar información", cta2: "Hablar con nosotros" },
+    recomendacion: { title: "Razones para elegirnos desde el principio", intro: "Lo que nos hace diferentes desde el día uno.", content: "Diagnóstico inicial sin compromiso\nPlan personalizado desde la primera sesión\nResultados visibles en poco tiempo\nEquipo con amplia experiencia en tu caso", cta1: "Empezar ahora", cta2: "Ver testimonios" }
+  },
+  reactivar: {
+    guia: { title: "GUÍA: Volver es más fácil de lo que crees", intro: "Todo lo que necesitas saber para retomar donde lo dejaste.", content: "A veces la vida nos aleja de los hábitos que más nos benefician. Esta guía es para que volver sea sencillo.\n\nExplica qué ha mejorado desde la última vez, cómo se adapta el plan al punto en el que está el cliente ahora y qué resultado puede esperar en poco tiempo.\n\nTermina con una invitación directa y sin presión.", cta1: "Volver a empezar", cta2: "Hablar con nosotros" },
+    checklist: { title: "CHECKLIST: Señales de que es momento de volver", intro: "Si marcas alguna de estas, te estamos esperando.", content: "Echas de menos los resultados que tenías\nNotes que algo ha empeorado sin el servicio\nTienes tiempo y motivación de nuevo\nQuieres retomar con un plan adaptado a hoy", cta1: "Reservar cita", cta2: "Contactar" },
+    recomendacion: { title: "Por qué retomar ahora tiene sentido", intro: "Lo que ganas cuando vuelves.", content: "Recuperas resultados más rápido de lo que crees\nAdaptamos el plan a tu situación actual\nNo empezamos desde cero — seguimos desde donde estabas\nTe acompañamos sin juzgar el tiempo que ha pasado", cta1: "Reservar mi vuelta", cta2: "Ver opciones" }
+  },
+  educar: {
+    guia: { title: "GUÍA: Cómo funciona nuestro servicio paso a paso", intro: "Todo lo que necesitas saber antes, durante y después.", content: "Muchos clientes llegan con dudas sobre cómo funciona el proceso. Esta guía lo explica de forma sencilla.\n\nDescribe las fases del servicio, qué hace el profesional en cada etapa y qué se espera del cliente.\n\nTermina con las preguntas más frecuentes y una invitación a resolver cualquier duda.", cta1: "Reservar primera cita", cta2: "Preguntar ahora" },
+    checklist: { title: "CHECKLIST: Prepárate para tu primera cita", intro: "Lo que debes saber y traer el primer día.", content: "Lee este documento completo antes de venir\nPrepara las preguntas que tienes en mente\nTrae toda la documentación relevante\nLlega con tiempo para el proceso inicial", cta1: "Reservar cita", cta2: "Ver más info" },
+    recomendacion: { title: "Lo que debes saber sobre este servicio", intro: "Información clave para tomar la mejor decisión.", content: "En qué consiste el servicio exactamente\nCuánto tiempo dura el proceso típico\nQué resultados son realistas esperar\nCómo se trabaja de forma personalizada contigo", cta1: "Pedir más info", cta2: "Reservar consulta" }
+  },
+  temporada: {
+    guia: { title: "GUÍA: Tu plan para esta temporada", intro: "Aprovecha este momento para cuidarte como mereces.", content: "Esta época del año es perfecta para ponerte al día con tu bienestar y objetivos.\n\nExplica por qué ahora es el momento ideal para tu servicio, qué resultados puede conseguir el cliente antes de que termine la temporada y cómo aprovechar al máximo este periodo.\n\nTermina con una oferta o invitación de tiempo limitado.", cta1: "Reservar ahora", cta2: "Ver la oferta" },
+    checklist: { title: "CHECKLIST: Objetivos de temporada", intro: "Lo que puedes conseguir antes de que acabe.", content: "Define tu objetivo principal para esta temporada\nReserva tus citas con antelación\nSigue el plan personalizado al completo\nComparte los resultados con nosotros", cta1: "Empezar ya", cta2: "Contactar" },
+    recomendacion: { title: "Razones para actuar esta temporada", intro: "Hay momentos mejores que otros. Este es uno.", content: "Los resultados llegan más rápido si empiezas ahora\nLa disponibilidad es limitada en esta época\nTienes un plan adaptado a la temporada\nEl momento de mayor motivación es ahora", cta1: "Reservar mi plaza", cta2: "Ver disponibilidad" }
+  },
+  lanzamiento: {
+    guia: { title: "GUÍA: Te presentamos algo nuevo", intro: "Creado específicamente para ti y tus necesidades.", content: "Hemos trabajado para crear algo que no existía antes en nuestra oferta.\n\nExplica qué es el nuevo servicio, para quién es ideal y qué problema resuelve que antes no tenías cubierto.\n\nTermina con una invitación para ser de los primeros en probarlo.", cta1: "Quiero ser el primero", cta2: "Saber más" },
+    checklist: { title: "CHECKLIST: ¿Es este servicio para ti?", intro: "Comprueba si encaja con lo que buscas.", content: "Tienes la necesidad que este servicio resuelve\nBuscas una solución profesional y actualizada\nQuieres resultados desde el primer momento\nValoras ser de los primeros en acceder", cta1: "Apuntarme", cta2: "Contactar" },
+    recomendacion: { title: "Por qué este lanzamiento es diferente", intro: "Lo que lo hace especial.", content: "Diseñado a partir de las necesidades reales de nuestros clientes\nMejora lo que ya existía con resultados probados\nAcceso exclusivo para clientes actuales en la primera fase\nEquipo especializado desde el primer día", cta1: "Acceder ahora", cta2: "Más información" }
   }
 };
 
@@ -561,81 +656,97 @@ function LeadMagnetWizardInner() {
       case "objetivo":
         return (
           <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Cuál es tu objetivo?</h2>
-              <p className="text-white">Selecciona el propósito de tu recurso de valor</p>
+            <div className="text-center mb-6">
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Qué quieres conseguir con este recurso?</h2>
+              <p className="text-white/70 text-sm">Elige el objetivo y el asistente adaptará el contenido a tu negocio</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {(Object.entries(OBJECTIVE_INFO) as [Objective, typeof OBJECTIVE_INFO[Objective]][]).map(([key, info]) => {
                 const guide = OBJECTIVE_GUIDE[key];
                 const isOpen = openGuide === key;
+                const isSelected = objective === key;
 
                 return (
                   <div
                     key={key}
-                    className="p-4 md:p-6 rounded-xl transition-all border-2"
+                    className="rounded-xl transition-all border-2 overflow-hidden"
                     style={{
-                      borderColor: objective === key ? info.color : "rgba(255,255,255,0.1)",
-                      backgroundColor: objective === key ? `${info.color}15` : "rgba(255,255,255,0.05)"
+                      borderColor: isSelected ? info.color : "rgba(255,255,255,0.1)",
+                      backgroundColor: isSelected ? `${info.color}18` : "rgba(255,255,255,0.04)"
                     }}
                   >
+                    {/* Card principal — clickable */}
                     <button
                       type="button"
-                      onClick={() => setObjective(key)}
-                      className="w-full text-left"
+                      onClick={() => { setObjective(key); setOpenGuide(null); }}
+                      className="w-full text-left p-3 md:p-4"
                     >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: info.color }}></div>
-                        <h3 className="text-lg font-bold" style={{ color: "#ffffff" }}>{info.title}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{info.icon}</span>
+                        {isSelected && (
+                          <span className="ml-auto w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                            style={{ backgroundColor: info.color, color: "#000" }}>✓</span>
+                        )}
                       </div>
-                      <p className="text-sm text-white mb-3">{info.description}</p>
-                      <div className="text-xs text-white italic">Ej: {info.example}</div>
+                      <h3 className="text-sm font-bold leading-tight mb-1" style={{ color: "#ffffff" }}>{info.title}</h3>
+                      <p className="text-[11px] text-white/60 leading-snug">{info.description}</p>
+                      {/* Sector tags */}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {info.sectors.map((s) => (
+                          <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full border border-white/15 text-white/50">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
                     </button>
 
-                    <div className="mt-3">
+                    {/* Toggle detalle */}
+                    <div className="px-3 pb-3">
                       <button
                         type="button"
                         onClick={() => setOpenGuide(isOpen ? null : key)}
-                        className="text-xs px-3 py-1 rounded border border-white/20 text-white hover:bg-white/10"
+                        className="text-[10px] text-white/40 hover:text-white/70 flex items-center gap-1"
                       >
-                        {isOpen ? "Ocultar guía" : "Ver guía"}
+                        {isOpen ? "▲ ocultar" : "▼ más info"}
                       </button>
-                    </div>
-
-                    {isOpen && guide && (
-                      <div className="mt-4 text-sm text-white space-y-3">
-                        <div><strong>Qué es:</strong> {guide.whatIs}</div>
-                        <div>
-                          <strong>Sub‑objetivos:</strong>
-                          <ul className="list-disc list-inside mt-2 space-y-1">
-                            {guide.subObjectives.map((s, i) => (
-                              <li key={i}>{s}</li>
-                            ))}
-                          </ul>
+                      {isOpen && guide && (
+                        <div className="mt-2 text-[11px] text-white/70 space-y-1 border-t border-white/10 pt-2">
+                          <div><strong className="text-white/90">Qué consigues:</strong> {guide.whatIs}</div>
+                          <div><strong className="text-white/90">Formato:</strong> {guide.format}</div>
+                          <div><strong className="text-white/90">Ejemplo:</strong> <span className="italic">{guide.example}</span></div>
                         </div>
-                        <div><strong>Qué crear:</strong> {guide.create}</div>
-                        <div><strong>Formato recomendado:</strong> {guide.format}</div>
-                        <div><strong>Ejemplo:</strong> {guide.example}</div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
+            {/* Resumen del objetivo seleccionado */}
+            {objective && (
+              <div className="rounded-xl p-4 border border-white/10 bg-white/5 flex items-start gap-3">
+                <span className="text-2xl">{OBJECTIVE_INFO[objective].icon}</span>
+                <div>
+                  <div className="text-sm font-bold text-white">{OBJECTIVE_INFO[objective].title}</div>
+                  <div className="text-xs text-white/60 mt-0.5">{OBJECTIVE_INFO[objective].description}</div>
+                  <div className="text-xs text-white/40 mt-1 italic">Ej: {OBJECTIVE_INFO[objective].example}</div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
               <button
                 onClick={() => setStep("bienvenida")}
-                className="px-6 py-3 rounded-full border border-white/20"
-                style={{ color: "#ffffff" }}
+                className="px-6 py-3 rounded-full border border-white/20 text-white"
               >
-                Atras
+                Atrás
               </button>
               <button
                 onClick={() => setStep("tipo")}
                 className="px-8 py-3 rounded-full bg-[#ffb400] text-black font-bold"
               >
-                Continuar
+                Continuar con &quot;{OBJECTIVE_INFO[objective].title}&quot;
               </button>
             </div>
           </div>

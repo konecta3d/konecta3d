@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 // Mirror the type from the API route (avoids importing server code in client)
 export type WizardChanges = {
-  objective?: "volvieron" | "conversion" | "referidos";
+  objective?: "volvieron" | "conversion" | "referidos" | "captar" | "reactivar" | "educar" | "temporada" | "lanzamiento";
   type?: "guia" | "checklist" | "recomendacion";
   title?: string;
   intro?: string;
@@ -36,11 +36,13 @@ interface Props {
   onApply: (changes: WizardChanges) => void;
 }
 
+// Estas sugerencias pre-rellenan el input al cambiar de paso.
+// El usuario las puede editar antes de enviar o directamente pulsar Enviar.
 const STEP_SUGGESTIONS: Record<string, string> = {
-  objetivo: "¿Qué objetivo me recomiendas para mi negocio?",
-  tipo: "¿Qué tipo de recurso me recomiendas para mi objetivo?",
-  contenido: "¿Puedes sugerirme el contenido completo para el recurso?",
-  personalizacion: "¿Qué colores y texto de botones me recomiendas?",
+  objetivo: "Según mi perfil de negocio, ¿cuáles son los 2 objetivos más adecuados para mi primer Recurso de Valor? Recomiéndame el mejor.",
+  tipo: "Según el objetivo que hemos elegido, ¿qué formato de recurso (guía, checklist o recomendación) funcionará mejor para mis clientes?",
+  contenido: "Crea el contenido completo del recurso adaptado a mi negocio. Que sea específico y listo para usar tal cual.",
+  personalizacion: "¿Qué colores y textos de botones recomiendas para este documento? Usa los colores de mi marca si los tienes.",
 };
 
 type ProfileState = "loading" | "incomplete" | "ready";
