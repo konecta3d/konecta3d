@@ -156,9 +156,28 @@ export default function LeadMagnetAiChat({
         }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const errCode = (errBody as Record<string, string>).error || "";
+        console.error("[LeadMagnetAiChat] API error", res.status, errBody);
 
+        const userMessages: Record<string, string> = {
+          "No autorizado":     "Error 403 — sesión no reconocida. Recarga la página e inténtalo de nuevo.",
+          "missing_fields":    "Error interno: faltan datos en la petición. Recarga la página.",
+          "openai_key_missing":"El asistente IA no está configurado aún. Contacta con el administrador para activarlo.",
+          "openai_error":      "Error al conectar con el asistente IA. Inténtalo de nuevo en unos segundos.",
+          "openai_empty_response": "El asistente no devolvió respuesta. Inténtalo de nuevo.",
+          "openai_invalid_json":   "Respuesta inesperada del asistente. Inténtalo de nuevo.",
+          "server_error":      "Error interno del servidor. Inténtalo de nuevo en unos segundos.",
+        };
+        const friendlyMsg = userMessages[errCode]
+          || `Error ${res.status}${errCode ? ` (${errCode})` : ""}. Inténtalo de nuevo.`;
+
+        onMessages([...next, { role: "assistant", content: friendlyMsg, changes: null, timestamp: new Date().toISOString() }]);
+        return;
+      }
+
+      const data = await res.json();
       const assistantMsg: WizardChatMessage = {
         role: "assistant",
         content: data.message || "(respuesta vacía)",
@@ -172,7 +191,7 @@ export default function LeadMagnetAiChat({
         ...next,
         {
           role: "assistant",
-          content: "Hubo un error al contactar el asistente. Inténtalo de nuevo.",
+          content: "No se pudo contactar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
           changes: null,
           timestamp: new Date().toISOString(),
         },

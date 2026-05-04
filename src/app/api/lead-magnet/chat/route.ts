@@ -33,6 +33,11 @@ interface ChatRequest {
 
 export async function POST(req: Request) {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("[lead-magnet/chat] OPENAI_API_KEY no configurada");
+      return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
+    }
+
     const body = (await req.json()) as ChatRequest;
     const { businessId, currentState, messages, userMessage, currentStep } = body;
 
