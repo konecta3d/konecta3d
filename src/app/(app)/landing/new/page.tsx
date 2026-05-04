@@ -1378,35 +1378,47 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            {/* Marco de móvil — 390px escalado dinámicamente al ancho disponible */}
+            {/* Marco de móvil — viewport fijo (750 px) + contenido scrollable interno */}
             <div ref={previewWrapRef} className="w-full">
+              {/* Contenedor exterior: simula el cristal del teléfono */}
               <div
                 ref={previewRef}
                 className="mx-auto rounded-[28px] border border-[var(--border)] overflow-hidden"
                 style={{
-                  width: Math.round(390 * previewScale),
-                  // Altura = altura real del contenido × escala (nunca corta el fondo)
-                  height: Math.round(previewContentHeight * previewScale),
+                  width:  Math.round(390 * previewScale),
+                  // 750 px = viewport típico de móvil. El contenido puede ser más largo
+                  // y el usuario lo verá desplazando dentro del marco.
+                  height: Math.round(750 * previewScale),
                   position: "relative",
-                  // isolation:isolate fuerza un stacking context nuevo → overflow+border-radius
-                  // recorta correctamente contenido con transform en navegadores modernos
                   isolation: "isolate",
                 }}
               >
+                {/* Área de scroll a escala real (390 × 750); el transform la escala */}
                 <div
-                  ref={previewContentRef}
                   style={{
-                    width: 390,
-                    transform: `scale(${previewScale})`,
-                    transformOrigin: "top left",
+                    width:    390,
+                    height:   750,
+                    overflow: "auto",
+                    // Ocultar scrollbar pero mantener funcionalidad
+                    scrollbarWidth: "none",
                     position: "absolute",
                     top: 0,
                     left: 0,
+                    transform:       `scale(${previewScale})`,
+                    transformOrigin: "top left",
                   }}
                 >
-                  <LandingRenderer config={config} toolsEnabled={true} />
+                  <div ref={previewContentRef}>
+                    <LandingRenderer config={config} toolsEnabled={true} />
+                  </div>
                 </div>
               </div>
+              {/* Indicador cuando la landing es más larga que el viewport */}
+              {previewContentHeight > 750 && (
+                <p className="mt-2 text-center text-[10px] text-[var(--foreground)]/40">
+                  ↕ La landing continúa ({previewContentHeight}px) — desliza dentro del marco
+                </p>
+              )}
             </div>
           </div>
         </div>
