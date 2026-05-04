@@ -34,7 +34,11 @@ export default function LandingNew() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [businessName, setBusinessName] = useState("");
+  const [hasUnsaved, setHasUnsaved] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  // Evita autoguardar en la carga inicial (solo cuando el usuario cambia algo)
+  const initialLoadDone = useRef(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // El chat se abre por defecto en pantallas xl (≥1280px); colapsado debajo
   useEffect(() => {
@@ -64,6 +68,19 @@ export default function LandingNew() {
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
   }, []);
+
+  // Autoguardar 1.5s después del último cambio de config (no en la carga inicial)
+  useEffect(() => {
+    if (!initialLoadDone.current || !businessId) return;
+    setHasUnsaved(true);
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      saveNow();
+    }, 1500);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  // saveNow se declara abajo pero es estable — no hace falta incluirla como dep
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   // Medir altura real de LandingRenderer para que el contenedor no corte el fondo
   useEffect(() => {
@@ -157,6 +174,9 @@ useEffect(() => {
       const merged = { ...defaultLandingConfig, ...c };
       setConfig({ ...merged, businessName: merged.businessName || bizName, logoUrl: merged.logoUrl || businessLogo });
     }
+    // Marcar carga inicial completada: a partir de aquí los cambios de config
+    // disparan el autoguardado
+    initialLoadDone.current = true;
   };
 
   load();
@@ -192,6 +212,7 @@ useEffect(() => {
       }
       setSaveStatus("Guardado");
       setLastSaved(new Date().toLocaleTimeString());
+      setHasUnsaved(false);
     } catch (e) {
       console.error(e);
       setSaveStatus("Error al guardar");
@@ -263,7 +284,8 @@ useEffect(() => {
         {/* Barra de guardado */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={() => {
+            <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={async () => {
+              await saveNow();
               localStorage.setItem("konecta-landing-preview", JSON.stringify(config));
               window.open(`/l/${slug}/NFC?preview=1`, "_blank");
             }}>
@@ -297,6 +319,12 @@ useEffect(() => {
             )}
           </div>
   <div className="flex items-center gap-3">
+    {hasUnsaved && saveStatus !== "Guardando..." && (
+      <span className="flex items-center gap-1 text-xs text-amber-400">
+        <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
+        Sin guardar
+      </span>
+    )}
     <button onClick={saveNow} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black" >
       Guardar cambios
     </button>
@@ -1328,7 +1356,8 @@ useEffect(() => {
                 <button
                   type="button"
                   className="rounded-md border border-[var(--border)] px-3 py-1 text-xs"
-                  onClick={() => {
+                  onClick={async () => {
+                    await saveNow();
                     localStorage.setItem(
                       "konecta-landing-preview",
                       JSON.stringify(config),
