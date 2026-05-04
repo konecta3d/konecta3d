@@ -30,6 +30,7 @@ export default function LandingNew() {
   const [leadMagnets, setLeadMagnets] = useState<LeadMagnet[]>([]);
   const [modules, setModules] = useState({ vip_benefits: true, lead_magnet: true });
   const [moduleGpt, setModuleGpt] = useState(false);
+  const [moduleAiLanding, setModuleAiLanding] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const [guideOpen, setGuideOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -143,7 +144,7 @@ useEffect(() => {
 
   const load = async () => {
     const [bizRes, landingRes, benefitsRes, leadMagnetsRes, settingsRes] = await Promise.all([
-      supabase.from("businesses").select("name, slug, logo_url, module_vip_benefits, module_lead_magnet, module_gpt").eq("id", businessId).single(),
+      supabase.from("businesses").select("name, slug, logo_url, module_vip_benefits, module_lead_magnet, module_gpt, module_ai_landing").eq("id", businessId).single(),
       supabase.from("landing_configs").select("config").eq("business_id", businessId).single(),
       supabase.from("benefits").select("id, title").eq("business_id", businessId).order("created_at", { ascending: false }),
       supabase.from("lead_magnets").select("id, title, pdf_url").eq("business_id", businessId).order("created_at", { ascending: false }),
@@ -160,6 +161,7 @@ useEffect(() => {
       lead_magnet: biz?.module_lead_magnet ?? true,
     });
     setModuleGpt(biz?.module_gpt ?? false);
+    setModuleAiLanding(biz?.module_ai_landing ?? false);
     if (settingsRes.data?.value) {
       try {
         const url = typeof settingsRes.data.value === "string"
@@ -313,7 +315,7 @@ useEffect(() => {
                 {guideOpen ? "Cerrar guía" : "Guía de Personalización"}
               </button>
             )}
-            {businessId && (
+            {businessId && moduleAiLanding && (
               <button
                 type="button"
                 onClick={() => setChatOpen(!chatOpen)}
@@ -353,7 +355,7 @@ useEffect(() => {
 
         <div className={`grid grid-cols-1 gap-6 ${chatOpen ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
           {/* Panel de chat IA — primera columna cuando está abierto */}
-          {chatOpen && businessId && (
+          {chatOpen && businessId && moduleAiLanding && (
             <LandingAiChat
               businessId={businessId}
               businessName={businessName}

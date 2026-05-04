@@ -23,6 +23,8 @@ type Business = {
   module_whatsapp: boolean;
   module_gpt: boolean;
   multi_landing_enabled: boolean;
+  module_ai_landing: boolean;
+  module_ai_recursos: boolean;
 };
 
 export default function BusinessDetail() {
@@ -224,6 +226,34 @@ export default function BusinessDetail() {
                 className="accent-amber-500"
               />
               <span className={business.module_gpt ? "text-amber-400 font-medium" : "opacity-50"}>GPT de Fidelización</span>
+            </label>
+
+            {/* IA PREMIUM — upsell */}
+            <div className="text-xs uppercase tracking-wide text-[var(--brand-4)] mt-4 mb-1 flex items-center gap-1">
+              IA Premium
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--brand-4)]/20 text-[var(--brand-4)] font-bold normal-case">Upsell</span>
+            </div>
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+              <input
+                type="checkbox"
+                checked={business.module_ai_landing ?? false}
+                onChange={(e) => updateModule("module_ai_landing", e.target.checked)}
+                className="accent-[var(--brand-4)]"
+              />
+              <span className={business.module_ai_landing ? "text-[var(--brand-4)] font-medium" : "opacity-50"}>
+                Asistente IA — Landing
+              </span>
+            </label>
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+              <input
+                type="checkbox"
+                checked={business.module_ai_recursos ?? false}
+                onChange={(e) => updateModule("module_ai_recursos", e.target.checked)}
+                className="accent-[var(--brand-4)]"
+              />
+              <span className={business.module_ai_recursos ? "text-[var(--brand-4)] font-medium" : "opacity-50"}>
+                Asistente IA — Recursos de Valor
+              </span>
             </label>
 
             {/* VER COMO NEGOCIO */}

@@ -233,6 +233,7 @@ function LeadMagnetWizardInner() {
   const searchParams = useSearchParams();
   const [businessId, setBusinessId] = useState("");
   const [moduleGpt, setModuleGpt] = useState(false);
+  const [moduleAiRecursos, setModuleAiRecursos] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const [advancedEnabled, setAdvancedEnabled] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -297,7 +298,7 @@ function LeadMagnetWizardInner() {
       setBusinessId(bid);
 
       const [bizData, settingsData, featuresData] = await Promise.all([
-        supabase.from("businesses").select("name, logo_url, module_gpt").eq("id", bid).single(),
+        supabase.from("businesses").select("name, logo_url, module_gpt, module_ai_recursos").eq("id", bid).single(),
         supabase.from("settings").select("value").eq("key", "gpt_url").single(),
         supabase.from("settings").select("value").eq("key", "features").single(),
       ]);
@@ -305,6 +306,7 @@ function LeadMagnetWizardInner() {
       if (data?.name) setBusinessName(data.name);
       if (data?.logo_url) setLogoUrl(data.logo_url);
       setModuleGpt(data?.module_gpt ?? false);
+      setModuleAiRecursos(data?.module_ai_recursos ?? false);
       if (settingsData.data?.value) {
         try {
           const url = typeof settingsData.data.value === "string"
@@ -1211,7 +1213,7 @@ function LeadMagnetWizardInner() {
 
   const steps: WizardStep[] = ["bienvenida", "objetivo", "tipo", "contenido", "personalizacion"];
 
-  const showChat = step !== "bienvenida" && !!businessId;
+  const showChat = step !== "bienvenida" && !!businessId && moduleAiRecursos;
 
   const currentState: Record<string, unknown> = {
     objective,
