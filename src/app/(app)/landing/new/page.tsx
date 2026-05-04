@@ -56,7 +56,11 @@ export default function LandingNew() {
   // Altura real del contenido renderizado (medida con ResizeObserver)
   const [previewContentHeight, setPreviewContentHeight] = useState(820);
 
+  // ResizeObserver en el wrapper del preview: actualiza la escala cada vez que
+  // cambie el ancho del contenedor (resize de ventana O cambio de columnas al
+  // abrir/cerrar el chat IA). window.resize solo no es suficiente.
   useEffect(() => {
+    if (!previewWrapRef.current) return;
     const updateScale = () => {
       if (previewWrapRef.current) {
         const available = previewWrapRef.current.clientWidth;
@@ -64,9 +68,10 @@ export default function LandingNew() {
         setPreviewScale(scale);
       }
     };
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
+    updateScale(); // Cálculo inicial
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(previewWrapRef.current);
+    return () => ro.disconnect();
   }, []);
 
   // Autoguardar 1.5s después del último cambio de config (no en la carga inicial)
@@ -174,9 +179,13 @@ useEffect(() => {
       const merged = { ...defaultLandingConfig, ...c };
       setConfig({ ...merged, businessName: merged.businessName || bizName, logoUrl: merged.logoUrl || businessLogo });
     }
-    // Marcar carga inicial completada: a partir de aquí los cambios de config
-    // disparan el autoguardado
-    initialLoadDone.current = true;
+    // Marcar carga inicial completada DESPUÉS del ciclo de render actual.
+    // Si lo marcamos sincrónicamente aquí, el efecto [config] lo ve a true
+    // durante el re-render que causa setConfig y dispara un autoguardado
+    // innecesario (403 cuando el admin accede con ?businessId=).
+    // setTimeout(0) garantiza que el flag se pone en el siguiente "tick",
+    // una vez que React ya procesó el setConfig.
+    setTimeout(() => { initialLoadDone.current = true; }, 0);
   };
 
   load();
