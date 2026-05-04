@@ -47,13 +47,15 @@ export default function LandingNew() {
   }, []);
   // Scale dinámico: el preview de 390px se escala al ancho disponible del contenedor
   const previewWrapRef = useRef<HTMLDivElement>(null);
+  const previewContentRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.923);
+  // Altura real del contenido renderizado (medida con ResizeObserver)
+  const [previewContentHeight, setPreviewContentHeight] = useState(820);
 
   useEffect(() => {
     const updateScale = () => {
       if (previewWrapRef.current) {
         const available = previewWrapRef.current.clientWidth;
-        // La landing interior tiene 390px; escalar para encajar en el contenedor
         const scale = Math.min(0.923, available / 390);
         setPreviewScale(scale);
       }
@@ -61,6 +63,17 @@ export default function LandingNew() {
     updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
+  }, []);
+
+  // Medir altura real de LandingRenderer para que el contenedor no corte el fondo
+  useEffect(() => {
+    if (!previewContentRef.current) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const h = entry.contentRect.height;
+      if (h > 0) setPreviewContentHeight(Math.ceil(h));
+    });
+    ro.observe(previewContentRef.current);
+    return () => ro.disconnect();
   }, []);
 
   const update = (patch: Partial<LandingConfig>) =>
@@ -1331,14 +1344,19 @@ useEffect(() => {
             <div ref={previewWrapRef} className="w-full">
               <div
                 ref={previewRef}
-                className="mx-auto rounded-[28px] border border-[var(--border)] bg-transparent overflow-hidden"
+                className="mx-auto rounded-[28px] border border-[var(--border)] overflow-hidden"
                 style={{
                   width: Math.round(390 * previewScale),
-                  height: Math.round(760 * (previewScale / 0.923)),
+                  // Altura = altura real del contenido × escala (nunca corta el fondo)
+                  height: Math.round(previewContentHeight * previewScale),
                   position: "relative",
+                  // isolation:isolate fuerza un stacking context nuevo → overflow+border-radius
+                  // recorta correctamente contenido con transform en navegadores modernos
+                  isolation: "isolate",
                 }}
               >
                 <div
+                  ref={previewContentRef}
                   style={{
                     width: 390,
                     transform: `scale(${previewScale})`,
@@ -1348,9 +1366,7 @@ useEffect(() => {
                     left: 0,
                   }}
                 >
-                  <div className="overflow-hidden">
-                    <LandingRenderer config={config} toolsEnabled={true} />
-                  </div>
+                  <LandingRenderer config={config} toolsEnabled={true} />
                 </div>
               </div>
             </div>
