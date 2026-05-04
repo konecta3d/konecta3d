@@ -682,10 +682,9 @@ function LeadMagnetWizardInner() {
                       onClick={() => { setObjective(key); setOpenGuide(null); }}
                       className="w-full text-left p-3 md:p-4"
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">{info.icon}</span>
+                      <div className="flex items-center justify-between mb-2">
                         {isSelected && (
-                          <span className="ml-auto w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                          <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
                             style={{ backgroundColor: info.color, color: "#000" }}>✓</span>
                         )}
                       </div>
@@ -725,13 +724,10 @@ function LeadMagnetWizardInner() {
 
             {/* Resumen del objetivo seleccionado */}
             {objective && (
-              <div className="rounded-xl p-4 border border-white/10 bg-white/5 flex items-start gap-3">
-                <span className="text-2xl">{OBJECTIVE_INFO[objective].icon}</span>
-                <div>
-                  <div className="text-sm font-bold text-white">{OBJECTIVE_INFO[objective].title}</div>
-                  <div className="text-xs text-white/60 mt-0.5">{OBJECTIVE_INFO[objective].description}</div>
-                  <div className="text-xs text-white/40 mt-1 italic">Ej: {OBJECTIVE_INFO[objective].example}</div>
-                </div>
+              <div className="rounded-xl p-4 border border-white/10 bg-white/5">
+                <div className="text-sm font-bold text-white">{OBJECTIVE_INFO[objective].title}</div>
+                <div className="text-xs text-white/60 mt-0.5">{OBJECTIVE_INFO[objective].description}</div>
+                <div className="text-xs text-white/40 mt-1 italic">Ej: {OBJECTIVE_INFO[objective].example}</div>
               </div>
             )}
 
