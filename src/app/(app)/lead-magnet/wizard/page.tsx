@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
@@ -123,20 +123,26 @@ const TEMPLATES: Record<Objective, Record<LeadMagnetType, { title: string; intro
   }
 };
 
+import { Suspense } from "react";
+
 export default function LeadMagnetWizard() {
   return (
-    <div className="lm-wizard">
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-white">Cargando...</div>}>
       <LeadMagnetWizardInner />
-    </div>
+    </Suspense>
   );
 }
 
 function LeadMagnetWizardInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [businessId, setBusinessId] = useState("");
   const [moduleGpt, setModuleGpt] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Tracks whether content fields have been customized (either by user edit or loaded from DB).
+  // When true, changing objective/type in step 3 does NOT overwrite title/intro/content.
+  const contentCustomized = useRef(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
@@ -172,18 +178,28 @@ function LeadMagnetWizardInner() {
   const [chatMessages, setChatMessages] = useState<WizardChatMessage[]>([]);
 
   useEffect(() => {
+    const editId = searchParams.get("edit");
+    const stepParam = searchParams.get("step") as WizardStep | null;
+    const bidParam = searchParams.get("businessId");
+
     const load = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email || "";
-      if (!userEmail) return;
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("contact_email", userEmail)
-        .single();
-      const bid = biz?.id || "";
+      let bid = bidParam || "";
+
+      if (!bid) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userEmail = sessionData?.session?.user?.email || "";
+        if (!userEmail) return;
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("contact_email", userEmail)
+          .single();
+        bid = biz?.id || "";
+      }
+
       if (!bid) return;
       setBusinessId(bid);
+
       const [bizData, settingsData] = await Promise.all([
         supabase.from("businesses").select("name, logo_url, module_gpt").eq("id", bid).single(),
         supabase.from("settings").select("value").eq("key", "gpt_url").single(),
@@ -200,11 +216,50 @@ function LeadMagnetWizardInner() {
           if (url) setGptUrl(url);
         } catch { /* keep default */ }
       }
+
+      // If editing an existing resource, load its data
+      if (editId) {
+        setEditingId(editId);
+        const { data: lm } = await supabase
+          .from("lead_magnets")
+          .select("*")
+          .eq("id", editId)
+          .single();
+        if (lm) {
+          // Mark content as already customized before setting state, so the
+          // template useEffect (which may fire after these setStates) doesn't overwrite.
+          contentCustomized.current = true;
+          if (lm.objective) setObjective(lm.objective as Objective);
+          if (lm.type) setType(lm.type as LeadMagnetType);
+          if (lm.title) setCustomTitle(lm.title);
+          if (lm.intro) setCustomIntro(lm.intro);
+          if (lm.content) setCustomContent(lm.content);
+          if (lm.cta1_text !== undefined) setCta1Text(lm.cta1_text ?? "");
+          if (lm.cta1_link !== undefined) setCta1Link(lm.cta1_link ?? "");
+          if (lm.cta2_text !== undefined) setCta2Text(lm.cta2_text ?? "");
+          if (lm.cta2_link !== undefined) setCta2Link(lm.cta2_link ?? "");
+          if (lm.cta1_enabled !== undefined) setCta1Enabled(lm.cta1_enabled ?? true);
+          if (lm.cta2_enabled !== undefined) setCta2Enabled(lm.cta2_enabled ?? true);
+          if (lm.color_brand) setColorBrand(lm.color_brand);
+          if (lm.color_tag) setColorTag(lm.color_tag);
+          if (lm.color_title) setColorTitle(lm.color_title);
+          if (lm.color_button) setColorButton(lm.color_button);
+          if (lm.sn1) setSn1(lm.sn1);
+          if (lm.sn2) setSn2(lm.sn2);
+          if (lm.sn1_en !== undefined) setSn1En(lm.sn1_en ?? true);
+          if (lm.sn2_en !== undefined) setSn2En(lm.sn2_en ?? true);
+        }
+        // Navigate to the requested step (default "tipo" for edit mode)
+        setStep(stepParam || "tipo");
+      }
     };
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // Only apply templates when content hasn't been customized (new resource, not yet edited)
+    if (contentCustomized.current) return;
     const template = TEMPLATES[objective]?.[type];
     if (template) {
       setCustomTitle(template.title);
@@ -651,7 +706,7 @@ function LeadMagnetWizardInner() {
                 <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-2">Titulo del documento</label>
                 <textarea
                   value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
+                  onChange={(e) => { contentCustomized.current = true; setCustomTitle(e.target.value); }}
                   rows={2}
                   className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
                   style={{ color: "#ffffff" }}
@@ -662,7 +717,7 @@ function LeadMagnetWizardInner() {
                 <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-2">Descripcion inicial</label>
                 <textarea
                   value={customIntro}
-                  onChange={(e) => setCustomIntro(e.target.value)}
+                  onChange={(e) => { contentCustomized.current = true; setCustomIntro(e.target.value); }}
                   rows={2}
                   className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
                   style={{ color: "#ffffff" }}
@@ -678,6 +733,7 @@ function LeadMagnetWizardInner() {
                     value={customContent}
                     onChange={(e) => {
                       if (e.target.value.length <= MAX_CONTENT_CHARS) {
+                        contentCustomized.current = true;
                         setCustomContent(e.target.value);
                       }
                     }}
@@ -709,6 +765,7 @@ function LeadMagnetWizardInner() {
                       type="button"
                       onClick={() => {
                         if (!newPoint.trim()) return;
+                        contentCustomized.current = true;
                         const updated = [...parsedPoints, newPoint.trim()];
                         setCustomContent(updated.join("\n"));
                         setNewPoint("");

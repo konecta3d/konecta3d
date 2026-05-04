@@ -226,7 +226,11 @@ function LeadMagnetListContent() {
                     </span>
                   )}
                   <Link
-                    href={businessId ? `/lead-magnet/new?businessId=${businessId}&edit=${lm.id}` : `/lead-magnet/new?edit=${lm.id}`}
+                    href={
+                      advancedEnabled
+                        ? (businessId ? `/lead-magnet/new?businessId=${businessId}&edit=${lm.id}` : `/lead-magnet/new?edit=${lm.id}`)
+                        : (businessId ? `/lead-magnet/wizard?businessId=${businessId}&edit=${lm.id}&step=tipo` : `/lead-magnet/wizard?edit=${lm.id}&step=tipo`)
+                    }
                     className="text-xs px-3 py-1 border border-[var(--border)] rounded hover:bg-white/5"
                   >
                     Editar
