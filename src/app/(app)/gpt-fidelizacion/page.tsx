@@ -373,41 +373,6 @@ export default function GptFidelizacionPage() {
         )}
       </div>
 
-      {/* Document preview */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[var(--brand-1)]" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/60">
-            Vista previa del documento
-          </span>
-        </div>
-        <div className="p-5 space-y-3 text-sm max-h-80 overflow-y-auto">
-          <div className="font-bold text-base">PERFIL DE: {businessName}</div>
-          <div className="border-t border-[var(--border)] pt-3 space-y-3">
-            {mainQuestions.map((q) => (
-              <div key={q.id}>
-                <div className="text-xs font-semibold text-[var(--brand-1)] uppercase tracking-wide">
-                  P{q.question_order}. {q.question_text}
-                </div>
-                <div className="text-[var(--foreground)]/80 mt-1 leading-relaxed whitespace-pre-wrap">
-                  {answers[q.id] || <span className="italic text-[var(--foreground)]/30">Sin respuesta</span>}
-                </div>
-              </div>
-            ))}
-            {notesQuestion && (
-              <div className="border-t border-[var(--border)] pt-3">
-                <div className="text-xs font-semibold text-[var(--brand-1)] uppercase tracking-wide">
-                  Notas finales
-                </div>
-                <div className="text-[var(--foreground)]/80 mt-1 leading-relaxed whitespace-pre-wrap">
-                  {answers[notesQuestion.id] || <span className="italic text-[var(--foreground)]/30">Sin notas</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Action buttons */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
         <div className="flex flex-col sm:flex-row gap-3">
