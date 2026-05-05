@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   const { data: lm, error } = await supabase
     .from("lead_magnets")
-    .select("id, title, pdf_url, active")
+    .select("id, title, pdf_url, active, business_id")
     .eq("id", id)
     .single();
 
@@ -40,6 +40,15 @@ export async function GET(req: NextRequest) {
   if (!lm.pdf_url) {
     return new Response("Este recurso aún no tiene PDF generado", { status: 404 });
   }
+
+  // Registrar descarga en analytics (fire-and-forget)
+  supabase.from("analytics_events").insert({
+    business_id: lm.business_id,
+    event_type: "pdf_download",
+    entity_type: "lead_magnet",
+    entity_id: lm.id,
+    metadata: { title: lm.title },
+  }).then(() => {}).catch(() => {});
 
   // Redirigir al PDF con cabecera de descarga
   return Response.redirect(lm.pdf_url, 302);

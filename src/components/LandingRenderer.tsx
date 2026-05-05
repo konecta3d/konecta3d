@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LandingConfig } from "@/lib/landingTypes";
 import FormModal from "./FormModal";
 import { supabase } from "@/lib/supabase";
@@ -90,6 +90,19 @@ export default function LandingRenderer({
 
   const [formModalOpen, setFormModalOpen] = useState(false);
   const activeForm = activeForms[0] as ActiveForm | undefined;
+
+  // Registrar visita al montar el componente (solo en la landing pública)
+  useEffect(() => {
+    if (!config.businessId) return;
+    supabase.from("analytics_events").insert({
+      business_id: config.businessId,
+      event_type: "page_view",
+      entity_type: "landing",
+      entity_id: config.businessId,
+      metadata: {},
+    }).then(() => {}).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Estilos de botón CTA ─────────────────────────────────────────────────
   // La opacidad se aplica SOLO al fondo (rgba) para que el texto sea siempre legible.
