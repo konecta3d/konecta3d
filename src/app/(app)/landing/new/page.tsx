@@ -118,11 +118,18 @@ export default function LandingNew() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resolver businessId desde URL o sesión
+  // Resolver businessId desde URL, localStorage o sesión
   useEffect(() => {
     const load = async () => {
+      // 1. URL param (usado por admin al abrir un negocio concreto)
       const paramId = new URLSearchParams(window.location.search).get("businessId");
       if (paramId) { setBusinessId(paramId); return; }
+
+      // 2. localStorage (guardado al hacer login de negocio o al acceder desde admin)
+      const storedId = localStorage.getItem("konecta-business-id");
+      if (storedId) { setBusinessId(storedId); return; }
+
+      // 3. Fallback: buscar por email de sesión
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const userEmail = sessionData?.session?.user?.email || "";
