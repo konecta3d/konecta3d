@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     entity_type: "lead_magnet",
     entity_id: lm.id,
     metadata: { title: lm.title },
-  }).then(() => {}).catch(() => {});
+  }).then(() => {}, () => {});
 
   // Redirigir al PDF con cabecera de descarga
   return Response.redirect(lm.pdf_url, 302);
