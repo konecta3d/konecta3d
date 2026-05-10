@@ -100,7 +100,7 @@ export default function LandingRenderer({
       entity_type: "landing",
       entity_id: config.businessId,
       metadata: {},
-    }).then(() => {}).catch(() => {});
+    }).then(() => {}, () => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
