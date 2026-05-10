@@ -82,11 +82,13 @@ export async function POST(req: Request) {
       public_id: publicId,
       contact_email: email,
       phone: phone || "",
-      module_vip_benefits: module_vip_benefits ?? true,
+      module_vip_benefits: module_vip_benefits ?? false,
       module_lead_magnet: module_lead_magnet ?? true,
       module_whatsapp: module_whatsapp ?? true,
       module_tools: true,
-      module_forms: true,
+      module_forms: false,
+      profile_active: true,
+      landing_active: true,
     };
 
     if (userId) {
