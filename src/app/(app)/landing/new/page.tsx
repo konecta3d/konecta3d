@@ -37,6 +37,7 @@ export default function LandingNew() {
   const [businessName, setBusinessName] = useState("");
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [logoModalOpen, setLogoModalOpen] = useState(false);
+  const [ctaModalOpen, setCtaModalOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   // Evita autoguardar en la carga inicial (solo cuando el usuario cambia algo)
   const initialLoadDone = useRef(false);
@@ -1182,6 +1183,39 @@ useEffect(() => {
                   </svg>
                 </button>
 
+                {/* Botón modal CTAs */}
+                <button
+                  type="button"
+                  onClick={() => setCtaModalOpen(true)}
+                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex items-center justify-center rounded-lg text-xs font-semibold px-3 py-1.5 flex-shrink-0"
+                      style={{
+                        backgroundColor: config.ctaBg || "#ffffff",
+                        color: config.ctaTextColor || "#0c1a24",
+                        borderRadius: `${config.ctaRadius ?? 16}px`,
+                        border: `${config.ctaBorderWidth ?? 0}px solid ${config.ctaBorderColor || "transparent"}`,
+                        opacity: (config.ctaOpacity ?? 100) / 100,
+                        fontSize: `${config.ctaFontSize ?? 15}px`,
+                        minWidth: 64,
+                      }}
+                    >
+                      CTA
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium text-sm">Personalizar Botones</div>
+                      <div className="text-[var(--foreground)]/50 text-xs mt-0.5">
+                        Colores, forma, borde y tipografía
+                      </div>
+                    </div>
+                  </div>
+                  <svg className="w-4 h-4 text-[var(--foreground)]/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
                     <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
@@ -1542,6 +1576,249 @@ useEffect(() => {
                   <button
                     type="button"
                     onClick={() => setLogoModalOpen(false)}
+                    className="flex-1 rounded-lg bg-[var(--brand-4)] py-2 text-xs font-semibold text-black"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* ── Modal personalizar botones CTA ───────────────────────────────── */}
+          {ctaModalOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+              onClick={(e) => { if (e.target === e.currentTarget) setCtaModalOpen(false); }}
+            >
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+                {/* Cabecera */}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base">Personalizar Botones</h3>
+                  <button
+                    type="button"
+                    onClick={() => setCtaModalOpen(false)}
+                    className="text-[var(--foreground)]/50 hover:text-[var(--foreground)] text-xl leading-none"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Preview en vivo */}
+                <div
+                  className="flex flex-col items-center justify-center rounded-xl py-8 gap-3"
+                  style={{ background: config.bgColor || "#0f2b33" }}
+                >
+                  {["Botón principal", "Botón secundario"].map((label) => (
+                    <div
+                      key={label}
+                      className="w-56 text-center font-semibold"
+                      style={{
+                        backgroundColor: config.ctaBg || "#ffffff",
+                        color: config.ctaTextColor || "#0c1a24",
+                        borderRadius: `${config.ctaRadius ?? 16}px`,
+                        border: `${config.ctaBorderWidth ?? 0}px solid ${config.ctaBorderColor || "transparent"}`,
+                        opacity: (config.ctaOpacity ?? 100) / 100,
+                        fontSize: `${config.ctaFontSize ?? 15}px`,
+                        padding: "12px 24px",
+                      }}
+                    >
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Forma predefinida */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Forma</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Cuadrado",    radius: 4  },
+                      { label: "Redondeado",  radius: 16 },
+                      { label: "Pill",        radius: 50 },
+                    ].map(({ label, radius }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => update({ ctaRadius: radius })}
+                        className={`flex flex-col items-center gap-2 rounded-xl border py-3 text-xs font-medium transition-colors ${
+                          config.ctaRadius === radius
+                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10 text-[var(--brand-4)]"
+                            : "border-[var(--border)] hover:bg-white/5"
+                        }`}
+                      >
+                        <div
+                          className="w-10 h-5 bg-white/70"
+                          style={{ borderRadius: `${radius}px` }}
+                        />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color de fondo del botón */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Color de fondo</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={config.ctaBg || "#ffffff"}
+                      onChange={(e) => update({ ctaBg: e.target.value })}
+                      className="h-10 w-14 cursor-pointer rounded-lg border border-[var(--border)] bg-transparent p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={config.ctaBg || "#ffffff"}
+                      onChange={(e) => update({ ctaBg: e.target.value })}
+                      className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-mono"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+
+                {/* Color del texto */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Color del texto</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={config.ctaTextColor || "#0c1a24"}
+                      onChange={(e) => update({ ctaTextColor: e.target.value })}
+                      className="h-10 w-14 cursor-pointer rounded-lg border border-[var(--border)] bg-transparent p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={config.ctaTextColor || "#0c1a24"}
+                      onChange={(e) => update({ ctaTextColor: e.target.value })}
+                      className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-mono"
+                      placeholder="#0c1a24"
+                    />
+                  </div>
+                </div>
+
+                {/* Color del borde */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Color del borde</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={config.ctaBorderColor || "#ffffff"}
+                      onChange={(e) => update({ ctaBorderColor: e.target.value })}
+                      className="h-10 w-14 cursor-pointer rounded-lg border border-[var(--border)] bg-transparent p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={config.ctaBorderColor || "#ffffff"}
+                      onChange={(e) => update({ ctaBorderColor: e.target.value })}
+                      className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-mono"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+
+                {/* Grosor del borde */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Grosor del borde</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.ctaBorderWidth ?? 0}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={6}
+                    step={1}
+                    value={config.ctaBorderWidth ?? 0}
+                    onChange={(e) => update({ ctaBorderWidth: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>sin borde</span><span>6px</span>
+                  </div>
+                </div>
+
+                {/* Radio de esquinas */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Radio de esquinas</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.ctaRadius ?? 16}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={50}
+                    step={1}
+                    value={config.ctaRadius ?? 16}
+                    onChange={(e) => update({ ctaRadius: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>0px (cuadrado)</span><span>50px (pill)</span>
+                  </div>
+                </div>
+
+                {/* Tamaño de fuente */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Tamaño de texto</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.ctaFontSize ?? 15}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={12}
+                    max={22}
+                    step={1}
+                    value={config.ctaFontSize ?? 15}
+                    onChange={(e) => update({ ctaFontSize: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>12px</span><span>22px</span>
+                  </div>
+                </div>
+
+                {/* Opacidad */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Opacidad</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.ctaOpacity ?? 100}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={20}
+                    max={100}
+                    step={5}
+                    value={config.ctaOpacity ?? 100}
+                    onChange={(e) => update({ ctaOpacity: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>20%</span><span>100%</span>
+                  </div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="flex gap-3 pt-1 border-t border-[var(--border)]">
+                  <button
+                    type="button"
+                    onClick={() => update({
+                      ctaBg: "#ffffff",
+                      ctaTextColor: "#0c1a24",
+                      ctaBorderColor: "#ffffff",
+                      ctaBorderWidth: 0,
+                      ctaRadius: 16,
+                      ctaFontSize: 15,
+                      ctaOpacity: 100,
+                    })}
+                    className="flex-1 rounded-lg border border-[var(--border)] py-2 text-xs hover:bg-white/5 transition-colors"
+                  >
+                    Restaurar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCtaModalOpen(false)}
                     className="flex-1 rounded-lg bg-[var(--brand-4)] py-2 text-xs font-semibold text-black"
                   >
                     Aplicar
