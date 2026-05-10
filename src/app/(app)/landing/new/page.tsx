@@ -36,6 +36,7 @@ export default function LandingNew() {
   const [chatOpen, setChatOpen] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [hasUnsaved, setHasUnsaved] = useState(false);
+  const [logoModalOpen, setLogoModalOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   // Evita autoguardar en la carga inicial (solo cuando el usuario cambia algo)
   const initialLoadDone = useRef(false);
@@ -1147,6 +1148,40 @@ useEffect(() => {
               description="Ajusta márgenes y contenedores de la landing."
             >
               <div className="space-y-4 text-xs">
+
+                {/* Botón modal logo */}
+                <button
+                  type="button"
+                  onClick={() => setLogoModalOpen(true)}
+                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {config.logoUrl ? (
+                      <img
+                        src={config.logoUrl}
+                        alt="logo"
+                        style={{
+                          width: config.logoWidth > 0 ? Math.min(config.logoWidth, 40) : 40,
+                          height: config.logoHeight > 0 ? Math.min(config.logoHeight, 40) : 40,
+                          borderRadius: config.logoBorderRadius >= 0 ? `${config.logoBorderRadius}%` : config.logoShape === "round" ? "50%" : "8px",
+                          objectFit: "contain",
+                        }}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-[var(--foreground)]/40 text-lg">◻</div>
+                    )}
+                    <div className="text-left">
+                      <div className="font-medium text-sm">Personalizar Logo</div>
+                      <div className="text-[var(--foreground)]/50 text-xs mt-0.5">
+                        Tamaño, forma y radio de borde
+                      </div>
+                    </div>
+                  </div>
+                  <svg className="w-4 h-4 text-[var(--foreground)]/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
                     <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
@@ -1345,6 +1380,177 @@ useEffect(() => {
               </div>
             </CollapsibleSection>
           </div>
+
+          {/* ── Modal personalizar logo ───────────────────────────────────────── */}
+          {logoModalOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+              onClick={(e) => { if (e.target === e.currentTarget) setLogoModalOpen(false); }}
+            >
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm space-y-5 shadow-2xl">
+
+                {/* Cabecera */}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base">Personalizar Logo</h3>
+                  <button
+                    type="button"
+                    onClick={() => setLogoModalOpen(false)}
+                    className="text-[var(--foreground)]/50 hover:text-[var(--foreground)] text-xl leading-none"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Preview en vivo */}
+                <div
+                  className="flex items-center justify-center rounded-xl py-8"
+                  style={{ background: config.bgColor || "#0f2b33" }}
+                >
+                  {config.logoUrl ? (
+                    <img
+                      src={config.logoUrl}
+                      alt="logo preview"
+                      style={{
+                        width: config.logoWidth > 0 ? config.logoWidth : config.logoShape === "rect" ? (config.logoSize ?? 80) * 1.6 : (config.logoSize ?? 80),
+                        height: config.logoHeight > 0 ? config.logoHeight : (config.logoSize ?? 80),
+                        borderRadius: config.logoBorderRadius >= 0 ? `${config.logoBorderRadius}%` : config.logoShape === "round" ? "50%" : "12px",
+                        objectFit: "contain",
+                      }}
+                    />
+                  ) : (
+                    <div className="text-white/30 text-sm">Sin logo — sube uno en la sección Identidad</div>
+                  )}
+                </div>
+
+                {/* Forma */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Forma</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: "round",  label: "Circular",     icon: "●" },
+                      { value: "square", label: "Cuadrado",     icon: "■" },
+                      { value: "rect",   label: "Rectangular",  icon: "▬" },
+                    ].map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => update({ logoShape: value as "round" | "square" | "rect", logoBorderRadius: -1 })}
+                        className={`flex flex-col items-center gap-1 rounded-xl border py-3 text-xs font-medium transition-colors ${
+                          config.logoShape === value && config.logoBorderRadius < 0
+                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10 text-[var(--brand-4)]"
+                            : "border-[var(--border)] hover:bg-white/5"
+                        }`}
+                      >
+                        <span className="text-lg leading-none">{icon}</span>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tamaño base */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Tamaño base</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.logoSize ?? 80}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={40}
+                    max={200}
+                    value={config.logoSize ?? 80}
+                    onChange={(e) => update({ logoSize: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>40px</span><span>200px</span>
+                  </div>
+                </div>
+
+                {/* Ancho personalizado */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Ancho</label>
+                    <span className="text-xs text-[var(--foreground)]/60">
+                      {config.logoWidth > 0 ? `${config.logoWidth}px` : "auto"}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={300}
+                    value={config.logoWidth ?? 0}
+                    onChange={(e) => update({ logoWidth: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>auto</span><span>300px</span>
+                  </div>
+                </div>
+
+                {/* Alto personalizado */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Alto</label>
+                    <span className="text-xs text-[var(--foreground)]/60">
+                      {config.logoHeight > 0 ? `${config.logoHeight}px` : "auto"}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={200}
+                    value={config.logoHeight ?? 0}
+                    onChange={(e) => update({ logoHeight: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>auto</span><span>200px</span>
+                  </div>
+                </div>
+
+                {/* Radio de borde */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Radio de borde</label>
+                    <span className="text-xs text-[var(--foreground)]/60">
+                      {config.logoBorderRadius >= 0 ? `${config.logoBorderRadius}%` : "según forma"}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={50}
+                    value={config.logoBorderRadius >= 0 ? config.logoBorderRadius : config.logoShape === "round" ? 50 : 8}
+                    onChange={(e) => update({ logoBorderRadius: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>0% (cuadrado)</span><span>50% (circular)</span>
+                  </div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="flex gap-3 pt-1 border-t border-[var(--border)]">
+                  <button
+                    type="button"
+                    onClick={() => update({ logoWidth: 0, logoHeight: 0, logoBorderRadius: -1, logoShape: "round", logoSize: 80 })}
+                    className="flex-1 rounded-lg border border-[var(--border)] py-2 text-xs hover:bg-white/5 transition-colors"
+                  >
+                    Restaurar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoModalOpen(false)}
+                    className="flex-1 rounded-lg bg-[var(--brand-4)] py-2 text-xs font-semibold text-black"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
 
           {/* Vista previa — responsiva, se escala al ancho disponible */}
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">

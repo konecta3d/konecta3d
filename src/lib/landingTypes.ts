@@ -14,6 +14,9 @@ export interface LandingConfig {
     logoShape: "round" | "square" | "rect";
     showLogo: boolean;
     logoSize: number;
+    logoWidth: number;        // 0 = automático (usa logoSize)
+    logoHeight: number;       // 0 = automático (usa logoSize)
+    logoBorderRadius: number; // -1 = usar forma; 0-50 = % personalizado
 
     // Título y subtítulo
     businessName: string;
@@ -137,6 +140,9 @@ export const defaultLandingConfig: LandingConfig = {
     logoShape: "round",
     showLogo: true,
     logoSize: 80,
+    logoWidth: 0,
+    logoHeight: 0,
+    logoBorderRadius: -1,
     businessName: "",
     showBusinessName: true,
     titleSize: 26,

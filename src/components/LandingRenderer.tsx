@@ -214,10 +214,13 @@ export default function LandingRenderer({
                       src={config.logoUrl}
                       alt="logo"
                       style={{
-                        width: config.logoShape === "rect" ? logoSize * 1.6 : logoSize,
-                        height: logoSize,
+                        width: config.logoWidth > 0 ? config.logoWidth : config.logoShape === "rect" ? logoSize * 1.6 : logoSize,
+                        height: config.logoHeight > 0 ? config.logoHeight : logoSize,
+                        borderRadius: config.logoBorderRadius >= 0
+                          ? `${config.logoBorderRadius}%`
+                          : config.logoShape === "round" ? "50%" : "12px",
                       }}
-                      className={`object-contain ${config.logoShape === "round" ? "rounded-full" : "rounded-xl"}`}
+                      className="object-contain"
                     />
                   </div>
                 )}
