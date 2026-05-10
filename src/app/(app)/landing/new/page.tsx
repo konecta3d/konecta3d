@@ -365,7 +365,7 @@ useEffect(() => {
               businessName={businessName}
               config={config}
               onApply={(changes) => setConfig((prev) => ({ ...prev, ...changes }))}
-              onFinalize={saveNow}
+              onFinalize={async () => { await saveNow(); }}
             />
           )}
 
