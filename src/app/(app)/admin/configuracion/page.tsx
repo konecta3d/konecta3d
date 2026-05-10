@@ -11,6 +11,8 @@ type Business = {
   module_vip_benefits: boolean;
   module_lead_magnet: boolean;
   module_whatsapp: boolean;
+  profile_active: boolean;
+  landing_active: boolean;
   created_at: string;
   slug: string | null;
   contact_email: string | null;
@@ -37,7 +39,7 @@ function AdminConfigContent() {
     email: "",
     phone: "",
     sector: "",
-    module_vip_benefits: true,
+    module_vip_benefits: false,
     module_lead_magnet: true,
     module_whatsapp: true,
   });
@@ -144,7 +146,7 @@ const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "activid
           email: "",
           phone: "",
           sector: "",
-          module_vip_benefits: true,
+          module_vip_benefits: false,
           module_lead_magnet: true,
           module_whatsapp: true,
         });
@@ -399,6 +401,32 @@ body: JSON.stringify({
                     </button>
                     <button onClick={() => toggleModule(b.id, "module_whatsapp", !b.module_whatsapp)} className={`text-xs px-2 py-0.5 rounded ${b.module_whatsapp ? "bg-purple-500/20 text-purple-500" : "bg-gray-500/20 text-gray-500"}`}>
                       WA {b.module_whatsapp ? "✓" : "✕"}
+                    </button>
+                  </div>
+
+                  {/* Control de acceso */}
+                  <div className="flex gap-1 mb-3 pt-2 border-t border-[var(--border)]">
+                    <button
+                      onClick={() => toggleModule(b.id, "profile_active", !(b.profile_active ?? true))}
+                      title={b.profile_active ?? true ? "Panel activo — click para bloquear" : "Panel bloqueado — click para activar"}
+                      className={`text-xs px-2 py-0.5 rounded font-medium ${
+                        (b.profile_active ?? true)
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      Panel {(b.profile_active ?? true) ? "✓" : "🔒"}
+                    </button>
+                    <button
+                      onClick={() => toggleModule(b.id, "landing_active", !(b.landing_active ?? true))}
+                      title={b.landing_active ?? true ? "Landing activa — click para bloquear" : "Landing bloqueada — click para activar"}
+                      className={`text-xs px-2 py-0.5 rounded font-medium ${
+                        (b.landing_active ?? true)
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      Landing {(b.landing_active ?? true) ? "✓" : "🔒"}
                     </button>
                   </div>
 

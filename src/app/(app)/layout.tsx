@@ -53,6 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
+  const [profileActive, setProfileActive] = useState<boolean | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
 
   // ── Tema claro/oscuro ────────────────────────────────────────────────────
@@ -109,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from("businesses")
-        .select("module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt")
+        .select("module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, profile_active")
         .eq("contact_email", userEmail)
         .single();
 
@@ -119,6 +120,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
+        setProfileActive(data.profile_active ?? true);
         setModules({
           module_vip_benefits: data.module_vip_benefits ?? true,
           module_lead_magnet: data.module_lead_magnet ?? true,
@@ -141,6 +143,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     return true;
   });
+
+  // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
+  if (!isAdminMode && profileActive === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)] text-[var(--foreground)] px-6">
+        <div className="text-center max-w-sm">
+          <div className="text-5xl mb-4">🔒</div>
+          <h1 className="text-xl font-bold mb-2">Cuenta pausada</h1>
+          <p className="text-[var(--foreground)]/60 text-sm mb-4">
+            El acceso a tu panel está temporalmente suspendido. Por favor, contacta con Konecta3D para regularizar tu cuenta.
+          </p>
+          <a
+            href="https://wa.me/34600000000"
+            className="inline-block px-5 py-2 rounded-lg bg-[var(--brand-4)] text-black text-sm font-medium hover:opacity-90"
+          >
+            Contactar con soporte
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
