@@ -38,6 +38,7 @@ export default function LandingNew() {
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [ctaModalOpen, setCtaModalOpen] = useState(false);
+  const [spacingModalOpen, setSpacingModalOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   // Evita autoguardar en la carga inicial (solo cuando el usuario cambia algo)
   const initialLoadDone = useRef(false);
@@ -1216,201 +1217,29 @@ useEffect(() => {
                   </svg>
                 </button>
 
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Padding superior del hero
-                    </label>
-                    <input
-                      type="range"
-                      min={24}
-                      max={80}
-                      value={config.heroPaddingTop}
-                      onChange={(e) =>
-                        update({ heroPaddingTop: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
+                {/* Botón modal espaciado */}
+                <button
+                  type="button"
+                  onClick={() => setSpacingModalOpen(true)}
+                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-[var(--foreground)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium text-sm">Personalizar Espaciado</div>
+                      <div className="text-[var(--foreground)]/50 text-xs mt-0.5">
+                        Márgenes, padding y posición del fondo
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Padding inferior del hero
-                    </label>
-                    <input
-                      type="range"
-                      min={12}
-                      max={60}
-                      value={config.heroPaddingBottom}
-                      onChange={(e) =>
-                        update({ heroPaddingBottom: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Margen superior divisor
-                    </label>
-                    <input
-                      type="range"
-                      min={8}
-                      max={32}
-                      value={config.dividerMarginTop}
-                      onChange={(e) =>
-                        update({ dividerMarginTop: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Margen inferior divisor
-                    </label>
-                    <input
-                      type="range"
-                      min={8}
-                      max={32}
-                      value={config.dividerMarginBottom}
-                      onChange={(e) =>
-                        update({ dividerMarginBottom: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Separación entre botones
-                    </label>
-                    <input
-                      type="range"
-                      min={8}
-                      max={32}
-                      value={config.buttonsGap}
-                      onChange={(e) =>
-                        update({ buttonsGap: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Margen bloques finales
-                    </label>
-                    <input
-                      type="range"
-                      min={16}
-                      max={64}
-                      value={config.finalBlockMarginTop}
-                      onChange={(e) =>
-                        update({ finalBlockMarginTop: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Padding lateral contenido
-                    </label>
-                    <input
-                      type="range"
-                      min={12}
-                      max={32}
-                      value={config.contentPaddingX}
-                      onChange={(e) =>
-                        update({ contentPaddingX: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Padding vertical general
-                    </label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={32}
-                      value={config.landingPaddingY}
-                      onChange={(e) =>
-                        update({ landingPaddingY: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                      Tamaño del fondo (imagen)
-                    </label>
-                    <input
-                      type="range"
-                      min={80}
-                      max={160}
-                      value={config.bgSize}
-                      onChange={(e) =>
-                        update({ bgSize: Number(e.target.value) })
-                      }
-                      className="mt-1 w-full"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-xs uppercase tracking-wide text-[var(--brand-1)]">
-                    Posición del fondo
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {["center center", "top center", "bottom center"].map((pos) => (
-                      <button
-                        key={pos}
-                        type="button"
-                        onClick={() => update({ bgPosition: pos })}
-                        className={`px-3 py-1 rounded-full border text-[11px] ${
-                          config.bgPosition === pos
-                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10"
-                            : "border-[var(--border)]"
-                        }`}
-                      >
-                        {pos === "center center" && "Centro"}
-                        {pos === "top center" && "Arriba"}
-                        {pos === "bottom center" && "Abajo"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-4 pt-2 border-t border-[var(--border)] mt-2">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={config.heroContainer}
-                      onChange={(e) =>
-                        update({ heroContainer: e.target.checked })
-                      }
-                    />
-                    <span>Fondo suave detrás del hero</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={config.bodyContainer}
-                      onChange={(e) =>
-                        update({ bodyContainer: e.target.checked })
-                      }
-                    />
-                    <span>Fondo suave detrás de los botones</span>
-                  </label>
-                </div>
-                {/* FIX #1 y #2: eliminada la sección showReview duplicada
-                    y el selector de finalOrder sin efecto real */}
+                  <svg className="w-4 h-4 text-[var(--foreground)]/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </CollapsibleSection>
           </div>
@@ -1819,6 +1648,255 @@ useEffect(() => {
                   <button
                     type="button"
                     onClick={() => setCtaModalOpen(false)}
+                    className="flex-1 rounded-lg bg-[var(--brand-4)] py-2 text-xs font-semibold text-black"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* ── Modal personalizar espaciado ──────────────────────────────────── */}
+          {spacingModalOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+              onClick={(e) => { if (e.target === e.currentTarget) setSpacingModalOpen(false); }}
+            >
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+                {/* Cabecera */}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base">Personalizar Espaciado</h3>
+                  <button
+                    type="button"
+                    onClick={() => setSpacingModalOpen(false)}
+                    className="text-[var(--foreground)]/50 hover:text-[var(--foreground)] text-xl leading-none"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Padding superior del hero */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Padding superior del hero</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.heroPaddingTop}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={24}
+                    max={80}
+                    value={config.heroPaddingTop}
+                    onChange={(e) => update({ heroPaddingTop: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>24px</span><span>80px</span>
+                  </div>
+                </div>
+
+                {/* Padding inferior del hero */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Padding inferior del hero</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.heroPaddingBottom}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={12}
+                    max={60}
+                    value={config.heroPaddingBottom}
+                    onChange={(e) => update({ heroPaddingBottom: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>12px</span><span>60px</span>
+                  </div>
+                </div>
+
+                {/* Margen superior divisor */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Margen superior divisor</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.dividerMarginTop}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={8}
+                    max={32}
+                    value={config.dividerMarginTop}
+                    onChange={(e) => update({ dividerMarginTop: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>8px</span><span>32px</span>
+                  </div>
+                </div>
+
+                {/* Margen inferior divisor */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Margen inferior divisor</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.dividerMarginBottom}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={8}
+                    max={32}
+                    value={config.dividerMarginBottom}
+                    onChange={(e) => update({ dividerMarginBottom: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>8px</span><span>32px</span>
+                  </div>
+                </div>
+
+                {/* Separación entre botones */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Separación entre botones</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.buttonsGap}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={8}
+                    max={32}
+                    value={config.buttonsGap}
+                    onChange={(e) => update({ buttonsGap: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>8px</span><span>32px</span>
+                  </div>
+                </div>
+
+                {/* Margen bloques finales */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Margen bloques finales</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.finalBlockMarginTop}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={16}
+                    max={64}
+                    value={config.finalBlockMarginTop}
+                    onChange={(e) => update({ finalBlockMarginTop: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>16px</span><span>64px</span>
+                  </div>
+                </div>
+
+                {/* Padding lateral contenido */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Padding lateral contenido</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.contentPaddingX}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={12}
+                    max={32}
+                    value={config.contentPaddingX}
+                    onChange={(e) => update({ contentPaddingX: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>12px</span><span>32px</span>
+                  </div>
+                </div>
+
+                {/* Padding vertical general */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Padding vertical general</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.landingPaddingY}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={32}
+                    value={config.landingPaddingY}
+                    onChange={(e) => update({ landingPaddingY: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>0px</span><span>32px</span>
+                  </div>
+                </div>
+
+                {/* Tamaño del fondo */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Tamaño del fondo (imagen)</label>
+                    <span className="text-xs text-[var(--foreground)]/60">{config.bgSize}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={80}
+                    max={160}
+                    value={config.bgSize}
+                    onChange={(e) => update({ bgSize: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
+                    <span>80%</span><span>160%</span>
+                  </div>
+                </div>
+
+                {/* Posición del fondo */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-[var(--brand-1)] font-semibold">Posición del fondo</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: "top center",    label: "Arriba"  },
+                      { value: "center center", label: "Centro"  },
+                      { value: "bottom center", label: "Abajo"   },
+                    ].map(({ value, label }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => update({ bgPosition: value })}
+                        className={`rounded-xl border py-2.5 text-xs font-medium transition-colors ${
+                          config.bgPosition === value
+                            ? "border-[var(--brand-4)] bg-[var(--brand-4)]/10 text-[var(--brand-4)]"
+                            : "border-[var(--border)] hover:bg-white/5"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="flex gap-3 pt-1 border-t border-[var(--border)]">
+                  <button
+                    type="button"
+                    onClick={() => update({
+                      heroPaddingTop: 48,
+                      heroPaddingBottom: 20,
+                      dividerMarginTop: 16,
+                      dividerMarginBottom: 16,
+                      buttonsGap: 16,
+                      finalBlockMarginTop: 28,
+                      contentPaddingX: 24,
+                      landingPaddingY: 0,
+                      bgSize: 120,
+                      bgPosition: "center center",
+                    })}
+                    className="flex-1 rounded-lg border border-[var(--border)] py-2 text-xs hover:bg-white/5 transition-colors"
+                  >
+                    Restaurar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSpacingModalOpen(false)}
                     className="flex-1 rounded-lg bg-[var(--brand-4)] py-2 text-xs font-semibold text-black"
                   >
                     Aplicar
