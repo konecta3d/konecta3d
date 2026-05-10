@@ -37,11 +37,6 @@ export default function WhatsAppGeneratorPage() {
         setBusinessId(bid);
         loadSavedLinks(bid);
       }
-      // Cargar link guardado previamente
-      const savedLink = localStorage.getItem("konecta-whatsapp-link");
-      if (savedLink) {
-        setLink(savedLink);
-      }
     };
     load();
   }, []);
@@ -63,12 +58,6 @@ export default function WhatsAppGeneratorPage() {
     const text = encodeURIComponent(message || "Hola, me interesa más información");
     const url = `https://wa.me/${clean}?text=${text}`;
     setLink(url);
-    localStorage.setItem("konecta-whatsapp-link", url);
-    // Guardar en lista compartida para otros generadores
-    const existingLinks = JSON.parse(localStorage.getItem("konecta-whatsapp-links") || "[]");
-    const newLink = { url, phone, message, name: linkName || "Link de WhatsApp" };
-    const updatedLinks = [...existingLinks.filter((l: any) => l.url !== url), newLink];
-    localStorage.setItem("konecta-whatsapp-links", JSON.stringify(updatedLinks));
   };
 
   const saveToDatabase = async () => {
@@ -112,7 +101,6 @@ export default function WhatsAppGeneratorPage() {
 
   const useLink = (url: string) => {
     setLink(url);
-    localStorage.setItem("konecta-whatsapp-link", url);
   };
 
   return (

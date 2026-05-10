@@ -77,12 +77,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // ────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("konecta-sidebar-names");
-      if (saved) setCustomNames(JSON.parse(saved));
-    } catch {
-      console.warn("No se pudieron cargar los nombres personalizados del sidebar.");
-    }
+    const loadNames = async () => {
+      try {
+        const { data } = await supabase.from("settings").select("value").eq("key", "names").single();
+        if (data?.value) {
+          const names = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+          setCustomNames(names);
+        }
+      } catch {
+        // silencioso
+      }
+    };
+    loadNames();
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent<Record<string, string>>).detail;

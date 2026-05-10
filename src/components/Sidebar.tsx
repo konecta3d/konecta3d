@@ -102,10 +102,16 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (showBusinessSidebar) load();
     }, [pathname, showBusinessSidebar]);
 
-    // Cargar nombres personalizados
+    // Cargar nombres personalizados desde Supabase
     React.useEffect(() => {
-        const saved = localStorage.getItem("konecta-sidebar-names");
-        if (saved) setCustomNames(JSON.parse(saved));
+        const loadNames = async () => {
+            const { data } = await supabase.from("settings").select("value").eq("key", "names").single();
+            if (data?.value) {
+                const names = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+                setCustomNames(names);
+            }
+        };
+        loadNames();
 
         const handleUpdate = (e: Event) => {
             const detail = (e as CustomEvent<Record<string, string>>).detail;
@@ -166,12 +172,13 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     useEffect(() => {
         const loadName = async () => {
             try {
-                const businessId = localStorage.getItem("konecta-business-id");
-                if (!businessId) return;
+                const { data: sessionData } = await supabase.auth.getSession();
+                const userEmail = sessionData?.session?.user?.email;
+                if (!userEmail) return;
                 const { data } = await supabase
                     .from("businesses")
                     .select("name")
-                    .eq("id", businessId)
+                    .eq("contact_email", userEmail)
                     .single();
                 if (data?.name) setBusinessName(data.name);
             } catch (e) {

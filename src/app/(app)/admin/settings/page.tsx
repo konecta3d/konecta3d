@@ -59,15 +59,6 @@ export default function AdminSettings() {
       if (data?.value) {
         const savedSettings = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
         setSettings({ ...defaultSettings, ...savedSettings });
-
-        // Backup to localStorage
-        localStorage.setItem("konecta-settings", JSON.stringify(savedSettings));
-      } else {
-        // Fallback to localStorage
-        const saved = localStorage.getItem("konecta-settings");
-        if (saved) {
-          setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-        }
       }
 
       // Load features flag
@@ -81,13 +72,9 @@ export default function AdminSettings() {
         setFeatures({ ...defaultFeatures, ...saved });
       }
     } catch (err) {
-      // Fallback to localStorage
-      const saved = localStorage.getItem("konecta-settings");
-      if (saved) {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-      }
+      console.error("Error cargando configuración:", err);
     }
-    
+
     setLoading(false);
   };
 
@@ -106,16 +93,15 @@ export default function AdminSettings() {
 
       if (error) {
         console.error("Supabase error:", error);
+        setMsg("Error al guardar");
+        setSaving(false);
+        return;
       }
 
-      // Also save to localStorage as backup
-      localStorage.setItem("konecta-settings", JSON.stringify(settings));
-      
       setMsg("Configuración guardada");
     } catch (err) {
-      // Fallback to localStorage only
-      localStorage.setItem("konecta-settings", JSON.stringify(settings));
-      setMsg("Guardado (local)");
+      console.error("Error guardando configuración:", err);
+      setMsg("Error al guardar");
     }
 
     setSaving(false);

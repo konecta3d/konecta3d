@@ -282,10 +282,7 @@ function LeadMagnetWizardInner() {
     const load = async () => {
       let bid = bidParam || "";
 
-      // 2. localStorage (guardado al hacer login de negocio o al acceder desde admin)
-      if (!bid) bid = localStorage.getItem("konecta-business-id") || "";
-
-      // 3. Fallback: buscar por email de sesión
+      // 2. Sesión Supabase Auth
       if (!bid) {
         const { data: sessionData } = await supabase.auth.getSession();
         const userEmail = sessionData?.session?.user?.email || "";

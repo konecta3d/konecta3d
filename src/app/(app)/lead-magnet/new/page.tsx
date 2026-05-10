@@ -260,12 +260,6 @@ function LeadMagnetNewContent() {
         return;
       }
 
-      const role = localStorage.getItem("konecta-role");
-      if (role !== "business") {
-        router.push("/business/login?redirect=/lead-magnet/new");
-        return;
-      }
-
       const userEmail = session.user.email || "";
       const { data: biz } = await supabase
         .from("businesses")

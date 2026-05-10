@@ -107,12 +107,6 @@ export default function VipBenefitsNew() {
         router.push("/business/login?redirect=/vip-benefits/new");
         return;
       }
-      
-      const role = localStorage.getItem("konecta-role");
-      if (role !== "business") {
-        router.push("/business/login?redirect=/vip-benefits/new");
-        return;
-      }
 
       const userEmail = session.user.email || "";
       const { data: biz } = await supabase

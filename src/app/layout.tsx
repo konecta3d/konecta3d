@@ -11,6 +11,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Konecta3D Platform",
   description: "Herramientas de fidelización post-compra",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.ico",
+  },
 };
 
 export default function RootLayout({

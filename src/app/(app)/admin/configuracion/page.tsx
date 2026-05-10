@@ -93,15 +93,18 @@ const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "activid
     }
   };
 
-  const loadCustomNames = () => {
-    const saved = localStorage.getItem("konecta-sidebar-names");
-    if (saved) setCustomNames(JSON.parse(saved));
+  const loadCustomNames = async () => {
+    const { data } = await supabase.from("settings").select("value").eq("key", "names").single();
+    if (data?.value) {
+      const names = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+      setCustomNames(names);
+    }
   };
 
-  const saveCustomName = (key: string, value: string) => {
+  const saveCustomName = async (key: string, value: string) => {
     const updated = { ...customNames, [key]: value };
     setCustomNames(updated);
-    localStorage.setItem("konecta-sidebar-names", JSON.stringify(updated));
+    await supabase.from("settings").upsert({ key: "names", value: JSON.stringify(updated), updated_at: new Date().toISOString() }, { onConflict: "key" });
     window.dispatchEvent(new CustomEvent("konecta-sidebar-names-update", { detail: updated }));
     setMsg("Actualizado");
     setTimeout(() => setMsg(""), 2000);
@@ -277,11 +280,7 @@ body: JSON.stringify({
 
   const openBusinessAsClient = (b: Business) => {
     if (typeof window === "undefined") return;
-    localStorage.setItem("konecta-business-id", b.id);
-    localStorage.setItem("konecta-role", "business");
-    // Marcamos que este acceso al negocio viene desde el panel admin
-    localStorage.setItem("konecta-from-admin-business", "true");
-    window.location.href = "/business/dashboard?from=admin";
+    window.location.href = `/landing/new?businessId=${b.id}`;
   };
 
   return (

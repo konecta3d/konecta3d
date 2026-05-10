@@ -39,7 +39,6 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem("konecta-role", "admin");
     router.push("/admin/dashboard");
   };
 

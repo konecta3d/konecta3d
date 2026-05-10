@@ -44,22 +44,9 @@ export default function AdminPersonalization() {
       if (data?.value) {
         const savedNames = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
         setNames({ ...defaultNames, ...savedNames });
-        
-        // Also save to localStorage as backup
-        localStorage.setItem("konecta-sidebar-names", JSON.stringify(savedNames));
-      } else {
-        // Fallback to localStorage
-        const saved = localStorage.getItem("konecta-sidebar-names");
-        if (saved) {
-          setNames({ ...defaultNames, ...JSON.parse(saved) });
-        }
       }
     } catch (err) {
-      // Fallback to localStorage
-      const saved = localStorage.getItem("konecta-sidebar-names");
-      if (saved) {
-        setNames({ ...defaultNames, ...JSON.parse(saved) });
-      }
+      console.error("Error cargando nombres:", err);
     }
     
     setLoading(false);
@@ -81,20 +68,16 @@ export default function AdminPersonalization() {
 
       if (error) {
         console.error("Supabase error:", error);
+        setMsg("Error al guardar");
+        setSaving(false);
+        return;
       }
 
-      // Also save to localStorage as backup
-      localStorage.setItem("konecta-sidebar-names", JSON.stringify(names));
-      
-      // Notify sidebar to update
       window.dispatchEvent(new CustomEvent("konecta-sidebar-names-update", { detail: names }));
-      
       setMsg("Nombres guardados");
     } catch (err) {
-      // Fallback to localStorage only
-      localStorage.setItem("konecta-sidebar-names", JSON.stringify(names));
-      window.dispatchEvent(new CustomEvent("konecta-sidebar-names-update", { detail: names }));
-      setMsg("Guardado (local)");
+      console.error("Error guardando nombres:", err);
+      setMsg("Error al guardar");
     }
 
     setSaving(false);
@@ -116,7 +99,6 @@ export default function AdminPersonalization() {
       // Ignore
     }
     
-    localStorage.removeItem("konecta-sidebar-names");
     window.dispatchEvent(new CustomEvent("konecta-sidebar-names-update", { detail: defaultNames }));
     setMsg("Restablecido a valores por defecto");
     setTimeout(() => setMsg(""), 3000);

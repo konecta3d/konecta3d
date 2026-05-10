@@ -84,17 +84,11 @@ export default function BusinessLogin() {
       .ilike("contact_email", email.trim())
       .single();
 
-    // Limpiar y fijar negocio actual
-    localStorage.removeItem("konecta-business-id");
-
-    if (biz?.id) {
-      localStorage.setItem("konecta-business-id", biz.id);
-    } else {
+    if (!biz?.id) {
       setMsg("Negocio no encontrado para este email.");
       return;
     }
 
-    localStorage.setItem("konecta-role", "business");
     window.location.href = "/business/select-profile";
   };
 

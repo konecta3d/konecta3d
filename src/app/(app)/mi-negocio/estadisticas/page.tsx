@@ -104,19 +104,16 @@ export default function EstadisticasPage() {
 
   useEffect(() => {
     const load = async () => {
-      // Resolver businessId
-      let bid = localStorage.getItem("konecta-business-id") || "";
-      if (!bid) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userEmail = sessionData.session?.user?.email || "";
-        if (!userEmail) { setLoading(false); return; }
-        const { data: biz } = await supabase
-          .from("businesses")
-          .select("id")
-          .eq("contact_email", userEmail)
-          .single();
-        bid = biz?.id || "";
-      }
+      // Resolver businessId desde sesión
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData.session?.user?.email || "";
+      if (!userEmail) { setLoading(false); return; }
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("contact_email", userEmail)
+        .single();
+      const bid = biz?.id || "";
       if (!bid) { setLoading(false); return; }
 
       // ── Métricas de plataforma ─────────────────────────────────────────────

@@ -118,18 +118,14 @@ export default function LandingNew() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resolver businessId desde URL, localStorage o sesión
+  // Resolver businessId desde URL o sesión
   useEffect(() => {
     const load = async () => {
       // 1. URL param (usado por admin al abrir un negocio concreto)
       const paramId = new URLSearchParams(window.location.search).get("businessId");
       if (paramId) { setBusinessId(paramId); return; }
 
-      // 2. localStorage (guardado al hacer login de negocio o al acceder desde admin)
-      const storedId = localStorage.getItem("konecta-business-id");
-      if (storedId) { setBusinessId(storedId); return; }
-
-      // 3. Fallback: buscar por email de sesión
+      // 2. Sesión Supabase Auth
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const userEmail = sessionData?.session?.user?.email || "";
@@ -201,9 +197,9 @@ useEffect(() => {
 }, [businessId]);
 
 
-  // Guardar config
-  const saveNow = async () => {
-    if (!businessId) return;
+  // Guardar config — devuelve el slug para usarlo inmediatamente tras el await
+  const saveNow = async (): Promise<string> => {
+    if (!businessId) return slug;
     const s = slugify(config.businessName || "negocio");
     setSlug(s);
 
@@ -227,7 +223,7 @@ useEffect(() => {
         const errData = await res.json().catch(() => ({}));
         console.error("[save] API error", res.status, errData);
         setSaveStatus(`Error ${res.status}`);
-        return;
+        return s;
       }
       setSaveStatus("Guardado ✓");
       setLastSaved(new Date().toLocaleTimeString());
@@ -236,6 +232,7 @@ useEffect(() => {
       console.error("[save] fetch error", e);
       setSaveStatus("Error de red");
     }
+    return s;
   };
 
   // Subir imagen
@@ -303,9 +300,8 @@ useEffect(() => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <button type="button" className="rounded-lg border border-[var(--brand-3)] px-4 py-2 text-sm font-semibold text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10" onClick={async () => {
-              await saveNow();
-              localStorage.setItem("konecta-landing-preview", JSON.stringify(config));
-              window.open(`/l/${slug}/NFC?preview=1`, "_blank");
+              const s = await saveNow();
+              window.open(`/l/${s}/NFC`, "_blank");
             }}>
               Previsualizar Landing
             </button>
@@ -1375,12 +1371,8 @@ useEffect(() => {
                   type="button"
                   className="rounded-md border border-[var(--border)] px-3 py-1 text-xs"
                   onClick={async () => {
-                    await saveNow();
-                    localStorage.setItem(
-                      "konecta-landing-preview",
-                      JSON.stringify(config),
-                    );
-                    window.open(`/l/${slug}/NFC?preview=1`, "_blank");
+                    const s = await saveNow();
+                    window.open(`/l/${s}/NFC`, "_blank");
                   }}
                 >
                   Previsualizar Landing
