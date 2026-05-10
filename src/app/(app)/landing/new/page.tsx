@@ -1686,14 +1686,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={24}
-                    max={80}
+                    min={0}
+                    max={160}
                     value={config.heroPaddingTop}
                     onChange={(e) => update({ heroPaddingTop: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>24px</span><span>80px</span>
+                    <span>0px</span><span>160px</span>
                   </div>
                 </div>
 
@@ -1705,14 +1705,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={12}
-                    max={60}
+                    min={0}
+                    max={120}
                     value={config.heroPaddingBottom}
                     onChange={(e) => update({ heroPaddingBottom: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>12px</span><span>60px</span>
+                    <span>0px</span><span>120px</span>
                   </div>
                 </div>
 
@@ -1724,14 +1724,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={8}
-                    max={32}
+                    min={0}
+                    max={64}
                     value={config.dividerMarginTop}
                     onChange={(e) => update({ dividerMarginTop: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>8px</span><span>32px</span>
+                    <span>0px</span><span>64px</span>
                   </div>
                 </div>
 
@@ -1743,14 +1743,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={8}
-                    max={32}
+                    min={0}
+                    max={64}
                     value={config.dividerMarginBottom}
                     onChange={(e) => update({ dividerMarginBottom: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>8px</span><span>32px</span>
+                    <span>0px</span><span>64px</span>
                   </div>
                 </div>
 
@@ -1762,14 +1762,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={8}
-                    max={32}
+                    min={0}
+                    max={48}
                     value={config.buttonsGap}
                     onChange={(e) => update({ buttonsGap: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>8px</span><span>32px</span>
+                    <span>0px</span><span>48px</span>
                   </div>
                 </div>
 
@@ -1781,14 +1781,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={16}
-                    max={64}
+                    min={0}
+                    max={100}
                     value={config.finalBlockMarginTop}
                     onChange={(e) => update({ finalBlockMarginTop: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>16px</span><span>64px</span>
+                    <span>0px</span><span>100px</span>
                   </div>
                 </div>
 
@@ -1800,14 +1800,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={12}
-                    max={32}
+                    min={0}
+                    max={64}
                     value={config.contentPaddingX}
                     onChange={(e) => update({ contentPaddingX: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>12px</span><span>32px</span>
+                    <span>0px</span><span>64px</span>
                   </div>
                 </div>
 
@@ -1820,13 +1820,13 @@ useEffect(() => {
                   <input
                     type="range"
                     min={0}
-                    max={32}
+                    max={80}
                     value={config.landingPaddingY}
                     onChange={(e) => update({ landingPaddingY: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>0px</span><span>32px</span>
+                    <span>0px</span><span>80px</span>
                   </div>
                 </div>
 
@@ -1838,14 +1838,14 @@ useEffect(() => {
                   </div>
                   <input
                     type="range"
-                    min={80}
-                    max={160}
+                    min={50}
+                    max={200}
                     value={config.bgSize}
                     onChange={(e) => update({ bgSize: Number(e.target.value) })}
                     className="w-full"
                   />
                   <div className="flex justify-between text-[10px] text-[var(--foreground)]/30">
-                    <span>80%</span><span>160%</span>
+                    <span>50%</span><span>200%</span>
                   </div>
                 </div>
 
