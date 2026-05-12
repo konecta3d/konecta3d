@@ -31,11 +31,10 @@ export default function AdminModulos() {
 
 const loadBusinesses = async () => {
   setLoading(true);
+  // Columnas garantizadas
   const { data, error } = await supabase
     .from("businesses")
-    .select(
-      "id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, module_ai_landing, module_ai_recursos, created_at"
-    )
+    .select("id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, created_at")
     .order("name");
 
   if (error) {
@@ -44,14 +43,28 @@ const loadBusinesses = async () => {
     return;
   }
 
-  const businessesWithDefaults = (data || []).map(b => ({
-    ...b,
-    module_tools: b.module_tools ?? true,
-    module_forms: b.module_forms ?? true,
-    module_gpt: b.module_gpt ?? false,
-    module_ai_landing: b.module_ai_landing ?? false,
-    module_ai_recursos: b.module_ai_recursos ?? false,
-  }));
+  // Columnas opcionales (post-migración) — best effort
+  const { data: optData } = await supabase
+    .from("businesses")
+    .select("id, module_tools, module_forms, module_gpt, module_ai_landing, module_ai_recursos")
+    .order("name");
+
+  const optMap: Record<string, Record<string, unknown>> = {};
+  (optData || []).forEach((b: Record<string, unknown>) => {
+    if (typeof b.id === "string") optMap[b.id] = b;
+  });
+
+  const businessesWithDefaults = (data || []).map(b => {
+    const opt = optMap[b.id] || {};
+    return {
+      ...b,
+      module_tools:       opt.module_tools       as boolean ?? true,
+      module_forms:       opt.module_forms       as boolean ?? false,
+      module_gpt:         opt.module_gpt         as boolean ?? false,
+      module_ai_landing:  opt.module_ai_landing  as boolean ?? false,
+      module_ai_recursos: opt.module_ai_recursos as boolean ?? false,
+    };
+  });
 
   setBusinesses(businessesWithDefaults as Business[]);
   setLoading(false);
@@ -67,24 +80,31 @@ const loadBusinesses = async () => {
     setSaving(true);
     setMsg("Guardando...");
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token || "";
+
     for (const b of businesses) {
-const { error } = await supabase
-  .from("businesses")
-  .update({
-    module_vip_benefits: b.module_vip_benefits,
-    module_lead_magnet: b.module_lead_magnet,
-    module_whatsapp: b.module_whatsapp,
-    module_tools: b.module_tools,
-    module_forms: b.module_forms,
-    module_gpt: b.module_gpt,
-    module_ai_landing: b.module_ai_landing,
-    module_ai_recursos: b.module_ai_recursos,
-  })
-  .eq("id", b.id);
-
-
-      if (error) {
-        setMsg("Error al guardar: " + error.message);
+      const res = await fetch("/api/admin/update-business", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: b.id,
+          module_vip_benefits: b.module_vip_benefits,
+          module_lead_magnet: b.module_lead_magnet,
+          module_whatsapp: b.module_whatsapp,
+          module_tools: b.module_tools,
+          module_forms: b.module_forms,
+          module_gpt: b.module_gpt,
+          module_ai_landing: b.module_ai_landing,
+          module_ai_recursos: b.module_ai_recursos,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setMsg("Error al guardar: " + (data.error || "error desconocido"));
         setSaving(false);
         return;
       }

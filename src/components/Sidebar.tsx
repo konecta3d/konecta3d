@@ -81,9 +81,16 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 .eq("contact_email", userEmail)
                 .single();
             if (!biz?.id) return;
+            // Columnas garantizadas primero
             const { data } = await supabase
                 .from("businesses")
-                .select("module_vip_benefits,module_lead_magnet,module_whatsapp,module_tools,module_forms,module_gpt")
+                .select("module_vip_benefits,module_lead_magnet,module_whatsapp")
+                .eq("id", biz.id)
+                .single();
+            // Columnas opcionales (post-migración) por separado para no romper si no existen
+            const { data: optData } = await supabase
+                .from("businesses")
+                .select("module_tools,module_forms,module_gpt")
                 .eq("id", biz.id)
                 .single();
             if (data) {
@@ -91,12 +98,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     module_vip_benefits: data.module_vip_benefits ?? true,
                     module_lead_magnet: data.module_lead_magnet ?? true,
                     module_whatsapp: data.module_whatsapp ?? true,
-                    module_tools: data.module_tools ?? true,
-                    module_forms: data.module_forms ?? true,
-                    module_gpt: data.module_gpt ?? false,
+                    module_tools: (optData as Record<string, unknown>)?.module_tools as boolean ?? true,
+                    module_forms: (optData as Record<string, unknown>)?.module_forms as boolean ?? false,
+                    module_gpt: (optData as Record<string, unknown>)?.module_gpt as boolean ?? false,
                 });
             } else {
-                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: true, module_gpt: false });
+                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: false, module_gpt: false });
             }
         };
         if (showBusinessSidebar) load();

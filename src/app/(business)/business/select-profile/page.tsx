@@ -31,20 +31,15 @@ function SelectProfileContent() {
   load();
 }, [searchParams]);
 
-  const selectProfile = async (profile: "fidelizacion" | "captacion") => {
+  const selectProfile = async (_profile: "fidelizacion" | "captacion") => {
     if (!businessId) return;
-
-    await supabase
-      .from("businesses")
-      .update({ active_profile: profile })
-      .eq("id", businessId);
-
-    if (profile === "fidelizacion") {
-      router.push(`/dashboard?businessId=${businessId}`);
-      return;
+    // Guardar businessId en localStorage para que el panel lo use
+    if (typeof window !== "undefined") {
+      localStorage.setItem("konecta-business-id", businessId);
+      const fromAdmin = searchParams.get("fromAdmin");
+      if (fromAdmin) localStorage.setItem("konecta-from-admin-business", "true");
     }
-
-    router.push(`/dashboard?businessId=${businessId}`);
+    router.push("/mi-negocio/dashboard");
   };
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">

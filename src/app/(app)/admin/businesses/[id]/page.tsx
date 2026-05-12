@@ -63,16 +63,18 @@ export default function BusinessDetail() {
 
   const updateModule = async (module: string, value: boolean) => {
     if (!business) return;
-    const { error } = await supabase
-      .from("businesses")
-      .update({ [module]: value })
-      .eq("id", id);
-
-    if (!error) {
+    const authHeader = await getAuthHeader();
+    const res = await fetch("/api/admin/update-business", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader },
+      body: JSON.stringify({ id, [module]: value }),
+    });
+    if (res.ok) {
       setBusiness({ ...business, [module]: value });
       setMsg(`${module} ${value ? "activado" : "desactivado"}`);
     } else {
-      setMsg("Error al actualizar");
+      const data = await res.json();
+      setMsg(data.error || "Error al actualizar");
     }
     setTimeout(() => setMsg(null), 2000);
   };
@@ -93,24 +95,27 @@ export default function BusinessDetail() {
 
   const saveBusinessInfo = async () => {
     if (!business) return;
-    const { error } = await supabase
-      .from("businesses")
-      .update({
+    const authHeader = await getAuthHeader();
+    const res = await fetch("/api/admin/update-business", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader },
+      body: JSON.stringify({
+        id,
         name: editData.name,
         sector: editData.sector || null,
         slug: editData.slug || null,
         contact_email: editData.contact_email || null,
         phone: editData.phone || null,
-        font_family: editData.font_family || null
-      })
-      .eq("id", id);
-
-    if (!error) {
+        font_family: editData.font_family || null,
+      }),
+    });
+    if (res.ok) {
       setBusiness({ ...business, ...editData });
       setEditMode(false);
       setMsg("Información actualizada");
     } else {
-      setMsg("Error al guardar");
+      const data = await res.json();
+      setMsg(data.error || "Error al guardar");
     }
     setTimeout(() => setMsg(null), 2000);
   };
@@ -139,13 +144,8 @@ export default function BusinessDetail() {
     setIsResetting(false);
     setTimeout(() => setMsg(null), 3000);
   };
-  const openAsProfile = async (profile: "fidelizacion" | "captacion") => {
-    await supabase
-      .from("businesses")
-      .update({ active_profile: profile })
-      .eq("id", id);
-
-    window.open(`/business/select-profile?businessId=${id}`, "_blank");
+  const openAsProfile = async (_profile: "fidelizacion" | "captacion") => {
+    window.open(`/business/select-profile?businessId=${id}&fromAdmin=1`, "_blank");
   };
   if (!business) {
     return <div className="p-8 text-center">Cargando...</div>;
@@ -156,7 +156,7 @@ export default function BusinessDetail() {
       {/* Breadcrumb */}
       <div className="border-b border-[var(--border)] p-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <a className="text-[var(--brand-1)]" href="/admin/configuracion">← Admin</a>
+          <a className="text-[var(--brand-1)]" href="/admin/configuracion?tab=negocios">← Negocios</a>
           <span className="text-white">/</span>
           <span className="text-white">{business.name}</span>
         </div>

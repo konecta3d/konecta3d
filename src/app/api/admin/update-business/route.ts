@@ -1,42 +1,81 @@
+/**
+ * POST /api/admin/update-business
+ * Actualiza cualquier campo de un negocio. Solo accesible por admins.
+ * Los campos "core" siempre existen en la DB.
+ * Los campos "optional" se añaden con la migración SQL de setup-db.
+ */
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyBusinessOwnership } from "@/lib/auth-helpers";
+import { verifyAdminSession } from "@/lib/auth-helpers";
+
+// Columnas garantizadas en el schema actual
+const CORE_FIELDS = [
+  "name", "sector", "contact_email", "phone", "slug",
+  "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
+];
+
+// Columnas que requieren haber ejecutado la migración SQL
+const OPTIONAL_FIELDS = [
+  "profile_active", "landing_active",
+  "module_tools", "module_forms", "module_gpt",
+  "module_ai_landing", "module_ai_recursos",
+  "multi_landing_enabled", "font_family",
+];
 
 export async function POST(req: Request) {
+  const { isAdmin } = await verifyAdminSession(req);
+  if (!isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
   try {
     const body = await req.json();
-    const { id, multi_landing_enabled, module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms } = body;
-    if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
-
-    // Verify ownership
-    const hasOwnership = await verifyBusinessOwnership(req, id);
-    if (!hasOwnership) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
+    const { id, ...fields } = body;
+    if (!id) return NextResponse.json({ error: "id requerido" }, { status: 400 });
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Construir objeto de actualización solo con campos presentes
-    const updateData: Record<string, unknown> = {};
-    if (multi_landing_enabled !== undefined) updateData.multi_landing_enabled = multi_landing_enabled;
-    if (module_vip_benefits !== undefined) updateData.module_vip_benefits = module_vip_benefits;
-    if (module_lead_magnet !== undefined) updateData.module_lead_magnet = module_lead_magnet;
-    if (module_whatsapp !== undefined) updateData.module_whatsapp = module_whatsapp;
-    if (module_tools !== undefined) updateData.module_tools = module_tools;
-    if (module_forms !== undefined) updateData.module_forms = module_forms;
+    // Construir update core (columnas garantizadas)
+    const coreUpdate: Record<string, unknown> = {};
+    for (const field of CORE_FIELDS) {
+      if (fields[field] !== undefined) coreUpdate[field] = fields[field];
+    }
 
-    const { error } = await supabaseAdmin
-      .from("businesses")
-      .update(updateData)
-      .eq("id", id);
+    // Construir update opcional (columnas post-migración)
+    const optionalUpdate: Record<string, unknown> = {};
+    for (const field of OPTIONAL_FIELDS) {
+      if (fields[field] !== undefined) optionalUpdate[field] = fields[field];
+    }
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    // Ejecutar update core si hay campos
+    if (Object.keys(coreUpdate).length > 0) {
+      const { error } = await supabaseAdmin
+        .from("businesses")
+        .update(coreUpdate)
+        .eq("id", id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    // Ejecutar update opcional (best-effort: si la columna no existe, se ignora el error)
+    let optionalError: string | null = null;
+    if (Object.keys(optionalUpdate).length > 0) {
+      const { error } = await supabaseAdmin
+        .from("businesses")
+        .update(optionalUpdate)
+        .eq("id", id);
+      if (error) {
+        // Solo reportar si NO es un error de columna inexistente
+        if (!error.message.includes("does not exist") && !error.message.includes("column")) {
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        optionalError = "Algunas columnas requieren migración SQL. Ejecuta el SQL en Supabase.";
+      }
+    }
+
+    return NextResponse.json({ ok: true, warning: optionalError });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error desconocido";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

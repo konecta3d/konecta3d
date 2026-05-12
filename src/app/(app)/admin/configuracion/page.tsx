@@ -208,13 +208,16 @@ body: JSON.stringify({
   setResetting(false);
   setTimeout(() => setMsg(""), 4000);
 };
-  // Actualizar negocio
+  // Actualizar negocio — usa API (service role, bypassea RLS)
   const updateBusiness = async () => {
     if (!editingBusiness) return;
-
-    const { error } = await supabase
-      .from("businesses")
-      .update({
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token || "";
+    const res = await fetch("/api/admin/update-business", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({
+        id: editingBusiness.id,
         name: editingBusiness.name,
         sector: editingBusiness.sector,
         phone: editingBusiness.phone,
@@ -222,11 +225,11 @@ body: JSON.stringify({
         module_vip_benefits: editingBusiness.module_vip_benefits,
         module_lead_magnet: editingBusiness.module_lead_magnet,
         module_whatsapp: editingBusiness.module_whatsapp,
-      })
-      .eq("id", editingBusiness.id);
-
-    if (error) {
-      setMsg("Error: " + error.message);
+      }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setMsg("Error: " + (data.error || "desconocido"));
     } else {
       setMsg("Negocio actualizado");
       setShowEditModal(false);
@@ -235,14 +238,19 @@ body: JSON.stringify({
     setTimeout(() => setMsg(""), 3000);
   };
 
-  // Eliminar negocio
+  // Eliminar negocio — usa API dedicada (service role)
   const deleteBusiness = async (id: string) => {
-    if (!confirm("¿Eliminar este negocio?")) return;
-
-    const { error } = await supabase.from("businesses").delete().eq("id", id);
-
-    if (error) {
-      setMsg("Error: " + error.message);
+    if (!confirm("¿Eliminar este negocio? Esta acción no se puede deshacer.")) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token || "";
+    const res = await fetch("/api/admin/delete-business", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setMsg("Error: " + (data.error || "desconocido"));
     } else {
       setMsg("Negocio eliminado");
       loadBusinesses();
@@ -250,14 +258,22 @@ body: JSON.stringify({
     setTimeout(() => setMsg(""), 3000);
   };
 
-  // Toggle módulo
+  // Toggle módulo — usa la API para bypassear RLS con service role
   const toggleModule = async (id: string, module: string, value: boolean) => {
-    await supabase
-      .from("businesses")
-      .update({ [module]: value })
-      .eq("id", id);
-
-    setBusinesses(businesses.map(b => b.id === id ? { ...b, [module]: value } : b));
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token || "";
+    const res = await fetch("/api/admin/update-business", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ id, [module]: value }),
+    });
+    if (res.ok) {
+      setBusinesses(businesses.map(b => b.id === id ? { ...b, [module]: value } : b));
+    } else {
+      const data = await res.json();
+      setMsg(data.warning || data.error || "Error al actualizar");
+      setTimeout(() => setMsg(""), 3000);
+    }
   };
 
   const filtered = businesses.filter(b => b.name.toLowerCase().includes(search.toLowerCase()));

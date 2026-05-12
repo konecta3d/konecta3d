@@ -2,7 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
 // Rutas que requieren estar logueado
-const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/landing", "/lead-magnet", "/vip-benefits", "/whatsapp-generator", "/documents", "/settings", "/business/dashboard"];
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/admin",
+  "/landing",
+  "/lead-magnet",
+  "/vip-benefits",
+  "/whatsapp-generator",
+  "/documents",
+  "/settings",
+  "/business/dashboard",
+  "/mi-negocio",
+  "/formularios",
+  "/acciones",
+  "/gpt-fidelizacion",
+  "/ayuda",
+];
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -34,11 +49,10 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // getUser verifica el token contra el servidor (más seguro que getSession)
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     // Si viene de /business/*, redirigir a login de negocio
     if (pathname.startsWith("/business")) {
       return NextResponse.redirect(new URL("/business/login", req.url));

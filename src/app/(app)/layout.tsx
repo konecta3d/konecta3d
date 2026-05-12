@@ -108,9 +108,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       const userEmail = sessionData?.session?.user?.email;
       if (!userEmail) return;
 
+      // Usar select("*") para no fallar si hay columnas opcionales no migradas
       const { data, error } = await supabase
         .from("businesses")
-        .select("module_vip_benefits, module_lead_magnet, module_whatsapp, module_tools, module_forms, module_gpt, profile_active")
+        .select("module_vip_benefits, module_lead_magnet, module_whatsapp")
         .eq("contact_email", userEmail)
         .single();
 
@@ -120,14 +121,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        setProfileActive(data.profile_active ?? true);
+        // profile_active: se lee de forma separada (columna opcional post-migración)
+        const { data: accessData } = await supabase
+          .from("businesses")
+          .select("profile_active, module_tools, module_forms, module_gpt")
+          .eq("contact_email", userEmail)
+          .single();
+
+        setProfileActive((accessData as Record<string, unknown>)?.profile_active as boolean ?? true);
         setModules({
           module_vip_benefits: data.module_vip_benefits ?? true,
           module_lead_magnet: data.module_lead_magnet ?? true,
           module_whatsapp: data.module_whatsapp ?? true,
-          module_tools: data.module_tools ?? true,
-          module_forms: data.module_forms ?? true,
-          module_gpt: data.module_gpt ?? false,
+          module_tools: (accessData as Record<string, unknown>)?.module_tools as boolean ?? true,
+          module_forms: (accessData as Record<string, unknown>)?.module_forms as boolean ?? false,
+          module_gpt: (accessData as Record<string, unknown>)?.module_gpt as boolean ?? false,
         });
       }
     };
