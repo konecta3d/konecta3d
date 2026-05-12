@@ -15,9 +15,10 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Buscar el negocio por slug
+  // Nota: landing_active no se selecciona porque la columna puede no existir en la DB
   const { data: business, error: bizError } = await supabase
     .from("businesses")
-    .select("id, slug, name, landing_active")
+    .select("id, slug, name")
     .eq("slug", slug)
     .single();
 
@@ -27,20 +28,6 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
         <div className="text-center">
           <h1 className="text-2xl font-bold">Landing no encontrada</h1>
           <p className="mt-2 text-white/70">Esta URL no existe</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (business.landing_active === false) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f2b33] text-white px-6">
-        <div className="text-center max-w-xs">
-          <div className="text-5xl mb-4">🔒</div>
-          <h1 className="text-xl font-bold mb-2">Perfil temporalmente no disponible</h1>
-          <p className="text-white/60 text-sm">
-            Esta página está pausada en este momento. Si eres el propietario, contacta con Konecta3D para más información.
-          </p>
         </div>
       </div>
     );

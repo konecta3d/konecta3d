@@ -25,9 +25,21 @@ export default function LoginPage() {
     }
 
     const userEmail = (data.user?.email || "").toLowerCase();
-    const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
 
-    if (!adminEmail || userEmail !== adminEmail) {
+    // Verificar que el email es admin (tabla admins o variable de entorno)
+    const adminEnvEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
+    let isAdmin = adminEnvEmail !== "" && userEmail === adminEnvEmail;
+
+    if (!isAdmin) {
+      const { data: adminRow } = await supabase
+        .from("admins")
+        .select("email")
+        .eq("email", userEmail)
+        .single();
+      isAdmin = !!adminRow;
+    }
+
+    if (!isAdmin) {
       setError("Este usuario no tiene acceso al panel de administración.");
       setLoading(false);
       await supabase.auth.signOut();
