@@ -34,11 +34,13 @@ function AdminConfigContent() {
   // Modal crear negocio
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createdPassword, setCreatedPassword] = useState<string | null>(null);
   const [newBusiness, setNewBusiness] = useState({
     name: "",
     email: "",
     phone: "",
     sector: "",
+    password: "",
     module_vip_benefits: false,
     module_lead_magnet: true,
     module_whatsapp: true,
@@ -139,13 +141,14 @@ const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "activid
       if (!res.ok) {
         setMsg(data.error || "Error al crear");
       } else {
-        setMsg(data.message || "Negocio creado");
-        setShowModal(false);
+        if (data.password) setCreatedPassword(data.password);
+        else setShowModal(false);
         setNewBusiness({
           name: "",
           email: "",
           phone: "",
           sector: "",
+          password: "",
           module_vip_benefits: false,
           module_lead_magnet: true,
           module_whatsapp: true,
@@ -488,6 +491,31 @@ body: JSON.stringify({
                     />
                   </div>
 
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Contraseña inicial</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newBusiness.password}
+                        onChange={(e) => setNewBusiness({ ...newBusiness, password: e.target.value })}
+                        placeholder="Dejar vacío para generar automáticamente"
+                        className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 font-mono text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+                          let pwd = "";
+                          for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+                          setNewBusiness({ ...newBusiness, password: pwd });
+                        }}
+                        className="px-3 py-2 rounded-lg border border-[var(--border)] text-xs whitespace-nowrap hover:bg-white/5"
+                      >
+                        Generar
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="border-t border-[var(--border)] pt-4">
                     <p className="text-xs text-gray-400 mb-3">Módulos activos</p>
                     <div className="flex gap-4">
@@ -510,6 +538,31 @@ body: JSON.stringify({
                     {creating ? "Creando..." : "Crear Negocio"}
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal: Contraseña generada tras crear negocio */}
+          {createdPassword && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-sm p-6 space-y-4 text-center">
+                <div className="text-3xl">✅</div>
+                <h3 className="text-lg font-semibold">Negocio creado</h3>
+                <p className="text-sm text-gray-400">Contraseña inicial del cliente — cópiala antes de cerrar:</p>
+                <div
+                  className="font-mono text-lg bg-[var(--background)] rounded-lg px-4 py-3 cursor-pointer border border-[var(--border)] hover:border-[var(--brand-4)] transition-colors"
+                  onClick={() => { navigator.clipboard.writeText(createdPassword); setMsg("Copiada ✓"); }}
+                  title="Click para copiar"
+                >
+                  {createdPassword}
+                </div>
+                <p className="text-xs text-gray-500">Click en la contraseña para copiarla</p>
+                <button
+                  onClick={() => { setCreatedPassword(null); setShowModal(false); }}
+                  className="w-full py-2 rounded-lg bg-[var(--brand-4)] text-black font-medium"
+                >
+                  Entendido, cerrar
+                </button>
               </div>
             </div>
           )}

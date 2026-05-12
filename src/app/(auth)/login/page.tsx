@@ -25,14 +25,9 @@ export default function LoginPage() {
     }
 
     const userEmail = (data.user?.email || "").toLowerCase();
+    const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
 
-    const { data: adminRow } = await supabase
-      .from("admins")
-      .select("email")
-      .eq("email", userEmail)
-      .single();
-
-    if (!adminRow) {
+    if (!adminEmail || userEmail !== adminEmail) {
       setError("Este usuario no tiene acceso al panel de administración.");
       setLoading(false);
       await supabase.auth.signOut();

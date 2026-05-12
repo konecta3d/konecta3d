@@ -2,27 +2,30 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Verify if the request comes from an authenticated admin user.
- * Admin = user who has an entry in the businesses table.
+ * Primary check: ADMIN_EMAIL env var. Fallback: admins table in DB.
  */
 export async function verifyAdminSession(req: Request): Promise<{ isAdmin: boolean; userId: string }> {
   const authHeader = req.headers.get("authorization") || "";
   const token = authHeader.replace("Bearer ", "");
   if (!token) return { isAdmin: false, userId: "" };
 
-  const anonClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { data } = await anonClient.auth.getUser(token);
-  if (!data?.user) return { isAdmin: false, userId: "" };
-
-  const email = (data.user.email || "").toLowerCase();
-
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  const { data } = await supabaseAdmin.auth.getUser(token);
+  if (!data?.user) return { isAdmin: false, userId: "" };
+
+  const email = (data.user.email || "").toLowerCase();
+
+  // Primary: check against NEXT_PUBLIC_ADMIN_EMAIL env var (reliable, no DB dependency)
+  const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
+  if (adminEmail && email === adminEmail) {
+    return { isAdmin: true, userId: data.user.id };
+  }
+
+  // Fallback: check admins table in DB
   const { data: admin } = await supabaseAdmin
     .from("admins")
     .select("email")

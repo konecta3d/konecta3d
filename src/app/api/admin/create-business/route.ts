@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, email, phone, sector, module_vip_benefits, module_lead_magnet, module_whatsapp } = body;
+    const { name, email, phone, sector, password, module_vip_benefits, module_lead_magnet, module_whatsapp } = body;
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
@@ -20,6 +20,10 @@ export async function POST(req: Request) {
     if (!email?.trim()) {
       return NextResponse.json({ error: "El email es obligatorio" }, { status: 400 });
     }
+    // Si no se envía password, se genera uno automáticamente
+    const finalPassword = password?.trim() && password.trim().length >= 6
+      ? password.trim()
+      : "K3D-" + randomBytes(6).toString("base64url").slice(0, 10).toUpperCase();
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +32,6 @@ export async function POST(req: Request) {
 
     const slug = name.toLowerCase().replace(/\s+/g, "-");
     const publicId = "K3D-" + randomBytes(4).toString("hex").toUpperCase();
-    const tempPassword = "K3D-" + randomBytes(6).toString("base64").slice(0, 10).toUpperCase();
 
     // Buscar si ya existe un usuario con ese email (Supabase JS v2 no tiene getUserByEmail)
     let userId: string | null = null;
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
       const { data: authData, error: createError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
-          password: tempPassword,
+          password: finalPassword,
           email_confirm: true,
         });
 
@@ -85,10 +88,6 @@ export async function POST(req: Request) {
       module_vip_benefits: module_vip_benefits ?? false,
       module_lead_magnet: module_lead_magnet ?? true,
       module_whatsapp: module_whatsapp ?? true,
-      module_tools: true,
-      module_forms: false,
-      profile_active: true,
-      landing_active: true,
     };
 
     if (userId) {
@@ -108,10 +107,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       business,
-      publicId: publicId,
+      publicId,
+      password: isNewUser ? finalPassword : null,
       message: isNewUser
-        ? `Negocio creado. Las credenciales fueron enviadas al email ${email}`
-        : "Negocio creado (usuario existente)"
+        ? `Negocio creado correctamente`
+        : "Negocio creado (usuario ya existía en Auth)",
     });
 
   } catch (err: any) {
