@@ -163,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             El acceso a tu panel está temporalmente suspendido. Por favor, contacta con Konecta3D para regularizar tu cuenta.
           </p>
           <a
-            href="https://wa.me/34600000000"
+            href="https://wa.me/34623759451"
             className="inline-block px-5 py-2 rounded-lg bg-[var(--brand-4)] text-black text-sm font-medium hover:opacity-90"
           >
             Contactar con soporte
