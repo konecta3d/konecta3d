@@ -103,7 +103,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     module_gpt: (optData as Record<string, unknown>)?.module_gpt as boolean ?? false,
                 });
             } else {
-                setModules({ module_vip_benefits: true, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: false, module_gpt: false });
+                setModules({ module_vip_benefits: false, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: false, module_gpt: false });
             }
         };
         if (showBusinessSidebar) load();

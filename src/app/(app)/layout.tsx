@@ -39,11 +39,11 @@ const adminLinks: SidebarLink[] = [
 ];
 
 const DEFAULT_MODULES: Record<string, boolean> = {
-  module_vip_benefits: true,
+  module_vip_benefits: false,
   module_lead_magnet: true,
   module_whatsapp: true,
   module_tools: true,
-  module_forms: true,
+  module_forms: false,
   module_gpt: false,
 };
 
