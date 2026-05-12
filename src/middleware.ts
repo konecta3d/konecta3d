@@ -49,10 +49,9 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // getUser verifica el token contra el servidor (más seguro que getSession)
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session) {
     // Si viene de /business/*, redirigir a login de negocio
     if (pathname.startsWith("/business")) {
       return NextResponse.redirect(new URL("/business/login", req.url));
