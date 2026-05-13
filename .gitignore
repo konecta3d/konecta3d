@@ -36,9 +36,12 @@ yarn-error.log*
 .env.*.local
 .env.production
 .env.development
+.env.prod.backup
 
-# Sí subir el ejemplo (es documentación, no contiene secretos)
+# Sí subir los ejemplos (son documentación, no contienen secretos)
 !.env.local.example
+!.env.dev.example
+!.env.production.example
 
 # Claude Code — metadatos locales, no necesarios en el repo
 .claude/
