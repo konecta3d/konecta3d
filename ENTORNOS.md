@@ -18,7 +18,43 @@ main  →  producción  (NUNCA desarrollar aquí directamente)
 
 ---
 
-## CONFIGURACIÓN INICIAL (hacer una sola vez)
+## COMANDOS SUPABASE LOCAL — USO DIARIO
+
+```bash
+# Arrancar Supabase local (requiere Docker abierto)
+supabase start
+
+# Parar Supabase local
+supabase stop
+
+# Ver credenciales locales
+supabase status
+
+# Resetear la base de datos (borra todo y aplica migraciones de nuevo)
+supabase db reset
+
+# Añadir una migración nueva
+# Crea el archivo en supabase/migrations/ y luego ejecuta db reset
+```
+
+> ⚠️ Docker Desktop debe estar abierto antes de ejecutar `supabase start`.
+> La primera vez tardó unos minutos descargando imágenes. Las siguientes arranca en segundos.
+
+### Cambiar entre entorno local y producción
+
+```bash
+# Trabajar en local (DEV)
+copy .env.prod.backup .env.local.bak   # por si acaso
+# .env.local ya apunta a local — solo arranca Supabase y npm run dev
+
+# Volver a producción temporalmente (ej: revisar algo urgente)
+copy .env.prod.backup .env.local
+# Recuerda volver a local cuando termines
+```
+
+---
+
+## CONFIGURACIÓN INICIAL (ya completada ✓)
 
 ### PASO 1 — Crear el proyecto Supabase DEV
 
