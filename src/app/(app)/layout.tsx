@@ -16,7 +16,8 @@ interface SidebarLink {
   module?: string;
 }
 
-const businessLinks: SidebarLink[] = [
+// Perfil de Fidelización
+const fidelizacionLinks: SidebarLink[] = [
   { label: "Perfil", href: "/mi-negocio/perfil", category: "Mi Negocio" },
   { label: "Clientes", href: "/mi-negocio/cliente-ideal", category: "Mi Negocio" },
   { label: "Catálogo P/S", href: "/mi-negocio/catalogo", category: "Mi Negocio" },
@@ -27,7 +28,19 @@ const businessLinks: SidebarLink[] = [
   { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
   { label: "Herramientas del negocio", href: "/acciones", category: "Herramientas del negocio", module: "module_tools" },
   { label: "GPT de Fidelización", href: "/gpt-fidelizacion", category: "GPT", module: "module_gpt" },
+  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
+
+// Perfil de Captación
+const captacionLinks: SidebarLink[] = [
+  { label: "Inicio", href: "/captacion", category: "Captación" },
+  { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
+  { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
+  { label: "Lead Magnets", href: "/captacion/lead-magnets", category: "Captación" },
+  { label: "Clientes", href: "/captacion/clientes", category: "Captación" },
+  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
+];
+
 
 const adminLinks: SidebarLink[] = [
   { label: "Panel de control", href: "/admin/dashboard", category: "Panel Admin" },
@@ -45,6 +58,7 @@ const DEFAULT_MODULES: Record<string, boolean> = {
   module_tools: true,
   module_forms: false,
   module_gpt: false,
+  module_captacion: false,
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -124,7 +138,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         // profile_active: se lee de forma separada (columna opcional post-migración)
         const { data: accessData } = await supabase
           .from("businesses")
-          .select("profile_active, module_tools, module_forms, module_gpt")
+          .select("profile_active, module_tools, module_forms, module_gpt, module_captacion")
           .eq("contact_email", userEmail)
           .single();
 
@@ -136,6 +150,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           module_tools: (accessData as Record<string, unknown>)?.module_tools as boolean ?? true,
           module_forms: (accessData as Record<string, unknown>)?.module_forms as boolean ?? false,
           module_gpt: (accessData as Record<string, unknown>)?.module_gpt as boolean ?? false,
+          module_captacion: (accessData as Record<string, unknown>)?.module_captacion as boolean ?? false,
         });
       }
     };
@@ -143,10 +158,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     load();
   }, [isAdminMode]);
 
-  const baseLinks = isAdminMode ? adminLinks : businessLinks;
+  const isCaptacionMode = pathname.startsWith("/captacion");
+  const baseLinks = isAdminMode ? adminLinks : isCaptacionMode ? captacionLinks : fidelizacionLinks;
 
   const links = baseLinks.filter((l) => {
-    if (!isAdminMode && l.module && modules[l.module] === false) {
+    if (!isAdminMode && !isCaptacionMode && l.module && modules[l.module] === false) {
       return false;
     }
     return true;

@@ -31,15 +31,18 @@ function SelectProfileContent() {
   load();
 }, [searchParams]);
 
-  const selectProfile = async (_profile: "fidelizacion" | "captacion") => {
+  const selectProfile = async (profile: "fidelizacion" | "captacion") => {
     if (!businessId) return;
-    // Guardar businessId en localStorage para que el panel lo use
     if (typeof window !== "undefined") {
       localStorage.setItem("konecta-business-id", businessId);
       const fromAdmin = searchParams.get("fromAdmin");
       if (fromAdmin) localStorage.setItem("konecta-from-admin-business", "true");
     }
-    router.push("/mi-negocio/dashboard");
+    if (profile === "captacion") {
+      router.push("/captacion");
+    } else {
+      router.push("/mi-negocio/dashboard");
+    }
   };
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
@@ -68,15 +71,17 @@ function SelectProfileContent() {
           </button>
 
           {/* Captación */}
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 opacity-70">
-            <div className="h-40 rounded-lg bg-[var(--background)] mb-4 flex items-center justify-center text-white text-sm">
-              Próxima apertura
-            </div>
+          <button
+            type="button"
+            onClick={() => selectProfile("captacion")}
+            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:bg-white/5 transition-colors text-left"
+          >
+            <div className="h-40 rounded-lg bg-[var(--background)] mb-4" />
             <h2 className="text-xl font-semibold">Captación</h2>
             <p className="text-sm text-white mt-2">
-              Aún en desarrollo. Próxima apertura.
+              Diseña formularios, capta leads en eventos y conviértelos en clientes.
             </p>
-          </div>
+          </button>
         </div>
       </div>
     </div>
