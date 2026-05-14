@@ -29,6 +29,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     const [modules, setModules] = React.useState<Record<string, boolean>>({});
 
     const isAdminMode = pathname.startsWith("/admin");
+    const isCaptacionMode = pathname.startsWith("/captacion");
     const showBusinessSidebar = !isAdminMode;
 
     const [mounted, setMounted] = useState(false);
@@ -209,8 +210,8 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 </div>
             )}
 
-            {/* Botón Dashboard — solo en modo negocio */}
-            {showBusinessSidebar && (
+            {/* Botón Dashboard — solo en modo fidelización (no en captación) */}
+            {showBusinessSidebar && !isCaptacionMode && (
                 <Link
                     href="/mi-negocio/dashboard"
                     className={`flex items-center gap-2 mb-4 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
