@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type {
@@ -403,6 +403,8 @@ export default function FormBuilderPage() {
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [previewBlock, setPreviewBlock] = useState<FormBlock | null>(null);
   const [saved, setSaved] = useState(false);
+  const previewWrapRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
 
   useEffect(() => {
     const load = async () => {
@@ -498,6 +500,20 @@ export default function FormBuilderPage() {
     }
     setSaving(false);
   };
+
+  useEffect(() => {
+    if (!previewWrapRef.current) return;
+    const updateScale = () => {
+      if (previewWrapRef.current) {
+        const w = previewWrapRef.current.clientWidth;
+        setPreviewScale(Math.min(1, w / 320));
+      }
+    };
+    updateScale();
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(previewWrapRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   const activeBlock = formData?.blocks.find(b => b.id === selectedBlock) || null;
 
@@ -611,27 +627,90 @@ export default function FormBuilderPage() {
         </div>
 
         {/* Panel derecho: preview móvil */}
-        <div className="w-64 flex-shrink-0 flex flex-col items-center gap-3">
-          <p className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider self-start">
-            Vista previa
-          </p>
-          {/* Marco de móvil */}
-          <div className="w-full rounded-[2rem] border-4 overflow-hidden relative flex-1 max-h-[580px]"
-            style={{ borderColor: "var(--border)", background: "var(--background)" }}>
-            {/* Notch */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-1.5 rounded-full bg-[var(--border)] z-10" />
-            <div className="pt-6 h-full overflow-y-auto text-[var(--foreground)]" style={{ fontSize: "13px" }}>
-              {previewBlock ? (
-                <BlockPreview block={previewBlock} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-xs text-[var(--foreground)]/30 text-center px-4">Selecciona un bloque para ver la vista previa</p>
-                </div>
-              )}
+        <div ref={previewWrapRef} className="w-80 flex-shrink-0 flex flex-col gap-3">
+          {/* Header + step dots */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider">
+              Vista previa
+            </p>
+            <div className="flex items-center gap-1">
+              {(formData?.blocks || []).sort((a, b) => a.order - b.order).map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => selectBlock(b)}
+                  title={BLOCK_LABELS[b.type]}
+                  className={`rounded-full transition-all duration-200 ${
+                    selectedBlock === b.id
+                      ? "w-5 h-2 bg-[var(--brand-1)]"
+                      : "w-2 h-2 bg-[var(--foreground)]/20 hover:bg-[var(--foreground)]/40"
+                  }`}
+                />
+              ))}
             </div>
           </div>
+
+          {/* Phone frame wrapper — scales to fit panel width */}
+          <div className="flex justify-center overflow-hidden">
+            <div
+              style={{
+                width: "320px",
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top center",
+                marginBottom: `${(previewScale - 1) * 600}px`,
+              }}
+            >
+              {/* Phone shell */}
+              <div
+                className="relative rounded-[2.5rem] overflow-hidden shadow-2xl"
+                style={{ width: "320px", border: "3px solid #1a1a1a", background: "#ffffff" }}
+              >
+                {/* Dynamic island + status bar */}
+                <div className="flex items-center justify-between px-5 py-2" style={{ background: "#000", minHeight: "44px" }}>
+                  <span className="text-white text-[11px] font-medium">9:41</span>
+                  <div className="w-24 h-6 rounded-full bg-black border border-[#333] absolute top-2 left-1/2 -translate-x-1/2" />
+                  <div className="flex items-center gap-1">
+                    <svg width="16" height="12" viewBox="0 0 16 12" fill="white">
+                      <rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4" y="2.5" width="3" height="9.5" rx="1"/><rect x="8" y="1" width="3" height="11" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1"/>
+                    </svg>
+                    <svg width="15" height="11" viewBox="0 0 15 11" fill="white">
+                      <path d="M7.5 2.5C9.7 2.5 11.7 3.4 13.1 4.9L14.5 3.5C12.7 1.6 10.2.5 7.5.5S2.3 1.6.5 3.5L1.9 4.9C3.3 3.4 5.3 2.5 7.5 2.5z"/><path d="M7.5 6C8.9 6 10.1 6.6 11 7.5L12.4 6.1C11.1 4.8 9.4 4 7.5 4S3.9 4.8 2.6 6.1L4 7.5C4.9 6.6 6.1 6 7.5 6z"/><circle cx="7.5" cy="10" r="1.5"/>
+                    </svg>
+                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+                      <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" strokeOpacity="0.35"/>
+                      <rect x="2" y="2" width="16" height="8" rx="2" fill="white"/>
+                      <path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6S23.8 4.8 23 4.5z" fill="white" fillOpacity="0.4"/>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Form content — white background like the client sees */}
+                <div className="overflow-y-auto" style={{ height: "560px", background: "#ffffff", color: "#111111" }}>
+                  {previewBlock ? (
+                    <BlockPreview block={previewBlock} />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full gap-3 px-6">
+                      <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <p className="text-xs text-gray-400 text-center leading-relaxed">
+                        Selecciona un bloque<br/>para ver la vista previa
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Home indicator */}
+                <div className="flex justify-center py-2" style={{ background: "#ffffff" }}>
+                  <div className="w-28 h-1 rounded-full bg-gray-200" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className="text-xs text-[var(--foreground)]/30 text-center">
-            Vista del bloque seleccionado
+            {previewBlock ? `Bloque: ${BLOCK_LABELS[previewBlock.type]}` : "Vista como la ve el cliente"}
           </p>
         </div>
       </div>
