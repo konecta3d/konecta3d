@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import LandingRenderer from "@/components/LandingRenderer";
 import PreviewClient from "./PreviewClient";
+import { defaultLandingConfig } from "@/lib/landingTypes";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +41,11 @@ export default async function PublicLanding({ params, searchParams }: { params: 
   const raw = configRow.config;
   const resolvedConfig = raw?.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"]) : raw;
 
-  // Garantizar businessName y businessId en el config para que el LandingRenderer
-  // muestre el nombre correcto y registre analytics correctamente.
+  // Garantizar defaults completos + businessName y businessId.
+  // Sin defaultLandingConfig los valores opcionales ausentes en la DB quedarían
+  // como undefined y el LandingRenderer podría comportarse de forma inesperada.
   const config = {
+    ...defaultLandingConfig,
     ...resolvedConfig,
     businessName: resolvedConfig?.businessName || biz.name || "",
     businessId: biz.id,

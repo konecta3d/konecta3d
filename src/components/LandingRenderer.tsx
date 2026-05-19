@@ -110,27 +110,27 @@ export default function LandingRenderer({
   }, []);
 
   // ── Estilos de botón CTA ─────────────────────────────────────────────────
-  // La opacidad se aplica SOLO al fondo (rgba) para que el texto sea siempre legible.
-  // ensureContrast corrige configs antiguas con texto y fondo del mismo color.
-  // Los estilos se inyectan con <style> para que ninguna regla CSS de clase
-  // pueda sobreescribir el color (independiente del modo claro/oscuro del app).
+  // Se inyecta un <style> tag dinámico con !important dentro del <body>.
+  // Al estar después de globals.css en el DOM, gana en source-order incluso
+  // cuando globals.css también usa !important — garantía máxima de color.
   const ctaBg = config.ctaBg || "#ffffff";
   const ctaOpacity = config.ctaOpacity ?? 100;
   // getTextColor garantiza contraste WCAG ≥ 4.5 respetando el color configurado si es válido
   const ctaTextColor = getTextColor(ctaBg, config.ctaTextColor);
   const ctaBgRgba = hexToRgba(ctaBg, ctaOpacity);
 
-  // Colores inline en cada botón — más fiable que inyectar un <style> tag.
-  // El <style> tag compite con las reglas de globals.css y puede perder.
-  const ctaBaseStyle: React.CSSProperties = {
-    backgroundColor: ctaBgRgba,
-    color: ctaTextColor,
-    borderColor: config.ctaBorderColor || "transparent",
-    borderWidth: `${config.ctaBorderWidth ?? 0}px`,
-    borderStyle: "solid",
-    borderRadius: `${config.ctaRadius ?? 16}px`,
-    fontSize: `${config.ctaFontSize ?? 15}px`,
-  };
+  // CSS inyectado: .k3d-cta-btn con !important sobreescribe CUALQUIER regla
+  const ctaInjectedCss = `
+.landing-public .k3d-cta-btn {
+  background-color: ${ctaBgRgba} !important;
+  color: ${ctaTextColor} !important;
+  border-color: ${config.ctaBorderColor || "transparent"} !important;
+  border-width: ${config.ctaBorderWidth ?? 0}px !important;
+  border-style: solid !important;
+  border-radius: ${config.ctaRadius ?? 16}px !important;
+  font-size: ${config.ctaFontSize ?? 15}px !important;
+}
+`.trim();
   // ─────────────────────────────────────────────────────────────────────────
 
   const heroPaddingTop = config.heroPaddingTop ?? 48;
@@ -254,10 +254,9 @@ export default function LandingRenderer({
                   style={{ marginTop: dividerMarginTop, marginBottom: dividerMarginBottom }}
                 />
 
-                {/* DEBUG TEMPORAL — leer valores de config y eliminar */}
-                <div style={{ background: "#fff", color: "#000", fontSize: "11px", padding: "4px 8px", borderRadius: "6px", marginBottom: "8px", wordBreak: "break-all" }}>
-                  bg={ctaBg} | op={ctaOpacity} | txt={ctaTextColor} | bgRgba={ctaBgRgba}
-                </div>
+                {/* Inyección CSS con !important — garantiza colores CTA sin importar cascada */}
+                {/* eslint-disable-next-line react/no-danger */}
+                <style dangerouslySetInnerHTML={{ __html: ctaInjectedCss }} />
 
                 {config.showCta1 && (
                   <a
@@ -272,7 +271,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta1LeadMagnetId || config.cta1BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
                   >
-                    <div style={{ ...ctaBaseStyle, textAlign: "center", fontWeight: 600, width: "100%", maxWidth: "260px", margin: "0 auto", padding: "12px 20px", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
                       {config.cta1Text || "WhatsApp"}
                     </div>
                   </a>
@@ -291,7 +290,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta2LeadMagnetId || config.cta2BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
                       {config.cta2Text || "Instagram"}
                     </div>
                   </a>
@@ -310,7 +309,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta3LeadMagnetId || config.cta3BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
                       {config.cta3Text || "Página Web"}
                     </div>
                   </a>
@@ -324,7 +323,7 @@ export default function LandingRenderer({
                     className="block"
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 4 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
                       {config.cta4Text || "CTA 4"}
                     </div>
                   </a>
@@ -338,7 +337,7 @@ export default function LandingRenderer({
                     className="block"
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 5 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
                       {config.cta5Text || "CTA 5"}
                     </div>
                   </a>
