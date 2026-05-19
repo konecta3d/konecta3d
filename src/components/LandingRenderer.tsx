@@ -26,10 +26,12 @@ function hexToRgba(hex: string, opacity: number): string {
 }
 
 /**
- * Garantiza contraste suficiente (ratio WCAG ≥ 3) entre texto y fondo.
- * Corrige configs antiguas con ctaTextColor=#ffffff sobre ctaBg=#ffffff.
+ * Calcula el color de texto óptimo para un fondo dado.
+ * Siempre devuelve negro oscuro o blanco puro — garantiza legibilidad.
+ * Si el usuario configuró un color con suficiente contraste, se respeta;
+ * si no (o si no se puede parsear), se usa el óptimo automático.
  */
-function ensureContrast(bg: string, text: string): string {
+function getTextColor(hexBg: string, configuredColor?: string): string {
   const parseHex = (hex: string) => {
     const h = (hex || "").replace("#", "");
     if (h.length !== 6) return null;
@@ -39,25 +41,28 @@ function ensureContrast(bg: string, text: string): string {
       b: parseInt(h.slice(4, 6), 16),
     };
   };
-  const luminance = (r: number, g: number, b: number) => {
-    const s = [r, g, b].map((c) => {
-      const v = c / 255;
-      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
-  };
-  const bgRgb = parseHex(bg);
-  const textRgb = parseHex(text);
-  if (!bgRgb || !textRgb) return text;
-  const bgL = luminance(bgRgb.r, bgRgb.g, bgRgb.b);
-  const textL = luminance(textRgb.r, textRgb.g, textRgb.b);
-  const lighter = Math.max(bgL, textL);
-  const darker = Math.min(bgL, textL);
-  const ratio = (lighter + 0.05) / (darker + 0.05);
-  if (ratio < 3) {
-    return bgL > 0.4 ? "#0c1a24" : "#ffffff";
+  const toLinear = (c: number) =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const luminance = ({ r, g, b }: { r: number; g: number; b: number }) =>
+    0.2126 * toLinear(r / 255) + 0.7152 * toLinear(g / 255) + 0.0722 * toLinear(b / 255);
+  const contrastRatio = (l1: number, l2: number) =>
+    (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+
+  const bgRgb = parseHex(hexBg);
+  if (!bgRgb) return "#0c1a24"; // fallback seguro
+  const bgL = luminance(bgRgb);
+
+  // Si el usuario configuró un color y tiene contraste suficiente (≥ 4.5), úsalo
+  if (configuredColor) {
+    const textRgb = parseHex(configuredColor);
+    if (textRgb) {
+      const ratio = contrastRatio(bgL, luminance(textRgb));
+      if (ratio >= 4.5) return configuredColor;
+    }
   }
-  return text;
+
+  // Si no hay color configuro o no tiene contraste, calcular el óptimo
+  return bgL > 0.179 ? "#0c1a24" : "#ffffff";
 }
 
 function normalizeUrl(url?: string | null): string {
@@ -111,7 +116,8 @@ export default function LandingRenderer({
   // pueda sobreescribir el color (independiente del modo claro/oscuro del app).
   const ctaBg = config.ctaBg || "#ffffff";
   const ctaOpacity = config.ctaOpacity ?? 100;
-  const ctaTextColor = ensureContrast(ctaBg, config.ctaTextColor || "#0c1a24");
+  // getTextColor garantiza contraste WCAG ≥ 4.5 respetando el color configurado si es válido
+  const ctaTextColor = getTextColor(ctaBg, config.ctaTextColor);
   const ctaBgRgba = hexToRgba(ctaBg, ctaOpacity);
 
   // Colores inline en cada botón — más fiable que inyectar un <style> tag.
