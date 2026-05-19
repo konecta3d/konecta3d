@@ -254,6 +254,11 @@ export default function LandingRenderer({
                   style={{ marginTop: dividerMarginTop, marginBottom: dividerMarginBottom }}
                 />
 
+                {/* DEBUG TEMPORAL — leer valores de config y eliminar */}
+                <div style={{ background: "#fff", color: "#000", fontSize: "11px", padding: "4px 8px", borderRadius: "6px", marginBottom: "8px", wordBreak: "break-all" }}>
+                  bg={ctaBg} | op={ctaOpacity} | txt={ctaTextColor} | bgRgba={ctaBgRgba}
+                </div>
+
                 {config.showCta1 && (
                   <a
                     href={
@@ -267,7 +272,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta1LeadMagnetId || config.cta1BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={{ ...ctaBaseStyle, backgroundColor: "red", color: "white" }}>
+                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
                       {config.cta1Text || "WhatsApp"}
                     </div>
                   </a>
