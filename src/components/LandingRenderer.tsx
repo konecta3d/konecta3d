@@ -272,7 +272,7 @@ export default function LandingRenderer({
                     download={Boolean(config.cta1LeadMagnetId || config.cta1BenefitId)}
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
                   >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto" style={ctaBaseStyle}>
+                    <div style={{ ...ctaBaseStyle, textAlign: "center", fontWeight: 600, width: "100%", maxWidth: "260px", margin: "0 auto", padding: "12px 20px", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                       {config.cta1Text || "WhatsApp"}
                     </div>
                   </a>
