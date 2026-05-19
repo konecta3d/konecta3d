@@ -55,7 +55,7 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
     if (profileState !== "ready" || messages.length > 0 || !businessName) return;
     const welcome: ChatMessage = {
       role: "assistant",
-      content: `¡Bienvenido ${businessName}, vamos a personalizar tu landing!`,
+      content: `¡Hola ${businessName}! Voy a guiarte para configurar tu landing en 4 pasos: fondo, identidad, botones y bloque final.\n\nAntes de empezar — ¿tienes ya configuradas tus herramientas en la sección "Herramientas del negocio"? (WhatsApp, Instagram, web…) Lo necesitarás para el paso de los botones. Escríbeme "listo" o "aún no" y empezamos.`,
       changes: null,
       timestamp: new Date().toISOString(),
     };
