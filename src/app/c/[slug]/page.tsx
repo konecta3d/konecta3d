@@ -42,9 +42,13 @@ export default async function CampaignPage({ params }: PageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a323c]">
         <div className="text-center px-6">
-          <div className="text-6xl mb-4">✅</div>
+          <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-4 mx-auto">
+            <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-bold text-white mb-2">Campaña finalizada</h1>
-          <p className="text-white/60 text-sm">Esta campaña ha terminado. ¡Gracias por tu interés!</p>
+          <p className="text-white/60 text-sm">Esta campaña ha terminado. Gracias por tu interés.</p>
         </div>
       </div>
     );
@@ -54,7 +58,12 @@ export default async function CampaignPage({ params }: PageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a323c]">
         <div className="text-center px-6">
-          <div className="text-6xl mb-4">🕐</div>
+          <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-4 mx-auto">
+            <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-bold text-white mb-2">Próximamente</h1>
           <p className="text-white/60 text-sm">Esta campaña todavía no está activa.</p>
         </div>

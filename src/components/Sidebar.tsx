@@ -12,6 +12,7 @@ interface SidebarLink {
     category?: string;
     nameKey?: string;
     module?: string;
+    badge?: boolean;
 }
 
 interface SidebarProps {
@@ -168,9 +169,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             <Link
                 key={link.href}
                 href={link.href}
-                className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
+                className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} flex items-center justify-between`}
             >
-                {label}
+                <span>{label}</span>
+                {link.badge && (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0 ml-2" />
+                )}
             </Link>
         );
     };

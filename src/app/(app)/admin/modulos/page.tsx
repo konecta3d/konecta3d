@@ -3,442 +3,400 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+
 type Business = {
   id: string;
   name: string;
   sector: string | null;
-  module_vip_benefits: boolean;
+  // Fidelización
   module_lead_magnet: boolean;
+  module_vip_benefits: boolean;
   module_whatsapp: boolean;
   module_tools: boolean;
   module_forms: boolean;
   module_gpt: boolean;
   module_ai_landing: boolean;
   module_ai_recursos: boolean;
+  // Captación
+  module_captacion: boolean;
   created_at: string;
+  // UI state
+  expanded: boolean;
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const FID_MODULES: { key: keyof Business; label: string; color: string; defaultOn: boolean }[] = [
+  { key: "module_lead_magnet",  label: "Recurso de Valor",  color: "bg-green-500",  defaultOn: true },
+  { key: "module_tools",        label: "Herramientas",      color: "bg-yellow-500", defaultOn: true },
+  { key: "module_whatsapp",     label: "WhatsApp",          color: "bg-purple-500", defaultOn: true },
+  { key: "module_vip_benefits", label: "Beneficios VIP",   color: "bg-blue-500",   defaultOn: false },
+  { key: "module_forms",        label: "Formularios",       color: "bg-orange-500", defaultOn: false },
+  { key: "module_gpt",          label: "GPT Externo",       color: "bg-amber-500",  defaultOn: false },
+  { key: "module_ai_landing",   label: "IA Landing",        color: "bg-cyan-500",   defaultOn: false },
+  { key: "module_ai_recursos",  label: "IA Recursos",       color: "bg-pink-500",   defaultOn: false },
+];
+
+function isFidActive(b: Business): boolean {
+  return FID_MODULES.some((m) => Boolean(b[m.key]));
+}
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+
+function Toggle({
+  checked,
+  activeColor = "bg-[var(--brand-3)]",
+  onChange,
+  size = "md",
+}: {
+  checked: boolean;
+  activeColor?: string;
+  onChange: () => void;
+  size?: "sm" | "md";
+}) {
+  const track = size === "sm" ? "w-9 h-5" : "w-12 h-6";
+  const thumb = size === "sm" ? "w-3.5 h-3.5" : "w-5 h-5";
+  const on    = size === "sm" ? "translate-x-4" : "translate-x-6";
+  const off   = size === "sm" ? "translate-x-0.5" : "translate-x-0.5";
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onChange(); }}
+      className={`${track} rounded-full transition-colors flex-shrink-0 ${checked ? activeColor : "bg-gray-600"}`}
+    >
+      <div className={`${thumb} rounded-full bg-white transform transition-transform ${checked ? on : off}`} />
+    </button>
+  );
+}
+
+// ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function AdminModulos() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  useEffect(() => {
-    loadBusinesses();
-  }, []);
+  useEffect(() => { loadBusinesses(); }, []);
 
-const loadBusinesses = async () => {
-  setLoading(true);
-  // Columnas garantizadas
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("id, name, sector, module_vip_benefits, module_lead_magnet, module_whatsapp, created_at")
-    .order("name");
+  const loadBusinesses = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+      const res = await fetch("/api/admin/businesses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { setLoading(false); return; }
+      const json = await res.json();
+      const raw: Record<string, unknown>[] = json.businesses ?? [];
+      setBusinesses(
+        raw.map((b) => ({
+          id:                  String(b.id ?? ""),
+          name:                String(b.name ?? ""),
+          sector:              b.sector != null ? String(b.sector) : null,
+          module_lead_magnet:  Boolean(b.module_lead_magnet ?? true),
+          module_vip_benefits: Boolean(b.module_vip_benefits ?? false),
+          module_whatsapp:     Boolean(b.module_whatsapp ?? true),
+          module_tools:        Boolean(b.module_tools ?? true),
+          module_forms:        Boolean(b.module_forms ?? false),
+          module_gpt:          Boolean(b.module_gpt ?? false),
+          module_ai_landing:   Boolean(b.module_ai_landing ?? false),
+          module_ai_recursos:  Boolean(b.module_ai_recursos ?? false),
+          module_captacion:    Boolean(b.module_captacion ?? false),
+          created_at:          String(b.created_at ?? ""),
+          expanded:            false,
+        }))
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (error) {
-    console.error("Error cargando negocios:", error);
-    setLoading(false);
-    return;
-  }
+  // ── Acciones ──────────────────────────────────────────────────────────────
 
-  // Columnas opcionales (post-migración) — best effort
-  const { data: optData } = await supabase
-    .from("businesses")
-    .select("id, module_tools, module_forms, module_gpt, module_ai_landing, module_ai_recursos")
-    .order("name");
+  const toggleModule = (id: string, key: keyof Business) => {
+    setBusinesses((prev) =>
+      prev.map((b) => b.id === id ? { ...b, [key]: !b[key] } : b)
+    );
+  };
 
-  const optMap: Record<string, Record<string, unknown>> = {};
-  (optData || []).forEach((b: Record<string, unknown>) => {
-    if (typeof b.id === "string") optMap[b.id] = b;
-  });
+  const toggleFidelizacion = (id: string) => {
+    setBusinesses((prev) =>
+      prev.map((b) => {
+        if (b.id !== id) return b;
+        const isActive = isFidActive(b);
+        if (isActive) {
+          // Desactivar todos los módulos de fidelización
+          const off: Partial<Business> = {};
+          FID_MODULES.forEach((m) => { (off as Record<string, boolean>)[m.key as string] = false; });
+          return { ...b, ...off };
+        } else {
+          // Activar módulos por defecto
+          const on: Partial<Business> = {};
+          FID_MODULES.forEach((m) => { (on as Record<string, boolean>)[m.key as string] = m.defaultOn; });
+          return { ...b, ...on };
+        }
+      })
+    );
+  };
 
-  const businessesWithDefaults = (data || []).map(b => {
-    const opt = optMap[b.id] || {};
-    return {
-      ...b,
-      module_tools:       opt.module_tools       as boolean ?? true,
-      module_forms:       opt.module_forms       as boolean ?? false,
-      module_gpt:         opt.module_gpt         as boolean ?? false,
-      module_ai_landing:  opt.module_ai_landing  as boolean ?? false,
-      module_ai_recursos: opt.module_ai_recursos as boolean ?? false,
-    };
-  });
+  const toggleExpanded = (id: string) => {
+    setBusinesses((prev) =>
+      prev.map((b) => b.id === id ? { ...b, expanded: !b.expanded } : b)
+    );
+  };
 
-  setBusinesses(businessesWithDefaults as Business[]);
-  setLoading(false);
-};
+  const toggleAllFid = (value: boolean) => {
+    setBusinesses((prev) =>
+      prev.map((b) => {
+        if (!value) {
+          const off: Partial<Business> = {};
+          FID_MODULES.forEach((m) => { (off as Record<string, boolean>)[m.key as string] = false; });
+          return { ...b, ...off };
+        } else {
+          const on: Partial<Business> = {};
+          FID_MODULES.forEach((m) => { (on as Record<string, boolean>)[m.key as string] = m.defaultOn; });
+          return { ...b, ...on };
+        }
+      })
+    );
+  };
 
-  const toggleModule = async (id: string, module: string, value: boolean) => {
-    setBusinesses(businesses.map(b => 
-      b.id === id ? { ...b, [module]: value } : b
-    ));
+  const toggleAllCaptacion = (value: boolean) => {
+    setBusinesses((prev) => prev.map((b) => ({ ...b, module_captacion: value })));
   };
 
   const saveAll = async () => {
     setSaving(true);
     setMsg("Guardando...");
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token || "";
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? "";
 
     for (const b of businesses) {
       const res = await fetch("/api/admin/update-business", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           id: b.id,
+          module_lead_magnet:  b.module_lead_magnet,
           module_vip_benefits: b.module_vip_benefits,
-          module_lead_magnet: b.module_lead_magnet,
-          module_whatsapp: b.module_whatsapp,
-          module_tools: b.module_tools,
-          module_forms: b.module_forms,
-          module_gpt: b.module_gpt,
-          module_ai_landing: b.module_ai_landing,
-          module_ai_recursos: b.module_ai_recursos,
+          module_whatsapp:     b.module_whatsapp,
+          module_tools:        b.module_tools,
+          module_forms:        b.module_forms,
+          module_gpt:          b.module_gpt,
+          module_ai_landing:   b.module_ai_landing,
+          module_ai_recursos:  b.module_ai_recursos,
+          module_captacion:    b.module_captacion,
         }),
       });
       if (!res.ok) {
         const data = await res.json();
-        setMsg("Error al guardar: " + (data.error || "error desconocido"));
+        setMsg("Error: " + (data.error ?? "error desconocido"));
         setSaving(false);
         return;
       }
     }
 
-    setMsg("Cambios guardados correctamente");
+    setMsg("Guardado ✓");
     setSaving(false);
     setTimeout(() => setMsg(""), 3000);
   };
 
-  const activateAllLM = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_lead_magnet: true })));
-  };
+  // ── Estadísticas ──────────────────────────────────────────────────────────
 
-  const deactivateAllLM = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_lead_magnet: false })));
-  };
-
-  const activateAllVIP = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_vip_benefits: true })));
-  };
-
-  const deactivateAllVIP = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_vip_benefits: false })));
-  };
-
-  const activateAllWA = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_whatsapp: true })));
-  };
-
-  const deactivateAllWA = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_whatsapp: false })));
-  };
-
-  const activateAllForms = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_forms: true })));
-  };
-
-  const deactivateAllForms = () => {
-    setBusinesses(businesses.map(b => ({ ...b, module_forms: false })));
-  };
-
-  const filteredBusinesses = businesses.filter(b => {
-    if (filter === "all") return true;
-    if (filter === "lm") return b.module_lead_magnet;
-    if (filter === "vip") return b.module_vip_benefits;
-    if (filter === "wa") return b.module_whatsapp;
-    if (filter === "forms") return b.module_forms;
-    if (filter === "gpt") return b.module_gpt;
-    if (filter === "ai_landing") return b.module_ai_landing;
-    if (filter === "ai_recursos") return b.module_ai_recursos;
-    if (filter === "none") return !b.module_lead_magnet && !b.module_vip_benefits && !b.module_whatsapp && !b.module_forms && !b.module_gpt && !b.module_ai_landing && !b.module_ai_recursos;
-    return true;
-  });
-
-  const counts = {
-    total: businesses.length,
-    lm: businesses.filter(b => b.module_lead_magnet).length,
-    vip: businesses.filter(b => b.module_vip_benefits).length,
-    wa: businesses.filter(b => b.module_whatsapp).length,
-    forms: businesses.filter(b => b.module_forms).length,
-    gpt: businesses.filter(b => b.module_gpt).length,
-    ai_landing: businesses.filter(b => b.module_ai_landing).length,
-    ai_recursos: businesses.filter(b => b.module_ai_recursos).length,
-  };
+  const total   = businesses.length;
+  const fidCount = businesses.filter(isFidActive).length;
+  const capCount = businesses.filter((b) => b.module_captacion).length;
+  const bothCount = businesses.filter((b) => isFidActive(b) && b.module_captacion).length;
+  const noneCount = businesses.filter((b) => !isFidActive(b) && !b.module_captacion).length;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand-4)]" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Gestión de Módulos</h1>
-        {msg && (
-          <div className={`text-sm px-3 py-1 rounded ${msg.includes("Error") ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}`}>
-            {msg}
+
+      {/* ── Cabecera ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Perfiles por negocio</h1>
+          <p className="text-sm text-[var(--foreground)]/50 mt-0.5">
+            Activa o desactiva los perfiles de Fidelización y Captación para cada cliente
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {msg && (
+            <span className={`text-sm px-3 py-1 rounded ${msg.startsWith("Error") ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}`}>
+              {msg}
+            </span>
+          )}
+          <button
+            onClick={saveAll}
+            disabled={saving}
+            className="px-5 py-2 rounded-lg bg-[var(--brand-4)] text-black text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Estadísticas ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total negocios",    value: total,     color: "text-[var(--foreground)]" },
+          { label: "Con Fidelización",  value: fidCount,  color: "text-[var(--brand-3)]" },
+          { label: "Con Captación",     value: capCount,  color: "text-[var(--brand-4)]" },
+          { label: "Con ambos perfiles",value: bothCount, color: "text-purple-400" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
+            <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+            <div className="text-xs text-[var(--foreground)]/50 mt-1">{s.label}</div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
-          <div className="text-2xl font-bold">{counts.total}</div>
-          <div className="text-xs text-white">Total Negocios</div>
+      {/* ── Acciones masivas ── */}
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">Acción masiva</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[var(--foreground)]/60">Fidelización:</span>
+          <button onClick={() => toggleAllFid(true)}  className="px-2.5 py-1 rounded-md bg-[var(--brand-3)]/20 text-[var(--brand-3)] text-xs font-medium hover:bg-[var(--brand-3)]/30">Activar todos</button>
+          <button onClick={() => toggleAllFid(false)} className="px-2.5 py-1 rounded-md bg-gray-500/20 text-[var(--foreground)]/50 text-xs font-medium hover:bg-gray-500/30">Desactivar</button>
         </div>
-        <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-green-500">{counts.lm}</div>
-          <div className="text-xs text-white">Lead Magnet</div>
-        </div>
-        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-blue-500">{counts.vip}</div>
-          <div className="text-xs text-white">VIP Benefits</div>
-        </div>
-        <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-purple-500">{counts.wa}</div>
-          <div className="text-xs text-white">WhatsApp</div>
-        </div>
-        <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-orange-500">{counts.forms}</div>
-          <div className="text-xs text-white">Formularios</div>
-        </div>
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-amber-400">{counts.gpt}</div>
-          <div className="text-xs text-white">GPT Fidelización</div>
-        </div>
-        <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-cyan-400">{counts.ai_landing}</div>
-          <div className="text-xs text-white">IA Landing</div>
-        </div>
-        <div className="rounded-xl border border-pink-500/30 bg-pink-500/10 p-4 text-center">
-          <div className="text-2xl font-bold text-pink-400">{counts.ai_recursos}</div>
-          <div className="text-xs text-white">IA Recursos</div>
+        <div className="w-px h-4 bg-[var(--border)] hidden sm:block" />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[var(--foreground)]/60">Captación:</span>
+          <button onClick={() => toggleAllCaptacion(true)}  className="px-2.5 py-1 rounded-md bg-[var(--brand-4)]/20 text-[var(--brand-4)] text-xs font-medium hover:bg-[var(--brand-4)]/30">Activar todos</button>
+          <button onClick={() => toggleAllCaptacion(false)} className="px-2.5 py-1 rounded-md bg-gray-500/20 text-[var(--foreground)]/50 text-xs font-medium hover:bg-gray-500/30">Desactivar</button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "all" ? "bg-[var(--brand-4)] text-black" : "border border-[var(--border)]"}`}
-          >
-            Todos ({counts.total})
-          </button>
-          <button
-            onClick={() => setFilter("lm")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "lm" ? "bg-green-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            LM ({counts.lm})
-          </button>
-          <button
-            onClick={() => setFilter("vip")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "vip" ? "bg-blue-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            VIP ({counts.vip})
-          </button>
-          <button
-            onClick={() => setFilter("wa")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "wa" ? "bg-purple-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            WA ({counts.wa})
-          </button>
-          <button
-            onClick={() => setFilter("forms")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "forms" ? "bg-orange-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            Forms ({counts.forms})
-          </button>
-          <button
-            onClick={() => setFilter("gpt")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "gpt" ? "bg-amber-500 text-black" : "border border-[var(--border)]"}`}
-          >
-            GPT ({counts.gpt})
-          </button>
-          <button
-            onClick={() => setFilter("ai_landing")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "ai_landing" ? "bg-cyan-500 text-black" : "border border-[var(--border)]"}`}
-          >
-            IA Landing ({counts.ai_landing})
-          </button>
-          <button
-            onClick={() => setFilter("ai_recursos")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "ai_recursos" ? "bg-pink-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            IA Recursos ({counts.ai_recursos})
-          </button>
-          <button
-            onClick={() => setFilter("none")}
-            className={`px-3 py-1 rounded-lg text-sm ${filter === "none" ? "bg-red-500 text-white" : "border border-[var(--border)]"}`}
-          >
-            Sin módulos
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
+      {/* ── Tabla principal ── */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--background)] text-xs uppercase text-white">
-              <tr>
-                <th className="px-4 py-3 text-left">Negocio</th>
-                <th className="px-4 py-3 text-center">Sector</th>
-                <th className="px-4 py-3 text-center">Lead Magnet</th>
-                <th className="px-4 py-3 text-center">VIP Benefits</th>
-                <th className="px-4 py-3 text-center">WhatsApp</th>
-                <th className="px-4 py-3 text-center">Herramientas</th>
-                <th className="px-4 py-3 text-center">Formularios</th>
-                <th className="px-4 py-3 text-center">GPT</th>
-                <th className="px-4 py-3 text-center text-cyan-400">IA Landing</th>
-                <th className="px-4 py-3 text-center text-pink-400">IA Recursos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBusinesses.map((b) => (
-                <tr key={b.id} className="border-t border-[var(--border)] hover:bg-white/5">
-                  <td className="px-4 py-3 font-medium">{b.name}</td>
-                  <td className="px-4 py-3 text-center text-white">{b.sector || "—"}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_lead_magnet", !b.module_lead_magnet)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_lead_magnet ? "bg-green-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_lead_magnet ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_vip_benefits", !b.module_vip_benefits)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_vip_benefits ? "bg-blue-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_vip_benefits ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_whatsapp", !b.module_whatsapp)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_whatsapp ? "bg-purple-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_whatsapp ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_tools", !b.module_tools)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_tools ? "bg-yellow-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_tools ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_forms", !b.module_forms)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_forms ? "bg-orange-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_forms ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_gpt", !b.module_gpt)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_gpt ? "bg-amber-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_gpt ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_ai_landing", !b.module_ai_landing)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_ai_landing ? "bg-cyan-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_ai_landing ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleModule(b.id, "module_ai_recursos", !b.module_ai_recursos)}
-                      className={`w-12 h-6 rounded-full transition-colors ${b.module_ai_recursos ? "bg-pink-500" : "bg-gray-600"}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${b.module_ai_recursos ? "translate-x-6" : "translate-x-0.5"}`}></div>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Cabecera de tabla */}
+        <div className="grid grid-cols-[1fr_160px_160px_44px] bg-[var(--background)] px-4 py-2.5 text-xs uppercase tracking-widest text-[var(--foreground)]/40 border-b border-[var(--border)]">
+          <div>Negocio</div>
+          <div className="text-center">Fidelización</div>
+          <div className="text-center">Captación</div>
+          <div />
         </div>
-        {filteredBusinesses.length === 0 && (
-          <div className="text-center py-8 text-white">No hay negocios</div>
+
+        {businesses.length === 0 && (
+          <div className="text-center py-10 text-[var(--foreground)]/30 text-sm">No hay negocios registrados</div>
         )}
+
+        {businesses.map((b) => {
+          const fidActive = isFidActive(b);
+          const activeModules = FID_MODULES.filter((m) => Boolean(b[m.key]));
+
+          return (
+            <div key={b.id} className="border-t border-[var(--border)]">
+
+              {/* Fila principal */}
+              <div
+                className="grid grid-cols-[1fr_160px_160px_44px] items-center px-4 py-3 hover:bg-white/[0.02] cursor-pointer"
+                onClick={() => toggleExpanded(b.id)}
+              >
+                {/* Nombre + sector */}
+                <div>
+                  <div className="font-medium text-sm">{b.name}</div>
+                  {b.sector && (
+                    <div className="text-xs text-[var(--foreground)]/40 mt-0.5">{b.sector}</div>
+                  )}
+                </div>
+
+                {/* Toggle Fidelización */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <Toggle
+                    checked={fidActive}
+                    activeColor="bg-[var(--brand-3)]"
+                    onChange={() => toggleFidelizacion(b.id)}
+                  />
+                  {fidActive && (
+                    <span className="text-[10px] text-[var(--brand-3)] font-medium">
+                      {activeModules.length} módulo{activeModules.length !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  {!fidActive && (
+                    <span className="text-[10px] text-[var(--foreground)]/30">Inactivo</span>
+                  )}
+                </div>
+
+                {/* Toggle Captación */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <Toggle
+                    checked={b.module_captacion}
+                    activeColor="bg-[var(--brand-4)]"
+                    onChange={() => toggleModule(b.id, "module_captacion")}
+                  />
+                  {b.module_captacion ? (
+                    <span className="text-[10px] text-[var(--brand-4)] font-medium">Activo</span>
+                  ) : (
+                    <span className="text-[10px] text-[var(--foreground)]/30">Inactivo</span>
+                  )}
+                </div>
+
+                {/* Flecha expandir */}
+                <div className="flex justify-center">
+                  <svg
+                    className={`w-4 h-4 text-[var(--foreground)]/30 transition-transform ${b.expanded ? "rotate-180" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Panel expandido: módulos individuales de fidelización */}
+              {b.expanded && (
+                <div className="px-4 pb-4 bg-[var(--background)]/40 border-t border-[var(--border)]/50">
+                  <p className="text-xs text-[var(--foreground)]/40 uppercase tracking-widest py-3">
+                    Módulos de Fidelización
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {FID_MODULES.map((m) => (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => toggleModule(b.id, m.key)}
+                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 border text-xs font-medium transition-colors ${
+                          b[m.key]
+                            ? "border-[var(--brand-3)]/40 bg-[var(--brand-3)]/10 text-[var(--foreground)]"
+                            : "border-[var(--border)] bg-transparent text-[var(--foreground)]/40"
+                        }`}
+                      >
+                        <span>{m.label}</span>
+                        <Toggle
+                          checked={Boolean(b[m.key])}
+                          activeColor={m.color}
+                          onChange={() => toggleModule(b.id, m.key)}
+                          size="sm"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-white">Activar todos:</span>
-          <button onClick={activateAllLM} className="px-2 py-1 text-xs rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">
-            LM
-          </button>
-          <button onClick={activateAllVIP} className="px-2 py-1 text-xs rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/30">
-            VIP
-          </button>
-          <button onClick={activateAllWA} className="px-2 py-1 text-xs rounded bg-purple-500/20 text-purple-500 hover:bg-purple-500/30">
-            WA
-          </button>
-          <button onClick={activateAllForms} className="px-2 py-1 text-xs rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/30">
-            Forms
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: true })))} className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30">
-            GPT
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_landing: true })))} className="px-2 py-1 text-xs rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
-            IA Landing
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_recursos: true })))} className="px-2 py-1 text-xs rounded bg-pink-500/20 text-pink-400 hover:bg-pink-500/30">
-            IA Recursos
-          </button>
-          <span className="text-sm text-white ml-2">Desactivar todos:</span>
-          <button onClick={deactivateAllLM} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            LM
-          </button>
-          <button onClick={deactivateAllVIP} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            VIP
-          </button>
-          <button onClick={deactivateAllWA} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            WA
-          </button>
-          <button onClick={deactivateAllForms} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            Forms
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_gpt: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            GPT
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_landing: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            IA Landing
-          </button>
-          <button onClick={() => setBusinesses(businesses.map(b => ({ ...b, module_ai_recursos: false })))} className="px-2 py-1 text-xs rounded bg-gray-500/20 text-white hover:bg-gray-500/30">
-            IA Recursos
-          </button>
-        </div>
-        <button
-          onClick={saveAll}
-          disabled={saving}
-          className="px-6 py-2 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? "Guardando..." : "Guardar Cambios"}
-        </button>
-      </div>
+      {/* Nota al pie */}
+      {noneCount > 0 && (
+        <p className="text-xs text-[var(--foreground)]/30 text-center">
+          {noneCount} negocio{noneCount !== 1 ? "s" : ""} sin ningún perfil activo
+        </p>
+      )}
+
     </div>
   );
 }

@@ -102,6 +102,7 @@ export async function POST(req: Request) {
       .join("\n\n");
 
     const configPayload = toGptPayload(currentConfig);
+    const businessName = (currentConfig.businessName as string) || "el negocio";
     const messagesChars = messages.reduce((acc, m) => acc + (m.content?.length || 0), 0);
     console.log("[chat] payload sizes (chars):", {
       configPayload: configPayload.length,

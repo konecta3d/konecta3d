@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { CaptacionLeadMagnet } from "@/types/captacion";
+import CaptacionChatPanel from "@/components/captacion/CaptacionChatPanel";
+import ErrorBanner from "@/components/ui/ErrorBanner";
 
 const TYPE_LABELS: Record<string, string> = { pdf: "PDF", url: "Enlace", code: "Código" };
 
@@ -12,6 +14,7 @@ export default function LeadMagnetsPage() {
   const [businessId, setBusinessId] = useState("");
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -33,25 +36,38 @@ export default function LeadMagnetsPage() {
   }, []);
 
   const loadLMs = async (bid: string, tok: string) => {
-    const res = await fetch(`/api/captacion/lead-magnets?businessId=${bid}`, {
-      headers: { Authorization: `Bearer ${tok}` },
-    });
-    const data = await res.json();
-    setLeadMagnets(data.leadMagnets || []);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/captacion/lead-magnets?businessId=${bid}`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      });
+      if (!res.ok) throw new Error("No se pudieron cargar los recursos. Recarga la página.");
+      const data = await res.json();
+      setLeadMagnets(data.leadMagnets || []);
+    } catch (e) {
+      setPageError(e instanceof Error ? e.message : "Error al cargar los recursos.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteLM = async (id: string) => {
     if (!confirm("¿Archivar este recurso?")) return;
-    await fetch(`/api/captacion/lead-magnets/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    await loadLMs(businessId, token);
+    try {
+      const res = await fetch(`/api/captacion/lead-magnets/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("No se pudo eliminar el recurso.");
+      await loadLMs(businessId, token);
+    } catch (e) {
+      setPageError(e instanceof Error ? e.message : "Error al eliminar el recurso.");
+    }
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <ErrorBanner message={pageError} onDismiss={() => setPageError(null)} />
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-2xl font-bold">Lead Magnets de Captación</h1>
@@ -222,6 +238,15 @@ export default function LeadMagnetsPage() {
           </div>
         )}
       </div>
+
+      {/* ── Asistente IA ── */}
+      {businessId && token && (
+        <CaptacionChatPanel
+          section="lead_magnets"
+          businessId={businessId}
+          token={token}
+        />
+      )}
     </div>
   );
 }

@@ -74,26 +74,35 @@ const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "activid
 
   const loadBusinesses = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("businesses")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setBusinesses(data || []);
-    setLoading(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+      const res = await fetch("/api/admin/businesses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setBusinesses(json.businesses ?? []);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadActivity = async () => {
-    const { data } = await supabase
-      .from("activity_logs")
-      .select("*, businesses(name)")
-      .order("created_at", { ascending: false })
-      .limit(20);
-
-    if (data) {
-      setActivity(data.map(d => ({
-        ...d,
-        business_name: d.businesses?.name
-      })));
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? "";
+    const res = await fetch("/api/admin/activity", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      setActivity(
+        (json.logs ?? []).map((d: Record<string, unknown> & { businesses?: { name?: string } }) => ({
+          ...d,
+          business_name: d.businesses?.name,
+        }))
+      );
     }
   };
 

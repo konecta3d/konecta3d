@@ -50,9 +50,9 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
     check();
   }, [businessId]);
 
-  // Bienvenida automática al iniciar (solo cuando perfil está listo y no hay mensajes)
+  // Bienvenida automática al iniciar (cuando perfil está cargado y no hay mensajes)
   useEffect(() => {
-    if (profileState !== "ready" || messages.length > 0 || !businessName) return;
+    if ((profileState !== "ready" && profileState !== "incomplete") || messages.length > 0 || !businessName) return;
     const welcome: ChatMessage = {
       role: "assistant",
       content: `¡Hola ${businessName}! Voy a guiarte para configurar tu landing en 4 pasos: fondo, identidad, botones y bloque final.\n\nAntes de empezar — ¿tienes ya configuradas tus herramientas en la sección "Herramientas del negocio"? (WhatsApp, Instagram, web…) Lo necesitarás para el paso de los botones. Escríbeme "listo" o "aún no" y empezamos.`,
@@ -193,28 +193,7 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
     );
   }
 
-  if (profileState === "incomplete") {
-    return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 space-y-4">
-        <div className="space-y-1">
-          <div className="text-xs font-semibold uppercase tracking-widest text-[var(--brand-1)]">
-            Asistente IA
-          </div>
-          <h3 className="text-sm font-bold">Completa todas tus respuestas</h3>
-        </div>
-        <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
-          Para que el asistente pueda personalizar tu landing necesita conocer tu negocio.
-          Rellena todas las preguntas del cuestionario.
-        </p>
-        <Link
-          href="/gpt-fidelizacion"
-          className="block w-full text-center px-3 py-2 rounded-lg bg-[var(--brand-1)] text-white text-xs font-semibold hover:opacity-90 transition"
-        >
-          Ir al cuestionario →
-        </Link>
-      </div>
-    );
-  }
+  // profileState === "incomplete" ya no bloquea — se muestra banner dentro del chat
 
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] flex flex-col h-[calc(100vh-180px)] min-h-[500px] lg:sticky lg:top-6">
@@ -232,6 +211,20 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
           </span>
         )}
       </div>
+
+      {/* Banner de contexto incompleto */}
+      {profileState === "incomplete" && (
+        <div className="mx-3 mt-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 flex items-start gap-2">
+          <span className="text-amber-400 text-sm mt-0.5 flex-shrink-0">⚠</span>
+          <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
+            Las sugerencias serán genéricas.{" "}
+            <Link href="/mi-contexto" className="text-amber-400 font-semibold hover:underline">
+              Completa Mi Contexto →
+            </Link>{" "}
+            para personalizarlas.
+          </p>
+        </div>
+      )}
 
       {/* Mensajes */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">

@@ -53,30 +53,63 @@ function DefaultForm({ campaignId, leadMagnet }: { campaignId: string; leadMagne
   };
 
   if (step === "done") {
+    const hasResource = !!(leadMagnetUrl || codeValue);
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a323c] text-white p-6 text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold mb-2">¡Gracias!</h1>
-        <p className="text-white/60 mb-6">En breve nos ponemos en contacto contigo.</p>
-        {leadMagnet && (
-          <div className="w-full max-w-sm bg-white/10 rounded-2xl p-5 mb-4">
-            {leadMagnet.title && <h2 className="font-semibold mb-1">{leadMagnet.title}</h2>}
-            {leadMagnet.description && <p className="text-sm text-white/60 mb-3">{leadMagnet.description}</p>}
+
+        {/* Icono de confirmación */}
+        <div className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-400/40 flex items-center justify-center mb-5">
+          <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+
+        <h1 className="text-2xl font-bold mb-2">
+          {hasResource ? "¡Tu recurso está listo!" : "¡Gracias!"}
+        </h1>
+        <p className="text-white/50 text-sm mb-8">
+          {hasResource
+            ? "Pulsa el botón para descargarlo ahora"
+            : "En breve nos ponemos en contacto contigo."}
+        </p>
+
+        {/* Bloque de entrega del recurso */}
+        {leadMagnet && hasResource && (
+          <div className="w-full max-w-sm mb-6">
             {leadMagnetUrl && (
-              <a href={leadMagnetUrl} target="_blank" rel="noopener noreferrer"
-                className="block w-full py-3 rounded-xl font-semibold text-sm bg-white text-[#0a323c] text-center">
-                {leadMagnet.cta_text || "Obtener recurso"}
+              <a
+                href={leadMagnetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base bg-white text-[#0a323c] shadow-lg shadow-white/10 active:scale-95 transition-transform"
+              >
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {leadMagnet.cta_text || "Descargar ahora"}
               </a>
             )}
             {codeValue && (
-              <div>
-                <p className="text-sm mb-2">{leadMagnet.cta_text || "Tu código:"}</p>
-                <div className="font-mono text-2xl font-bold tracking-widest bg-white/20 rounded-xl px-4 py-3">
+              <div className="bg-white/10 rounded-2xl p-5">
+                <p className="text-sm text-white/60 mb-3">
+                  {leadMagnet.cta_text || "Tu código exclusivo:"}
+                </p>
+                <div className="font-mono text-3xl font-bold tracking-widest bg-white/20 rounded-xl px-4 py-4 select-all">
                   {codeValue}
                 </div>
+                <p className="text-xs text-white/30 mt-3">Mantén esta pantalla abierta o anota el código</p>
               </div>
             )}
+            {leadMagnet.title && (
+              <p className="text-xs text-white/30 mt-3">{leadMagnet.title}</p>
+            )}
           </div>
+        )}
+
+        {/* Confirmación discreta cuando no hay recurso */}
+        {!hasResource && (
+          <p className="text-xs text-white/30">Hemos guardado tus datos correctamente.</p>
         )}
       </div>
     );
@@ -172,7 +205,12 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
             style={{ background: cfg.bg_color, color: cfg.text_color }}>
-            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center mb-6 text-3xl">🎯</div>
+            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center mb-6">
+              <svg className="w-10 h-10 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
             <h1 className="text-2xl font-bold leading-tight mb-3 max-w-xs">{cfg.title}</h1>
             <p className="text-sm opacity-70 mb-10 max-w-xs">{cfg.subtitle}</p>
             <button onClick={next}
@@ -296,20 +334,30 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const cfg = currentBlock.config as FinalMessageConfig;
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6 bg-[#0a323c] text-white">
-            <div className="text-6xl mb-4">🎁</div>
+            <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-5">
+              <svg className="w-7 h-7 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
             <h2 className="text-2xl font-bold mb-2">{cfg.title}</h2>
             <p className="text-white/60 text-sm mb-8 max-w-xs">{cfg.text}</p>
             {leadMagnetUrl ? (
               <a href={leadMagnetUrl} target="_blank" rel="noopener noreferrer"
-                className="w-full max-w-xs block py-4 rounded-2xl font-semibold text-[#0a323c] bg-white mb-4">
+                className="flex items-center justify-center gap-3 w-full max-w-xs py-4 rounded-2xl font-bold text-[#0a323c] bg-white shadow-lg shadow-white/10 active:scale-95 transition-transform mb-4">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
                 {cfg.cta_text}
               </a>
             ) : codeValue ? (
               <div className="w-full max-w-xs mb-4">
-                <p className="text-sm text-white/60 mb-2">{cfg.cta_text}</p>
-                <div className="font-mono text-3xl font-bold tracking-widest bg-white/20 rounded-2xl px-4 py-4">
+                <p className="text-sm text-white/60 mb-3">{cfg.cta_text}</p>
+                <div className="font-mono text-3xl font-bold tracking-widest bg-white/20 rounded-2xl px-4 py-4 select-all">
                   {codeValue}
                 </div>
+                <p className="text-xs text-white/30 mt-3">Mantén esta pantalla abierta o anota el código</p>
               </div>
             ) : (
               <button onClick={next}
@@ -328,7 +376,11 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const cfg = currentBlock.config as ThankYouConfig;
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6 bg-[#0a323c] text-white">
-            <div className="text-6xl mb-4">✅</div>
+            <div className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-400/40 flex items-center justify-center mb-5">
+              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
             <h2 className="text-2xl font-bold mb-2">{cfg.title}</h2>
             <p className="text-white/60 text-sm mb-6 max-w-xs">{cfg.message}</p>
             {(cfg.next_steps || []).length > 0 && (

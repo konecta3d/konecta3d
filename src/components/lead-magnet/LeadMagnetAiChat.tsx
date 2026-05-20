@@ -86,13 +86,13 @@ export default function LeadMagnetAiChat({
     check();
   }, [businessId]);
 
-  // Welcome message (only when profile ready and no messages yet)
+  // Welcome message (cuando el perfil está cargado, completo o no)
   useEffect(() => {
-    if (profileState !== "ready" || messages.length > 0 || !businessName) return;
+    if ((profileState !== "ready" && profileState !== "incomplete") || messages.length > 0 || !businessName) return;
     onMessages([
       {
         role: "assistant",
-        content: `¡Hola ${businessName}! Soy tu asistente para crear el Recurso de Valor. Puedes preguntarme lo que necesites en cada paso y aplicaré los cambios directamente al formulario.`,
+        content: `¡Hola ${businessName}! Vamos a convertir tu conocimiento en un documento que sea útil de verdad para tus clientes.\n\nTe guío paso a paso: primero elegimos el enfoque adecuado, luego generamos el contenido, y al final añadimos los botones de acción. Pulsa "Enviar" con la sugerencia que ves en el campo de texto, o escríbeme lo que necesites.`,
         changes: null,
         timestamp: new Date().toISOString(),
       },
@@ -223,28 +223,7 @@ export default function LeadMagnetAiChat({
     );
   }
 
-  if (profileState === "incomplete") {
-    return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 space-y-4">
-        <div className="space-y-1">
-          <div className="text-xs font-semibold uppercase tracking-widest text-[var(--brand-1)]">
-            Asistente IA
-          </div>
-          <h3 className="text-sm font-bold">Completa tu perfil primero</h3>
-        </div>
-        <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
-          Para personalizar tu Recurso de Valor el asistente necesita conocer tu
-          negocio. Rellena todas las preguntas del cuestionario.
-        </p>
-        <Link
-          href="/gpt-fidelizacion"
-          className="block w-full text-center px-3 py-2 rounded-lg bg-[var(--brand-1)] text-white text-xs font-semibold hover:opacity-90 transition"
-        >
-          Ir al cuestionario →
-        </Link>
-      </div>
-    );
-  }
+  // profileState === "incomplete" ya no bloquea — banner dentro del chat
 
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] flex flex-col h-[calc(100vh-180px)] min-h-[500px] lg:sticky lg:top-6">
@@ -255,6 +234,20 @@ export default function LeadMagnetAiChat({
         </div>
         <div className="text-sm font-bold">Recurso de Valor</div>
       </div>
+
+      {/* Banner de contexto incompleto */}
+      {profileState === "incomplete" && (
+        <div className="mx-3 mt-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 flex items-start gap-2">
+          <span className="text-amber-400 text-sm mt-0.5 flex-shrink-0">⚠</span>
+          <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
+            Las sugerencias serán genéricas.{" "}
+            <Link href="/mi-contexto" className="text-amber-400 font-semibold hover:underline">
+              Completa Mi Contexto →
+            </Link>{" "}
+            para personalizarlas.
+          </p>
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">

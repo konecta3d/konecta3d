@@ -19,6 +19,7 @@ const OPTIONAL_FIELDS = [
   "profile_active", "landing_active",
   "module_tools", "module_forms", "module_gpt",
   "module_ai_landing", "module_ai_recursos",
+  "module_captacion",
   "multi_landing_enabled", "font_family",
 ];
 

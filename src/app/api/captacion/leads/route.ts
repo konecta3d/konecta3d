@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
+import { sendLeadNotification, sendLeadDelivery } from "@/lib/email";
 
 function supabaseAdmin() {
   return createClient(
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
   // Verificar que la campaña existe y está activa
   const { data: campaign, error: campError } = await db
     .from("captacion_campaigns")
-    .select("id, business_id, lead_magnet_id, status")
+    .select("id, business_id, lead_magnet_id, status, name")
     .eq("id", campaign_id)
     .single();
 
@@ -62,6 +63,13 @@ export async function POST(req: Request) {
   if (campaign.status !== "active") {
     return NextResponse.json({ error: "Campaña no activa" }, { status: 400 });
   }
+
+  // Cargar datos del negocio para notificaciones (en paralelo, no bloquea el flujo)
+  const businessPromise = db
+    .from("businesses")
+    .select("contact_email, name")
+    .eq("id", campaign.business_id)
+    .single();
 
   // Determinar lead magnet a entregar (del formulario o de la campaña)
   const leadMagnetId = body.lead_magnet_id || campaign.lead_magnet_id || null;
@@ -90,25 +98,82 @@ export async function POST(req: Request) {
   if (leadError) return NextResponse.json({ error: leadError.message }, { status: 500 });
 
   // Si hay lead magnet, devolver su URL para redirigir al cliente
+  type LMData = {
+    type: string; title?: string; description?: string; cta_text?: string;
+    file_url?: string; external_url?: string; code_value?: string; delivered_count?: number;
+  };
+
   let leadMagnetUrl: string | null = null;
+  let leadMagnetData: LMData | null = null;
+
   if (leadMagnetId) {
-    const { data: lm } = await db
+    const { data: lmRaw } = await db
       .from("captacion_lead_magnets")
-      .select("type, file_url, external_url, code_value")
+      .select("type, title, description, cta_text, file_url, external_url, code_value, delivered_count")
       .eq("id", leadMagnetId)
       .single();
 
+    const lm = lmRaw as LMData | null;
+
     if (lm) {
+      leadMagnetData = lm;
       if (lm.type === "pdf" && lm.file_url) leadMagnetUrl = lm.file_url;
       else if (lm.type === "url" && lm.external_url) leadMagnetUrl = lm.external_url;
-      else if (lm.type === "code") leadMagnetUrl = null; // se muestra en página
+      // type === "code": se muestra en pantalla, no hay URL
 
-      // Incrementar contador
-      await db
-        .from("captacion_lead_magnets")
-        .update({ delivered_count: (lm as { delivered_count?: number }).delivered_count ?? 0 + 1 })
-        .eq("id", leadMagnetId);
+      // Incrementar contador (fire-and-forget, no bloquea la respuesta)
+      const prevCount = lm.delivered_count ?? 0;
+      db.from("captacion_lead_magnets")
+        .update({ delivered_count: prevCount + 1 })
+        .eq("id", leadMagnetId)
+        .then(() => {/* ignorar resultado */});
     }
+  }
+
+  // ── Notificaciones por email (fire-and-forget) ────────────────────────────
+  // Se ejecutan en paralelo y no bloquean la respuesta al lead.
+  // Si fallan, el lead ya está guardado y no se pierde.
+  const { data: biz } = await businessPromise;
+  const typedBiz = biz as { contact_email: string; name: string } | null;
+  const campaignTyped = campaign as {
+    id: string; business_id: string; lead_magnet_id?: string; status: string; name: string;
+  };
+
+  const emailTasks: Promise<unknown>[] = [];
+
+  // 1. Notificación al negocio
+  if (typedBiz?.contact_email) {
+    emailTasks.push(
+      sendLeadNotification({
+        businessEmail: typedBiz.contact_email,
+        businessName: typedBiz.name ?? "Tu negocio",
+        leadName: name?.trim() || null,
+        leadPhone: phone.trim(),
+        leadEmail: email?.trim() || null,
+        campaignName: campaignTyped.name ?? "Campaña",
+        capturedAt: new Date(),
+      })
+    );
+  }
+
+  // 2. Entrega del recurso al lead (solo si tiene email y hay URL de recurso)
+  if (email?.trim() && leadMagnetUrl && leadMagnetData) {
+    emailTasks.push(
+      sendLeadDelivery({
+        leadEmail: email.trim(),
+        leadName: name?.trim() || null,
+        businessName: typedBiz?.name ?? "",
+        resourceTitle: leadMagnetData.title ?? "Tu recurso",
+        resourceDescription: leadMagnetData.description ?? null,
+        resourceUrl: leadMagnetUrl,
+        ctaText: leadMagnetData.cta_text ?? null,
+      })
+    );
+  }
+
+  // Lanzar emails sin esperar (Promise.allSettled no lanza aunque fallen)
+  if (emailTasks.length > 0) {
+    Promise.allSettled(emailTasks).catch(() => {/* silencioso */});
   }
 
   return NextResponse.json({

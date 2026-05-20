@@ -14,6 +14,7 @@ interface SidebarLink {
   category?: string;
   nameKey?: string;
   module?: string;
+  badge?: boolean;
 }
 
 // Perfil de Fidelización
@@ -27,16 +28,19 @@ const fidelizacionLinks: SidebarLink[] = [
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Generadores", nameKey: "vipBenefits", module: "module_vip_benefits" },
   { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
   { label: "Herramientas del negocio", href: "/acciones", category: "Herramientas del negocio", module: "module_tools" },
-  { label: "GPT de Fidelización", href: "/gpt-fidelizacion", category: "GPT", module: "module_gpt" },
+  { label: "Mi Contexto", href: "/mi-contexto", category: "Mi Negocio" },
+  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "GPT", module: "module_gpt" },
   { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
 
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   { label: "Inicio", href: "/captacion", category: "Captación" },
+  { label: "Contexto", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Lead Magnets", href: "/captacion/lead-magnets", category: "Captación" },
+  { label: "Recorrido del Cliente", href: "/captacion/recorrido", category: "Captación" },
   { label: "Clientes", href: "/captacion/clientes", category: "Captación" },
   { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
@@ -69,6 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
   const [profileActive, setProfileActive] = useState<boolean | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
+  const [contextIncomplete, setContextIncomplete] = useState(false);
 
   // ── Tema claro/oscuro ────────────────────────────────────────────────────
   const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
@@ -152,6 +157,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           module_gpt: (accessData as Record<string, unknown>)?.module_gpt as boolean ?? false,
           module_captacion: (accessData as Record<string, unknown>)?.module_captacion as boolean ?? false,
         });
+
+        // Comprobar si el contexto está incompleto para mostrar badge en sidebar
+        const bizId = (await supabase.from("businesses").select("id").eq("contact_email", userEmail).single()).data?.id;
+        if (bizId) {
+          const [qRes, aRes] = await Promise.all([
+            supabase.from("gpt_context_questions").select("id"),
+            supabase.from("gpt_context_answers").select("question_id, answer_text").eq("business_id", bizId),
+          ]);
+          const total = qRes.data?.length || 0;
+          const answered = (aRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
+          setContextIncomplete(total > 0 && answered < total);
+        }
       }
     };
 
@@ -161,12 +178,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isCaptacionMode = pathname.startsWith("/captacion");
   const baseLinks = isAdminMode ? adminLinks : isCaptacionMode ? captacionLinks : fidelizacionLinks;
 
-  const links = baseLinks.filter((l) => {
-    if (!isAdminMode && !isCaptacionMode && l.module && modules[l.module] === false) {
-      return false;
-    }
-    return true;
-  });
+  const links = baseLinks
+    .filter((l) => {
+      if (!isAdminMode && !isCaptacionMode && l.module && modules[l.module] === false) {
+        return false;
+      }
+      return true;
+    })
+    .map((l) => ({
+      ...l,
+      badge: l.href === "/mi-contexto" && contextIncomplete ? true : l.badge,
+    }));
 
   // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
   if (!isAdminMode && profileActive === false) {
@@ -220,13 +242,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block rounded-lg px-3 py-2 ${
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 ${
                       isActive
                         ? "bg-[var(--brand-1)] text-white font-semibold"
                         : "text-[var(--foreground)] hover:bg-[var(--brand-1)]/10"
                     }`}
                   >
                     {label}
+                    {link.badge && (
+                      <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                    )}
                   </Link>
                 );
               })}
