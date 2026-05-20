@@ -169,6 +169,10 @@ export default function AdminModulos() {
     setBusinesses((prev) => prev.map((b) => ({ ...b, module_captacion: value })));
   };
 
+  const toggleAllModule = (key: keyof Business, value: boolean) => {
+    setBusinesses((prev) => prev.map((b) => ({ ...b, [key]: value })));
+  };
+
   const saveAll = async () => {
     setSaving(true);
     setMsg("Guardando...");
@@ -264,19 +268,44 @@ export default function AdminModulos() {
       </div>
 
       {/* ── Acciones masivas ── */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">Acción masiva</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--foreground)]/60">Fidelización:</span>
-          <button onClick={() => toggleAllFid(true)}  className="px-2.5 py-1 rounded-md bg-[var(--brand-3)]/20 text-[var(--brand-3)] text-xs font-medium hover:bg-[var(--brand-3)]/30">Activar todos</button>
-          <button onClick={() => toggleAllFid(false)} className="px-2.5 py-1 rounded-md bg-gray-500/20 text-[var(--foreground)]/50 text-xs font-medium hover:bg-gray-500/30">Desactivar</button>
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">Aplicar a todos los negocios</span>
+
+        {/* Perfiles completos */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-[var(--foreground)]/50 w-24 shrink-0">Perfiles</span>
+          {[
+            { label: "Fidelización ON",  action: () => toggleAllFid(true),           cls: "bg-[var(--brand-3)]/20 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/30" },
+            { label: "Fidelización OFF", action: () => toggleAllFid(false),          cls: "bg-gray-500/20 text-[var(--foreground)]/50 hover:bg-gray-500/30" },
+            { label: "Captación ON",     action: () => toggleAllCaptacion(true),     cls: "bg-[var(--brand-4)]/20 text-[var(--brand-4)] hover:bg-[var(--brand-4)]/30" },
+            { label: "Captación OFF",    action: () => toggleAllCaptacion(false),    cls: "bg-gray-500/20 text-[var(--foreground)]/50 hover:bg-gray-500/30" },
+          ].map((btn) => (
+            <button key={btn.label} onClick={btn.action} className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${btn.cls}`}>
+              {btn.label}
+            </button>
+          ))}
         </div>
-        <div className="w-px h-4 bg-[var(--border)] hidden sm:block" />
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--foreground)]/60">Captación:</span>
-          <button onClick={() => toggleAllCaptacion(true)}  className="px-2.5 py-1 rounded-md bg-[var(--brand-4)]/20 text-[var(--brand-4)] text-xs font-medium hover:bg-[var(--brand-4)]/30">Activar todos</button>
-          <button onClick={() => toggleAllCaptacion(false)} className="px-2.5 py-1 rounded-md bg-gray-500/20 text-[var(--foreground)]/50 text-xs font-medium hover:bg-gray-500/30">Desactivar</button>
-        </div>
+
+        <div className="border-t border-[var(--border)]" />
+
+        {/* Módulos individuales */}
+        {FID_MODULES.map((m) => (
+          <div key={m.key} className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-[var(--foreground)]/50 w-24 shrink-0 truncate">{m.label}</span>
+            <button
+              onClick={() => toggleAllModule(m.key, true)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${m.color}/20 text-white/70 hover:${m.color}/30`}
+            >
+              Activar todos
+            </button>
+            <button
+              onClick={() => toggleAllModule(m.key, false)}
+              className="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-500/20 text-[var(--foreground)]/40 hover:bg-gray-500/30 transition-colors"
+            >
+              Desactivar
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* ── Tabla principal ── */}
