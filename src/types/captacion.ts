@@ -93,6 +93,10 @@ export interface FormDesign {
   accent_color: string;  // Botones, selecciones activas
   border_color: string;  // Bordes de inputs y tarjetas
   font_family: string;   // 'Inter' | 'Poppins' | 'Lora' | 'Montserrat'
+  // Logo
+  logo_url: string;                      // vacío = sin logo
+  logo_shape: 'round' | 'square' | 'rect';
+  logo_size: number;                     // px
 }
 
 export const DEFAULT_DESIGN: FormDesign = {
@@ -101,6 +105,9 @@ export const DEFAULT_DESIGN: FormDesign = {
   accent_color: "#ffb400",
   border_color: "rgba(255,255,255,0.2)",
   font_family: "Inter",
+  logo_url: "",
+  logo_shape: "round",
+  logo_size: 72,
 };
 
 // ── Entidades principales ────────────────────────────────────

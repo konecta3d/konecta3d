@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import FormRenderer from "./FormRenderer";
+import type { FormDesign } from "@/types/captacion";
+import { DEFAULT_DESIGN } from "@/types/captacion";
 
 function supabaseAdmin() {
   return createClient(
@@ -71,15 +73,26 @@ export default async function CampaignPage({ params }: PageProps) {
     );
   }
 
-  // Campaña activa — cargar formulario
+  // Campaña activa — cargar formulario y diseño
   let blocks = null;
+  let design: FormDesign = DEFAULT_DESIGN;
+
   if (campaign.form_id) {
     const { data: form } = await db
       .from("captacion_forms")
       .select("blocks")
       .eq("id", campaign.form_id)
       .single();
-    blocks = form?.blocks || null;
+
+    // Normalizar: el campo JSONB puede ser un array (formato antiguo)
+    // o un objeto { blocks: [...], design: {...} } (formato nuevo).
+    const rawBlocks = form?.blocks;
+    if (Array.isArray(rawBlocks)) {
+      blocks = rawBlocks;
+    } else if (rawBlocks && typeof rawBlocks === "object") {
+      blocks = rawBlocks.blocks ?? null;
+      if (rawBlocks.design) design = { ...DEFAULT_DESIGN, ...rawBlocks.design };
+    }
   }
 
   // Cargar info del lead magnet si existe
@@ -99,6 +112,7 @@ export default async function CampaignPage({ params }: PageProps) {
       campaignName={campaign.name}
       blocks={blocks}
       leadMagnet={leadMagnetInfo}
+      design={design}
     />
   );
 }

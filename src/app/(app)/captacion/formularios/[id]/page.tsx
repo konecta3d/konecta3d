@@ -33,16 +33,32 @@ const FONTS: { id: string; label: string; desc: string }[] = [
 
 function DesignModal({
   design,
+  businessLogoUrl,
   onApply,
   onClose,
 }: {
   design: FormDesign;
+  businessLogoUrl: string;
   onApply: (d: FormDesign, applyAll: boolean) => void;
   onClose: () => void;
 }) {
   const [local, setLocal] = useState<FormDesign>(design);
-  const set = (key: keyof FormDesign, val: string) =>
-    setLocal(prev => ({ ...prev, [key]: val }));
+
+  // Detectar fuente de logo actual
+  const initSource = local.logo_url
+    ? (local.logo_url === businessLogoUrl ? "business" : "custom")
+    : "none";
+  const [logoSource, setLogoSource] = useState<"none" | "business" | "custom">(initSource);
+
+  const set    = (key: keyof FormDesign, val: string)  => setLocal(prev => ({ ...prev, [key]: val }));
+  const setNum = (key: keyof FormDesign, val: number)  => setLocal(prev => ({ ...prev, [key]: val }));
+
+  const pickLogoSource = (src: "none" | "business" | "custom") => {
+    setLogoSource(src);
+    if (src === "none")     setLocal(prev => ({ ...prev, logo_url: "" }));
+    if (src === "business") setLocal(prev => ({ ...prev, logo_url: businessLogoUrl }));
+    // "custom" keeps the current logo_url (user types it below)
+  };
 
   const COLOR_FIELDS: { key: keyof FormDesign; label: string; hint: string }[] = [
     { key: "bg_color",     label: "Fondo",  hint: "Fondo de todos los pasos"  },
@@ -145,7 +161,7 @@ function DesignModal({
                       />
                       <input
                         type="color"
-                        value={local[key].startsWith("rgba") ? "#ffffff" : local[key]}
+                        value={(local[key] as string).startsWith("rgba") ? "#ffffff" : (local[key] as string)}
                         onChange={e => set(key, e.target.value)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
@@ -153,7 +169,7 @@ function DesignModal({
                     <input
                       className="flex-1 rounded-lg border px-2 py-1.5 text-xs bg-transparent font-mono"
                       style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                      value={local[key]}
+                      value={local[key] as string}
                       onChange={e => set(key, e.target.value)}
                       placeholder="#000000"
                       spellCheck={false}
@@ -195,6 +211,126 @@ function DesignModal({
             </div>
           </div>
 
+          {/* Logo */}
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
+              Logo
+            </label>
+
+            {/* Fuente del logo */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {([
+                { id: "none",     label: "Sin logo",      icon: "—" },
+                { id: "business", label: "Logo del perfil", icon: "★" },
+                { id: "custom",   label: "URL propia",    icon: "🔗" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => pickLogoSource(opt.id)}
+                  disabled={opt.id === "business" && !businessLogoUrl}
+                  className="rounded-xl border-2 p-3 text-center text-xs font-medium transition-all disabled:opacity-30"
+                  style={{
+                    borderColor: logoSource === opt.id ? "var(--brand-1)" : "var(--border)",
+                    background: logoSource === opt.id ? "rgba(57,161,169,0.08)" : "transparent",
+                    color: "var(--foreground)",
+                  }}
+                >
+                  <div className="text-base mb-1">{opt.icon}</div>
+                  {opt.label}
+                  {opt.id === "business" && !businessLogoUrl && (
+                    <div className="text-[10px] opacity-50 mt-0.5">Sin logo en perfil</div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* URL personalizada */}
+            {logoSource === "custom" && (
+              <div className="mb-4">
+                <input
+                  type="url"
+                  className="w-full rounded-lg border px-3 py-2 text-xs bg-transparent font-mono"
+                  style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                  placeholder="https://tu-dominio.com/logo.png"
+                  value={local.logo_url}
+                  onChange={e => set("logo_url", e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Preview del logo */}
+            {local.logo_url && (
+              <div
+                className="flex items-center justify-center py-4 rounded-xl mb-4"
+                style={{ background: local.bg_color }}
+              >
+                <img
+                  src={local.logo_url}
+                  alt="logo preview"
+                  style={{
+                    height: local.logo_size || 72,
+                    width: local.logo_shape === "rect" ? (local.logo_size || 72) * 1.8 : local.logo_size || 72,
+                    borderRadius:
+                      local.logo_shape === "round"  ? "50%"  :
+                      local.logo_shape === "square" ? "12px" : "8px",
+                    objectFit: "contain",
+                  }}
+                  onError={e => (e.currentTarget.style.display = "none")}
+                />
+              </div>
+            )}
+
+            {/* Forma + tamaño (solo si hay logo) */}
+            {local.logo_url && (
+              <div className="space-y-4">
+                {/* Forma */}
+                <div>
+                  <div className="text-xs font-semibold mb-2" style={{ color: "var(--foreground)", opacity: 0.7 }}>Forma</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { id: "round",  label: "Circular",    preview: "●" },
+                      { id: "square", label: "Cuadrado",    preview: "■" },
+                      { id: "rect",   label: "Rectangular", preview: "▬" },
+                    ] as const).map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => setLocal(prev => ({ ...prev, logo_shape: s.id }))}
+                        className="rounded-xl border-2 py-2 text-center text-xs font-medium transition-all"
+                        style={{
+                          borderColor: local.logo_shape === s.id ? "var(--brand-1)" : "var(--border)",
+                          background: local.logo_shape === s.id ? "rgba(57,161,169,0.08)" : "transparent",
+                          color: "var(--foreground)",
+                        }}
+                      >
+                        <div className="text-base mb-0.5">{s.preview}</div>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tamaño */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-semibold" style={{ color: "var(--foreground)", opacity: 0.7 }}>Tamaño</div>
+                    <span className="text-xs" style={{ color: "var(--foreground)", opacity: 0.5 }}>{local.logo_size || 72}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={32}
+                    max={160}
+                    value={local.logo_size || 72}
+                    onChange={e => setNum("logo_size", Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] mt-1" style={{ color: "var(--foreground)", opacity: 0.3 }}>
+                    <span>32px</span><span>160px</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Vista previa */}
           <div>
             <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
@@ -205,7 +341,26 @@ function DesignModal({
               style={{ background: local.bg_color, fontFamily: local.font_family }}
             >
               <div className="px-5 pt-8 pb-6 text-center" style={{ color: local.text_color }}>
-                <div className="w-12 h-12 rounded-2xl mx-auto mb-4" style={{ background: `${local.text_color}33` }} />
+                {/* Logo en preview */}
+                {local.logo_url ? (
+                  <div className="flex justify-center mb-4">
+                    <img
+                      src={local.logo_url}
+                      alt="logo"
+                      style={{
+                        height: Math.min(local.logo_size || 72, 56),
+                        width: local.logo_shape === "rect" ? Math.min(local.logo_size || 72, 56) * 1.8 : Math.min(local.logo_size || 72, 56),
+                        borderRadius:
+                          local.logo_shape === "round"  ? "50%"  :
+                          local.logo_shape === "square" ? "10px" : "6px",
+                        objectFit: "contain",
+                      }}
+                      onError={e => (e.currentTarget.style.display = "none")}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl mx-auto mb-4" style={{ background: `${local.text_color}33` }} />
+                )}
                 <h3 className="font-bold text-lg mb-1">Título del formulario</h3>
                 <p className="text-sm mb-6" style={{ opacity: 0.6 }}>Subtítulo descriptivo del formulario</p>
                 <button
@@ -267,12 +422,29 @@ function DesignModal({
 function WelcomePreview({ config, design }: { config: WelcomeConfig; design: FormDesign }) {
   const bg  = config.bg_color   || design.bg_color;
   const col = config.text_color || design.text_color;
+  const logoSize = design.logo_size || 72;
   return (
     <div
       className="h-full flex flex-col items-center justify-center text-center p-6"
       style={{ background: bg, color: col, fontFamily: design.font_family }}
     >
-      <div className="w-16 h-16 rounded-2xl mb-5" style={{ background: `${col}33` }} />
+      {design.logo_url ? (
+        <img
+          src={design.logo_url}
+          alt="logo"
+          className="mb-5"
+          style={{
+            height: Math.min(logoSize, 64),
+            width: design.logo_shape === "rect" ? Math.min(logoSize, 64) * 1.8 : Math.min(logoSize, 64),
+            borderRadius:
+              design.logo_shape === "round"  ? "50%"  :
+              design.logo_shape === "square" ? "10px" : "6px",
+            objectFit: "contain",
+          }}
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-2xl mb-5" style={{ background: `${col}33` }} />
+      )}
       <h1 className="text-xl font-bold leading-tight mb-2">{config.title || "Título de bienvenida"}</h1>
       <p className="text-sm" style={{ opacity: 0.7 }}>{config.subtitle || "Subtítulo del formulario"}</p>
       <button
@@ -683,6 +855,7 @@ export default function FormBuilderPage() {
 
   const [formData, setFormData]           = useState<CaptacionForm | null>(null);
   const [design, setDesign]               = useState<FormDesign>(DEFAULT_DESIGN);
+  const [businessLogoUrl, setBusinessLogoUrl] = useState("");
   const [token, setToken]                 = useState("");
   const [loading, setLoading]             = useState(true);
   const [saving, setSaving]               = useState(false);
@@ -718,10 +891,19 @@ export default function FormBuilderPage() {
 
       if (data.form) {
         setFormData(data.form);
-        if (data.form.design) setDesign(data.form.design);
+        const savedDesign = data.form.design ? { ...DEFAULT_DESIGN, ...data.form.design } : DEFAULT_DESIGN;
+        setDesign(savedDesign);
         const first = data.form.blocks?.[0] || null;
         setPreviewBlock(first);
         setSelectedBlock(first?.id || null);
+
+        // Cargar logo del negocio para ofrecer "Logo del perfil"
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("logo_url")
+          .eq("id", data.form.business_id)
+          .single();
+        if (biz?.logo_url) setBusinessLogoUrl(biz.logo_url);
       }
       setLoading(false);
     };
@@ -873,6 +1055,7 @@ export default function FormBuilderPage() {
       {showDesignModal && (
         <DesignModal
           design={design}
+          businessLogoUrl={businessLogoUrl}
           onApply={applyDesign}
           onClose={() => setShowDesignModal(false)}
         />
