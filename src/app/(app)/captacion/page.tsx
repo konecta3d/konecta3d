@@ -12,7 +12,7 @@ interface BusinessData {
   logo_url: string | null;
   contact_email: string;
   phone: string | null;
-  description: string | null;
+  description?: string | null; // columna opcional — puede no existir en el schema
 }
 
 interface ActiveCampaignInfo {
@@ -121,14 +121,19 @@ export default function CaptacionPage() {
         const email = sessionData?.session?.user?.email;
         if (!email || !token) { setLoading(false); return; }
 
-        const { data: biz } = await supabase
+        // Nota: 'description' no existe en el schema de businesses, se omite
+        const { data: biz, error: bizError } = await supabase
           .from("businesses")
-          .select("id, name, logo_url, contact_email, phone, description")
+          .select("id, name, logo_url, contact_email, phone")
           .eq("contact_email", email)
           .single();
 
-        if (!biz) { setLoading(false); return; }
-        setBusiness(biz);
+        if (bizError || !biz) {
+          setLoadError("No se encontró tu negocio. Contacta con el administrador.");
+          setLoading(false);
+          return;
+        }
+        setBusiness(biz as BusinessData);
 
         const headers = { Authorization: `Bearer ${token}` };
         const qs = `businessId=${biz.id}`;
@@ -140,8 +145,19 @@ export default function CaptacionPage() {
           fetch(`/api/captacion/leads?${qs}`, { headers }),
         ]);
 
-        if (!campRes.ok || !leadsRes.ok) {
-          throw new Error("No se pudieron cargar los datos. Comprueba tu conexión y recarga la página.");
+        // Diagnóstico detallado: identificar qué API falló
+        const failedApis: string[] = [];
+        if (!campRes.ok)  failedApis.push(`campañas (${campRes.status})`);
+        if (!leadsRes.ok) failedApis.push(`leads (${leadsRes.status})`);
+        if (!formsRes.ok) failedApis.push(`formularios (${formsRes.status})`);
+        if (!lmRes.ok)    failedApis.push(`lead magnets (${lmRes.status})`);
+
+        if (failedApis.length > 0) {
+          const is500 = [campRes, leadsRes, formsRes, lmRes].some(r => !r.ok && r.status >= 500);
+          const msg = is500
+            ? "Las tablas de Captación no están creadas en la base de datos. Ejecuta la migración de Captación en Supabase."
+            : `Error al cargar datos: ${failedApis.join(", ")}. Recarga la página.`;
+          throw new Error(msg);
         }
 
         const [campData, formsData, lmData, leadsData] = await Promise.all([
