@@ -16,7 +16,8 @@
     "pdf-lib": "^1.17.1",
     "puppeteer-core": "^24.37.5",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "resend": "^6.12.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
