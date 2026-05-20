@@ -8,10 +8,10 @@ import Link from "next/link";
 type ResourceType = "pdf" | "url" | "code";
 type ResourceStatus = "draft" | "active";
 
-const TYPE_OPTIONS: { value: ResourceType; icon: string; label: string; hint: string }[] = [
-  { value: "pdf", icon: "📄", label: "PDF descargable", hint: "URL directa a un PDF ya alojado o generado" },
-  { value: "url", icon: "🔗", label: "Recurso online",  hint: "Vídeo, artículo, landing page o cualquier URL" },
-  { value: "code", icon: "🎫", label: "Cupón o acceso", hint: "Código de descuento, cupón o acceso exclusivo" },
+const TYPE_OPTIONS: { value: ResourceType; label: string; hint: string }[] = [
+  { value: "pdf", label: "PDF descargable", hint: "URL directa a un PDF ya alojado o generado" },
+  { value: "url", label: "Recurso online",  hint: "Vídeo, artículo, landing page o cualquier URL" },
+  { value: "code", label: "Cupón o acceso", hint: "Código de descuento, cupón o acceso exclusivo" },
 ];
 
 export default function NewLeadMagnetAdvancedPage() {
@@ -154,7 +154,7 @@ export default function NewLeadMagnetAdvancedPage() {
               Tipo de recurso *
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {TYPE_OPTIONS.map(({ value, icon, label, hint }) => (
+              {TYPE_OPTIONS.map(({ value, label, hint }) => (
                 <button
                   key={value}
                   type="button"
@@ -165,11 +165,11 @@ export default function NewLeadMagnetAdvancedPage() {
                     background:  type === value ? "rgba(57,161,169,0.08)" : "transparent",
                   }}
                 >
-                  <div className="text-xl mb-1">{icon}</div>
+                  <div className="w-2 h-2 rounded-full mb-3" style={{ background: type === value ? "var(--brand-1)" : "var(--border)" }} />
                   <div className="text-xs md:text-sm font-bold" style={{ color: "var(--foreground)" }}>{label}</div>
                   <div className="text-[10px] md:text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.5 }}>{hint}</div>
                   {type === value && (
-                    <div className="mt-1.5 text-[10px] font-bold" style={{ color: "var(--brand-1)" }}>✓ Seleccionado</div>
+                    <div className="mt-1.5 text-[10px] font-bold" style={{ color: "var(--brand-1)" }}>Seleccionado</div>
                   )}
                 </button>
               ))}

@@ -20,15 +20,15 @@ type StepStatus = "done" | "warning" | "error" | "current" | "pending";
 
 // ── Datos objetivos ────────────────────────────────────────────────────────────
 
-const OBJECTIVE_INFO: Record<Objective, { title: string; description: string; icon: string; color: string }> = {
-  captar:     { title: "Captar clientes nuevos",    description: "Atrae a personas que aún no te conocen con un recurso que demuestra tu valor.",    icon: "🎯", color: "#06b6d4" },
-  educar:     { title: "Educar al cliente",          description: "Explica cómo funciona tu servicio para que confíe y decida con información.",       icon: "📚", color: "#3b82f6" },
-  referidos:  { title: "Conseguir referidos",        description: "Facilita que clientes o visitantes te recomienden desde el primer contacto.",       icon: "🤝", color: "#a78bfa" },
-  temporada:  { title: "Campaña de temporada",       description: "Aprovecha una fecha clave o época del año para atraer clientes nuevos.",           icon: "📅", color: "#ec4899" },
-  lanzamiento:{ title: "Lanzar un servicio",         description: "Presenta un servicio o producto nuevo y explica por qué es relevante.",            icon: "🚀", color: "#10b981" },
-  volvieron:  { title: "Que vuelvan",                description: "Motiva que los clientes actuales regresen con continuidad y seguimiento.",          icon: "🔁", color: "#ffb400" },
-  conversion: { title: "Aumentar ventas",            description: "Sube el ticket medio mostrando el valor de un servicio o producto adicional.",      icon: "📈", color: "#22c55e" },
-  reactivar:  { title: "Recuperar inactivos",        description: "Recupera clientes que dejaron de venir con un mensaje de valor y sin presión.",     icon: "💡", color: "#f97316" },
+const OBJECTIVE_INFO: Record<Objective, { title: string; description: string; color: string }> = {
+  captar:     { title: "Captar clientes nuevos",    description: "Atrae a personas que aún no te conocen con un recurso que demuestra tu valor.",    color: "#06b6d4" },
+  educar:     { title: "Educar al cliente",          description: "Explica cómo funciona tu servicio para que confíe y decida con información.",       color: "#3b82f6" },
+  referidos:  { title: "Conseguir referidos",        description: "Facilita que clientes o visitantes te recomienden desde el primer contacto.",       color: "#a78bfa" },
+  temporada:  { title: "Campaña de temporada",       description: "Aprovecha una fecha clave o época del año para atraer clientes nuevos.",           color: "#ec4899" },
+  lanzamiento:{ title: "Lanzar un servicio",         description: "Presenta un servicio o producto nuevo y explica por qué es relevante.",            color: "#10b981" },
+  volvieron:  { title: "Que vuelvan",                description: "Motiva que los clientes actuales regresen con continuidad y seguimiento.",          color: "#ffb400" },
+  conversion: { title: "Aumentar ventas",            description: "Sube el ticket medio mostrando el valor de un servicio o producto adicional.",      color: "#22c55e" },
+  reactivar:  { title: "Recuperar inactivos",        description: "Recupera clientes que dejaron de venir con un mensaje de valor y sin presión.",     color: "#f97316" },
 };
 
 const DOC_TYPE_INFO: Record<DocType, { title: string; description: string; example: string }> = {
@@ -412,12 +412,12 @@ function CaptacionLeadMagnetWizardInner() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
               {[
-                { icon: "🛡️", color: "var(--brand-1)", textColor: "white", title: "Genera confianza antes del primer contacto", body: "Demuestra tu expertise entregando valor antes de pedir nada a cambio." },
-                { icon: "📄", color: "var(--brand-4)", textColor: "black", title: "Entrega un documento útil de verdad", body: "Convierte tu conocimiento en un PDF profesional que el cliente puede guardar y compartir." },
-                { icon: "📈", color: "#22c55e", textColor: "white", title: "Convierte curiosos en leads cualificados", body: "Quien descarga tu recurso ya ha mostrado interés. Eso es un lead caliente." },
+                { color: "var(--brand-1)", title: "Genera confianza antes del primer contacto", body: "Demuestra tu expertise entregando valor antes de pedir nada a cambio." },
+                { color: "var(--brand-4)", title: "Entrega un documento útil de verdad", body: "Convierte tu conocimiento en un PDF profesional que el cliente puede guardar y compartir." },
+                { color: "#22c55e", title: "Convierte curiosos en leads cualificados", body: "Quien descarga tu recurso ya ha mostrado interés. Eso es un lead caliente." },
               ].map((c, i) => (
                 <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto text-xl" style={{ background: c.color, color: c.textColor }}>{c.icon}</div>
+                  <div className="w-3 h-3 rounded-full mb-4 mx-auto" style={{ background: c.color }} />
                   <h3 className="text-lg font-bold text-center mb-2 text-white">{c.title}</h3>
                   <p className="text-sm text-white/70 text-center">{c.body}</p>
                 </div>
@@ -426,7 +426,7 @@ function CaptacionLeadMagnetWizardInner() {
             <div className="rounded-xl p-6 border" style={{ background: "linear-gradient(to right, #0a323c, #001e3c)", borderColor: "rgba(57,161,169,0.3)" }}>
               <h3 className="text-lg font-bold mb-3 text-white">¿Qué vas a crear?</h3>
               <ul className="text-sm text-white space-y-2">
-                {[["📄 PDF personalizado:", "guía, checklist o recomendación con tu imagen de marca"], ["🔗 Enlace:", "vídeo, artículo o página web útil para tu cliente"], ["🎫 Código:", "descuento, cupón o acceso exclusivo"]].map(([k, v]) => (
+                {[["PDF personalizado:", "guía, checklist o recomendación con tu imagen de marca"], ["Enlace:", "vídeo, artículo o página web útil para tu cliente"], ["Código:", "descuento, cupón o acceso exclusivo"]].map(([k, v]) => (
                   <li key={k} className="flex items-center gap-2"><span style={{ color: "var(--brand-4)" }}>+</span><strong>{k}</strong> {v}</li>
                 ))}
               </ul>
@@ -450,16 +450,16 @@ function CaptacionLeadMagnetWizardInner() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               {([
-                { t: "pdf" as ResourceType, icon: "📄", sub: "Documento descargable", desc: "PDF profesional con tu conocimiento y marca — mismo generador que Recursos de Valor" },
-                { t: "url" as ResourceType, icon: "🔗", sub: "Recurso online",        desc: "Vídeo de YouTube, artículo, landing page o cualquier URL" },
-                { t: "code" as ResourceType, icon: "🎫", sub: "Cupón o acceso",        desc: "Descuento, código promocional o acceso exclusivo" },
-              ]).map(({ t, icon, sub, desc }) => (
+                { t: "pdf" as ResourceType, sub: "Documento descargable", desc: "PDF profesional con tu conocimiento y marca — mismo generador que Recursos de Valor" },
+                { t: "url" as ResourceType, sub: "Recurso online",        desc: "Vídeo de YouTube, artículo, landing page o cualquier URL" },
+                { t: "code" as ResourceType, sub: "Cupón o acceso",        desc: "Descuento, código promocional o acceso exclusivo" },
+              ]).map(({ t, sub, desc }) => (
                 <button key={t} onClick={() => { setType(t); contentCustomized.current = false; }} className="p-5 md:p-6 rounded-xl text-left transition-all border-2 relative" style={{ borderColor: type === t ? "var(--brand-1)" : "rgba(255,255,255,0.1)", backgroundColor: type === t ? "rgba(57,161,169,0.08)" : "rgba(255,255,255,0.05)" }}>
                   {type === t && <span className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--brand-1)", color: "white" }}>✓</span>}
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 text-2xl" style={{ background: type === t ? "var(--brand-1)" : "rgba(255,255,255,0.08)" }}>{icon}</div>
+                  <div className="w-2 h-2 rounded-full mb-4" style={{ background: type === t ? "var(--brand-1)" : "rgba(255,255,255,0.3)" }} />
                   <h3 className="text-lg font-bold mb-1 text-white">{sub}</h3>
                   <p className="text-sm text-white/60">{desc}</p>
-                  {t === "pdf" && <div className="mt-2 text-xs text-[var(--brand-4)] font-semibold">✨ Editor completo + vista previa</div>}
+                  {t === "pdf" && <div className="mt-2 text-xs text-[var(--brand-4)] font-semibold">Editor completo + vista previa</div>}
                 </button>
               ))}
             </div>
@@ -494,7 +494,7 @@ function CaptacionLeadMagnetWizardInner() {
                 <button key={key} type="button" onClick={() => { setObjective(key); contentCustomized.current = false; }}
                   className="rounded-xl transition-all border-2 p-3 md:p-4 text-left"
                   style={{ borderColor: objective === key ? info.color : "rgba(255,255,255,0.1)", backgroundColor: objective === key ? `${info.color}18` : "rgba(255,255,255,0.04)" }}>
-                  <div className="text-2xl mb-2">{info.icon}</div>
+                  <div className="w-2 h-2 rounded-full mb-3" style={{ background: info.color }} />
                   <h3 className="text-sm font-bold text-white leading-tight mb-1">{info.title}</h3>
                   <p className="text-[11px] text-white/60 leading-snug">{info.description}</p>
                   {objective === key && <div className="mt-2 text-[10px] font-bold" style={{ color: info.color }}>✓ Seleccionado</div>}
