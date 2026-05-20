@@ -7,59 +7,347 @@ import type {
   CaptacionForm, FormBlock, BlockType, BlockConfig,
   WelcomeConfig, SegmentationConfig, QuestionsConfig,
   CaptureConfig, FinalMessageConfig, ThankYouConfig,
-  SegmentOption, Question, CaptureField,
+  SegmentOption, Question, CaptureField, FormDesign,
 } from "@/types/captacion";
-import { BLOCK_LABELS, BLOCK_OBJECTIVES } from "@/types/captacion";
+import { BLOCK_LABELS, BLOCK_OBJECTIVES, DEFAULT_DESIGN } from "@/types/captacion";
 
-// ── Mobile preview ────────────────────────────────────────────
+// ── Paletas y fuentes ─────────────────────────────────────────
 
-function WelcomePreview({ config }: { config: WelcomeConfig }) {
+const PALETTES: { name: string; bg: string; text: string; accent: string; border: string }[] = [
+  { name: "Teal",    bg: "#0a323c", text: "#ffffff", accent: "#ffb400", border: "rgba(255,255,255,0.2)"  },
+  { name: "Noche",   bg: "#0f172a", text: "#ffffff", accent: "#3b82f6", border: "rgba(255,255,255,0.15)" },
+  { name: "Bosque",  bg: "#1a3a2a", text: "#ffffff", accent: "#22c55e", border: "rgba(255,255,255,0.15)" },
+  { name: "Coral",   bg: "#1a0a0a", text: "#ffffff", accent: "#f97316", border: "rgba(255,255,255,0.15)" },
+  { name: "Pizarra", bg: "#1e293b", text: "#f8fafc", accent: "#8b5cf6", border: "rgba(255,255,255,0.15)" },
+  { name: "Blanco",  bg: "#ffffff", text: "#111827", accent: "#0a323c", border: "rgba(0,0,0,0.15)"       },
+];
+
+const FONTS: { id: string; label: string; desc: string }[] = [
+  { id: "Inter",      label: "Inter",      desc: "Moderna y legible"     },
+  { id: "Poppins",    label: "Poppins",    desc: "Redondeada y amigable" },
+  { id: "Lora",       label: "Lora",       desc: "Elegante con serifa"   },
+  { id: "Montserrat", label: "Montserrat", desc: "Geométrica y fuerte"   },
+];
+
+// ── Modal de diseño ───────────────────────────────────────────
+
+function DesignModal({
+  design,
+  onApply,
+  onClose,
+}: {
+  design: FormDesign;
+  onApply: (d: FormDesign, applyAll: boolean) => void;
+  onClose: () => void;
+}) {
+  const [local, setLocal] = useState<FormDesign>(design);
+  const set = (key: keyof FormDesign, val: string) =>
+    setLocal(prev => ({ ...prev, [key]: val }));
+
+  const COLOR_FIELDS: { key: keyof FormDesign; label: string; hint: string }[] = [
+    { key: "bg_color",     label: "Fondo",  hint: "Fondo de todos los pasos"  },
+    { key: "text_color",   label: "Texto",  hint: "Texto principal"            },
+    { key: "accent_color", label: "Acento", hint: "Botones y selecciones"      },
+    { key: "border_color", label: "Bordes", hint: "Bordes de inputs y tarjetas" },
+  ];
+
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center p-6"
-      style={{ background: config.bg_color, color: config.text_color }}>
-      <div className="w-16 h-16 rounded-2xl bg-white/20 mb-5" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.75)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="w-full max-w-xl rounded-2xl border overflow-hidden flex flex-col"
+        style={{ background: "var(--card)", borderColor: "var(--border)", maxHeight: "90vh" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ borderColor: "var(--border)" }}>
+          <div>
+            <h2 className="font-bold text-base" style={{ color: "var(--foreground)" }}>Diseño del formulario</h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.5 }}>Paleta de colores y tipografía global</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-2xl leading-none hover:opacity-60 transition-opacity"
+            style={{ color: "var(--foreground)" }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 p-5 space-y-6">
+
+          {/* Paletas predefinidas */}
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
+              Paletas predefinidas
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {PALETTES.map(p => {
+                const active = local.bg_color === p.bg && local.text_color === p.text;
+                return (
+                  <button
+                    key={p.name}
+                    onClick={() => setLocal(prev => ({
+                      ...prev,
+                      bg_color: p.bg,
+                      text_color: p.text,
+                      accent_color: p.accent,
+                      border_color: p.border,
+                    }))}
+                    className="rounded-xl p-3 text-left border-2 transition-all"
+                    style={{
+                      background: p.bg,
+                      borderColor: active ? p.accent : "transparent",
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <div className="w-3 h-3 rounded-full" style={{ background: p.accent }} />
+                      <div className="w-3 h-3 rounded-full" style={{ background: p.text, opacity: 0.5 }} />
+                    </div>
+                    <div className="text-xs font-semibold" style={{ color: p.text }}>{p.name}</div>
+                    {active && (
+                      <div className="text-[10px] font-bold mt-1" style={{ color: p.accent }}>Activa</div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Colores personalizados */}
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
+              Colores personalizados
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {COLOR_FIELDS.map(({ key, label, hint }) => (
+                <div
+                  key={key}
+                  className="rounded-xl border p-3 space-y-2"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  <div>
+                    <div className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>{label}</div>
+                    <div className="text-[10px]" style={{ color: "var(--foreground)", opacity: 0.4 }}>{hint}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Color swatch + native picker */}
+                    <div
+                      className="relative w-9 h-9 flex-shrink-0 rounded-lg overflow-hidden border"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      <div
+                        className="absolute inset-0 rounded-lg"
+                        style={{ background: local[key] }}
+                      />
+                      <input
+                        type="color"
+                        value={local[key].startsWith("rgba") ? "#ffffff" : local[key]}
+                        onChange={e => set(key, e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <input
+                      className="flex-1 rounded-lg border px-2 py-1.5 text-xs bg-transparent font-mono"
+                      style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                      value={local[key]}
+                      onChange={e => set(key, e.target.value)}
+                      placeholder="#000000"
+                      spellCheck={false}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tipografía */}
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
+              Tipografía
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {FONTS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => set("font_family", f.id)}
+                  className="rounded-xl border-2 p-3 text-left transition-all"
+                  style={{
+                    borderColor: local.font_family === f.id ? "var(--brand-1)" : "var(--border)",
+                    background: local.font_family === f.id ? "rgba(57,161,169,0.08)" : "transparent",
+                  }}
+                >
+                  <div
+                    className="text-base font-bold mb-0.5"
+                    style={{ fontFamily: f.id, color: "var(--foreground)" }}
+                  >
+                    {f.label}
+                  </div>
+                  <div className="text-xs" style={{ color: "var(--foreground)", opacity: 0.5 }}>{f.desc}</div>
+                  {local.font_family === f.id && (
+                    <div className="text-[10px] font-bold mt-1" style={{ color: "var(--brand-1)" }}>Seleccionada</div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Vista previa */}
+          <div>
+            <label className="block text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--brand-1)" }}>
+              Vista previa
+            </label>
+            <div
+              className="rounded-xl overflow-hidden"
+              style={{ background: local.bg_color, fontFamily: local.font_family }}
+            >
+              <div className="px-5 pt-8 pb-6 text-center" style={{ color: local.text_color }}>
+                <div className="w-12 h-12 rounded-2xl mx-auto mb-4" style={{ background: `${local.text_color}33` }} />
+                <h3 className="font-bold text-lg mb-1">Título del formulario</h3>
+                <p className="text-sm mb-6" style={{ opacity: 0.6 }}>Subtítulo descriptivo del formulario</p>
+                <button
+                  className="px-6 py-2.5 rounded-xl text-sm font-semibold"
+                  style={{ background: local.accent_color, color: local.bg_color }}
+                >
+                  Comenzar →
+                </button>
+              </div>
+              <div className="px-5 pb-5 space-y-2">
+                {[1, 2].map(i => (
+                  <div
+                    key={i}
+                    className="rounded-xl border p-3"
+                    style={{ borderColor: local.border_color }}
+                  >
+                    <div className="text-sm font-semibold" style={{ color: local.text_color }}>Opción {i}</div>
+                    <div className="text-xs mt-0.5" style={{ color: local.text_color, opacity: 0.5 }}>
+                      Descripción de la opción
+                    </div>
+                  </div>
+                ))}
+                <button
+                  className="w-full py-3 rounded-xl text-sm font-semibold mt-2"
+                  style={{ background: local.accent_color, color: local.bg_color }}
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t flex gap-2 flex-shrink-0" style={{ borderColor: "var(--border)" }}>
+          <button
+            onClick={() => onApply(local, true)}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all hover:opacity-80"
+            style={{ borderColor: "var(--brand-1)", color: "var(--brand-1)" }}
+          >
+            Aplicar a todos los pasos
+          </button>
+          <button
+            onClick={() => onApply(local, false)}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: "var(--brand-1)", color: "white" }}
+          >
+            Guardar diseño
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Vista previa móvil ────────────────────────────────────────
+
+function WelcomePreview({ config, design }: { config: WelcomeConfig; design: FormDesign }) {
+  const bg  = config.bg_color   || design.bg_color;
+  const col = config.text_color || design.text_color;
+  return (
+    <div
+      className="h-full flex flex-col items-center justify-center text-center p-6"
+      style={{ background: bg, color: col, fontFamily: design.font_family }}
+    >
+      <div className="w-16 h-16 rounded-2xl mb-5" style={{ background: `${col}33` }} />
       <h1 className="text-xl font-bold leading-tight mb-2">{config.title || "Título de bienvenida"}</h1>
-      <p className="text-sm opacity-70">{config.subtitle || "Subtítulo del formulario"}</p>
-      <button className="mt-8 px-6 py-3 rounded-xl font-semibold text-sm" style={{ background: config.text_color, color: config.bg_color }}>
+      <p className="text-sm" style={{ opacity: 0.7 }}>{config.subtitle || "Subtítulo del formulario"}</p>
+      <button
+        className="mt-8 px-6 py-3 rounded-xl font-semibold text-sm"
+        style={{ background: design.accent_color, color: bg }}
+      >
         Comenzar →
       </button>
     </div>
   );
 }
 
-function SegmentationPreview({ config }: { config: SegmentationConfig }) {
+function SegmentationPreview({ config, design }: { config: SegmentationConfig; design: FormDesign }) {
   return (
-    <div className="p-5 flex flex-col gap-3">
-      <p className="text-sm font-semibold mb-1">¿Qué describe mejor tu situación?</p>
-      {(config.options || []).map((o) => (
-        <div key={o.id} className="rounded-xl border-2 p-3" style={{ borderColor: "var(--border)" }}>
-          <p className="text-sm font-semibold">{o.title || "Opción"}</p>
-          <p className="text-xs text-[var(--foreground)]/50 mt-0.5">{o.description}</p>
+    <div className="p-5 flex flex-col gap-3" style={{ fontFamily: design.font_family }}>
+      <p className="text-sm font-semibold mb-1" style={{ color: design.text_color }}>
+        ¿Qué describe mejor tu situación?
+      </p>
+      {(config.options || []).map(o => (
+        <div
+          key={o.id}
+          className="rounded-xl border-2 p-3"
+          style={{ borderColor: design.border_color }}
+        >
+          <p className="text-sm font-semibold" style={{ color: design.text_color }}>{o.title || "Opción"}</p>
+          <p className="text-xs mt-0.5" style={{ color: design.text_color, opacity: 0.5 }}>{o.description}</p>
         </div>
       ))}
     </div>
   );
 }
 
-function QuestionsPreview({ config }: { config: QuestionsConfig }) {
+function QuestionsPreview({ config, design }: { config: QuestionsConfig; design: FormDesign }) {
   return (
-    <div className="p-5 flex flex-col gap-4">
+    <div className="p-5 flex flex-col gap-4" style={{ fontFamily: design.font_family }}>
       {(config.questions || []).length === 0 ? (
-        <p className="text-xs text-[var(--foreground)]/40 text-center py-4">Sin preguntas aún</p>
-      ) : (config.questions || []).map((q) => (
+        <p className="text-xs text-center py-4" style={{ color: design.text_color, opacity: 0.4 }}>
+          Sin preguntas aún
+        </p>
+      ) : (config.questions || []).map(q => (
         <div key={q.id}>
-          <p className="text-sm font-medium mb-2">{q.text || "Pregunta"}</p>
+          <p className="text-sm font-medium mb-2" style={{ color: design.text_color }}>{q.text || "Pregunta"}</p>
           {q.type === "yes_no" && (
             <div className="grid grid-cols-2 gap-2">
-              {["Sí", "No"].map(v => <div key={v} className="rounded-lg border text-center py-2 text-xs" style={{ borderColor: "var(--border)" }}>{v}</div>)}
+              {["Sí", "No"].map(v => (
+                <div
+                  key={v}
+                  className="rounded-lg border text-center py-2 text-xs"
+                  style={{ borderColor: design.border_color, color: design.text_color }}
+                >
+                  {v}
+                </div>
+              ))}
             </div>
           )}
           {q.type === "multiple_choice" && (q.options || []).map((o, i) => (
-            <div key={i} className="rounded-lg border px-3 py-2 text-xs mb-1.5" style={{ borderColor: "var(--border)" }}>{o}</div>
+            <div
+              key={i}
+              className="rounded-lg border px-3 py-2 text-xs mb-1.5"
+              style={{ borderColor: design.border_color, color: design.text_color }}
+            >
+              {o}
+            </div>
           ))}
           {q.type === "scale" && (
             <div className="flex gap-1 justify-between">
-              {[1, 2, 3, 4, 5].map(n => <div key={n} className="flex-1 rounded-lg border text-center py-2 text-xs" style={{ borderColor: "var(--border)" }}>{n}</div>)}
+              {[1, 2, 3, 4, 5].map(n => (
+                <div
+                  key={n}
+                  className="flex-1 rounded-lg border text-center py-2 text-xs"
+                  style={{ borderColor: design.border_color, color: design.text_color }}
+                >
+                  {n}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -68,51 +356,64 @@ function QuestionsPreview({ config }: { config: QuestionsConfig }) {
   );
 }
 
-function CapturePreview({ config }: { config: CaptureConfig }) {
+function CapturePreview({ config, design }: { config: CaptureConfig; design: FormDesign }) {
   return (
-    <div className="p-5 flex flex-col gap-3">
-      <p className="text-sm font-semibold mb-1">Tus datos</p>
-      {(config.fields || []).filter(f => f.enabled).map((f) => (
+    <div className="p-5 flex flex-col gap-3" style={{ fontFamily: design.font_family }}>
+      <p className="text-sm font-semibold mb-1" style={{ color: design.text_color }}>Tus datos</p>
+      {(config.fields || []).filter(f => f.enabled).map(f => (
         <div key={f.name}>
-          <label className="text-xs text-[var(--foreground)]/60 block mb-1">
+          <label className="text-xs block mb-1" style={{ color: design.text_color, opacity: 0.6 }}>
             {f.label}{f.required ? " *" : ""}
           </label>
-          <div className="rounded-lg border px-3 py-2.5 text-xs text-[var(--foreground)]/30"
-            style={{ borderColor: "var(--border)" }}>
+          <div
+            className="rounded-lg border px-3 py-2.5 text-xs"
+            style={{ borderColor: design.border_color, color: design.text_color, opacity: 0.5 }}
+          >
             {f.type === "tel" ? "+34 600 000 000" : f.type === "email" ? "email@ejemplo.com" : f.label}
           </div>
         </div>
       ))}
-      <button className="mt-2 w-full py-3 rounded-xl text-sm font-semibold text-white"
-        style={{ background: "var(--brand-1)" }}>
+      <button
+        className="mt-2 w-full py-3 rounded-xl text-sm font-semibold"
+        style={{ background: design.accent_color, color: design.bg_color }}
+      >
         Recibir recurso gratis
       </button>
     </div>
   );
 }
 
-function FinalMessagePreview({ config }: { config: FinalMessageConfig }) {
+function FinalMessagePreview({ config, design }: { config: FinalMessageConfig; design: FormDesign }) {
   return (
-    <div className="p-5 flex flex-col items-center text-center gap-4 pt-10">
-      <h2 className="text-lg font-bold">{config.title || "¡Tu recurso está listo!"}</h2>
-      <p className="text-sm text-[var(--foreground)]/60">{config.text || "Descárgalo ahora."}</p>
-      <button className="w-full py-3 rounded-xl text-sm font-semibold text-white"
-        style={{ background: "var(--brand-1)" }}>
+    <div className="p-5 flex flex-col items-center text-center gap-4 pt-10" style={{ fontFamily: design.font_family }}>
+      <h2 className="text-lg font-bold" style={{ color: design.text_color }}>
+        {config.title || "¡Tu recurso está listo!"}
+      </h2>
+      <p className="text-sm" style={{ color: design.text_color, opacity: 0.6 }}>
+        {config.text || "Descárgalo ahora."}
+      </p>
+      <button
+        className="w-full py-3 rounded-xl text-sm font-semibold"
+        style={{ background: design.accent_color, color: design.bg_color }}
+      >
         {config.cta_text || "Descargar gratis"}
       </button>
     </div>
   );
 }
 
-function ThankYouPreview({ config }: { config: ThankYouConfig }) {
+function ThankYouPreview({ config, design }: { config: ThankYouConfig; design: FormDesign }) {
   return (
-    <div className="p-5 flex flex-col items-center text-center gap-4 pt-10">
-      <h2 className="text-lg font-bold">{config.title || "¡Gracias!"}</h2>
-      <p className="text-sm text-[var(--foreground)]/60">{config.message}</p>
+    <div className="p-5 flex flex-col items-center text-center gap-4 pt-10" style={{ fontFamily: design.font_family }}>
+      <h2 className="text-lg font-bold" style={{ color: design.text_color }}>{config.title || "¡Gracias!"}</h2>
+      <p className="text-sm" style={{ color: design.text_color, opacity: 0.6 }}>{config.message}</p>
       {(config.next_steps || []).length > 0 && (
         <ul className="text-left text-xs space-y-1.5 w-full mt-2">
           {config.next_steps.map((s, i) => (
-            <li key={i} className="flex items-start gap-2"><span className="text-green-400">✓</span>{s}</li>
+            <li key={i} className="flex items-start gap-2">
+              <span style={{ color: design.accent_color }}>✓</span>
+              <span style={{ color: design.text_color }}>{s}</span>
+            </li>
           ))}
         </ul>
       )}
@@ -120,19 +421,20 @@ function ThankYouPreview({ config }: { config: ThankYouConfig }) {
   );
 }
 
-function BlockPreview({ block }: { block: FormBlock }) {
+function BlockPreview({ block, design }: { block: FormBlock; design: FormDesign }) {
   switch (block.type) {
-    case "welcome": return <WelcomePreview config={block.config as WelcomeConfig} />;
-    case "segmentation": return <SegmentationPreview config={block.config as SegmentationConfig} />;
-    case "questions": return <QuestionsPreview config={block.config as QuestionsConfig} />;
-    case "capture": return <CapturePreview config={block.config as CaptureConfig} />;
-    case "final_message": return <FinalMessagePreview config={block.config as FinalMessageConfig} />;
-    case "thank_you": return <ThankYouPreview config={block.config as ThankYouConfig} />;
-    default: return <div className="p-4 text-xs text-[var(--foreground)]/40">Vista previa no disponible</div>;
+    case "welcome":       return <WelcomePreview       config={block.config as WelcomeConfig}       design={design} />;
+    case "segmentation":  return <SegmentationPreview  config={block.config as SegmentationConfig}  design={design} />;
+    case "questions":     return <QuestionsPreview      config={block.config as QuestionsConfig}      design={design} />;
+    case "capture":       return <CapturePreview        config={block.config as CaptureConfig}        design={design} />;
+    case "final_message": return <FinalMessagePreview   config={block.config as FinalMessageConfig}   design={design} />;
+    case "thank_you":     return <ThankYouPreview       config={block.config as ThankYouConfig}       design={design} />;
+    default:
+      return <div className="p-4 text-xs" style={{ color: design.text_color, opacity: 0.4 }}>Vista previa no disponible</div>;
   }
 }
 
-// ── Block editors ─────────────────────────────────────────────
+// ── Editores de bloque (sin cambios) ──────────────────────────
 
 function WelcomeEditor({ config, onChange }: { config: WelcomeConfig; onChange: (c: WelcomeConfig) => void }) {
   return (
@@ -148,26 +450,9 @@ function WelcomeEditor({ config, onChange }: { config: WelcomeConfig; onChange: 
           style={{ borderColor: "var(--border)" }}
           value={config.subtitle} onChange={e => onChange({ ...config, subtitle: e.target.value })} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Color de fondo</label>
-          <div className="flex items-center gap-2">
-            <input type="color" className="w-8 h-8 rounded cursor-pointer border-0" style={{ background: "transparent" }}
-              value={config.bg_color} onChange={e => onChange({ ...config, bg_color: e.target.value })} />
-            <input className="flex-1 rounded-lg border px-2 py-1.5 text-xs bg-transparent font-mono" style={{ borderColor: "var(--border)" }}
-              value={config.bg_color} onChange={e => onChange({ ...config, bg_color: e.target.value })} />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Color de texto</label>
-          <div className="flex items-center gap-2">
-            <input type="color" className="w-8 h-8 rounded cursor-pointer border-0" style={{ background: "transparent" }}
-              value={config.text_color} onChange={e => onChange({ ...config, text_color: e.target.value })} />
-            <input className="flex-1 rounded-lg border px-2 py-1.5 text-xs bg-transparent font-mono" style={{ borderColor: "var(--border)" }}
-              value={config.text_color} onChange={e => onChange({ ...config, text_color: e.target.value })} />
-          </div>
-        </div>
-      </div>
+      <p className="text-xs text-[var(--foreground)]/40">
+        Los colores de este bloque se sincronizan con el diseño global. Usa el botón "Diseño" para cambiarlos.
+      </p>
     </div>
   );
 }
@@ -182,10 +467,7 @@ function SegmentationEditor({ config, onChange }: { config: SegmentationConfig; 
     opts[i] = { ...opts[i], [field]: val };
     onChange({ options: opts });
   };
-  const remove = (i: number) => {
-    const opts = config.options.filter((_, j) => j !== i);
-    onChange({ options: opts });
-  };
+  const remove = (i: number) => onChange({ options: config.options.filter((_, j) => j !== i) });
   return (
     <div className="space-y-3">
       {config.options.map((o, i) => (
@@ -200,7 +482,8 @@ function SegmentationEditor({ config, onChange }: { config: SegmentationConfig; 
             placeholder="Descripción corta" value={o.description} onChange={e => update(i, "description", e.target.value)} />
         </div>
       ))}
-      <button onClick={addOption} className="w-full py-2 rounded-lg border border-dashed text-xs text-[var(--foreground)]/50 hover:border-[var(--brand-1)]/50 transition-colors"
+      <button onClick={addOption}
+        className="w-full py-2 rounded-lg border border-dashed text-xs text-[var(--foreground)]/50 hover:border-[var(--brand-1)]/50 transition-colors"
         style={{ borderColor: "var(--border)" }}>
         + Añadir segmento
       </button>
@@ -230,7 +513,8 @@ function QuestionsEditor({ config, onChange }: { config: QuestionsConfig; onChan
           </div>
           <input className="w-full rounded-lg border px-3 py-1.5 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
             placeholder="Texto de la pregunta" value={q.text} onChange={e => updateQ(i, "text", e.target.value)} />
-          <select className="w-full rounded-lg border px-3 py-1.5 text-sm bg-transparent" style={{ borderColor: "var(--border)", background: "var(--card)" }}
+          <select className="w-full rounded-lg border px-3 py-1.5 text-sm bg-transparent"
+            style={{ borderColor: "var(--border)", background: "var(--card)" }}
             value={q.type} onChange={e => updateQ(i, "type", e.target.value)}>
             <option value="yes_no">Sí / No</option>
             <option value="multiple_choice">Opción múltiple</option>
@@ -284,7 +568,7 @@ function CaptureEditor({ config, onChange }: { config: CaptureConfig; onChange: 
   return (
     <div className="space-y-2">
       <p className="text-xs text-[var(--foreground)]/50 mb-2">Activa los campos que quieres mostrar. Más campos = menos conversión.</p>
-      {config.fields.map((f, i) => (
+      {config.fields.map((f: CaptureField, i: number) => (
         <div key={f.name} className={`rounded-lg border p-3 transition-opacity ${!f.enabled ? "opacity-40" : ""}`}
           style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center justify-between mb-2">
@@ -343,7 +627,7 @@ function ThankYouEditor({ config, onChange }: { config: ThankYouConfig; onChange
     steps[i] = val;
     onChange({ ...config, next_steps: steps });
   };
-  const addStep = () => onChange({ ...config, next_steps: [...(config.next_steps || []), ""] });
+  const addStep    = () => onChange({ ...config, next_steps: [...(config.next_steps || []), ""] });
   const removeStep = (i: number) => onChange({ ...config, next_steps: config.next_steps.filter((_, j) => j !== i) });
 
   return (
@@ -381,43 +665,60 @@ function ThankYouEditor({ config, onChange }: { config: ThankYouConfig; onChange
 
 function BlockEditor({ block, onChange }: { block: FormBlock; onChange: (config: BlockConfig) => void }) {
   switch (block.type) {
-    case "welcome": return <WelcomeEditor config={block.config as WelcomeConfig} onChange={onChange} />;
-    case "segmentation": return <SegmentationEditor config={block.config as SegmentationConfig} onChange={onChange} />;
-    case "questions": return <QuestionsEditor config={block.config as QuestionsConfig} onChange={onChange} />;
-    case "capture": return <CaptureEditor config={block.config as CaptureConfig} onChange={onChange} />;
-    case "final_message": return <FinalMessageEditor config={block.config as FinalMessageConfig} onChange={onChange} />;
-    case "thank_you": return <ThankYouEditor config={block.config as ThankYouConfig} onChange={onChange} />;
+    case "welcome":       return <WelcomeEditor       config={block.config as WelcomeConfig}       onChange={onChange} />;
+    case "segmentation":  return <SegmentationEditor  config={block.config as SegmentationConfig}  onChange={onChange} />;
+    case "questions":     return <QuestionsEditor      config={block.config as QuestionsConfig}      onChange={onChange} />;
+    case "capture":       return <CaptureEditor        config={block.config as CaptureConfig}        onChange={onChange} />;
+    case "final_message": return <FinalMessageEditor   config={block.config as FinalMessageConfig}   onChange={onChange} />;
+    case "thank_you":     return <ThankYouEditor       config={block.config as ThankYouConfig}       onChange={onChange} />;
     default: return <p className="text-xs text-[var(--foreground)]/40">Editor no disponible</p>;
   }
 }
 
-// ── Main page ─────────────────────────────────────────────────
+// ── Página principal ──────────────────────────────────────────
 
 export default function FormBuilderPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [formData, setFormData] = useState<CaptacionForm | null>(null);
-  const [token, setToken] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
-  const [previewBlock, setPreviewBlock] = useState<FormBlock | null>(null);
-  const [saved, setSaved] = useState(false);
-  const previewWrapRef = useRef<HTMLDivElement>(null);
-  const [previewScale, setPreviewScale] = useState(1);
 
+  const [formData, setFormData]           = useState<CaptacionForm | null>(null);
+  const [design, setDesign]               = useState<FormDesign>(DEFAULT_DESIGN);
+  const [token, setToken]                 = useState("");
+  const [loading, setLoading]             = useState(true);
+  const [saving, setSaving]               = useState(false);
+  const [saved, setSaved]                 = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
+  const [previewBlock, setPreviewBlock]   = useState<FormBlock | null>(null);
+  const [showDesignModal, setShowDesignModal] = useState(false);
+
+  const previewWrapRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale]   = useState(1);
+
+  // Cargar fuentes de Google
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel  = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap";
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, []);
+
+  // Cargar formulario
   useEffect(() => {
     const load = async () => {
       const { data: s } = await supabase.auth.getSession();
       const t = s?.session?.access_token;
       if (!t) { setLoading(false); return; }
       setToken(t);
-      const res = await fetch(`/api/captacion/forms/${id}`, {
+
+      const res  = await fetch(`/api/captacion/forms/${id}`, {
         headers: { Authorization: `Bearer ${t}` },
       });
       const data = await res.json();
+
       if (data.form) {
         setFormData(data.form);
+        if (data.form.design) setDesign(data.form.design);
         const first = data.form.blocks?.[0] || null;
         setPreviewBlock(first);
         setSelectedBlock(first?.id || null);
@@ -427,6 +728,7 @@ export default function FormBuilderPage() {
     load();
   }, [id]);
 
+  // Actualizar un bloque
   const updateBlock = useCallback((blockId: string, config: BlockConfig) => {
     setFormData(prev => {
       if (!prev) return prev;
@@ -441,15 +743,16 @@ export default function FormBuilderPage() {
     setPreviewBlock(block);
   };
 
+  // Añadir bloque
   const addBlock = (type: BlockType) => {
     if (!formData) return;
     const defaults: Record<BlockType, BlockConfig> = {
-      welcome: { logo_type: "business", title: "Bienvenido", subtitle: "Rellena el formulario", bg_color: "#0a323c", text_color: "#ffffff" },
-      segmentation: { options: [{ id: `s${Date.now()}`, title: "", description: "" }] },
-      questions: { questions: [] },
-      capture: { fields: [{ name: "name", label: "Nombre", required: false, enabled: true, type: "text" }, { name: "phone", label: "WhatsApp", required: true, enabled: true, type: "tel" }] },
+      welcome:       { logo_type: "business", title: "Bienvenido", subtitle: "Rellena el formulario", bg_color: design.bg_color, text_color: design.text_color },
+      segmentation:  { options: [{ id: `s${Date.now()}`, title: "", description: "" }] },
+      questions:     { questions: [] },
+      capture:       { fields: [{ name: "name", label: "Nombre", required: false, enabled: true, type: "text" }, { name: "phone", label: "WhatsApp", required: true, enabled: true, type: "tel" }] },
       final_message: { title: "¡Tu recurso está listo!", text: "Descárgalo ahora.", cta_text: "Descargar gratis", lead_magnet_by_segment: {} },
-      thank_you: { title: "¡Gracias!", message: "En breve nos ponemos en contacto.", next_steps: [] },
+      thank_you:     { title: "¡Gracias!", message: "En breve nos ponemos en contacto.", next_steps: [] },
     };
     const newBlock: FormBlock = {
       id: `b${Date.now()}`,
@@ -465,7 +768,9 @@ export default function FormBuilderPage() {
   const removeBlock = (blockId: string) => {
     setFormData(prev => {
       if (!prev) return prev;
-      const blocks = prev.blocks.filter(b => b.id !== blockId).map((b, i) => ({ ...b, order: i + 1 }));
+      const blocks = prev.blocks
+        .filter(b => b.id !== blockId)
+        .map((b, i) => ({ ...b, order: i + 1 }));
       return { ...prev, blocks };
     });
     if (selectedBlock === blockId) {
@@ -486,13 +791,41 @@ export default function FormBuilderPage() {
     });
   };
 
+  // Aplicar diseño global
+  const applyDesign = (newDesign: FormDesign, applyAll: boolean) => {
+    setDesign(newDesign);
+
+    if (applyAll && formData) {
+      setFormData(prev => {
+        if (!prev) return prev;
+        const blocks = prev.blocks.map(b => {
+          if (b.type === "welcome") {
+            const cfg = b.config as WelcomeConfig;
+            return { ...b, config: { ...cfg, bg_color: newDesign.bg_color, text_color: newDesign.text_color } };
+          }
+          return b;
+        });
+        return { ...prev, blocks };
+      });
+      // Sincronizar previewBlock si es welcome
+      setPreviewBlock(prev => {
+        if (!prev || prev.type !== "welcome") return prev;
+        const cfg = prev.config as WelcomeConfig;
+        return { ...prev, config: { ...cfg, bg_color: newDesign.bg_color, text_color: newDesign.text_color } };
+      });
+    }
+
+    setShowDesignModal(false);
+  };
+
+  // Guardar
   const save = async () => {
     if (!formData) return;
     setSaving(true);
     const res = await fetch(`/api/captacion/forms/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ blocks: formData.blocks, status: "published" }),
+      body: JSON.stringify({ blocks: formData.blocks, design, status: "published" }),
     });
     if (res.ok) {
       setSaved(true);
@@ -501,6 +834,7 @@ export default function FormBuilderPage() {
     setSaving(false);
   };
 
+  // Escalar preview
   useEffect(() => {
     if (!previewWrapRef.current) return;
     const updateScale = () => {
@@ -516,204 +850,289 @@ export default function FormBuilderPage() {
   }, []);
 
   const activeBlock = formData?.blocks.find(b => b.id === selectedBlock) || null;
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><p className="text-[var(--foreground)]/50 text-sm">Cargando...</p></div>;
-  }
-  if (!formData) {
-    return <div className="flex items-center justify-center h-64"><p className="text-red-400 text-sm">Formulario no encontrado</p></div>;
-  }
-
   const BLOCK_TYPES: BlockType[] = ["welcome", "segmentation", "questions", "capture", "final_message", "thank_you"];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-[var(--foreground)]/50 text-sm">Cargando...</p>
+      </div>
+    );
+  }
+  if (!formData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-400 text-sm">Formulario no encontrado</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] max-h-[900px]">
-      {/* Top bar */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">
-            ← Volver
-          </button>
-          <h1 className="font-bold text-lg">{formData.name}</h1>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${formData.status === "published" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/15 text-yellow-400"}`}>
-            {formData.status === "published" ? "Publicado" : "Borrador"}
-          </span>
-        </div>
-        <button onClick={save} disabled={saving}
-          className="px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
-          style={{ background: saved ? "var(--brand-1)" : "var(--brand-1)", color: "white" }}>
-          {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
-        </button>
-      </div>
+    <>
+      {/* Modal de diseño */}
+      {showDesignModal && (
+        <DesignModal
+          design={design}
+          onApply={applyDesign}
+          onClose={() => setShowDesignModal(false)}
+        />
+      )}
 
-      <div className="flex gap-4 flex-1 min-h-0">
-        {/* Panel izquierdo: bloques */}
-        <div className="w-64 flex-shrink-0 flex flex-col gap-4 min-h-0">
-          {/* Lista de bloques */}
-          <div className="rounded-xl border overflow-hidden flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-            <div className="px-3 py-2 border-b text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider"
-              style={{ borderColor: "var(--border)" }}>
-              Bloques del formulario
-            </div>
-            <div className="overflow-y-auto max-h-64">
-              {formData.blocks.length === 0 ? (
-                <p className="text-xs text-[var(--foreground)]/40 p-3">Sin bloques</p>
-              ) : formData.blocks.sort((a, b) => a.order - b.order).map((b, i) => (
-                <div key={b.id}
-                  onClick={() => selectBlock(b)}
-                  className={`flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors border-b last:border-b-0 group ${selectedBlock === b.id ? "bg-[var(--brand-1)]/10" : "hover:bg-[var(--brand-1)]/5"}`}
-                  style={{ borderColor: "var(--border)" }}>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs text-[var(--foreground)]/30 w-4 flex-shrink-0">{b.order}</span>
-                    <span className={`text-xs font-medium truncate ${selectedBlock === b.id ? "text-[var(--brand-1)]" : ""}`}>
-                      {BLOCK_LABELS[b.type]}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={e => { e.stopPropagation(); moveBlock(b.id, "up"); }}
-                      disabled={i === 0}
-                      className="p-0.5 text-[var(--foreground)]/40 hover:text-[var(--foreground)] disabled:opacity-20 text-xs">▲</button>
-                    <button onClick={e => { e.stopPropagation(); moveBlock(b.id, "down"); }}
-                      disabled={i === formData.blocks.length - 1}
-                      className="p-0.5 text-[var(--foreground)]/40 hover:text-[var(--foreground)] disabled:opacity-20 text-xs">▼</button>
-                    <button onClick={e => { e.stopPropagation(); removeBlock(b.id); }}
-                      className="p-0.5 text-red-400/60 hover:text-red-400 text-xs ml-1">✕</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="flex flex-col h-[calc(100vh-2rem)] max-h-[900px]">
 
-          {/* Añadir bloques */}
-          <div className="rounded-xl border overflow-hidden flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-            <div className="px-3 py-2 border-b text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider"
-              style={{ borderColor: "var(--border)" }}>
-              Añadir bloque
-            </div>
-            <div className="p-2 grid grid-cols-2 gap-1">
-              {BLOCK_TYPES.map(t => (
-                <button key={t} onClick={() => addBlock(t)}
-                  className="rounded-lg border px-2 py-2 text-xs text-left hover:border-[var(--brand-1)]/50 transition-colors"
-                  style={{ borderColor: "var(--border)" }}>
-                  {BLOCK_LABELS[t]}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Panel central: editor */}
-        <div className="flex-1 min-w-0 rounded-xl border overflow-hidden flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          {activeBlock ? (
-            <>
-              <div className="px-5 py-3 border-b flex items-start justify-between gap-3" style={{ borderColor: "var(--border)" }}>
-                <div>
-                  <h2 className="font-semibold text-sm">{BLOCK_LABELS[activeBlock.type]}</h2>
-                  <p className="text-xs text-[var(--foreground)]/50 mt-0.5 leading-relaxed">{BLOCK_OBJECTIVES[activeBlock.type]}</p>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-5">
-                <BlockEditor
-                  block={activeBlock}
-                  onChange={(config) => updateBlock(activeBlock.id, config)}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-sm text-[var(--foreground)]/40">Selecciona un bloque para editarlo</p>
-            </div>
-          )}
-        </div>
-
-        {/* Panel derecho: preview móvil */}
-        <div ref={previewWrapRef} className="w-80 flex-shrink-0 flex flex-col gap-3">
-          {/* Header + step dots */}
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider">
-              Vista previa
-            </p>
-            <div className="flex items-center gap-1">
-              {(formData?.blocks || []).sort((a, b) => a.order - b.order).map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => selectBlock(b)}
-                  title={BLOCK_LABELS[b.type]}
-                  className={`rounded-full transition-all duration-200 ${
-                    selectedBlock === b.id
-                      ? "w-5 h-2 bg-[var(--brand-1)]"
-                      : "w-2 h-2 bg-[var(--foreground)]/20 hover:bg-[var(--foreground)]/40"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Phone frame wrapper — scales to fit panel width */}
-          <div className="flex justify-center overflow-hidden">
-            <div
-              style={{
-                width: "320px",
-                transform: `scale(${previewScale})`,
-                transformOrigin: "top center",
-                marginBottom: `${(previewScale - 1) * 600}px`,
-              }}
+        {/* Barra superior */}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors"
             >
-              {/* Phone shell */}
-              <div
-                className="relative rounded-[2.5rem] overflow-hidden shadow-2xl"
-                style={{ width: "320px", border: "3px solid #1a1a1a", background: "#ffffff" }}
-              >
-                {/* Dynamic island + status bar */}
-                <div className="flex items-center justify-between px-5 py-2" style={{ background: "#000", minHeight: "44px" }}>
-                  <span className="text-white text-[11px] font-medium">9:41</span>
-                  <div className="w-24 h-6 rounded-full bg-black border border-[#333] absolute top-2 left-1/2 -translate-x-1/2" />
-                  <div className="flex items-center gap-1">
-                    <svg width="16" height="12" viewBox="0 0 16 12" fill="white">
-                      <rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4" y="2.5" width="3" height="9.5" rx="1"/><rect x="8" y="1" width="3" height="11" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1"/>
-                    </svg>
-                    <svg width="15" height="11" viewBox="0 0 15 11" fill="white">
-                      <path d="M7.5 2.5C9.7 2.5 11.7 3.4 13.1 4.9L14.5 3.5C12.7 1.6 10.2.5 7.5.5S2.3 1.6.5 3.5L1.9 4.9C3.3 3.4 5.3 2.5 7.5 2.5z"/><path d="M7.5 6C8.9 6 10.1 6.6 11 7.5L12.4 6.1C11.1 4.8 9.4 4 7.5 4S3.9 4.8 2.6 6.1L4 7.5C4.9 6.6 6.1 6 7.5 6z"/><circle cx="7.5" cy="10" r="1.5"/>
-                    </svg>
-                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-                      <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" strokeOpacity="0.35"/>
-                      <rect x="2" y="2" width="16" height="8" rx="2" fill="white"/>
-                      <path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6S23.8 4.8 23 4.5z" fill="white" fillOpacity="0.4"/>
-                    </svg>
-                  </div>
-                </div>
+              ← Volver
+            </button>
+            <h1 className="font-bold text-lg">{formData.name}</h1>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              formData.status === "published"
+                ? "bg-green-500/15 text-green-400"
+                : "bg-yellow-500/15 text-yellow-400"
+            }`}>
+              {formData.status === "published" ? "Publicado" : "Borrador"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Botón diseño */}
+            <button
+              onClick={() => setShowDesignModal(true)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all hover:opacity-80 flex items-center gap-2"
+              style={{ borderColor: "var(--brand-1)", color: "var(--brand-1)" }}
+            >
+              <span
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ background: design.accent_color }}
+              />
+              Diseño
+            </button>
+            {/* Botón guardar */}
+            <button
+              onClick={save}
+              disabled={saving}
+              className="px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+              style={{ background: "var(--brand-1)", color: "white" }}
+            >
+              {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
+            </button>
+          </div>
+        </div>
 
-                {/* Form content — white background like the client sees */}
-                <div className="overflow-y-auto" style={{ height: "560px", background: "#ffffff", color: "#111111" }}>
-                  {previewBlock ? (
-                    <BlockPreview block={previewBlock} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 px-6">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </div>
-                      <p className="text-xs text-gray-400 text-center leading-relaxed">
-                        Selecciona un bloque<br/>para ver la vista previa
-                      </p>
+        <div className="flex gap-4 flex-1 min-h-0">
+
+          {/* Panel izquierdo: bloques */}
+          <div className="w-64 flex-shrink-0 flex flex-col gap-4 min-h-0">
+
+            {/* Lista de bloques */}
+            <div className="rounded-xl border overflow-hidden flex-shrink-0"
+              style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+              <div className="px-3 py-2 border-b text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider"
+                style={{ borderColor: "var(--border)" }}>
+                Bloques del formulario
+              </div>
+              <div className="overflow-y-auto max-h-64">
+                {formData.blocks.length === 0 ? (
+                  <p className="text-xs text-[var(--foreground)]/40 p-3">Sin bloques</p>
+                ) : formData.blocks.sort((a, b) => a.order - b.order).map((b, i) => (
+                  <div
+                    key={b.id}
+                    onClick={() => selectBlock(b)}
+                    className={`flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors border-b last:border-b-0 group ${
+                      selectedBlock === b.id ? "bg-[var(--brand-1)]/10" : "hover:bg-[var(--brand-1)]/5"
+                    }`}
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs text-[var(--foreground)]/30 w-4 flex-shrink-0">{b.order}</span>
+                      <span className={`text-xs font-medium truncate ${selectedBlock === b.id ? "text-[var(--brand-1)]" : ""}`}>
+                        {BLOCK_LABELS[b.type]}
+                      </span>
                     </div>
-                  )}
-                </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={e => { e.stopPropagation(); moveBlock(b.id, "up"); }}
+                        disabled={i === 0}
+                        className="p-0.5 text-[var(--foreground)]/40 hover:text-[var(--foreground)] disabled:opacity-20 text-xs"
+                      >▲</button>
+                      <button
+                        onClick={e => { e.stopPropagation(); moveBlock(b.id, "down"); }}
+                        disabled={i === formData.blocks.length - 1}
+                        className="p-0.5 text-[var(--foreground)]/40 hover:text-[var(--foreground)] disabled:opacity-20 text-xs"
+                      >▼</button>
+                      <button
+                        onClick={e => { e.stopPropagation(); removeBlock(b.id); }}
+                        className="p-0.5 text-red-400/60 hover:text-red-400 text-xs ml-1"
+                      >✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                {/* Home indicator */}
-                <div className="flex justify-center py-2" style={{ background: "#ffffff" }}>
-                  <div className="w-28 h-1 rounded-full bg-gray-200" />
-                </div>
+            {/* Añadir bloques */}
+            <div className="rounded-xl border overflow-hidden flex-shrink-0"
+              style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+              <div className="px-3 py-2 border-b text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider"
+                style={{ borderColor: "var(--border)" }}>
+                Añadir bloque
+              </div>
+              <div className="p-2 grid grid-cols-2 gap-1">
+                {BLOCK_TYPES.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => addBlock(t)}
+                    className="rounded-lg border px-2 py-2 text-xs text-left hover:border-[var(--brand-1)]/50 transition-colors"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    {BLOCK_LABELS[t]}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          <p className="text-xs text-[var(--foreground)]/30 text-center">
-            {previewBlock ? `Bloque: ${BLOCK_LABELS[previewBlock.type]}` : "Vista como la ve el cliente"}
-          </p>
+          {/* Panel central: editor */}
+          <div className="flex-1 min-w-0 rounded-xl border overflow-hidden flex flex-col"
+            style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            {activeBlock ? (
+              <>
+                <div className="px-5 py-3 border-b flex items-start justify-between gap-3"
+                  style={{ borderColor: "var(--border)" }}>
+                  <div>
+                    <h2 className="font-semibold text-sm">{BLOCK_LABELS[activeBlock.type]}</h2>
+                    <p className="text-xs text-[var(--foreground)]/50 mt-0.5 leading-relaxed">
+                      {BLOCK_OBJECTIVES[activeBlock.type]}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-5">
+                  <BlockEditor
+                    block={activeBlock}
+                    onChange={(config) => updateBlock(activeBlock.id, config)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-sm text-[var(--foreground)]/40">Selecciona un bloque para editarlo</p>
+              </div>
+            )}
+          </div>
+
+          {/* Panel derecho: preview móvil */}
+          <div ref={previewWrapRef} className="w-80 flex-shrink-0 flex flex-col gap-3">
+
+            {/* Header + step dots */}
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider">
+                Vista previa
+              </p>
+              <div className="flex items-center gap-1">
+                {(formData?.blocks || []).sort((a, b) => a.order - b.order).map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => selectBlock(b)}
+                    title={BLOCK_LABELS[b.type]}
+                    className={`rounded-full transition-all duration-200 ${
+                      selectedBlock === b.id
+                        ? "w-5 h-2 bg-[var(--brand-1)]"
+                        : "w-2 h-2 bg-[var(--foreground)]/20 hover:bg-[var(--foreground)]/40"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Marco del teléfono */}
+            <div className="flex justify-center overflow-hidden">
+              <div
+                style={{
+                  width: "320px",
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: "top center",
+                  marginBottom: `${(previewScale - 1) * 600}px`,
+                }}
+              >
+                <div
+                  className="relative rounded-[2.5rem] overflow-hidden shadow-2xl"
+                  style={{ width: "320px", border: "3px solid #1a1a1a", background: "#000" }}
+                >
+                  {/* Status bar */}
+                  <div
+                    className="flex items-center justify-between px-5 py-2"
+                    style={{ background: "#000", minHeight: "44px" }}
+                  >
+                    <span className="text-white text-[11px] font-medium">9:41</span>
+                    <div className="w-24 h-6 rounded-full bg-black border border-[#333] absolute top-2 left-1/2 -translate-x-1/2" />
+                    <div className="flex items-center gap-1">
+                      <svg width="16" height="12" viewBox="0 0 16 12" fill="white">
+                        <rect x="0" y="4" width="3" height="8" rx="1"/>
+                        <rect x="4" y="2.5" width="3" height="9.5" rx="1"/>
+                        <rect x="8" y="1" width="3" height="11" rx="1"/>
+                        <rect x="12" y="0" width="3" height="12" rx="1"/>
+                      </svg>
+                      <svg width="15" height="11" viewBox="0 0 15 11" fill="white">
+                        <path d="M7.5 2.5C9.7 2.5 11.7 3.4 13.1 4.9L14.5 3.5C12.7 1.6 10.2.5 7.5.5S2.3 1.6.5 3.5L1.9 4.9C3.3 3.4 5.3 2.5 7.5 2.5z"/>
+                        <path d="M7.5 6C8.9 6 10.1 6.6 11 7.5L12.4 6.1C11.1 4.8 9.4 4 7.5 4S3.9 4.8 2.6 6.1L4 7.5C4.9 6.6 6.1 6 7.5 6z"/>
+                        <circle cx="7.5" cy="10" r="1.5"/>
+                      </svg>
+                      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+                        <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" strokeOpacity="0.35"/>
+                        <rect x="2" y="2" width="16" height="8" rx="2" fill="white"/>
+                        <path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6S23.8 4.8 23 4.5z" fill="white" fillOpacity="0.4"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Contenido del formulario — usa colores del diseño */}
+                  <div
+                    className="overflow-y-auto"
+                    style={{
+                      height: "560px",
+                      background: design.bg_color,
+                      color: design.text_color,
+                      fontFamily: design.font_family,
+                    }}
+                  >
+                    {previewBlock ? (
+                      <BlockPreview block={previewBlock} design={design} />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full gap-3 px-6">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                          style={{ background: `${design.text_color}1a` }}>
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            style={{ color: design.text_color, opacity: 0.4 }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </div>
+                        <p className="text-xs text-center leading-relaxed"
+                          style={{ color: design.text_color, opacity: 0.4 }}>
+                          Selecciona un bloque<br/>para ver la vista previa
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Home indicator */}
+                  <div className="flex justify-center py-2" style={{ background: design.bg_color }}>
+                    <div className="w-28 h-1 rounded-full" style={{ background: `${design.text_color}33` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-[var(--foreground)]/30 text-center">
+              {previewBlock ? `Bloque: ${BLOCK_LABELS[previewBlock.type]}` : "Vista como la ve el cliente"}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -37,7 +37,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ form: data });
+
+  // Normalizar el campo blocks: puede ser array (formato antiguo) u objeto { blocks, design }
+  const rawBlocks = data.blocks;
+  const blocks = Array.isArray(rawBlocks) ? rawBlocks : (rawBlocks?.blocks ?? []);
+  const design  = Array.isArray(rawBlocks) ? null         : (rawBlocks?.design  ?? null);
+
+  return NextResponse.json({ form: { ...data, blocks, design } });
 }
 
 // PUT /api/captacion/forms/[id] — guardar bloques y config
@@ -55,8 +61,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json();
   const updates: Record<string, unknown> = {};
   if ("name" in body) updates.name = body.name;
-  if ("blocks" in body) updates.blocks = body.blocks;
   if ("status" in body) updates.status = body.status;
+
+  // Siempre empaquetamos blocks + design juntos en el campo JSONB
+  if ("blocks" in body || "design" in body) {
+    updates.blocks = {
+      blocks: body.blocks ?? [],
+      design: body.design ?? null,
+    };
+  }
+
   updates.updated_at = new Date().toISOString();
 
   const { data, error } = await supabaseAdmin()

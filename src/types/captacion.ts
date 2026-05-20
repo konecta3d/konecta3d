@@ -85,6 +85,24 @@ export interface FormBlock {
   config: BlockConfig;
 }
 
+// ── Diseño global del formulario ─────────────────────────────
+
+export interface FormDesign {
+  bg_color: string;      // Fondo de todos los pasos
+  text_color: string;    // Texto principal
+  accent_color: string;  // Botones, selecciones activas
+  border_color: string;  // Bordes de inputs y tarjetas
+  font_family: string;   // 'Inter' | 'Poppins' | 'Lora' | 'Montserrat'
+}
+
+export const DEFAULT_DESIGN: FormDesign = {
+  bg_color: "#0a323c",
+  text_color: "#ffffff",
+  accent_color: "#ffb400",
+  border_color: "rgba(255,255,255,0.2)",
+  font_family: "Inter",
+};
+
 // ── Entidades principales ────────────────────────────────────
 
 export interface CaptacionForm {
@@ -94,6 +112,7 @@ export interface CaptacionForm {
   objective: 'quick' | 'diagnostic' | 'full';
   status: 'draft' | 'published';
   blocks: FormBlock[];
+  design?: FormDesign | null;
   created_at: string;
   updated_at: string;
 }
