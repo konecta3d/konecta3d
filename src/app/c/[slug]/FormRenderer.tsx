@@ -255,18 +255,10 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
             style={{ background: bg, color: col, fontFamily: s.font_family }}>
-            {/* Logo */}
-            {s.logo_url ? (
+            {/* Logo — solo si está configurado */}
+            {s.logo_url && (
               <div className="flex justify-center mb-6">
                 <LogoImg design={s} />
-              </div>
-            ) : (
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-                style={{ background: `${col}20` }}>
-                <svg className="w-10 h-10" style={{ color: `${col}70` }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
               </div>
             )}
             <h1 className="text-2xl font-bold leading-tight mb-3 max-w-xs">{cfg.title}</h1>
@@ -476,6 +468,9 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
 
       case "thank_you": {
         const cfg = currentBlock.config as ThankYouConfig;
+        const waUrl = cfg.whatsapp_phone
+          ? `https://wa.me/${cfg.whatsapp_phone.replace(/\D/g, "")}${cfg.whatsapp_text ? `?text=${encodeURIComponent(cfg.whatsapp_text)}` : ""}`
+          : null;
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
             style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
@@ -497,6 +492,35 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 ))}
               </ul>
             )}
+            {/* Botones opcionales */}
+            <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
+              {cfg.cta_text && cfg.cta_url && (
+                <a
+                  href={cfg.cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform text-center"
+                  style={{ background: s.accent_color, color: s.bg_color }}
+                >
+                  {cfg.cta_text}
+                </a>
+              )}
+              {waUrl && (
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform flex items-center justify-center gap-2"
+                  style={{ background: "#25d366", color: "#ffffff" }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 flex-shrink-0" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.057 23.143a.75.75 0 00.916.916l5.287-1.475A11.943 11.943 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.693 9.693 0 01-4.948-1.352l-.355-.21-3.676 1.025 1.025-3.676-.21-.355A9.693 9.693 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
+                  </svg>
+                  {cfg.whatsapp_text ? "Escríbenos por WhatsApp" : "Contactar por WhatsApp"}
+                </a>
+              )}
+            </div>
           </div>
         );
       }

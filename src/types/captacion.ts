@@ -68,6 +68,12 @@ export interface ThankYouConfig {
   title: string;
   message: string;
   next_steps: string[];
+  // Botón CTA opcional (web, Instagram, etc.)
+  cta_text?: string;
+  cta_url?: string;
+  // Botón WhatsApp opcional
+  whatsapp_phone?: string;
+  whatsapp_text?: string;
 }
 
 export type BlockConfig =

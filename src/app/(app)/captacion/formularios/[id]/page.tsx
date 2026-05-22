@@ -34,30 +34,70 @@ const FONTS: { id: string; label: string; desc: string }[] = [
 function DesignModal({
   design,
   businessLogoUrl,
+  businessId,
+  token,
   onApply,
   onClose,
 }: {
   design: FormDesign;
   businessLogoUrl: string;
+  businessId: string;
+  token: string;
   onApply: (d: FormDesign, applyAll: boolean) => void;
   onClose: () => void;
 }) {
   const [local, setLocal] = useState<FormDesign>(design);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
 
-  // Detectar fuente de logo actual
-  const initSource = local.logo_url
-    ? (local.logo_url === businessLogoUrl ? "business" : "custom")
+  // Detectar fuente del logo actual
+  const initSource: "none" | "business" | "upload" = local.logo_url
+    ? (local.logo_url === businessLogoUrl ? "business" : "upload")
     : "none";
-  const [logoSource, setLogoSource] = useState<"none" | "business" | "custom">(initSource);
+  const [logoSource, setLogoSource] = useState<"none" | "business" | "upload">(initSource);
 
   const set    = (key: keyof FormDesign, val: string)  => setLocal(prev => ({ ...prev, [key]: val }));
   const setNum = (key: keyof FormDesign, val: number)  => setLocal(prev => ({ ...prev, [key]: val }));
 
-  const pickLogoSource = (src: "none" | "business" | "custom") => {
+  const pickLogoSource = (src: "none" | "business" | "upload") => {
     setLogoSource(src);
+    setLogoError("");
     if (src === "none")     setLocal(prev => ({ ...prev, logo_url: "" }));
     if (src === "business") setLocal(prev => ({ ...prev, logo_url: businessLogoUrl }));
-    // "custom" keeps the current logo_url (user types it below)
+    // "upload" mantiene la url actual hasta que se sube el archivo
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setLogoError("Solo se admiten PNG, JPG o WebP.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoError("El archivo no puede superar 5 MB.");
+      return;
+    }
+    setLogoError("");
+    setLogoUploading(true);
+    const form = new FormData();
+    form.append("file", file);
+    form.append("kind", "form-logo");   // no sobreescribe el logo del negocio
+    form.append("businessId", businessId);
+    const res = await fetch("/api/landing/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    setLogoUploading(false);
+    if (!res.ok) {
+      const d = await res.json();
+      setLogoError(d.error || "Error al subir la imagen.");
+      return;
+    }
+    const data = await res.json();
+    setLocal(prev => ({ ...prev, logo_url: data.url }));
   };
 
   const COLOR_FIELDS: { key: keyof FormDesign; label: string; hint: string }[] = [
@@ -220,12 +260,13 @@ function DesignModal({
             {/* Fuente del logo */}
             <div className="grid grid-cols-3 gap-2 mb-4">
               {([
-                { id: "none",     label: "Sin logo",      icon: "—" },
-                { id: "business", label: "Logo del perfil", icon: "★" },
-                { id: "custom",   label: "URL propia",    icon: "🔗" },
+                { id: "none",     label: "Sin logo",      desc: ""                     },
+                { id: "business", label: "Logo del perfil", desc: businessLogoUrl ? "" : "Sin logo en perfil" },
+                { id: "upload",   label: "Subir imagen",  desc: "PNG · JPG · WebP"     },
               ] as const).map(opt => (
                 <button
                   key={opt.id}
+                  type="button"
                   onClick={() => pickLogoSource(opt.id)}
                   disabled={opt.id === "business" && !businessLogoUrl}
                   className="rounded-xl border-2 p-3 text-center text-xs font-medium transition-all disabled:opacity-30"
@@ -235,26 +276,41 @@ function DesignModal({
                     color: "var(--foreground)",
                   }}
                 >
-                  <div className="text-base mb-1">{opt.icon}</div>
                   {opt.label}
-                  {opt.id === "business" && !businessLogoUrl && (
-                    <div className="text-[10px] opacity-50 mt-0.5">Sin logo en perfil</div>
+                  {opt.desc && (
+                    <div className="text-[10px] opacity-40 mt-0.5 leading-tight">{opt.desc}</div>
                   )}
                 </button>
               ))}
             </div>
 
-            {/* URL personalizada */}
-            {logoSource === "custom" && (
-              <div className="mb-4">
-                <input
-                  type="url"
-                  className="w-full rounded-lg border px-3 py-2 text-xs bg-transparent font-mono"
-                  style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                  placeholder="https://tu-dominio.com/logo.png"
-                  value={local.logo_url}
-                  onChange={e => set("logo_url", e.target.value)}
-                />
+            {/* Subida de archivo */}
+            {logoSource === "upload" && (
+              <div className="mb-4 space-y-2">
+                <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed cursor-pointer text-xs font-medium transition-all hover:border-[var(--brand-1)]/60"
+                  style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
+                  {logoUploading ? (
+                    <span className="opacity-60">Subiendo...</span>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                      </svg>
+                      {local.logo_url ? "Cambiar imagen" : "Seleccionar imagen"}
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    disabled={logoUploading}
+                  />
+                </label>
+                {logoError && (
+                  <p className="text-xs text-red-400">{logoError}</p>
+                )}
               </div>
             )}
 
@@ -342,7 +398,7 @@ function DesignModal({
             >
               <div className="px-5 pt-8 pb-6 text-center" style={{ color: local.text_color }}>
                 {/* Logo en preview */}
-                {local.logo_url ? (
+                {local.logo_url && (
                   <div className="flex justify-center mb-4">
                     <img
                       src={local.logo_url}
@@ -358,8 +414,6 @@ function DesignModal({
                       onError={e => (e.currentTarget.style.display = "none")}
                     />
                   </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-2xl mx-auto mb-4" style={{ background: `${local.text_color}33` }} />
                 )}
                 <h3 className="font-bold text-lg mb-1">Título del formulario</h3>
                 <p className="text-sm mb-6" style={{ opacity: 0.6 }}>Subtítulo descriptivo del formulario</p>
@@ -428,7 +482,7 @@ function WelcomePreview({ config, design }: { config: WelcomeConfig; design: For
       className="h-full flex flex-col items-center justify-center text-center p-6"
       style={{ background: bg, color: col, fontFamily: design.font_family }}
     >
-      {design.logo_url ? (
+      {design.logo_url && (
         <img
           src={design.logo_url}
           alt="logo"
@@ -442,8 +496,6 @@ function WelcomePreview({ config, design }: { config: WelcomeConfig; design: For
             objectFit: "contain",
           }}
         />
-      ) : (
-        <div className="w-16 h-16 rounded-2xl mb-5" style={{ background: `${col}33` }} />
       )}
       <h1 className="text-xl font-bold leading-tight mb-2">{config.title || "Título de bienvenida"}</h1>
       <p className="text-sm" style={{ opacity: 0.7 }}>{config.subtitle || "Subtítulo del formulario"}</p>
@@ -575,12 +627,20 @@ function FinalMessagePreview({ config, design }: { config: FinalMessageConfig; d
 }
 
 function ThankYouPreview({ config, design }: { config: ThankYouConfig; design: FormDesign }) {
+  const hasWA  = !!(config.whatsapp_phone);
+  const hasCta = !!(config.cta_text && config.cta_url);
   return (
-    <div className="p-5 flex flex-col items-center text-center gap-4 pt-10" style={{ fontFamily: design.font_family }}>
-      <h2 className="text-lg font-bold" style={{ color: design.text_color }}>{config.title || "¡Gracias!"}</h2>
-      <p className="text-sm" style={{ color: design.text_color, opacity: 0.6 }}>{config.message}</p>
+    <div className="p-5 flex flex-col items-center text-center gap-3 pt-8" style={{ fontFamily: design.font_family }}>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center"
+        style={{ background: `${design.accent_color}25`, border: `2px solid ${design.accent_color}50` }}>
+        <svg className="w-5 h-5" style={{ color: design.accent_color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 className="text-base font-bold" style={{ color: design.text_color }}>{config.title || "¡Gracias!"}</h2>
+      <p className="text-xs" style={{ color: design.text_color, opacity: 0.6 }}>{config.message}</p>
       {(config.next_steps || []).length > 0 && (
-        <ul className="text-left text-xs space-y-1.5 w-full mt-2">
+        <ul className="text-left text-xs space-y-1.5 w-full mt-1">
           {config.next_steps.map((s, i) => (
             <li key={i} className="flex items-start gap-2">
               <span style={{ color: design.accent_color }}>✓</span>
@@ -588,6 +648,18 @@ function ThankYouPreview({ config, design }: { config: ThankYouConfig; design: F
             </li>
           ))}
         </ul>
+      )}
+      {hasCta && (
+        <div className="w-full py-2.5 rounded-xl text-xs font-semibold text-center"
+          style={{ background: design.accent_color, color: design.bg_color }}>
+          {config.cta_text}
+        </div>
+      )}
+      {hasWA && (
+        <div className="w-full py-2.5 rounded-xl text-xs font-semibold text-center text-white"
+          style={{ background: "#25d366" }}>
+          Escríbenos por WhatsApp
+        </div>
       )}
     </div>
   );
@@ -803,7 +875,9 @@ function ThankYouEditor({ config, onChange }: { config: ThankYouConfig; onChange
   const removeStep = (i: number) => onChange({ ...config, next_steps: config.next_steps.filter((_, j) => j !== i) });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+
+      {/* Contenido principal */}
       <div>
         <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Título</label>
         <input className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
@@ -815,6 +889,8 @@ function ThankYouEditor({ config, onChange }: { config: ThankYouConfig; onChange
           style={{ borderColor: "var(--border)" }}
           value={config.message} onChange={e => onChange({ ...config, message: e.target.value })} />
       </div>
+
+      {/* Próximos pasos */}
       <div>
         <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Próximos pasos</label>
         <div className="space-y-2">
@@ -829,6 +905,70 @@ function ThankYouEditor({ config, onChange }: { config: ThankYouConfig; onChange
             className="text-xs text-[var(--foreground)]/50 hover:text-[var(--brand-1)] transition-colors">
             + Añadir paso
           </button>
+        </div>
+      </div>
+
+      <hr style={{ borderColor: "var(--border)" }} />
+
+      {/* Botón CTA opcional */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-1)" }}>
+            Botón de acción
+          </label>
+          <span className="text-[10px] text-[var(--foreground)]/40">Opcional</span>
+        </div>
+        <p className="text-xs text-[var(--foreground)]/40 mb-3">
+          Lleva al cliente a tu web, Instagram, tienda online…
+        </p>
+        <div className="space-y-2">
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+            style={{ borderColor: "var(--border)" }}
+            placeholder="Texto del botón (ej: Visitar nuestra web)"
+            value={config.cta_text || ""}
+            onChange={e => onChange({ ...config, cta_text: e.target.value })}
+          />
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent font-mono text-xs"
+            style={{ borderColor: "var(--border)" }}
+            placeholder="URL (ej: https://miweb.com)"
+            value={config.cta_url || ""}
+            onChange={e => onChange({ ...config, cta_url: e.target.value })}
+          />
+        </div>
+        {config.cta_text && !config.cta_url && (
+          <p className="text-xs text-yellow-400 mt-1">Añade también la URL para que el botón funcione.</p>
+        )}
+      </div>
+
+      {/* WhatsApp opcional */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-1)" }}>
+            Botón de WhatsApp
+          </label>
+          <span className="text-[10px] text-[var(--foreground)]/40">Opcional</span>
+        </div>
+        <p className="text-xs text-[var(--foreground)]/40 mb-3">
+          Un botón verde de WhatsApp para que el lead te escriba directamente.
+        </p>
+        <div className="space-y-2">
+          <input
+            className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent font-mono"
+            style={{ borderColor: "var(--border)" }}
+            placeholder="Teléfono con prefijo (ej: +34600000000)"
+            value={config.whatsapp_phone || ""}
+            onChange={e => onChange({ ...config, whatsapp_phone: e.target.value })}
+          />
+          <textarea
+            className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent resize-none"
+            style={{ borderColor: "var(--border)" }}
+            rows={2}
+            placeholder="Mensaje predefinido (opcional)"
+            value={config.whatsapp_text || ""}
+            onChange={e => onChange({ ...config, whatsapp_text: e.target.value })}
+          />
         </div>
       </div>
     </div>
@@ -1056,6 +1196,8 @@ export default function FormBuilderPage() {
         <DesignModal
           design={design}
           businessLogoUrl={businessLogoUrl}
+          businessId={formData?.business_id ?? ""}
+          token={token}
           onApply={applyDesign}
           onClose={() => setShowDesignModal(false)}
         />
