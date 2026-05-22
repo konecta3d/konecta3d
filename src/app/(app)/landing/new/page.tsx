@@ -676,7 +676,7 @@ useEffect(() => {
                                   <p className="text-[10px] text-amber-400 leading-snug">
                                     ⚠ Este recurso no tiene PDF generado.{" "}
                                     <a
-                                      href={`/lead-magnet/new?edit=${sel.id}`}
+                                      href={`/lead-magnet/wizard?edit=${sel.id}&step=tipo`}
                                       target="_blank"
                                       className="underline hover:text-amber-300"
                                     >

@@ -114,23 +114,8 @@ setStats({
 {
   title: "Recurso de Valor",
   description: "Crea contenido útil para fidelizar a tus clientes",
-  href: "",
+  href: businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard",
   cta: "Crear recurso",
-  isSpecial: true,
-  options: [
-    { 
-      title: "Asistente", 
-      description: "Guía paso a paso", 
-      href: businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard",
-      icon: ""
-    },
-    { 
-      title: "Avanzado", 
-      description: "Control total", 
-      href: businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new",
-      icon: ""
-    }
-  ],
   steps: [
     "Elige el formato",
     "Escribe el título y contenido",
@@ -236,44 +221,23 @@ setStats({
               <div className="font-semibold">{gen.title}</div>
               <p className="mt-2 text-sm text-[var(--brand-1)]">{gen.description}</p>
 
-              {/* Special case: Lead Magnet with two options */}
-              {gen.isSpecial && gen.options ? (
-                <div className="mt-4 space-y-2">
-                  {gen.options.map((opt) => (
-                    <Link
-                      key={opt.title}
-                      href={opt.href}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:border-[var(--brand-4)] transition-colors"
-                    >
-<span className="text-xs uppercase tracking-widest text-gray-400">Opción</span>
-                      <div>
-                        <div className="font-semibold text-sm">{opt.title}</div>
-                        <div className="text-xs text-gray-500">{opt.description}</div>
-                      </div>
-                    </Link>
+              <div className="mt-4 flex-1">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--brand-1)]">
+                  Pasos:
+                </p>
+                <ol className="list-inside list-decimal text-sm space-y-1 text-[var(--brand-1)]">
+                  {gen.steps.map((step, i) => (
+                    <li key={i}>{step}</li>
                   ))}
-                </div>
-              ) : (
-                <>
-                  <div className="mt-4 flex-1">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--brand-1)]">
-                      Pasos:
-                    </p>
-                    <ol className="list-inside list-decimal text-sm space-y-1 text-[var(--brand-1)]">
-                      {gen.steps.map((step, i) => (
-                        <li key={i}>{step}</li>
-                      ))}
-                    </ol>
-                  </div>
+                </ol>
+              </div>
 
-                  <Link
-                    href={gen.href}
-                    className="mt-4 rounded-lg bg-[var(--brand-4)] py-2 text-center font-semibold text-black"
-                  >
-                    {gen.cta}
-                  </Link>
-                </>
-              )}
+              <Link
+                href={gen.href}
+                className="mt-4 rounded-lg bg-[var(--brand-4)] py-2 text-center font-semibold text-black"
+              >
+                {gen.cta}
+              </Link>
             </div>
           ))}
         </div>

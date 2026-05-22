@@ -20,7 +20,6 @@ function LeadMagnetListContent() {
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const [businessId, setBusinessId] = useState<string>("");
-  const [advancedEnabled, setAdvancedEnabled] = useState(true);
 
   useEffect(() => {
     const paramId = searchParams.get("businessId");
@@ -29,28 +28,13 @@ function LeadMagnetListContent() {
       return;
     }
     const load = async () => {
-      // Load feature flag
-      const { data: featuresData } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "features")
-        .single();
-      if (featuresData?.value) {
-        const f = typeof featuresData.value === "string"
-          ? JSON.parse(featuresData.value)
-          : featuresData.value;
-        if (typeof f.module_lead_magnet_advanced === "boolean") {
-          setAdvancedEnabled(f.module_lead_magnet_advanced);
-        }
-      }
-
       const { data: sessionData } = await supabase.auth.getSession();
       const userEmail = sessionData?.session?.user?.email || "";
       if (!userEmail) { setBusinessId(""); return; }
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("email", userEmail)
         .single();
       setBusinessId(biz?.id || "");
     };
@@ -110,67 +94,22 @@ function LeadMagnetListContent() {
 </p>
       </div>
 
-      {/* Opciones de creación */}
-      <div className={`grid grid-cols-1 gap-4 md:gap-6 ${advancedEnabled ? "md:grid-cols-2" : ""}`}>
-        {/* Asistente */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
-          <div className="text-center mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-white">Asistente</h2>
-            <p className="text-xs md:text-sm text-white mt-2">
-              Creación guiada paso a paso. Ideal para principiantes.
+      {/* Crear nuevo recurso */}
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-white">Crear recurso con el Asistente</h2>
+            <p className="text-xs md:text-sm text-white/70 mt-1">
+              Guiado paso a paso — plantillas automáticas, puntos editables, listo en minutos.
             </p>
           </div>
-          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> 5 pasos guiados
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Plantillas automáticas
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Puntos editables
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Fácil de usar
-            </li>
-          </ul>
           <Link
             href={businessId ? `/lead-magnet/wizard?businessId=${businessId}` : "/lead-magnet/wizard"}
-            className="block w-full py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90"
+            className="flex-shrink-0 px-6 py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90 whitespace-nowrap"
           >
-            Crear Recurso con Asistente
+            Crear recurso →
           </Link>
         </div>
-
-        {/* Avanzado — solo si la funcionalidad está activa */}
-        {advancedEnabled && <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-white">Avanzado</h2>
-            <p className="text-sm text-white mt-2">
-              Control total sobre el diseño y contenido.
-            </p>
-          </div>
-          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Edición libre
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Múltiples páginas
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Testimonios
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Productos/Servicios
-            </li>
-          </ul>
-<Link
-  href={businessId ? `/lead-magnet/new?businessId=${businessId}` : "/lead-magnet/new"}
-  className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-white dark:text-black font-semibold hover:opacity-90"
->
-  Crear Recurso en modo Avanzado
-</Link>
-        </div>}
       </div>
 
       {/* Lead Magnets generados */}
@@ -187,7 +126,7 @@ function LeadMagnetListContent() {
         ) : leadMagnets.length === 0 ? (
           <div className="text-center py-8 text-white">
             <p>No hay Recursos de Valor todavía</p>
-            <p className="text-sm mt-1">Crea uno usando el Asistente o el modo Avanzado</p>
+            <p className="text-sm mt-1">Crea uno usando el Asistente</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-[48rem] overflow-y-auto">
@@ -226,11 +165,7 @@ function LeadMagnetListContent() {
                     </span>
                   )}
                   <Link
-                    href={
-                      advancedEnabled
-                        ? (businessId ? `/lead-magnet/new?businessId=${businessId}&edit=${lm.id}` : `/lead-magnet/new?edit=${lm.id}`)
-                        : (businessId ? `/lead-magnet/wizard?businessId=${businessId}&edit=${lm.id}&step=tipo` : `/lead-magnet/wizard?edit=${lm.id}&step=tipo`)
-                    }
+                    href={businessId ? `/lead-magnet/wizard?businessId=${businessId}&edit=${lm.id}&step=tipo` : `/lead-magnet/wizard?edit=${lm.id}&step=tipo`}
                     className="text-xs px-3 py-1 border border-[var(--border)] rounded hover:bg-white/5"
                   >
                     Editar

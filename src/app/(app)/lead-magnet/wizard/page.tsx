@@ -235,7 +235,6 @@ function LeadMagnetWizardInner() {
   const [moduleGpt, setModuleGpt] = useState(false);
   const [moduleAiRecursos, setModuleAiRecursos] = useState(false);
   const [gptUrl, setGptUrl] = useState("https://chatgpt.com/");
-  const [advancedEnabled, setAdvancedEnabled] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   // Tracks whether content fields have been customized (either by user edit or loaded from DB).
   // When true, changing objective/type in step 3 does NOT overwrite title/intro/content.
@@ -316,17 +315,6 @@ function LeadMagnetWizardInner() {
           if (url) setGptUrl(url);
         } catch { /* keep default */ }
       }
-      if (featuresData.data?.value) {
-        try {
-          const f = typeof featuresData.data.value === "string"
-            ? JSON.parse(featuresData.data.value)
-            : featuresData.data.value;
-          if (typeof f.module_lead_magnet_advanced === "boolean") {
-            setAdvancedEnabled(f.module_lead_magnet_advanced);
-          }
-        } catch { /* keep default true */ }
-      }
-
       // If editing an existing resource, load its data
       if (editId) {
         setEditingId(editId);
@@ -1247,11 +1235,6 @@ function LeadMagnetWizardInner() {
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
             <p className="text-white text-xs md:text-sm">Convierte tu conocimiento en un recurso valioso para tus clientes</p>
           </div>
-          {advancedEnabled && (
-            <Link href="/lead-magnet/new" className="text-white hover:text-white text-xs md:text-sm">
-              Volver al editor avanzado
-            </Link>
-          )}
         </div>
 
         <div className="flex items-center justify-center gap-1 mb-8">
