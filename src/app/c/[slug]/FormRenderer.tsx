@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type {
   FormBlock, WelcomeConfig, SegmentationConfig, QuestionsConfig,
   CaptureConfig, FinalMessageConfig, ThankYouConfig, FormDesign,
@@ -77,11 +77,13 @@ function DefaultForm({
   leadMagnet,
   design,
   slug,
+  businessPublicId,
 }: {
   campaignId: string;
   leadMagnet: LeadMagnetInfo | null;
   design: FormDesign;
   slug?: string;
+  businessPublicId?: string;
 }) {
   const [step, setStep] = useState<"capture" | "done">("capture");
   const [name, setName] = useState("");
@@ -90,6 +92,19 @@ function DefaultForm({
   const [error, setError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
   const [codeValue, setCodeValue] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // Redirigir automáticamente a la landing de fidelización al completar el flujo
+  useEffect(() => {
+    if (step === "done" && businessPublicId) setCountdown(5);
+  }, [step, businessPublicId]);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}`); return; }
+    const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, businessPublicId]);
 
   const submit = async () => {
     if (!phone.trim()) { setError("El teléfono es obligatorio"); return; }
@@ -168,6 +183,12 @@ function DefaultForm({
         {!hasResource && (
           <p className="text-xs" style={{ opacity: 0.3 }}>Hemos guardado tus datos correctamente.</p>
         )}
+        {/* Countdown de redirección automática */}
+        {countdown !== null && countdown > 0 && (
+          <p className="text-xs mt-6" style={{ opacity: 0.3 }}>
+            Accediendo a nuestra página en {countdown}s…
+          </p>
+        )}
       </div>
     );
   }
@@ -213,7 +234,6 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const design = { ...DEFAULT_DESIGN, ...(designProp || {}) };
   const s = design;
   void campaignName;
-  void businessPublicId; // disponible para uso futuro en el cliente
 
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
@@ -223,14 +243,30 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const [submitError, setSubmitError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
   const [codeValue, setCodeValue] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // Calcular bloque actual antes de los hooks (los hooks no pueden ir después de un return condicional)
+  const sortedBlocks = blocks ? [...blocks].sort((a, b) => a.order - b.order) : [];
+  const currentBlock = sortedBlocks[currentBlockIndex] ?? null;
+  const isLastBlock  = currentBlockIndex === sortedBlocks.length - 1;
+  const isThankYou   = currentBlock?.type === "thank_you";
+
+  // Iniciar countdown al llegar al bloque thank_you
+  useEffect(() => {
+    if (isThankYou && businessPublicId) setCountdown(4);
+  }, [isThankYou, businessPublicId]);
+
+  // Ejecutar la redirección cuando el contador llega a 0
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}`); return; }
+    const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, businessPublicId]);
 
   if (!blocks || blocks.length === 0) {
-    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} />;
+    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} />;
   }
-
-  const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
-  const currentBlock = sortedBlocks[currentBlockIndex];
-  const isLastBlock  = currentBlockIndex === sortedBlocks.length - 1;
 
   const next = () => {
     if (!isLastBlock) setCurrentBlockIndex(i => i + 1);
@@ -578,6 +614,12 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 </a>
               )}
             </div>
+            {/* Countdown de redirección automática a la landing de fidelización */}
+            {businessPublicId && countdown !== null && countdown > 0 && (
+              <p className="text-xs mt-6" style={{ opacity: 0.3 }}>
+                Accediendo a nuestra página en {countdown}s…
+              </p>
+            )}
           </div>
         );
       }
