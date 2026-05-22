@@ -9,11 +9,11 @@ import ErrorBanner from "@/components/ui/ErrorBanner";
 type CampaignWithCounts = CaptacionCampaign & { leadsCount: number };
 type Mode = "list" | "creating" | "editing";
 
-const STATUS_LABELS: Record<string, string> = { draft: "Borrador", active: "Activa", finished: "Finalizada" };
+const STATUS_LABELS: Record<string, string> = { draft: "Borrador", active: "Captación activa", finished: "Fidelización activa" };
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-yellow-500/15 text-yellow-400",
   active: "bg-green-500/15 text-green-400",
-  finished: "bg-[var(--foreground)]/10 text-[var(--foreground)]/50",
+  finished: "bg-[var(--brand-1)]/15 text-[var(--brand-1)]",
 };
 
 const emptyForm = {
@@ -206,7 +206,7 @@ export default function CampanasPage() {
       const email = s?.session?.user?.email;
       if (!email || !t) { setLoading(false); return; }
       setToken(t);
-      const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", email).single();
+      const { data: biz } = await supabase.from("businesses").select("id").eq("email", email).single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
       await loadAll(biz.id, t);
@@ -662,20 +662,29 @@ export default function CampanasPage() {
                   {c.status === "draft" && (
                     <button onClick={() => changeStatus(c.id, "active")}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-green-500/15 text-green-400 hover:bg-green-500/25">
-                      Activar
+                      Activar captación
                     </button>
                   )}
                   {c.status === "active" && (
-                    <button onClick={() => changeStatus(c.id, "finished")}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-red-500/15 text-red-400 hover:bg-red-500/25">
-                      Finalizar
+                    <button
+                      onClick={() => {
+                        if (confirm("¿Activar modo Fidelización?\n\nTodos los llaveros de esta campaña redirigirán a tu landing de fidelización. Podrás volver a captación en cualquier momento.")) {
+                          changeStatus(c.id, "finished");
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                      style={{ background: "rgba(57,161,169,0.15)", color: "var(--brand-1)" }}>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                      Activar Fidelización
                     </button>
                   )}
                   {c.status === "finished" && (
-                    <button onClick={() => changeStatus(c.id, "draft")}
+                    <button onClick={() => changeStatus(c.id, "active")}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors hover:border-[var(--brand-1)]/50"
                       style={{ borderColor: "var(--border)" }}>
-                      Reactivar
+                      Volver a Captación
                     </button>
                   )}
                   <button onClick={() => enterEdit(c)}
@@ -695,6 +704,23 @@ export default function CampanasPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Aviso modo fidelización */}
+              {c.status === "finished" && (
+                <div className="mt-4 pt-4 border-t flex items-start gap-2.5 rounded-xl px-3 py-2.5"
+                  style={{ borderColor: "var(--border)", background: "rgba(57,161,169,0.06)" }}>
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-1)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                  <div>
+                    <p className="text-xs font-semibold" style={{ color: "var(--brand-1)" }}>Modo Fidelización activo</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.5 }}>
+                      Todos los llaveros de esta campaña redirigen ahora a tu landing de fidelización.
+                      Los clientes que ya rellenaron el formulario también van directamente a la landing desde su dispositivo.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Línea de lanzamiento — solo en borrador y activa */}
               {c.status !== "finished" && (
