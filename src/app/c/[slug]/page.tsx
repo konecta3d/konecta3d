@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import FormRenderer from "./FormRenderer";
 import type { FormDesign } from "@/types/captacion";
@@ -15,6 +16,11 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Nombre de la cookie que marca que este cliente ya completó el flujo
+export function fidelizacionCookieName(slug: string) {
+  return `k3d_done_${slug}`;
+}
+
 export default async function CampaignPage({ params }: PageProps) {
   const { slug } = await params;
   const db = supabaseAdmin();
@@ -28,19 +34,27 @@ export default async function CampaignPage({ params }: PageProps) {
 
   if (error || !campaign) return notFound();
 
-  // Lógica de estados del llavero
-  if (campaign.status === "finished") {
-    // Redirigir a la landing principal del negocio (si existe)
-    const { data: biz } = await db
-      .from("businesses")
-      .select("public_id")
-      .eq("id", campaign.business_id)
-      .single();
+  // Obtener public_id del negocio (necesario para redirect a fidelización)
+  const { data: biz } = await db
+    .from("businesses")
+    .select("public_id")
+    .eq("id", campaign.business_id)
+    .single();
+  const businessPublicId = biz?.public_id ?? "";
 
-    if (biz?.public_id) {
-      redirect(`/l/${biz.public_id}`);
+  // ── Redirección automática a fidelización ─────────────────────────────────
+  // Si el cliente ya completó el flujo (cookie en su dispositivo),
+  // redirigirlo directamente a la landing de fidelización sin mostrar el form.
+  if (campaign.status === "active" && businessPublicId) {
+    const cookieStore = await cookies();
+    if (cookieStore.get(fidelizacionCookieName(slug))?.value === "1") {
+      redirect(`/l/${businessPublicId}`);
     }
-    // Si no tiene landing, mostrar mensaje genérico
+  }
+
+  // ── Estados de campaña ────────────────────────────────────────────────────
+  if (campaign.status === "finished") {
+    if (businessPublicId) redirect(`/l/${businessPublicId}`);
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a323c]">
         <div className="text-center px-6">
@@ -73,7 +87,7 @@ export default async function CampaignPage({ params }: PageProps) {
     );
   }
 
-  // Campaña activa — cargar formulario y diseño
+  // ── Campaña activa — cargar formulario y diseño ───────────────────────────
   let blocks = null;
   let design: FormDesign = DEFAULT_DESIGN;
 
@@ -84,8 +98,6 @@ export default async function CampaignPage({ params }: PageProps) {
       .eq("id", campaign.form_id)
       .single();
 
-    // Normalizar: el campo JSONB puede ser un array (formato antiguo)
-    // o un objeto { blocks: [...], design: {...} } (formato nuevo).
     const rawBlocks = form?.blocks;
     if (Array.isArray(rawBlocks)) {
       blocks = rawBlocks;
@@ -113,6 +125,8 @@ export default async function CampaignPage({ params }: PageProps) {
       blocks={blocks}
       leadMagnet={leadMagnetInfo}
       design={design}
+      slug={slug}
+      businessPublicId={businessPublicId}
     />
   );
 }

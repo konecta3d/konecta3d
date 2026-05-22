@@ -24,6 +24,10 @@ interface Props {
   blocks: FormBlock[] | null;
   leadMagnet: LeadMagnetInfo | null;
   design?: FormDesign | null;
+  /** Slug de la campaña — usado para marcar al cliente como convertido */
+  slug?: string;
+  /** public_id del negocio — destino de la redirección a fidelización */
+  businessPublicId?: string;
 }
 
 // ── Logo helper ────────────────────────────────────────────────
@@ -51,16 +55,33 @@ function LogoImg({ design }: { design: FormDesign }) {
   );
 }
 
+// ── Cookie de fidelización ─────────────────────────────────────
+// Se llama tras completar el flujo. El servidor la leerá en la próxima
+// visita y redirigirá automáticamente a la landing de fidelización.
+
+function markConverted(slug: string) {
+  try {
+    // Cookie con 1 año de vida — el servidor la detecta en la siguiente visita
+    document.cookie = `k3d_done_${slug}=1; max-age=31536000; path=/; SameSite=Lax`;
+    // localStorage como respaldo (útil si las cookies se borran)
+    localStorage.setItem(`k3d_done_${slug}`, "1");
+  } catch {
+    // Silencioso — no bloquear el flujo por falta de storage
+  }
+}
+
 // ── Default form (sin bloques configurados) ───────────────────
 
 function DefaultForm({
   campaignId,
   leadMagnet,
   design,
+  slug,
 }: {
   campaignId: string;
   leadMagnet: LeadMagnetInfo | null;
   design: FormDesign;
+  slug?: string;
 }) {
   const [step, setStep] = useState<"capture" | "done">("capture");
   const [name, setName] = useState("");
@@ -89,6 +110,10 @@ function DefaultForm({
       || null;
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
+
+    // Marcar como convertido — próxima visita irá a fidelización
+    if (slug) markConverted(slug);
+
     setStep("done");
     setSubmitting(false);
   };
@@ -184,9 +209,11 @@ function DefaultForm({
 
 // ── Full form renderer con bloques ────────────────────────────
 
-export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp }: Props) {
+export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp, slug, businessPublicId }: Props) {
   const design = { ...DEFAULT_DESIGN, ...(designProp || {}) };
   const s = design;
+  void campaignName;
+  void businessPublicId; // disponible para uso futuro en el cliente
 
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
@@ -198,7 +225,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const [codeValue, setCodeValue] = useState<string | null>(null);
 
   if (!blocks || blocks.length === 0) {
-    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} />;
+    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} />;
   }
 
   const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
@@ -238,6 +265,9 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
       || null;
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
+
+    // Marcar como convertido — próxima visita al llavero irá a fidelización
+    if (slug) markConverted(slug);
 
     next();
     setSubmitting(false);
