@@ -24,6 +24,8 @@ function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<CaptacionLead | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<{ ok: boolean; count: number } | null>(null);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -111,6 +113,37 @@ function ClientesPage() {
     URL.revokeObjectURL(url);
   };
 
+  // Leads no migrados que coinciden con el filtro de campaña actual
+  const pendingMigration = leads.filter(
+    l => !l.migrated_to_fidelizacion && (!filters.campaignId || l.campaign_id === filters.campaignId)
+  );
+
+  const migrateAll = async () => {
+    const scope = filters.campaignId
+      ? `los ${pendingMigration.length} leads de esta campaña`
+      : `los ${pendingMigration.length} leads pendientes`;
+    if (!confirm(`¿Mover ${scope} a Fidelización?\n\nEsta acción marcará todos como migrados. No se puede deshacer.`)) return;
+
+    setMigrating(true);
+    setMigrateResult(null);
+    const res = await fetch("/api/captacion/leads/migrate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        businessId,
+        ...(filters.campaignId ? { campaignId: filters.campaignId } : {}),
+      }),
+    });
+    const data = await res.json();
+    setMigrating(false);
+    if (res.ok) {
+      setMigrateResult({ ok: true, count: data.migrated });
+      await loadLeads(businessId, token);
+    } else {
+      setMigrateResult({ ok: false, count: 0 });
+    }
+  };
+
   const timeAgo = (date: string) => {
     const diff = Date.now() - new Date(date).getTime();
     const mins = Math.floor(diff / 60000);
@@ -129,12 +162,59 @@ function ClientesPage() {
           <h1 className="text-2xl font-bold">Clientes captados</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-1">{filtered.length} de {leads.length} leads</p>
         </div>
-        <button onClick={exportCSV} disabled={filtered.length === 0}
-          className="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors hover:border-[var(--brand-1)]/50 disabled:opacity-40"
-          style={{ borderColor: "var(--border)" }}>
-          Exportar CSV
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Botón migración masiva */}
+          <button
+            onClick={migrateAll}
+            disabled={migrating || pendingMigration.length === 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-40"
+            style={{ borderColor: "var(--brand-1)", color: "var(--brand-1)" }}
+            title={pendingMigration.length === 0 ? "Todos los leads ya están en Fidelización" : ""}
+          >
+            {migrating ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Migrando...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+                Mover a Fidelización
+                {pendingMigration.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold"
+                    style={{ background: "var(--brand-1)", color: "var(--background)" }}>
+                    {pendingMigration.length}
+                  </span>
+                )}
+              </>
+            )}
+          </button>
+
+          <button onClick={exportCSV} disabled={filtered.length === 0}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors hover:border-[var(--brand-1)]/50 disabled:opacity-40"
+            style={{ borderColor: "var(--border)" }}>
+            Exportar CSV
+          </button>
+        </div>
       </div>
+
+      {/* Banner resultado migración */}
+      {migrateResult && (
+        <div className={`flex items-center justify-between rounded-lg px-4 py-3 text-sm font-medium ${migrateResult.ok ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
+          <span>
+            {migrateResult.ok
+              ? `✓ ${migrateResult.count} lead${migrateResult.count !== 1 ? "s" : ""} movido${migrateResult.count !== 1 ? "s" : ""} a Fidelización`
+              : "Error al migrar. Inténtalo de nuevo."}
+          </span>
+          <button onClick={() => setMigrateResult(null)} className="ml-4 opacity-60 hover:opacity-100">×</button>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3">
