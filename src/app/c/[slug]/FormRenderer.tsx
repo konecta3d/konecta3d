@@ -492,19 +492,46 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 ))}
               </ul>
             )}
-            {/* Botones opcionales */}
             <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
+              {/* PDF / URL lead magnet — aparece si el form no tiene bloque final_message (ej: objetivo quick) */}
+              {leadMagnetUrl && (
+                <a
+                  href={leadMagnetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform"
+                  style={{ background: s.accent_color, color: s.bg_color }}
+                >
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {leadMagnet?.cta_text || "Descargar recurso"}
+                </a>
+              )}
+              {codeValue && !leadMagnetUrl && (
+                <div className="rounded-2xl p-4 mb-2" style={{ background: `${s.text_color}12` }}>
+                  <p className="text-xs mb-2" style={{ opacity: 0.6 }}>{leadMagnet?.cta_text || "Tu código exclusivo:"}</p>
+                  <div className="font-mono text-3xl font-bold tracking-widest rounded-xl px-4 py-3 select-all"
+                    style={{ background: `${s.text_color}20`, color: s.accent_color }}>
+                    {codeValue}
+                  </div>
+                  <p className="text-xs mt-2" style={{ opacity: 0.3 }}>Mantén esta pantalla abierta o anota el código</p>
+                </div>
+              )}
+              {/* Botón CTA personalizado */}
               {cfg.cta_text && cfg.cta_url && (
                 <a
                   href={cfg.cta_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform text-center"
-                  style={{ background: s.accent_color, color: s.bg_color }}
+                  style={{ background: leadMagnetUrl ? `${s.accent_color}25` : s.accent_color, color: leadMagnetUrl ? s.text_color : s.bg_color, border: leadMagnetUrl ? `1px solid ${s.border_color}` : "none" }}
                 >
                   {cfg.cta_text}
                 </a>
               )}
+              {/* Botón WhatsApp */}
               {waUrl && (
                 <a
                   href={waUrl}
