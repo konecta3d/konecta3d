@@ -20,7 +20,7 @@ interface SidebarLink {
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
   { label: "Perfil", href: "/mi-negocio/perfil", category: "Mi Negocio" },
-  { label: "Clientes", href: "/mi-negocio/cliente-ideal", category: "Mi Negocio" },
+  { label: "Clientes", href: "/captacion/clientes", category: "Mi Negocio" },
   { label: "Estadísticas", href: "/mi-negocio/estadisticas", category: "Mi Negocio" },
   { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
   { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },

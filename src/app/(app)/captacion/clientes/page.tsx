@@ -405,6 +405,9 @@ function ClientesPage() {
   const [updating, setUpdating] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
 
+  // Tab activo
+  const [activeTab, setActiveTab] = useState<"todos" | "fidelizacion" | "manuales">("todos");
+
   // Modal añadir cliente manual
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", phone: "", email: "", notes: "", campaignId: "" });
@@ -507,24 +510,33 @@ function ClientesPage() {
     return bDate - aDate;
   });
 
-  // Si hay filtro por campaña (desde URL) o búsqueda global, filtrar los grupos
+  // Filtrar grupos según tab activo + campaña desde URL + búsqueda global
   const visibleGroups = groups
     .filter(g => !campaignIdFilter || g.id === campaignIdFilter)
-    .map(g => ({
-      ...g,
-      leads: globalSearch
-        ? g.leads.filter(l => {
-            const q = globalSearch.toLowerCase();
-            return l.name?.toLowerCase().includes(q) ||
-              l.phone?.toLowerCase().includes(q) ||
-              l.email?.toLowerCase().includes(q);
-          })
-        : g.leads,
-    }))
+    .filter(g => {
+      if (activeTab === "fidelizacion") return g.leads.some(l => l.migrated_to_fidelizacion);
+      if (activeTab === "manuales") return g.id === MANUAL_KEY;
+      return true; // todos
+    })
+    .map(g => {
+      let filteredLeads = g.leads;
+      if (activeTab === "fidelizacion") filteredLeads = filteredLeads.filter(l => l.migrated_to_fidelizacion);
+      if (globalSearch) {
+        const q = globalSearch.toLowerCase();
+        filteredLeads = filteredLeads.filter(l =>
+          l.name?.toLowerCase().includes(q) ||
+          l.phone?.toLowerCase().includes(q) ||
+          l.email?.toLowerCase().includes(q)
+        );
+      }
+      return { ...g, leads: filteredLeads };
+    })
     .filter(g => g.leads.length > 0);
 
   const totalLeads = leads.length;
   const totalMigrated = leads.filter(l => l.migrated_to_fidelizacion).length;
+  const totalManual = leads.filter(l => l.campaign_id === null).length;
+  const fidelizacionPct = totalLeads > 0 ? Math.round((totalMigrated / totalLeads) * 100) : 0;
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><p className="text-[var(--foreground)]/50 text-sm">Cargando...</p></div>;
@@ -535,17 +547,16 @@ function ClientesPage() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Clientes captados</h1>
+          <h1 className="text-2xl font-bold">Clientes</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-1">
-            {totalLeads} leads · {totalMigrated} en fidelización · {groups.length} campaña{groups.length !== 1 ? "s" : ""}
+            {totalLeads} captados · {totalMigrated} en fidelización · {totalManual} añadidos
           </p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Búsqueda global */}
           <input
             className="rounded-lg border px-3 py-2 text-sm bg-transparent flex-1 sm:w-56"
             style={{ borderColor: "var(--border)" }}
-            placeholder="Buscar en todos los leads..."
+            placeholder="Buscar clientes..."
             value={globalSearch}
             onChange={e => setGlobalSearch(e.target.value)}
           />
@@ -557,6 +568,60 @@ function ClientesPage() {
             + Añadir
           </button>
         </div>
+      </div>
+
+      {/* Banner embudo captación → fidelización */}
+      {totalLeads > 0 && (
+        <div className="rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4"
+          style={{ border: "1px solid var(--border)", background: "var(--card)" }}>
+          <div className="flex items-center gap-3 flex-1">
+            {/* Captados */}
+            <div className="text-center">
+              <div className="text-2xl font-bold">{totalLeads}</div>
+              <div className="text-xs text-[var(--foreground)]/50">Captados</div>
+            </div>
+            {/* Flecha */}
+            <div className="flex-1 flex flex-col items-center gap-1">
+              <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${fidelizacionPct}%`, background: "var(--brand-1)" }} />
+              </div>
+              <span className="text-xs text-[var(--foreground)]/40">{fidelizacionPct}% fidelizados</span>
+            </div>
+            {/* Fidelizados */}
+            <div className="text-center">
+              <div className="text-2xl font-bold" style={{ color: "var(--brand-1)" }}>{totalMigrated}</div>
+              <div className="text-xs text-[var(--foreground)]/50">En fidelización</div>
+            </div>
+          </div>
+          {totalManual > 0 && (
+            <div className="text-xs px-3 py-1.5 rounded-lg text-center sm:text-left"
+              style={{ background: "rgba(255,180,0,0.1)", color: "var(--brand-4)", border: "1px solid rgba(255,180,0,0.2)" }}>
+              {totalManual} añadido{totalManual !== 1 ? "s" : ""} manualmente
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {([
+          { key: "todos", label: `Todos (${totalLeads})` },
+          { key: "fidelizacion", label: `Fidelización (${totalMigrated})` },
+          { key: "manuales", label: `Añadidos (${totalManual})` },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{
+              background: activeTab === tab.key ? "var(--brand-1)" : "transparent",
+              color: activeTab === tab.key ? "white" : "var(--foreground)",
+              opacity: activeTab === tab.key ? 1 : 0.6,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Campañas */}
