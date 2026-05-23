@@ -101,7 +101,7 @@ function DefaultForm({
 
   useEffect(() => {
     if (countdown === null) return;
-    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}`); return; }
+    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}/NFC`); return; }
     const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown, businessPublicId]);
@@ -259,7 +259,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   // Ejecutar la redirección cuando el contador llega a 0
   useEffect(() => {
     if (countdown === null) return;
-    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}`); return; }
+    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}/NFC`); return; }
     const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown, businessPublicId]);

@@ -48,13 +48,13 @@ export default async function CampaignPage({ params }: PageProps) {
   if (campaign.status === "active" && businessPublicId) {
     const cookieStore = await cookies();
     if (cookieStore.get(fidelizacionCookieName(slug))?.value === "1") {
-      redirect(`/l/${businessPublicId}`);
+      redirect(`/l/${businessPublicId}/NFC`);
     }
   }
 
   // ── Estados de campaña ────────────────────────────────────────────────────
   if (campaign.status === "finished") {
-    if (businessPublicId) redirect(`/l/${businessPublicId}`);
+    if (businessPublicId) redirect(`/l/${businessPublicId}/NFC`);
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a323c]">
         <div className="text-center px-6">
