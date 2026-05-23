@@ -87,6 +87,7 @@ export default function AdminModulos() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [msgType, setMsgType] = useState<"ok" | "error" | "info">("ok");
   const [missingCols, setMissingCols] = useState<string[]>([]);
   const [showSql, setShowSql] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
@@ -198,45 +199,76 @@ export default function AdminModulos() {
     setBusinesses((prev) => prev.map((b) => ({ ...b, [key]: value })));
   };
 
+  // Mostrar mensaje temporal
+  const showMsg = (text: string, type: "ok" | "error" | "info" = "ok", ms = 5000) => {
+    setMsg(text);
+    setMsgType(type);
+    if (ms > 0) setTimeout(() => setMsg(""), ms);
+  };
+
   const saveAll = async () => {
     setSaving(true);
-    setMsg("Guardando...");
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token ?? "";
+    showMsg("Guardando...", "info", 0);
 
-    // Todos los campos de módulo que queremos guardar
     const ALL_MODULE_FIELDS: (keyof Business)[] = [
       "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
       "module_tools", "module_forms", "module_gpt",
       "module_ai_landing", "module_ai_recursos", "module_captacion",
     ];
 
-    for (const b of businesses) {
-      // Construir payload dinámico: excluir columnas que no existen en la DB
-      const payload: Record<string, unknown> = { id: b.id };
-      for (const field of ALL_MODULE_FIELDS) {
-        if (!missingCols.includes(field as string)) {
-          payload[field as string] = b[field];
-        }
-      }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
 
-      const res = await fetch("/api/admin/update-business", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setMsg("Error: " + (data.error ?? "error desconocido"));
+      if (!token) {
+        showMsg("Error: sesión expirada — recarga la página y vuelve a iniciar sesión", "error");
         setSaving(false);
         return;
       }
-    }
 
-    const skipped = missingCols.length;
-    setMsg(skipped > 0 ? `Guardado ✓ (${skipped} col. pendientes de migración)` : "Guardado ✓");
-    setSaving(false);
-    setTimeout(() => setMsg(""), 4000);
+      for (const b of businesses) {
+        // Construir payload dinámico: excluir columnas que no existen en la DB
+        const payload: Record<string, unknown> = { id: b.id };
+        for (const field of ALL_MODULE_FIELDS) {
+          if (!missingCols.includes(field as string)) {
+            payload[field as string] = b[field];
+          }
+        }
+
+        let resData: Record<string, unknown> = {};
+        let resOk = false;
+        let resStatus = 0;
+        try {
+          const res = await fetch("/api/admin/update-business", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          });
+          resOk = res.ok;
+          resStatus = res.status;
+          const text = await res.text();
+          try { resData = JSON.parse(text); } catch { resData = { raw: text }; }
+        } catch (fetchErr) {
+          showMsg(`Error de red: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`, "error");
+          setSaving(false);
+          return;
+        }
+
+        if (!resOk) {
+          const errMsg = (resData.error as string) ?? `HTTP ${resStatus}`;
+          showMsg(`Error al guardar "${b.name}": ${errMsg}`, "error");
+          setSaving(false);
+          return;
+        }
+      }
+
+      const skipped = missingCols.length;
+      showMsg(skipped > 0 ? `Guardado ✓ (${skipped} col. pendientes de migración)` : "Guardado ✓", "ok");
+    } catch (err) {
+      showMsg(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`, "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ── Estadísticas ──────────────────────────────────────────────────────────
@@ -268,7 +300,11 @@ export default function AdminModulos() {
         </div>
         <div className="flex items-center gap-3">
           {msg && (
-            <span className={`text-sm px-3 py-1 rounded ${msg.startsWith("Error") ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}`}>
+            <span className={`text-sm px-3 py-1.5 rounded-lg max-w-xs text-center leading-snug ${
+              msgType === "error" ? "bg-red-500/20 text-red-400" :
+              msgType === "info"  ? "bg-blue-500/20 text-blue-300" :
+              "bg-green-500/20 text-green-400"
+            }`}>
               {msg}
             </span>
           )}
