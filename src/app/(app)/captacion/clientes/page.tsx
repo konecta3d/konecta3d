@@ -412,7 +412,7 @@ function ClientesPage() {
       const email = s?.session?.user?.email;
       if (!email || !t) { setLoading(false); return; }
       setToken(t);
-      const { data: biz } = await supabase.from("businesses").select("id").eq("email", email).single();
+      const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", email).single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
       await loadLeads(biz.id, t);

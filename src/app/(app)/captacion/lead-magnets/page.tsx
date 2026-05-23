@@ -26,7 +26,7 @@ export default function LeadMagnetsPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("email", email)
+        .eq("contact_email", email)
         .single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
