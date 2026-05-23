@@ -171,7 +171,7 @@ export interface CaptacionCampaign {
 export interface CaptacionLead {
   id: string;
   business_id: string;
-  campaign_id: string;
+  campaign_id: string | null;
   name?: string;
   phone?: string;
   email?: string;

@@ -405,6 +405,13 @@ function ClientesPage() {
   const [updating, setUpdating] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
 
+  // Modal añadir cliente manual
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", phone: "", email: "", notes: "", campaignId: "" });
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([]);
+
   useEffect(() => {
     const load = async () => {
       const { data: s } = await supabase.auth.getSession();
@@ -416,6 +423,12 @@ function ClientesPage() {
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
       await loadLeads(biz.id, t);
+      // Cargar campañas para el selector del modal
+      const campsRes = await fetch(`/api/captacion/campaigns?businessId=${biz.id}`, {
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      const campsData = await campsRes.json();
+      setCampaigns((campsData.campaigns || []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
     };
     load();
   }, []);
@@ -445,14 +458,42 @@ function ClientesPage() {
     setUpdating(false);
   };
 
-  // Agrupar leads por campaña
+  const addManualLead = async () => {
+    if (!addForm.phone.trim()) { setAddError("El teléfono es obligatorio"); return; }
+    setAdding(true);
+    setAddError("");
+    const res = await fetch("/api/captacion/leads/manual", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        businessId,
+        name: addForm.name,
+        phone: addForm.phone,
+        email: addForm.email,
+        notes: addForm.notes,
+        campaignId: addForm.campaignId || undefined,
+      }),
+    });
+    if (res.ok) {
+      setShowAddModal(false);
+      setAddForm({ name: "", phone: "", email: "", notes: "", campaignId: "" });
+      await loadLeads(businessId, token);
+    } else {
+      const d = await res.json();
+      setAddError(d.error || "Error al añadir cliente");
+    }
+    setAdding(false);
+  };
+
+  // Agrupar leads por campaña (null campaign_id → "Añadidos manualmente")
+  const MANUAL_KEY = "__manual__";
   const groups: CampaignGroup[] = Object.values(
     leads.reduce((acc, lead) => {
-      const key = lead.campaign_id;
+      const key = lead.campaign_id ?? MANUAL_KEY;
       if (!acc[key]) {
         acc[key] = {
           id: key,
-          name: lead.captacion_campaigns?.name || "Sin campaña",
+          name: key === MANUAL_KEY ? "Añadidos manualmente" : (lead.captacion_campaigns?.name || "Sin campaña"),
           leads: [],
         };
       }
@@ -499,14 +540,23 @@ function ClientesPage() {
             {totalLeads} leads · {totalMigrated} en fidelización · {groups.length} campaña{groups.length !== 1 ? "s" : ""}
           </p>
         </div>
-        {/* Búsqueda global */}
-        <input
-          className="rounded-lg border px-3 py-2 text-sm bg-transparent w-full sm:w-64"
-          style={{ borderColor: "var(--border)" }}
-          placeholder="Buscar en todos los leads..."
-          value={globalSearch}
-          onChange={e => setGlobalSearch(e.target.value)}
-        />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Búsqueda global */}
+          <input
+            className="rounded-lg border px-3 py-2 text-sm bg-transparent flex-1 sm:w-56"
+            style={{ borderColor: "var(--border)" }}
+            placeholder="Buscar en todos los leads..."
+            value={globalSearch}
+            onChange={e => setGlobalSearch(e.target.value)}
+          />
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="shrink-0 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+            style={{ background: "var(--brand-1)", color: "white" }}
+          >
+            + Añadir
+          </button>
+        </div>
       </div>
 
       {/* Campañas */}
@@ -539,6 +589,104 @@ function ClientesPage() {
           onClose={() => setSelectedLead(null)}
           onUpdate={updateLead}
         />
+      )}
+
+      {/* Modal añadir cliente manual */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-md rounded-2xl p-6 space-y-4"
+            style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-lg">Añadir cliente</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-[var(--foreground)]/40 hover:text-[var(--foreground)] text-xl leading-none">×</button>
+            </div>
+            <p className="text-sm text-[var(--foreground)]/50">
+              Para clientes a los que ya conoces y quieres darles un llavero NFC.
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium mb-1 text-[var(--foreground)]/60">Nombre (opcional)</label>
+                <input
+                  className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+                  style={{ borderColor: "var(--border)" }}
+                  placeholder="Nombre del cliente"
+                  value={addForm.name}
+                  onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-[var(--foreground)]/60">WhatsApp / Teléfono *</label>
+                <input
+                  className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+                  style={{ borderColor: "var(--border)" }}
+                  placeholder="+34 600 000 000"
+                  type="tel"
+                  value={addForm.phone}
+                  onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-[var(--foreground)]/60">Email (opcional)</label>
+                <input
+                  className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+                  style={{ borderColor: "var(--border)" }}
+                  placeholder="cliente@email.com"
+                  type="email"
+                  value={addForm.email}
+                  onChange={e => setAddForm(f => ({ ...f, email: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-[var(--foreground)]/60">Asignar a campaña (opcional)</label>
+                <select
+                  className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+                  style={{ borderColor: "var(--border)", background: "var(--card)" }}
+                  value={addForm.campaignId}
+                  onChange={e => setAddForm(f => ({ ...f, campaignId: e.target.value }))}
+                >
+                  <option value="">Sin campaña</option>
+                  {campaigns.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-[var(--foreground)]/60">Nota interna (opcional)</label>
+                <textarea
+                  className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent resize-none"
+                  style={{ borderColor: "var(--border)" }}
+                  placeholder="Cómo le conoces, qué servicio le interesa..."
+                  rows={2}
+                  value={addForm.notes}
+                  onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {addError && <p className="text-red-400 text-xs">{addError}</p>}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 py-2.5 rounded-lg border text-sm"
+                style={{ borderColor: "var(--border)" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={addManualLead}
+                disabled={adding}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity"
+                style={{ background: "var(--brand-1)", color: "white" }}
+              >
+                {adding ? "Guardando..." : "Añadir cliente"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
