@@ -34,13 +34,13 @@ export default async function CampaignPage({ params }: PageProps) {
 
   if (error || !campaign) return notFound();
 
-  // Obtener public_id del negocio (necesario para redirect a fidelización)
+  // Obtener slug del negocio (necesario para redirect a fidelización en /l/[slug])
   const { data: biz } = await db
     .from("businesses")
-    .select("public_id")
+    .select("slug")
     .eq("id", campaign.business_id)
     .single();
-  const businessPublicId = biz?.public_id ?? "";
+  const businessPublicId = biz?.slug ?? "";
 
   // ── Redirección automática a fidelización ─────────────────────────────────
   // Si el cliente ya completó el flujo (cookie en su dispositivo),
