@@ -204,22 +204,26 @@ export default function AdminModulos() {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token ?? "";
 
+    // Todos los campos de módulo que queremos guardar
+    const ALL_MODULE_FIELDS: (keyof Business)[] = [
+      "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
+      "module_tools", "module_forms", "module_gpt",
+      "module_ai_landing", "module_ai_recursos", "module_captacion",
+    ];
+
     for (const b of businesses) {
+      // Construir payload dinámico: excluir columnas que no existen en la DB
+      const payload: Record<string, unknown> = { id: b.id };
+      for (const field of ALL_MODULE_FIELDS) {
+        if (!missingCols.includes(field as string)) {
+          payload[field as string] = b[field];
+        }
+      }
+
       const res = await fetch("/api/admin/update-business", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          id: b.id,
-          module_lead_magnet:  b.module_lead_magnet,
-          module_vip_benefits: b.module_vip_benefits,
-          module_whatsapp:     b.module_whatsapp,
-          module_tools:        b.module_tools,
-          module_forms:        b.module_forms,
-          module_gpt:          b.module_gpt,
-          module_ai_landing:   b.module_ai_landing,
-          module_ai_recursos:  b.module_ai_recursos,
-          module_captacion:    b.module_captacion,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -229,9 +233,10 @@ export default function AdminModulos() {
       }
     }
 
-    setMsg("Guardado ✓");
+    const skipped = missingCols.length;
+    setMsg(skipped > 0 ? `Guardado ✓ (${skipped} col. pendientes de migración)` : "Guardado ✓");
     setSaving(false);
-    setTimeout(() => setMsg(""), 3000);
+    setTimeout(() => setMsg(""), 4000);
   };
 
   // ── Estadísticas ──────────────────────────────────────────────────────────
