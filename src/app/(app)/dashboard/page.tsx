@@ -263,13 +263,6 @@ setStats({
             <p className="mt-1 text-sm text-[var(--brand-1)]">Gestiona tu lista de clientes</p>
           </Link>
           <Link
-            href="/mi-negocio/catalogo"
-            className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--brand-3)]"
-          >
-            <div className="font-semibold">Mi Catálogo</div>
-            <p className="mt-1 text-sm text-[var(--brand-1)]">Añade tus productos y servicios</p>
-          </Link>
-          <Link
             href="/mi-negocio/historial"
             className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--brand-3)]"
           >
