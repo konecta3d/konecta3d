@@ -157,6 +157,7 @@ function CaptacionLeadMagnetWizardInner() {
   const [businessName, setBusinessName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [token, setToken] = useState("");
+  const [actionLinks, setActionLinks] = useState<{ id: string; type: string; name: string; url: string }[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // ── Step & type state ──────────────────────────────────────────────────────
@@ -220,6 +221,14 @@ function CaptacionLeadMagnetWizardInner() {
       setBusinessId(biz.id);
       if (biz.name) setBusinessName(biz.name);
       if (biz.logo_url) setLogoUrl(biz.logo_url);
+
+      // Cargar herramientas del negocio para usar en los CTAs
+      const { data: links } = await supabase
+        .from("action_links")
+        .select("id, type, name, url")
+        .eq("business_id", biz.id)
+        .order("created_at", { ascending: false });
+      if (links) setActionLinks(links);
 
       if (editId) {
         setEditingId(editId);
@@ -711,7 +720,27 @@ function CaptacionLeadMagnetWizardInner() {
                       </div>
                       <div>
                         <label className="block text-xs text-white/60 mb-1">Enlace (URL)</label>
-                        <input type="text" value={cta.link} onChange={e => cta.setLink(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 rounded-lg border text-white text-sm" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }} />
+                        {actionLinks.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {actionLinks.map(al => (
+                              <button
+                                key={al.id}
+                                type="button"
+                                onClick={() => cta.setLink(al.url)}
+                                title={al.url}
+                                className="text-xs px-2.5 py-1 rounded-full border transition-colors"
+                                style={{
+                                  borderColor: cta.link === al.url ? "var(--brand-4)" : "rgba(255,255,255,0.15)",
+                                  background: cta.link === al.url ? "rgba(255,180,0,0.15)" : "rgba(255,255,255,0.05)",
+                                  color: cta.link === al.url ? "var(--brand-4)" : "rgba(255,255,255,0.7)",
+                                }}
+                              >
+                                {al.name || al.type}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <input type="text" value={cta.link} onChange={e => cta.setLink(e.target.value)} placeholder="https://... o selecciona una herramienta arriba" className="w-full px-3 py-2 rounded-lg border text-white text-sm" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }} />
                       </div>
                     </div>
                   )}
