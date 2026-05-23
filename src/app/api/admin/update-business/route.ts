@@ -8,18 +8,18 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 
-// Columnas garantizadas en el schema actual
+// Todas las columnas conocidas de businesses
 const CORE_FIELDS = [
   "name", "sector", "contact_email", "phone", "slug",
   "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
-];
-
-// Columnas que requieren haber ejecutado la migración SQL
-const OPTIONAL_FIELDS = [
-  "profile_active", "landing_active",
   "module_tools", "module_forms", "module_gpt",
   "module_ai_landing", "module_ai_recursos",
   "module_captacion",
+];
+
+// Columnas legacy / raramente usadas (se intentan pero no bloquean si fallan)
+const OPTIONAL_FIELDS = [
+  "profile_active", "landing_active",
   "multi_landing_enabled", "font_family",
 ];
 

@@ -73,11 +73,23 @@ function Toggle({
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 
+const MIGRATION_SQL = `-- Ejecuta esto en Supabase → SQL Editor
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS module_tools        BOOLEAN DEFAULT true,
+  ADD COLUMN IF NOT EXISTS module_forms        BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS module_gpt          BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS module_ai_landing   BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS module_ai_recursos  BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS module_captacion    BOOLEAN DEFAULT false;`;
+
 export default function AdminModulos() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [missingCols, setMissingCols] = useState<string[]>([]);
+  const [showSql, setShowSql] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
 
   useEffect(() => { loadBusinesses(); }, []);
 
@@ -86,6 +98,19 @@ export default function AdminModulos() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? "";
+
+      // Comprobar columnas que faltan en businesses
+      const colRes = await fetch("/api/admin/check-columns", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (colRes.ok) {
+        const colData = await colRes.json();
+        const missing = Object.entries(colData.columns as Record<string, boolean>)
+          .filter(([, exists]) => !exists)
+          .map(([col]) => col);
+        setMissingCols(missing);
+      }
+
       const res = await fetch("/api/admin/businesses", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -266,6 +291,45 @@ export default function AdminModulos() {
           </div>
         ))}
       </div>
+
+      {/* ── Aviso columnas faltantes ── */}
+      {missingCols.length > 0 && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-amber-400">
+                ⚠ Faltan columnas en la base de datos
+              </p>
+              <p className="text-xs text-amber-400/70 mt-1">
+                Los módulos <strong>{missingCols.join(", ")}</strong> no se pueden guardar hasta ejecutar la migración en Supabase.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSql(!showSql)}
+              className="shrink-0 text-xs px-3 py-1.5 rounded-lg font-semibold bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors"
+            >
+              {showSql ? "Ocultar SQL" : "Ver SQL"}
+            </button>
+          </div>
+          {showSql && (
+            <div className="space-y-2">
+              <pre className="text-xs bg-black/40 rounded-lg p-3 overflow-x-auto text-green-300 leading-relaxed">
+                {MIGRATION_SQL}
+              </pre>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(MIGRATION_SQL);
+                  setSqlCopied(true);
+                  setTimeout(() => setSqlCopied(false), 2000);
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors font-semibold"
+              >
+                {sqlCopied ? "¡Copiado!" : "Copiar SQL"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Acciones masivas ── */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
