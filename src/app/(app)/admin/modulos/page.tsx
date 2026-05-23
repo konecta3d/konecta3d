@@ -415,8 +415,8 @@ export default function AdminModulos() {
 
       {/* ── Tabla principal ── */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-        {/* Cabecera de tabla */}
-        <div className="grid grid-cols-[1fr_160px_160px_44px] bg-[var(--background)] px-4 py-2.5 text-xs uppercase tracking-widest text-[var(--foreground)]/40 border-b border-[var(--border)]">
+        {/* Cabecera — oculta en móvil, visible en sm+ */}
+        <div className="hidden sm:grid sm:grid-cols-[1fr_160px_160px_44px] bg-[var(--background)] px-4 py-2.5 text-xs uppercase tracking-widest text-[var(--foreground)]/40 border-b border-[var(--border)]">
           <div>Negocio</div>
           <div className="text-center">Fidelización</div>
           <div className="text-center">Captación</div>
@@ -434,64 +434,103 @@ export default function AdminModulos() {
           return (
             <div key={b.id} className="border-t border-[var(--border)]">
 
-              {/* Fila principal */}
+              {/* ── Fila principal: layout adaptativo ── */}
               <div
-                className="grid grid-cols-[1fr_160px_160px_44px] items-center px-4 py-3 hover:bg-white/[0.02] cursor-pointer"
+                className="cursor-pointer hover:bg-white/[0.02] px-4 py-3"
                 onClick={() => toggleExpanded(b.id)}
               >
-                {/* Nombre + sector */}
-                <div>
-                  <div className="font-medium text-sm">{b.name}</div>
-                  {b.sector && (
-                    <div className="text-xs text-[var(--foreground)]/40 mt-0.5">{b.sector}</div>
-                  )}
-                </div>
+                {/* Mobile: flex horizontal compacto */}
+                <div className="flex items-center gap-3 sm:hidden">
+                  {/* Nombre + sector (ocupa el espacio disponible) */}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{b.name}</div>
+                    {b.sector && (
+                      <div className="text-xs text-[var(--foreground)]/40 mt-0.5 truncate">{b.sector}</div>
+                    )}
+                  </div>
 
-                {/* Toggle Fidelización */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <Toggle
-                    checked={fidActive}
-                    activeColor="bg-[var(--brand-3)]"
-                    onChange={() => toggleFidelizacion(b.id)}
-                  />
-                  {fidActive && (
-                    <span className="text-[10px] text-[var(--brand-3)] font-medium">
-                      {activeModules.length} módulo{activeModules.length !== 1 ? "s" : ""}
+                  {/* Fidelización toggle */}
+                  <div className="flex flex-col items-center gap-1 shrink-0">
+                    <Toggle
+                      checked={fidActive}
+                      activeColor="bg-[var(--brand-3)]"
+                      onChange={() => toggleFidelizacion(b.id)}
+                    />
+                    <span className={`text-[10px] font-medium ${fidActive ? "text-[var(--brand-3)]" : "text-[var(--foreground)]/30"}`}>
+                      {fidActive ? `${activeModules.length} mód.` : "Inactivo"}
                     </span>
-                  )}
-                  {!fidActive && (
-                    <span className="text-[10px] text-[var(--foreground)]/30">Inactivo</span>
-                  )}
-                </div>
+                  </div>
 
-                {/* Toggle Captación */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <Toggle
-                    checked={b.module_captacion}
-                    activeColor="bg-[var(--brand-4)]"
-                    onChange={() => toggleModule(b.id, "module_captacion")}
-                  />
-                  {b.module_captacion ? (
-                    <span className="text-[10px] text-[var(--brand-4)] font-medium">Activo</span>
-                  ) : (
-                    <span className="text-[10px] text-[var(--foreground)]/30">Inactivo</span>
-                  )}
-                </div>
-
-                {/* Flecha expandir */}
-                <div className="flex justify-center">
+                  {/* Flecha expandir — siempre visible */}
                   <svg
-                    className={`w-4 h-4 text-[var(--foreground)]/30 transition-transform ${b.expanded ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 text-[var(--foreground)]/40 transition-transform shrink-0 ${b.expanded ? "rotate-180" : ""}`}
                     fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
+
+                {/* Desktop: grid de 4 columnas */}
+                <div className="hidden sm:grid sm:grid-cols-[1fr_160px_160px_44px] sm:items-center">
+                  <div>
+                    <div className="font-medium text-sm">{b.name}</div>
+                    {b.sector && (
+                      <div className="text-xs text-[var(--foreground)]/40 mt-0.5">{b.sector}</div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Toggle
+                      checked={fidActive}
+                      activeColor="bg-[var(--brand-3)]"
+                      onChange={() => toggleFidelizacion(b.id)}
+                    />
+                    <span className={`text-[10px] font-medium ${fidActive ? "text-[var(--brand-3)]" : "text-[var(--foreground)]/30"}`}>
+                      {fidActive ? `${activeModules.length} módulo${activeModules.length !== 1 ? "s" : ""}` : "Inactivo"}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Toggle
+                      checked={b.module_captacion}
+                      activeColor="bg-[var(--brand-4)]"
+                      onChange={() => toggleModule(b.id, "module_captacion")}
+                    />
+                    <span className={`text-[10px] font-medium ${b.module_captacion ? "text-[var(--brand-4)]" : "text-[var(--foreground)]/30"}`}>
+                      {b.module_captacion ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <svg
+                      className={`w-4 h-4 text-[var(--foreground)]/30 transition-transform ${b.expanded ? "rotate-180" : ""}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              {/* Panel expandido: módulos individuales de fidelización */}
+              {/* Panel expandido: módulos individuales */}
               {b.expanded && (
                 <div className="px-4 pb-4 bg-[var(--background)]/40 border-t border-[var(--border)]/50">
+
+                  {/* Captación en móvil (en desktop está en la fila) */}
+                  <div className="sm:hidden pt-3 pb-2 flex items-center justify-between">
+                    <span className="text-xs text-[var(--foreground)]/50 font-semibold uppercase tracking-widest">Captación</span>
+                    <div className="flex items-center gap-2">
+                      <Toggle
+                        checked={b.module_captacion}
+                        activeColor="bg-[var(--brand-4)]"
+                        onChange={() => toggleModule(b.id, "module_captacion")}
+                      />
+                      <span className={`text-xs font-medium ${b.module_captacion ? "text-[var(--brand-4)]" : "text-[var(--foreground)]/30"}`}>
+                        {b.module_captacion ? "Activo" : "Inactivo"}
+                      </span>
+                    </div>
+                  </div>
+
                   <p className="text-xs text-[var(--foreground)]/40 uppercase tracking-widest py-3">
                     Módulos de Fidelización
                   </p>
@@ -500,8 +539,8 @@ export default function AdminModulos() {
                       <button
                         key={m.key}
                         type="button"
-                        onClick={() => toggleModule(b.id, m.key)}
-                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 border text-xs font-medium transition-colors ${
+                        onClick={(e) => { e.stopPropagation(); toggleModule(b.id, m.key); }}
+                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 border text-xs font-medium transition-colors ${
                           b[m.key]
                             ? "border-[var(--brand-3)]/40 bg-[var(--brand-3)]/10 text-[var(--foreground)]"
                             : "border-[var(--border)] bg-transparent text-[var(--foreground)]/40"
@@ -523,6 +562,28 @@ export default function AdminModulos() {
           );
         })}
       </div>
+
+      {/* ── Botón guardar sticky en móvil ── */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-[var(--background)]/95 backdrop-blur border-t border-[var(--border)] flex items-center gap-3">
+        {msg && (
+          <span className={`flex-1 text-xs px-2 py-1.5 rounded-lg leading-snug ${
+            msgType === "error" ? "bg-red-500/20 text-red-400" :
+            msgType === "info"  ? "bg-blue-500/20 text-blue-300" :
+            "bg-green-500/20 text-green-400"
+          }`}>
+            {msg}
+          </span>
+        )}
+        <button
+          onClick={saveAll}
+          disabled={saving}
+          className="ml-auto px-5 py-2.5 rounded-lg bg-[var(--brand-4)] text-black text-sm font-semibold hover:opacity-90 disabled:opacity-50 shrink-0"
+        >
+          {saving ? "Guardando..." : "Guardar cambios"}
+        </button>
+      </div>
+      {/* Espacio para el sticky bar en móvil */}
+      <div className="sm:hidden h-20" />
 
       {/* Nota al pie */}
       {noneCount > 0 && (
