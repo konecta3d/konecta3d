@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -86,11 +86,22 @@ export default function AdminModulos() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null); // negocio guardándose
+  const [savedId, setSavedId] = useState<string | null>(null);   // negocio recién guardado
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState<"ok" | "error" | "info">("ok");
   const [missingCols, setMissingCols] = useState<string[]>([]);
   const [showSql, setShowSql] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
+
+  // Ref para auto-save por negocio: id → timer
+  const autoSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Ref para leer businesses actual sin stale closure
+  const businessesRef = useRef<Business[]>([]);
+  const missingColsRef = useRef<string[]>([]);
+
+  useEffect(() => { businessesRef.current = businesses; }, [businesses]);
+  useEffect(() => { missingColsRef.current = missingCols; }, [missingCols]);
 
   useEffect(() => { loadBusinesses(); }, []);
 
@@ -141,12 +152,85 @@ export default function AdminModulos() {
     }
   };
 
+  // ── Auto-save por negocio ────────────────────────────────────────────────
+
+  const ALL_MODULE_FIELDS: (keyof Business)[] = [
+    "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
+    "module_tools", "module_forms", "module_gpt",
+    "module_ai_landing", "module_ai_recursos", "module_captacion",
+  ];
+
+  const saveOneBusiness = async (id: string) => {
+    const biz = businessesRef.current.find((b) => b.id === id);
+    if (!biz) return;
+
+    setSavingId(id);
+    setSavedId(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+      if (!token) {
+        showMsg("Sesión expirada — recarga la página", "error");
+        setSavingId(null);
+        return;
+      }
+
+      const payload: Record<string, unknown> = { id };
+      for (const field of ALL_MODULE_FIELDS) {
+        if (!missingColsRef.current.includes(field as string)) {
+          payload[field as string] = biz[field];
+        }
+      }
+
+      let resOk = false;
+      let resStatus = 0;
+      let resData: Record<string, unknown> = {};
+      try {
+        const res = await fetch("/api/admin/update-business", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        });
+        resOk = res.ok;
+        resStatus = res.status;
+        const text = await res.text();
+        try { resData = JSON.parse(text); } catch { resData = { raw: text }; }
+      } catch (fetchErr) {
+        showMsg(`Error de red: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`, "error");
+        setSavingId(null);
+        return;
+      }
+
+      if (!resOk) {
+        const errMsg = (resData.error as string) ?? `HTTP ${resStatus}`;
+        showMsg(`Error al guardar "${biz.name}": ${errMsg}`, "error");
+        setSavingId(null);
+        return;
+      }
+
+      setSavedId(id);
+      setTimeout(() => setSavedId((prev) => prev === id ? null : prev), 2000);
+    } catch (err) {
+      showMsg(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`, "error");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  // Programa auto-save para un negocio (debounce 800ms)
+  const scheduleAutoSave = (id: string) => {
+    if (autoSaveTimers.current[id]) clearTimeout(autoSaveTimers.current[id]);
+    autoSaveTimers.current[id] = setTimeout(() => saveOneBusiness(id), 800);
+  };
+
   // ── Acciones ──────────────────────────────────────────────────────────────
 
   const toggleModule = (id: string, key: keyof Business) => {
     setBusinesses((prev) =>
       prev.map((b) => b.id === id ? { ...b, [key]: !b[key] } : b)
     );
+    scheduleAutoSave(id);
   };
 
   const toggleFidelizacion = (id: string) => {
@@ -155,18 +239,17 @@ export default function AdminModulos() {
         if (b.id !== id) return b;
         const isActive = isFidActive(b);
         if (isActive) {
-          // Desactivar todos los módulos de fidelización
           const off: Partial<Business> = {};
           FID_MODULES.forEach((m) => { (off as Record<string, boolean>)[m.key as string] = false; });
           return { ...b, ...off };
         } else {
-          // Activar módulos por defecto
           const on: Partial<Business> = {};
           FID_MODULES.forEach((m) => { (on as Record<string, boolean>)[m.key as string] = m.defaultOn; });
           return { ...b, ...on };
         }
       })
     );
+    scheduleAutoSave(id);
   };
 
   const toggleExpanded = (id: string) => {
@@ -208,62 +291,42 @@ export default function AdminModulos() {
 
   const saveAll = async () => {
     setSaving(true);
-    showMsg("Guardando...", "info", 0);
-
-    const ALL_MODULE_FIELDS: (keyof Business)[] = [
-      "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
-      "module_tools", "module_forms", "module_gpt",
-      "module_ai_landing", "module_ai_recursos", "module_captacion",
-    ];
-
+    showMsg("Guardando todos...", "info", 0);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? "";
-
       if (!token) {
-        showMsg("Error: sesión expirada — recarga la página y vuelve a iniciar sesión", "error");
-        setSaving(false);
+        showMsg("Sesión expirada — recarga la página", "error");
         return;
       }
-
-      for (const b of businesses) {
-        // Construir payload dinámico: excluir columnas que no existen en la DB
+      for (const b of businessesRef.current) {
         const payload: Record<string, unknown> = { id: b.id };
         for (const field of ALL_MODULE_FIELDS) {
-          if (!missingCols.includes(field as string)) {
+          if (!missingColsRef.current.includes(field as string)) {
             payload[field as string] = b[field];
           }
         }
-
-        let resData: Record<string, unknown> = {};
-        let resOk = false;
-        let resStatus = 0;
+        let resOk = false; let resStatus = 0; let resData: Record<string, unknown> = {};
         try {
           const res = await fetch("/api/admin/update-business", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload),
           });
-          resOk = res.ok;
-          resStatus = res.status;
+          resOk = res.ok; resStatus = res.status;
           const text = await res.text();
           try { resData = JSON.parse(text); } catch { resData = { raw: text }; }
         } catch (fetchErr) {
           showMsg(`Error de red: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`, "error");
-          setSaving(false);
           return;
         }
-
         if (!resOk) {
-          const errMsg = (resData.error as string) ?? `HTTP ${resStatus}`;
-          showMsg(`Error al guardar "${b.name}": ${errMsg}`, "error");
-          setSaving(false);
+          showMsg(`Error al guardar "${b.name}": ${(resData.error as string) ?? `HTTP ${resStatus}`}`, "error");
           return;
         }
       }
-
-      const skipped = missingCols.length;
-      showMsg(skipped > 0 ? `Guardado ✓ (${skipped} col. pendientes de migración)` : "Guardado ✓", "ok");
+      const skipped = missingColsRef.current.length;
+      showMsg(skipped > 0 ? `Guardado ✓ (${skipped} col. pendientes)` : "Guardado ✓", "ok");
     } catch (err) {
       showMsg(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`, "error");
     } finally {
@@ -430,6 +493,8 @@ export default function AdminModulos() {
         {businesses.map((b) => {
           const fidActive = isFidActive(b);
           const activeModules = FID_MODULES.filter((m) => Boolean(b[m.key]));
+          const isSavingThis = savingId === b.id;
+          const isSavedThis  = savedId  === b.id;
 
           return (
             <div key={b.id} className="border-t border-[var(--border)]">
@@ -441,9 +506,13 @@ export default function AdminModulos() {
               >
                 {/* Mobile: flex horizontal compacto */}
                 <div className="flex items-center gap-3 sm:hidden">
-                  {/* Nombre + sector (ocupa el espacio disponible) */}
+                  {/* Nombre + sector + indicador de guardado */}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{b.name}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-sm truncate">{b.name}</span>
+                      {isSavingThis && <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin shrink-0" />}
+                      {isSavedThis  && <span className="text-green-400 text-xs shrink-0">✓</span>}
+                    </div>
                     {b.sector && (
                       <div className="text-xs text-[var(--foreground)]/40 mt-0.5 truncate">{b.sector}</div>
                     )}
@@ -473,7 +542,11 @@ export default function AdminModulos() {
                 {/* Desktop: grid de 4 columnas */}
                 <div className="hidden sm:grid sm:grid-cols-[1fr_160px_160px_44px] sm:items-center">
                   <div>
-                    <div className="font-medium text-sm">{b.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{b.name}</span>
+                      {isSavingThis && <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />}
+                      {isSavedThis  && <span className="text-green-400 text-xs">✓ guardado</span>}
+                    </div>
                     {b.sector && (
                       <div className="text-xs text-[var(--foreground)]/40 mt-0.5">{b.sector}</div>
                     )}
