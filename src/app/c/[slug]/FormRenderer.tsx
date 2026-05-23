@@ -148,11 +148,16 @@ function DefaultForm({
           </svg>
         </div>
         <h1 className="text-2xl font-bold mb-2">
-          {hasResource ? "¡Tu recurso está listo!" : "¡Gracias!"}
+          {hasResource ? "¡Tu recurso está listo!" : "¡Gracias por registrarte!"}
         </h1>
-        <p className="text-sm mb-8" style={{ opacity: 0.5 }}>
-          {hasResource ? "Pulsa el botón para descargarlo ahora" : "En breve nos ponemos en contacto contigo."}
+        <p className="text-sm mb-2" style={{ opacity: 0.7 }}>
+          {hasResource ? "Pulsa el botón para descargarlo ahora." : "Hemos guardado tus datos correctamente."}
         </p>
+        {businessPublicId && (
+          <p className="text-sm mb-8" style={{ opacity: 0.5 }}>
+            En breve serás redirigido a nuestra página exclusiva para que sigas disfrutando de nuestros servicios.
+          </p>
+        )}
         {leadMagnet && hasResource && (
           <div className="w-full max-w-sm mb-6">
             {leadMagnetUrl && (
@@ -180,14 +185,17 @@ function DefaultForm({
             )}
           </div>
         )}
-        {!hasResource && (
-          <p className="text-xs" style={{ opacity: 0.3 }}>Hemos guardado tus datos correctamente.</p>
-        )}
         {/* Countdown de redirección automática */}
         {countdown !== null && countdown > 0 && (
-          <p className="text-xs mt-6" style={{ opacity: 0.3 }}>
-            Accediendo a nuestra página en {countdown}s…
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <svg className="w-4 h-4 animate-spin" style={{ opacity: 0.35, color: s.accent_color }} fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"/>
+            </svg>
+            <p className="text-xs" style={{ opacity: 0.35 }}>
+              Accediendo a tu área exclusiva en {countdown}s…
+            </p>
+          </div>
         )}
       </div>
     );
@@ -616,9 +624,15 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
             </div>
             {/* Countdown de redirección automática a la landing de fidelización */}
             {businessPublicId && countdown !== null && countdown > 0 && (
-              <p className="text-xs mt-6" style={{ opacity: 0.3 }}>
-                Accediendo a nuestra página en {countdown}s…
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <svg className="w-4 h-4 animate-spin" style={{ opacity: 0.35, color: s.accent_color }} fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"/>
+                </svg>
+                <p className="text-xs" style={{ opacity: 0.35 }}>
+                  Accediendo a tu área exclusiva en {countdown}s…
+                </p>
+              </div>
             )}
           </div>
         );
