@@ -448,63 +448,124 @@ export default function AdminModulos() {
       )}
 
       {/* ── Acciones masivas ── */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
-        {/* Cabecera + indicador de guardado */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">
-            Aplicar a todos los negocios
-          </span>
-          {saving && (
-            <span className="flex items-center gap-1.5 text-xs text-blue-300">
-              <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-              Guardando…
-            </span>
-          )}
-        </div>
+      {(() => {
+        // Estado de cada módulo: 'on' = todos activos, 'off' = todos inactivos, 'mix' = mixto
+        const colState = (key: keyof Business): 'on' | 'off' | 'mix' => {
+          if (businesses.length === 0) return 'off';
+          const allOn  = businesses.every(b => Boolean(b[key]));
+          const allOff = businesses.every(b => !Boolean(b[key]));
+          return allOn ? 'on' : allOff ? 'off' : 'mix';
+        };
+        const fidAllState = (): 'on' | 'off' | 'mix' => {
+          if (businesses.length === 0) return 'off';
+          const allOn  = businesses.every(b => isFidActive(b));
+          const allOff = businesses.every(b => !isFidActive(b));
+          return allOn ? 'on' : allOff ? 'off' : 'mix';
+        };
+        const capAllState = colState('module_captacion');
+        const fidSt = fidAllState();
 
-        {/* Perfiles completos */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0">Perfiles</span>
-          {[
-            { label: "✓ Fidelización ON",  action: () => toggleAllFid(true),       cls: "bg-[var(--brand-3)]/20 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/40 border border-[var(--brand-3)]/30" },
-            { label: "✕ Fidelización OFF", action: () => toggleAllFid(false),      cls: "bg-gray-500/10 text-[var(--foreground)]/50 hover:bg-gray-500/20 border border-[var(--border)]" },
-            { label: "✓ Captación ON",     action: () => toggleAllCaptacion(true), cls: "bg-[var(--brand-4)]/20 text-[var(--brand-4)] hover:bg-[var(--brand-4)]/40 border border-[var(--brand-4)]/30" },
-            { label: "✕ Captación OFF",    action: () => toggleAllCaptacion(false),cls: "bg-gray-500/10 text-[var(--foreground)]/50 hover:bg-gray-500/20 border border-[var(--border)]" },
-          ].map((btn) => (
+        // Segmented control: dos botones (ON / OFF) que reflejan estado actual
+        const Seg = ({
+          labelOn, labelOff,
+          state, colorOn,
+          onOn, onOff,
+        }: {
+          labelOn: string; labelOff: string;
+          state: 'on' | 'off' | 'mix';
+          colorOn: string;
+          onOn: () => void; onOff: () => void;
+        }) => (
+          <div className="flex rounded-lg overflow-hidden border border-[var(--border)] shrink-0">
             <button
-              key={btn.label}
-              onClick={btn.action}
+              onClick={onOn}
               disabled={saving}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 ${btn.cls}`}
+              title="Activar para todos los negocios"
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
+                state === 'on'
+                  ? `${colorOn} text-white`
+                  : state === 'mix'
+                  ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
+                  : 'bg-transparent text-[var(--foreground)]/40 hover:bg-white/5'
+              }`}
             >
-              {btn.label}
+              {state === 'on' ? '● ' : state === 'mix' ? '◑ ' : '○ '}{labelOn}
             </button>
-          ))}
-        </div>
-
-        <div className="border-t border-[var(--border)]" />
-
-        {/* Módulos individuales */}
-        {FID_MODULES.map((m) => (
-          <div key={m.key} className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0 truncate">{m.label}</span>
+            <div className="w-px bg-[var(--border)]" />
             <button
-              onClick={() => toggleAllModule(m.key, true)}
+              onClick={onOff}
               disabled={saving}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40"
+              title="Desactivar para todos los negocios"
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
+                state === 'off'
+                  ? 'bg-gray-500/40 text-[var(--foreground)]/70'
+                  : 'bg-transparent text-[var(--foreground)]/30 hover:bg-white/5'
+              }`}
             >
-              ✓ Activar todos
-            </button>
-            <button
-              onClick={() => toggleAllModule(m.key, false)}
-              disabled={saving}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[var(--border)] bg-gray-500/10 text-[var(--foreground)]/40 hover:bg-gray-500/20 transition-colors disabled:opacity-40"
-            >
-              ✕ Desactivar
+              {state === 'off' ? '● ' : '○ '}{labelOff}
             </button>
           </div>
-        ))}
-      </div>
+        );
+
+        return (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
+            {/* Cabecera */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">
+                Aplicar a todos los negocios
+              </span>
+              {saving && (
+                <span className="flex items-center gap-1.5 text-xs text-blue-300">
+                  <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+                  Guardando…
+                </span>
+              )}
+            </div>
+
+            {/* Perfiles */}
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0">Fidelización</span>
+              <Seg
+                labelOn="Todos activos" labelOff="Todos inactivos"
+                state={fidSt} colorOn="bg-[var(--brand-3)]"
+                onOn={() => toggleAllFid(true)} onOff={() => toggleAllFid(false)}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0">Captación</span>
+              <Seg
+                labelOn="Todos activos" labelOff="Todos inactivos"
+                state={capAllState} colorOn="bg-[var(--brand-4)]"
+                onOn={() => toggleAllCaptacion(true)} onOff={() => toggleAllCaptacion(false)}
+              />
+            </div>
+
+            <div className="border-t border-[var(--border)]" />
+
+            {/* Módulos individuales */}
+            {FID_MODULES.map((m) => {
+              const st = colState(m.key);
+              return (
+                <div key={m.key} className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0 truncate">{m.label}</span>
+                  <Seg
+                    labelOn="Activo" labelOff="Inactivo"
+                    state={st} colorOn={m.color}
+                    onOn={() => toggleAllModule(m.key, true)}
+                    onOff={() => toggleAllModule(m.key, false)}
+                  />
+                  {st === 'mix' && (
+                    <span className="text-[10px] text-amber-400/70">
+                      {businesses.filter(b => Boolean(b[m.key])).length}/{businesses.length} activos
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* ── Tabla principal ── */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
