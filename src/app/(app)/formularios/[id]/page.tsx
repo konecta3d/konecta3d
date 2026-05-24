@@ -687,10 +687,16 @@ function BlockEditor({ block, onChange }: { block: FidFormBlock; onChange: (conf
 
 function StarDisplay({ value, max = 5 }: { value: number; max?: number }) {
   return (
-    <span className="inline-flex gap-0.5">
-      {Array.from({ length: max }, (_, i) => (
-        <span key={i} style={{ color: i < Math.round(value) ? "#C5A059" : "rgba(255,255,255,0.15)", fontSize: "14px" }}>★</span>
-      ))}
+    <span className="inline-flex gap-0.5 items-center">
+      {Array.from({ length: max }, (_, i) => {
+        const filled = i < Math.round(value);
+        return (
+          <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={filled ? "#C5A059" : "none"}
+            stroke={filled ? "#C5A059" : "rgba(255,255,255,0.2)"} strokeWidth="1.5">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        );
+      })}
     </span>
   );
 }
@@ -828,7 +834,7 @@ function ResponseCard({ entry, blocks }: { entry: FidelizacionFeedback; blocks: 
             )}
             {entry.avg_rating !== null && (
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(197,160,89,0.15)", color: "#C5A059" }}>
-                ★ {Number(entry.avg_rating).toFixed(1)}
+                {Number(entry.avg_rating).toFixed(1)}/5
               </span>
             )}
           </div>
