@@ -436,7 +436,7 @@ export default function LandingRenderer({
                             target="_blank"
                             rel="noreferrer"
                             className="block"
-                            onClick={() => trackEvent("link_click", "tool", tool.id, { tool_label: tool.label })}
+                            onClick={() => trackEvent("resource_cta_click", "tool", tool.id, { resource_label: tool.label, resource_url: tool.url })}
                           >
                             <div className="w-full max-w-[260px] mx-auto rounded-full bg-white px-4 py-2 text-sm font-semibold" style={{ color: "#0c1a24" }}>
                               {tool.label || "Abrir enlace"}

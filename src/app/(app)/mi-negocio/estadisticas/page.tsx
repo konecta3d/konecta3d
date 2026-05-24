@@ -5,37 +5,111 @@ import { supabase } from "@/lib/supabase";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type CtaClick = {
-  cta: string;
-  count: number;
-  label: string;
-};
+type CtaClick      = { cta: string; count: number; label: string };
+type ResourceClick = { resourceId: string; label: string; count: number };
+type MonthlyNPS    = { label: string; nps: number; count: number };
 
 type BehaviorStats = {
-  viewsToday: number;
-  viewsWeek: number;
-  viewsMonth: number;
-  ctaClicks: CtaClick[];
-  totalClicks: number;
-  pdfDownloads: number;
-  conversionRate: number;
-  bounceRate: number;
+  viewsToday: number; viewsWeek: number; viewsMonth: number;
+  ctaClicks: CtaClick[]; totalClicks: number;
+  pdfDownloads: number; conversionRate: number; bounceRate: number;
 };
 
-// ── Componentes auxiliares ────────────────────────────────────────────────────
+type ResourceStats = {
+  topResources: ResourceClick[];
+  totalClicks: number;
+  ctr: number; // % clics / visitas
+};
 
-function CtaBar({ cta, max }: { cta: CtaClick; max: number }) {
-  const pct = max > 0 ? (cta.count / max) * 100 : 0;
+type FidelizacionStats = {
+  totalResponses: number;
+  nps: number | null;
+  avgRating: number | null;
+  responseRate: number;
+  promotersPct: number;
+  passivesPct: number;
+  detractorsPct: number;
+  monthlyNPS: MonthlyNPS[];
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function npsColor(nps: number | null): string {
+  if (nps === null) return "var(--foreground)";
+  if (nps >= 50)  return "#22c55e";
+  if (nps >= 20)  return "var(--brand-1)";
+  if (nps >= 0)   return "#f59e0b";
+  return "#f87171";
+}
+
+const MONTH_LABELS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+// ── Componentes de visualización ──────────────────────────────────────────────
+
+function BarRow({ label, count, max, color = "var(--brand-1)" }: {
+  label: string; count: number; max: number; color?: string;
+}) {
+  const pct = max > 0 ? (count / max) * 100 : 0;
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-[var(--foreground)]/60 w-24 shrink-0 truncate">{cta.label}</span>
+      <span className="text-xs text-[var(--foreground)]/60 w-28 shrink-0 truncate">{label}</span>
       <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-[var(--brand-1)] transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-xs font-semibold w-10 text-right">{cta.count}</span>
+      <span className="text-xs font-semibold w-8 text-right">{count}</span>
+    </div>
+  );
+}
+
+function NpsDistribution({ p, pa, d }: { p: number; pa: number; d: number }) {
+  if (p + pa + d === 0) {
+    return <p className="text-xs text-[var(--foreground)]/40 text-center py-2">Sin datos suficientes</p>;
+  }
+  return (
+    <div className="space-y-2">
+      <div className="flex h-4 rounded-full overflow-hidden gap-px">
+        {d > 0 && <div style={{ width: `${d}%`, background: "#f87171" }} title={`Detractores ${d}%`} />}
+        {pa > 0 && <div style={{ width: `${pa}%`, background: "#f59e0b" }} title={`Pasivos ${pa}%`} />}
+        {p > 0 && <div style={{ width: `${p}%`, background: "#22c55e" }} title={`Promotores ${p}%`} />}
+      </div>
+      <div className="flex justify-between text-[10px] text-[var(--foreground)]/50">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Detractores {d}%</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block"/>Pasivos {pa}%</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"/>Promotores {p}%</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniNpsChart({ months }: { months: MonthlyNPS[] }) {
+  if (months.length === 0) {
+    return <p className="text-xs text-[var(--foreground)]/40 text-center py-4">Sin datos suficientes</p>;
+  }
+  const maxAbs = Math.max(...months.map(m => Math.abs(m.nps)), 10);
+  return (
+    <div className="flex items-end gap-2 h-24">
+      {months.map((m, i) => {
+        const heightPct = Math.abs(m.nps) / maxAbs * 100;
+        const isPos = m.nps >= 0;
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <span className="text-[9px] font-semibold" style={{ color: npsColor(m.nps) }}>
+              {m.nps > 0 ? "+" : ""}{m.nps}
+            </span>
+            <div className="w-full flex items-end" style={{ height: "56px" }}>
+              <div
+                className="w-full rounded-t-sm transition-all"
+                style={{
+                  height: `${Math.max(heightPct, 4)}%`,
+                  background: isPos ? "#22c55e" : "#f87171",
+                  opacity: m.count === 0 ? 0.2 : 1,
+                }}
+              />
+            </div>
+            <span className="text-[9px] text-[var(--foreground)]/40 truncate w-full text-center">{m.label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -45,14 +119,13 @@ function CtaBar({ cta, max }: { cta: CtaClick; max: number }) {
 export default function EstadisticasPage() {
   const [loading, setLoading] = useState(true);
   const [behavior, setBehavior] = useState<BehaviorStats>({
-    viewsToday: 0,
-    viewsWeek: 0,
-    viewsMonth: 0,
-    ctaClicks: [],
-    totalClicks: 0,
-    pdfDownloads: 0,
-    conversionRate: 0,
-    bounceRate: 0,
+    viewsToday: 0, viewsWeek: 0, viewsMonth: 0,
+    ctaClicks: [], totalClicks: 0, pdfDownloads: 0, conversionRate: 0, bounceRate: 0,
+  });
+  const [resources, setResources] = useState<ResourceStats>({ topResources: [], totalClicks: 0, ctr: 0 });
+  const [fidelizacion, setFidelizacion] = useState<FidelizacionStats>({
+    totalResponses: 0, nps: null, avgRating: null, responseRate: 0,
+    promotersPct: 0, passivesPct: 0, detractorsPct: 0, monthlyNPS: [],
   });
 
   useEffect(() => {
@@ -60,6 +133,7 @@ export default function EstadisticasPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const userEmail = sessionData.session?.user?.email || "";
       if (!userEmail) { setLoading(false); return; }
+
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
@@ -68,31 +142,53 @@ export default function EstadisticasPage() {
       const bid = biz?.id || "";
       if (!bid) { setLoading(false); return; }
 
-      const now = new Date();
+      // ── Rangos de fechas ────────────────────────────────────────────────────
+      const now     = new Date();
       const since7d  = new Date(now); since7d.setDate(now.getDate() - 7);
       const since30d = new Date(now); since30d.setDate(now.getDate() - 30);
+      const since6m  = new Date(now); since6m.setMonth(now.getMonth() - 6);
       const today    = new Date(now); today.setHours(0, 0, 0, 0);
-      const since1d  = today.toISOString();
 
-      // Leads últimos 30 días (para tasa de conversión)
-      const { count: leads30d } = await supabase
-        .from("clients")
-        .select("*", { count: "exact", head: true })
-        .eq("business_id", bid)
-        .gte("created_at", since30d.toISOString());
-
+      // ── Consultas en paralelo ───────────────────────────────────────────────
       const [
         { count: viewsToday },
         { count: viewsWeek },
         { count: viewsMonth },
+        { count: leads30d },
+        { count: clientsTotal },
         { data: analyticsRaw },
+        { data: resourceEventsRaw },
+        { data: feedbackRaw },
+        { data: landingRow },
       ] = await Promise.all([
-        supabase.from("analytics_events").select("*", { count: "exact", head: true }).eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since1d),
-        supabase.from("analytics_events").select("*", { count: "exact", head: true }).eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since7d.toISOString()),
-        supabase.from("analytics_events").select("*", { count: "exact", head: true }).eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since30d.toISOString()),
-        supabase.from("analytics_events").select("event_type, metadata, created_at").eq("business_id", bid).gte("created_at", since30d.toISOString()),
+        supabase.from("analytics_events").select("*", { count: "exact", head: true })
+          .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", today.toISOString()),
+        supabase.from("analytics_events").select("*", { count: "exact", head: true })
+          .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since7d.toISOString()),
+        supabase.from("analytics_events").select("*", { count: "exact", head: true })
+          .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since30d.toISOString()),
+        supabase.from("clients").select("*", { count: "exact", head: true })
+          .eq("business_id", bid).gte("created_at", since30d.toISOString()),
+        supabase.from("clients").select("*", { count: "exact", head: true })
+          .eq("business_id", bid),
+        supabase.from("analytics_events")
+          .select("event_type, metadata, created_at")
+          .eq("business_id", bid).gte("created_at", since30d.toISOString()),
+        // Clics en recursos (entity_type=tool cubre tanto link_click como resource_cta_click)
+        supabase.from("analytics_events")
+          .select("entity_id, metadata, created_at")
+          .eq("business_id", bid).eq("entity_type", "tool")
+          .gte("created_at", since30d.toISOString()),
+        // Feedback de fidelización (últimos 6 meses para tendencia)
+        supabase.from("fidelizacion_feedback")
+          .select("nps_score, avg_rating, submitted_at")
+          .eq("business_id", bid)
+          .gte("submitted_at", since6m.toISOString())
+          .order("submitted_at", { ascending: true }),
+        supabase.from("landing_configs").select("config").eq("business_id", bid).single(),
       ]);
 
+      // ── Behavior stats ──────────────────────────────────────────────────────
       const events = analyticsRaw || [];
       const ctaMap: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
       let pdfDownloads = 0;
@@ -107,20 +203,10 @@ export default function EstadisticasPage() {
         if (ev.event_type === "pdf_download") pdfDownloads++;
       }
 
-      // Labels de CTA desde la landing config
-      const { data: landingRow } = await supabase
-        .from("landing_configs")
-        .select("config")
-        .eq("business_id", bid)
-        .single();
-
       let cfg: Record<string, string> = {};
       if (landingRow?.config) {
         const raw = landingRow.config;
-        const resolved = raw.versions
-          ? (raw.versions[raw.published || "A"] || raw.versions["A"] || {})
-          : raw;
-        cfg = resolved;
+        cfg = raw.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"] || {}) : raw;
       }
 
       const ctaClicks: CtaClick[] = [
@@ -128,28 +214,90 @@ export default function EstadisticasPage() {
         { cta: "2", count: ctaMap["2"], label: cfg.cta2Text || "CTA 2" },
         { cta: "3", count: ctaMap["3"], label: cfg.cta3Text || "CTA 3" },
       ];
-      const totalClicks = ctaClicks.reduce((s, c) => s + c.count, 0);
-
+      const totalCtaClicks = ctaClicks.reduce((s, c) => s + c.count, 0);
       const vMonth = viewsMonth || 0;
       const conversionRate = vMonth > 0 ? Math.round(((leads30d || 0) / vMonth) * 100 * 10) / 10 : 0;
-
-      const daysWithViewSet = new Set(
-        events.filter(e => e.event_type === "page_view").map(e => e.created_at.slice(0, 10))
-      );
+      const daysWithViewSet = new Set(events.filter(e => e.event_type === "page_view").map(e => e.created_at.slice(0, 10)));
       const bounceDays = [...daysWithViewSet].filter(d => !daysWithClickSet.has(d)).length;
       const bounceRate = daysWithViewSet.size > 0 ? Math.round((bounceDays / daysWithViewSet.size) * 100) : 0;
 
       setBehavior({
-        viewsToday: viewsToday || 0,
-        viewsWeek:  viewsWeek  || 0,
-        viewsMonth: viewsMonth || 0,
-        ctaClicks,
-        totalClicks,
-        pdfDownloads,
-        conversionRate,
-        bounceRate,
+        viewsToday: viewsToday || 0, viewsWeek: viewsWeek || 0, viewsMonth: vMonth,
+        ctaClicks, totalClicks: totalCtaClicks, pdfDownloads, conversionRate, bounceRate,
       });
 
+      // ── Resource stats ──────────────────────────────────────────────────────
+      const resEvents = resourceEventsRaw || [];
+      const resMap: Record<string, { label: string; count: number }> = {};
+      for (const ev of resEvents) {
+        const id = ev.entity_id || "unknown";
+        const label = ev.metadata?.resource_label || ev.metadata?.tool_label || id;
+        if (!resMap[id]) resMap[id] = { label, count: 0 };
+        resMap[id].count++;
+      }
+      const topResources: ResourceClick[] = Object.entries(resMap)
+        .map(([resourceId, { label, count }]) => ({ resourceId, label, count }))
+        .sort((a, b) => b.count - a.count);
+      const totalResClicks = topResources.reduce((s, r) => s + r.count, 0);
+      const ctr = vMonth > 0 ? Math.round((totalResClicks / vMonth) * 100 * 10) / 10 : 0;
+
+      setResources({ topResources, totalClicks: totalResClicks, ctr });
+
+      // ── Fidelización stats ──────────────────────────────────────────────────
+      const feedback = feedbackRaw || [];
+      const total = feedback.length;
+
+      // NPS + distribución
+      const withNps = feedback.filter(f => f.nps_score !== null);
+      let promoters = 0, passives = 0, detractors = 0;
+      for (const f of withNps) {
+        if (f.nps_score >= 9) promoters++;
+        else if (f.nps_score >= 7) passives++;
+        else detractors++;
+      }
+      const npsTotal = withNps.length;
+      const nps = npsTotal > 0
+        ? Math.round(((promoters - detractors) / npsTotal) * 100)
+        : null;
+      const promotersPct  = npsTotal > 0 ? Math.round((promoters  / npsTotal) * 100) : 0;
+      const passivesPct   = npsTotal > 0 ? Math.round((passives   / npsTotal) * 100) : 0;
+      const detractorsPct = npsTotal > 0 ? Math.round((detractors / npsTotal) * 100) : 0;
+
+      // Puntuación media (avg_rating)
+      const withRating = feedback.filter(f => f.avg_rating !== null);
+      const avgRating = withRating.length > 0
+        ? Math.round((withRating.reduce((s, f) => s + f.avg_rating, 0) / withRating.length) * 10) / 10
+        : null;
+
+      // Tasa de respuesta
+      const responseRate = (clientsTotal || 0) > 0
+        ? Math.round((total / (clientsTotal as number)) * 100)
+        : 0;
+
+      // Tendencia NPS mensual (últimos 6 meses)
+      const monthlyMap: Record<string, { promoters: number; detractors: number; total: number }> = {};
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now);
+        d.setMonth(now.getMonth() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        monthlyMap[key] = { promoters: 0, detractors: 0, total: 0 };
+      }
+      for (const f of feedback) {
+        if (f.nps_score === null) continue;
+        const key = f.submitted_at.slice(0, 7); // "YYYY-MM"
+        if (!(key in monthlyMap)) continue;
+        monthlyMap[key].total++;
+        if (f.nps_score >= 9) monthlyMap[key].promoters++;
+        else if (f.nps_score <= 6) monthlyMap[key].detractors++;
+      }
+      const monthlyNPS: MonthlyNPS[] = Object.entries(monthlyMap).map(([key, { promoters: p, detractors: d, total: t }]) => {
+        const [year, month] = key.split("-");
+        const label = `${MONTH_LABELS[parseInt(month) - 1]} ${year.slice(2)}`;
+        const npsVal = t > 0 ? Math.round(((p - d) / t) * 100) : 0;
+        return { label, nps: npsVal, count: t };
+      });
+
+      setFidelizacion({ totalResponses: total, nps, avgRating, responseRate, promotersPct, passivesPct, detractorsPct, monthlyNPS });
       setLoading(false);
     };
 
@@ -164,106 +312,216 @@ export default function EstadisticasPage() {
     );
   }
 
-  const maxClicks = Math.max(...behavior.ctaClicks.map(c => c.count), 1);
+  const maxCtaClicks = Math.max(...behavior.ctaClicks.map(c => c.count), 1);
+  const maxResClicks = Math.max(...resources.topResources.map(r => r.count), 1);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Cabecera */}
+    <div className="max-w-4xl mx-auto space-y-8">
+
+      {/* ── Cabecera ─────────────────────────────────────────────────────────── */}
       <div>
         <h1 className="text-2xl font-bold">Estadísticas</h1>
-        <p className="text-sm text-[var(--foreground)]/60 mt-1">
-          Comportamiento de tu landing · últimos 30 días
-        </p>
+        <p className="text-sm text-[var(--foreground)]/60 mt-1">Comportamiento de tu landing · últimos 30 días</p>
       </div>
 
-      {/* Visitas a la landing */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <h2 className="text-sm font-semibold mb-4">Visitas a la landing</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <p className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/50 mb-1">Hoy</p>
-            <p className="text-3xl font-bold text-[var(--brand-1)]">{behavior.viewsToday}</p>
-          </div>
-          <div className="text-center border-x border-[var(--border)]">
-            <p className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/50 mb-1">Esta semana</p>
-            <p className="text-3xl font-bold text-[var(--brand-1)]">{behavior.viewsWeek}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/50 mb-1">Este mes</p>
-            <p className="text-3xl font-bold text-[var(--brand-1)]">{behavior.viewsMonth}</p>
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* BLOQUE 1 — Visitas a la landing                                       */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]/40">Landing</h2>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+          <p className="text-sm font-semibold mb-4">Visitas</p>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: "Hoy", value: behavior.viewsToday },
+              { label: "Esta semana", value: behavior.viewsWeek },
+              { label: "Este mes", value: behavior.viewsMonth },
+            ].map(({ label, value }, i) => (
+              <div key={i} className={`text-center ${i === 1 ? "border-x border-[var(--border)]" : ""}`}>
+                <p className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/50 mb-1">{label}</p>
+                <p className="text-3xl font-bold text-[var(--brand-1)]">{value}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* CTAs + métricas clave */}
-      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* CTAs más pulsados */}
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold">CTAs más pulsados</p>
+              <span className="text-xs text-[var(--foreground)]/50">{behavior.totalClicks} total</span>
+            </div>
+            {behavior.totalClicks === 0 ? (
+              <p className="text-xs text-[var(--foreground)]/40 text-center py-4">Sin clics registrados aún</p>
+            ) : (
+              <div className="space-y-3">
+                {[...behavior.ctaClicks].sort((a, b) => b.count - a.count).map(cta => (
+                  <BarRow key={cta.cta} label={cta.label} count={cta.count} max={maxCtaClicks} />
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* CTAs más pulsados */}
+          {/* Conversión + Rebote */}
+          <div className="space-y-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+              <p className="text-xs text-[var(--foreground)]/60 mb-1">Tasa de conversión</p>
+              <p className="text-3xl font-bold text-green-500">{behavior.conversionRate}%</p>
+              <p className="text-xs text-[var(--foreground)]/40 mt-1">leads captados / visitas (30 días)</p>
+            </div>
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+              <p className="text-xs text-[var(--foreground)]/60 mb-1">Rebote implícito</p>
+              <p className="text-3xl font-bold text-orange-400">{behavior.bounceRate}%</p>
+              <p className="text-xs text-[var(--foreground)]/40 mt-1">días con visitas sin ningún clic</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Descargas */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas de Recursos de Valor</p>
+            <p className="text-3xl font-bold text-[var(--brand-4)]">{behavior.pdfDownloads}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">últimos 30 días</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 opacity-40">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas de Beneficios VIP</p>
+            <p className="text-3xl font-bold text-blue-400">—</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">próximamente</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* BLOQUE 2 — Recursos de Valor                                          */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]/40">Recursos de Valor</h2>
+
+        {/* Métricas rápidas */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Clics totales en recursos</p>
+            <p className="text-3xl font-bold text-[var(--brand-1)]">{resources.totalClicks}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">últimos 30 días</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">CTR de recursos</p>
+            <p className="text-3xl font-bold text-purple-400">{resources.ctr}%</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">clics / visitas a la landing</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Recursos activos</p>
+            <p className="text-3xl font-bold" style={{ color: "var(--brand-2)" }}>{resources.topResources.length}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">con al menos 1 clic</p>
+          </div>
+        </div>
+
+        {/* Ranking de recursos */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold">CTAs más pulsados</h2>
-            <span className="text-xs text-[var(--foreground)]/50">{behavior.totalClicks} total</span>
+            <p className="text-sm font-semibold">Interés por recurso</p>
+            <span className="text-xs text-[var(--foreground)]/50">30 días</span>
           </div>
-          {behavior.totalClicks === 0 ? (
-            <p className="text-xs text-[var(--foreground)]/40 text-center py-4">
-              Sin clics registrados aún
-            </p>
+          {resources.topResources.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-xs text-[var(--foreground)]/40">Sin clics registrados en recursos aún</p>
+              <p className="text-[10px] text-[var(--foreground)]/25 mt-1">Los clics se registran cuando un visitante pulsa un botón de recurso en tu landing</p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {behavior.ctaClicks
-                .sort((a, b) => b.count - a.count)
-                .map((cta) => (
-                  <CtaBar key={cta.cta} cta={cta} max={maxClicks} />
-                ))}
+              {resources.topResources.map(r => (
+                <BarRow key={r.resourceId} label={r.label} count={r.count} max={maxResClicks} color="var(--brand-3)" />
+              ))}
+              {/* Recursos sin clics */}
+              {resources.topResources.every(r => r.count > 0) && (
+                <p className="text-[10px] text-[var(--foreground)]/30 text-center pt-2">
+                  Solo se muestran recursos con al menos 1 clic en los últimos 30 días
+                </p>
+              )}
             </div>
           )}
         </div>
+      </section>
 
-        {/* Conversión + Rebote */}
-        <div className="space-y-4">
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* BLOQUE 3 — Formularios de Fidelización                                */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]/40">Formularios de Fidelización</h2>
+
+        {/* KPIs principales */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">Tasa de conversión</p>
-            <p className="text-3xl font-bold text-green-500">{behavior.conversionRate}%</p>
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Respuestas totales</p>
+            <p className="text-3xl font-bold text-[var(--brand-1)]">{fidelizacion.totalResponses}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">últimos 6 meses</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">NPS real</p>
+            <p className="text-3xl font-bold" style={{ color: npsColor(fidelizacion.nps) }}>
+              {fidelizacion.nps !== null ? (fidelizacion.nps > 0 ? `+${fidelizacion.nps}` : fidelizacion.nps) : "—"}
+            </p>
             <p className="text-xs text-[var(--foreground)]/40 mt-1">
-              leads captados / visitas (30 días)
+              {fidelizacion.nps === null ? "sin datos NPS" :
+               fidelizacion.nps >= 50 ? "Excelente" :
+               fidelizacion.nps >= 20 ? "Bueno" :
+               fidelizacion.nps >= 0  ? "Mejorable" : "Crítico"}
             </p>
           </div>
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">Rebote implícito</p>
-            <p className="text-3xl font-bold text-orange-400">{behavior.bounceRate}%</p>
-            <p className="text-xs text-[var(--foreground)]/40 mt-1">
-              días con visitas sin ningún clic
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Puntuación media</p>
+            <p className="text-3xl font-bold text-amber-400">
+              {fidelizacion.avgRating !== null ? `${fidelizacion.avgRating}/10` : "—"}
             </p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">promedio de valoraciones</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Tasa de respuesta</p>
+            <p className="text-3xl font-bold text-blue-400">{fidelizacion.responseRate}%</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">respuestas / clientes totales</p>
           </div>
         </div>
-      </div>
 
-      {/* Descargas */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-          <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas de Recursos de Valor</p>
-          <p className="text-3xl font-bold text-[var(--brand-4)]">{behavior.pdfDownloads}</p>
-          <p className="text-xs text-[var(--foreground)]/40 mt-1">últimos 30 días</p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 opacity-40">
-          <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas de Beneficios VIP</p>
-          <p className="text-3xl font-bold text-blue-400">—</p>
-          <p className="text-xs text-[var(--foreground)]/40 mt-1">próximamente</p>
-        </div>
-      </div>
-
-      {/* Formularios completados — próximamente */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 opacity-40">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">Formularios completados</p>
-            <p className="text-3xl font-bold">—</p>
+        {/* Distribución + Tendencia */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Distribución Promotor / Pasivo / Detractor */}
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-sm font-semibold mb-4">Distribución NPS</p>
+            <NpsDistribution
+              p={fidelizacion.promotersPct}
+              pa={fidelizacion.passivesPct}
+              d={fidelizacion.detractorsPct}
+            />
+            {fidelizacion.promotersPct + fidelizacion.passivesPct + fidelizacion.detractorsPct > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                <div>
+                  <p className="text-lg font-bold text-red-400">{fidelizacion.detractorsPct}%</p>
+                  <p className="text-[10px] text-[var(--foreground)]/40">Detractores<br/><span className="text-[9px]">0–6</span></p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-amber-400">{fidelizacion.passivesPct}%</p>
+                  <p className="text-[10px] text-[var(--foreground)]/40">Pasivos<br/><span className="text-[9px]">7–8</span></p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-green-500">{fidelizacion.promotersPct}%</p>
+                  <p className="text-[10px] text-[var(--foreground)]/40">Promotores<br/><span className="text-[9px]">9–10</span></p>
+                </div>
+              </div>
+            )}
           </div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/50">
-            Próximamente
-          </span>
+
+          {/* Tendencia NPS mensual */}
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold">Tendencia NPS</p>
+              <span className="text-xs text-[var(--foreground)]/50">6 meses</span>
+            </div>
+            <MiniNpsChart months={fidelizacion.monthlyNPS} />
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
