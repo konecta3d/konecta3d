@@ -17,30 +17,34 @@ interface SidebarLink {
   badge?: boolean;
 }
 
+// Perfil de Negocio
+const negocioLinks: SidebarLink[] = [
+  { label: "Perfil", href: "/negocio/perfil", category: "Mi Negocio" },
+  { label: "Estadísticas", href: "/negocio/estadisticas", category: "Mi Negocio" },
+  { label: "Herramientas", href: "/negocio/herramientas", category: "Mi Negocio", module: "module_tools" },
+  { label: "Clientes", href: "/negocio/clientes", category: "Mi Negocio" },
+  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
+];
+
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
-  { label: "Perfil", href: "/mi-negocio/perfil", category: "Mi Negocio" },
-  { label: "Clientes", href: "/captacion/clientes", category: "Mi Negocio" },
-  { label: "Estadísticas", href: "/mi-negocio/estadisticas", category: "Mi Negocio" },
   { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
   { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Generadores", nameKey: "vipBenefits", module: "module_vip_benefits" },
   { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
-  { label: "Herramientas del negocio", href: "/acciones", category: "Herramientas del negocio", module: "module_tools" },
-  { label: "Mi Contexto", href: "/mi-contexto", category: "Mi Negocio" },
-  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "GPT", module: "module_gpt" },
+  { label: "Contexto de Fidelización", href: "/mi-contexto", category: "Configuración" },
+  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "Configuración", module: "module_gpt" },
   { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
 
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   { label: "Inicio", href: "/captacion", category: "Captación" },
-  { label: "Contexto", href: "/captacion/contexto", category: "Captación" },
+  { label: "Contexto de Captación", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Lead Magnets", href: "/captacion/lead-magnets", category: "Captación" },
   { label: "Recorrido del Cliente", href: "/captacion/recorrido", category: "Captación" },
-  { label: "Clientes", href: "/captacion/clientes", category: "Captación" },
   { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
 
@@ -175,11 +179,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [isAdminMode]);
 
   const isCaptacionMode = pathname.startsWith("/captacion");
-  const baseLinks = isAdminMode ? adminLinks : isCaptacionMode ? captacionLinks : fidelizacionLinks;
+  const isNegocioMode   = pathname.startsWith("/negocio");
+  const baseLinks = isAdminMode
+    ? adminLinks
+    : isCaptacionMode
+    ? captacionLinks
+    : isNegocioMode
+    ? negocioLinks
+    : fidelizacionLinks;
 
   const links = baseLinks
     .filter((l) => {
-      if (!isAdminMode && !isCaptacionMode && l.module && modules[l.module] === false) {
+      if (!isAdminMode && !isCaptacionMode && !isNegocioMode && l.module && modules[l.module] === false) {
+        return false;
+      }
+      if (isNegocioMode && l.module && modules[l.module] === false) {
         return false;
       }
       return true;
