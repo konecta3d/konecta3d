@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type CtaClick      = { cta: string; count: number; label: string };
-type ResourceClick = { resourceId: string; label: string; count: number };
-type MonthlyNPS    = { label: string; nps: number; count: number };
+type CtaClick        = { cta: string; count: number; label: string };
+type LeadMagnetStat = { id: string; title: string; ctaClicks: number; downloads: number };
+type MonthlyNPS     = { label: string; nps: number; count: number };
 
 type BehaviorStats = {
   viewsToday: number; viewsWeek: number; viewsMonth: number;
@@ -16,9 +16,9 @@ type BehaviorStats = {
 };
 
 type ResourceStats = {
-  topResources: ResourceClick[];
-  totalClicks: number;
-  ctr: number; // % clics / visitas
+  leadMagnets: LeadMagnetStat[];
+  totalCtaClicks: number;
+  totalDownloads: number;
 };
 
 type FidelizacionStats = {
@@ -122,7 +122,7 @@ export default function EstadisticasPage() {
     viewsToday: 0, viewsWeek: 0, viewsMonth: 0,
     ctaClicks: [], totalClicks: 0, pdfDownloads: 0, conversionRate: 0, bounceRate: 0,
   });
-  const [resources, setResources] = useState<ResourceStats>({ topResources: [], totalClicks: 0, ctr: 0 });
+  const [resources, setResources] = useState<ResourceStats>({ leadMagnets: [], totalCtaClicks: 0, totalDownloads: 0 });
   const [fidelizacion, setFidelizacion] = useState<FidelizacionStats>({
     totalResponses: 0, nps: null, avgRating: null, responseRate: 0,
     promotersPct: 0, passivesPct: 0, detractorsPct: 0, monthlyNPS: [],
@@ -157,34 +157,48 @@ export default function EstadisticasPage() {
         { count: leads30d },
         { count: clientsTotal },
         { data: analyticsRaw },
-        { data: resourceEventsRaw },
+        { data: lmRows },
+        { data: lmEventsRaw },
         { data: feedbackRaw },
         { data: landingRow },
       ] = await Promise.all([
+        // 0 — visitas hoy
         supabase.from("analytics_events").select("*", { count: "exact", head: true })
           .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", today.toISOString()),
+        // 1 — visitas semana
         supabase.from("analytics_events").select("*", { count: "exact", head: true })
           .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since7d.toISOString()),
+        // 2 — visitas mes
         supabase.from("analytics_events").select("*", { count: "exact", head: true })
           .eq("business_id", bid).eq("event_type", "page_view").gte("created_at", since30d.toISOString()),
+        // 3 — leads 30d (conversión)
         supabase.from("clients").select("*", { count: "exact", head: true })
           .eq("business_id", bid).gte("created_at", since30d.toISOString()),
+        // 4 — clientes totales (tasa de respuesta)
         supabase.from("clients").select("*", { count: "exact", head: true })
           .eq("business_id", bid),
+        // 5 — todos los analytics del negocio (30d) para CTAs y rebote
         supabase.from("analytics_events")
           .select("event_type, metadata, created_at")
           .eq("business_id", bid).gte("created_at", since30d.toISOString()),
-        // Clics en recursos (entity_type=tool cubre tanto link_click como resource_cta_click)
+        // 6 — lead magnets activos
+        supabase.from("lead_magnets")
+          .select("id, title")
+          .eq("business_id", bid)
+          .eq("active", true)
+          .order("created_at", { ascending: false }),
+        // 7 — eventos de lead magnets (todos los históricos: resource_cta_click + pdf_download)
         supabase.from("analytics_events")
-          .select("entity_id, metadata, created_at")
-          .eq("business_id", bid).eq("entity_type", "tool")
-          .gte("created_at", since30d.toISOString()),
-        // Feedback de fidelización (últimos 6 meses para tendencia)
+          .select("event_type, entity_id")
+          .eq("business_id", bid)
+          .eq("entity_type", "lead_magnet"),
+        // 8 — feedback de fidelización (6 meses)
         supabase.from("fidelizacion_feedback")
           .select("nps_score, avg_rating, submitted_at")
           .eq("business_id", bid)
           .gte("submitted_at", since6m.toISOString())
           .order("submitted_at", { ascending: true }),
+        // 9 — config de landing (labels de CTAs)
         supabase.from("landing_configs").select("config").eq("business_id", bid).single(),
       ]);
 
@@ -226,22 +240,25 @@ export default function EstadisticasPage() {
         ctaClicks, totalClicks: totalCtaClicks, pdfDownloads, conversionRate, bounceRate,
       });
 
-      // ── Resource stats ──────────────────────────────────────────────────────
-      const resEvents = resourceEventsRaw || [];
-      const resMap: Record<string, { label: string; count: number }> = {};
-      for (const ev of resEvents) {
-        const id = ev.entity_id || "unknown";
-        const label = ev.metadata?.resource_label || ev.metadata?.tool_label || id;
-        if (!resMap[id]) resMap[id] = { label, count: 0 };
-        resMap[id].count++;
+      // ── Resource stats (lead magnets reales) ────────────────────────────────
+      const lmClickMap:    Record<string, number> = {};
+      const lmDownloadMap: Record<string, number> = {};
+      for (const ev of lmEventsRaw ?? []) {
+        if (!ev.entity_id) continue;
+        if (ev.event_type === "resource_cta_click") lmClickMap[ev.entity_id]    = (lmClickMap[ev.entity_id]    || 0) + 1;
+        if (ev.event_type === "pdf_download")        lmDownloadMap[ev.entity_id] = (lmDownloadMap[ev.entity_id] || 0) + 1;
       }
-      const topResources: ResourceClick[] = Object.entries(resMap)
-        .map(([resourceId, { label, count }]) => ({ resourceId, label, count }))
-        .sort((a, b) => b.count - a.count);
-      const totalResClicks = topResources.reduce((s, r) => s + r.count, 0);
-      const ctr = vMonth > 0 ? Math.round((totalResClicks / vMonth) * 100 * 10) / 10 : 0;
 
-      setResources({ topResources, totalClicks: totalResClicks, ctr });
+      const leadMagnetStats: LeadMagnetStat[] = (lmRows ?? []).map(lm => ({
+        id:        lm.id,
+        title:     lm.title || "Sin título",
+        ctaClicks: lmClickMap[lm.id]    || 0,
+        downloads: lmDownloadMap[lm.id] || 0,
+      })).sort((a, b) => (b.ctaClicks + b.downloads) - (a.ctaClicks + a.downloads));
+
+      const totalResCtaClicks = leadMagnetStats.reduce((s, r) => s + r.ctaClicks, 0);
+      const totalResDownloads = leadMagnetStats.reduce((s, r) => s + r.downloads, 0);
+      setResources({ leadMagnets: leadMagnetStats, totalCtaClicks: totalResCtaClicks, totalDownloads: totalResDownloads });
 
       // ── Fidelización stats ──────────────────────────────────────────────────
       const feedback = feedbackRaw || [];
@@ -313,7 +330,6 @@ export default function EstadisticasPage() {
   }
 
   const maxCtaClicks = Math.max(...behavior.ctaClicks.map(c => c.count), 1);
-  const maxResClicks = Math.max(...resources.topResources.map(r => r.count), 1);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -402,44 +418,69 @@ export default function EstadisticasPage() {
         {/* Métricas rápidas */}
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">Clics totales en recursos</p>
-            <p className="text-3xl font-bold text-[var(--brand-1)]">{resources.totalClicks}</p>
-            <p className="text-xs text-[var(--foreground)]/40 mt-1">últimos 30 días</p>
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Recursos creados</p>
+            <p className="text-3xl font-bold text-[var(--brand-1)]">{resources.leadMagnets.length}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">lead magnets activos</p>
           </div>
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">CTR de recursos</p>
-            <p className="text-3xl font-bold text-purple-400">{resources.ctr}%</p>
-            <p className="text-xs text-[var(--foreground)]/40 mt-1">clics / visitas a la landing</p>
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Interés total (clics CTA)</p>
+            <p className="text-3xl font-bold text-purple-400">{resources.totalCtaClicks}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">veces que se pulsó el botón</p>
           </div>
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-            <p className="text-xs text-[var(--foreground)]/60 mb-1">Recursos activos</p>
-            <p className="text-3xl font-bold" style={{ color: "var(--brand-2)" }}>{resources.topResources.length}</p>
-            <p className="text-xs text-[var(--foreground)]/40 mt-1">con al menos 1 clic</p>
+            <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas totales</p>
+            <p className="text-3xl font-bold" style={{ color: "var(--brand-4)" }}>{resources.totalDownloads}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">PDFs descargados</p>
           </div>
         </div>
 
-        {/* Ranking de recursos */}
+        {/* Tabla de recursos con interacciones */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold">Interés por recurso</p>
-            <span className="text-xs text-[var(--foreground)]/50">30 días</span>
+            <span className="text-xs text-[var(--foreground)]/50">histórico completo</span>
           </div>
-          {resources.topResources.length === 0 ? (
+          {resources.leadMagnets.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-xs text-[var(--foreground)]/40">Sin clics registrados en recursos aún</p>
-              <p className="text-[10px] text-[var(--foreground)]/25 mt-1">Los clics se registran cuando un visitante pulsa un botón de recurso en tu landing</p>
+              <p className="text-xs text-[var(--foreground)]/40">No tienes recursos de valor creados aún</p>
+              <p className="text-[10px] text-[var(--foreground)]/25 mt-1">
+                Crea un lead magnet y asígnalo a un CTA de tu landing para empezar a medir interacciones
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {resources.topResources.map(r => (
-                <BarRow key={r.resourceId} label={r.label} count={r.count} max={maxResClicks} color="var(--brand-3)" />
-              ))}
-              {/* Recursos sin clics */}
-              {resources.topResources.every(r => r.count > 0) && (
-                <p className="text-[10px] text-[var(--foreground)]/30 text-center pt-2">
-                  Solo se muestran recursos con al menos 1 clic en los últimos 30 días
-                </p>
-              )}
+              {/* Cabecera */}
+              <div className="flex items-center gap-3 pb-2 border-b border-[var(--border)]">
+                <span className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/40 flex-1">Recurso</span>
+                <span className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/40 w-20 text-right">Clics CTA</span>
+                <span className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/40 w-20 text-right">Descargas</span>
+              </div>
+              {resources.leadMagnets.map(lm => {
+                const maxVal = Math.max(...resources.leadMagnets.map(r => r.ctaClicks + r.downloads), 1);
+                const total = lm.ctaClicks + lm.downloads;
+                const pct = (total / maxVal) * 100;
+                return (
+                  <div key={lm.id} className="space-y-1.5">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-[var(--foreground)]/80 flex-1 truncate font-medium">{lm.title}</span>
+                      <span className="text-xs font-semibold w-20 text-right text-purple-400">{lm.ctaClicks}</span>
+                      <span className="text-xs font-semibold w-20 text-right" style={{ color: "var(--brand-4)" }}>{lm.downloads}</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(90deg, #a855f7 0%, var(--brand-4) 100%)`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="text-[10px] text-[var(--foreground)]/25 pt-2">
+                Clics CTA = interés mostrado · Descargas = PDF abierto
+              </p>
             </div>
           )}
         </div>

@@ -274,6 +274,7 @@ export default function LandingRenderer({
                       className="block w-full"
                       onClick={() => {
                         trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 });
+                        trackEvent("resource_cta_click", "lead_magnet", config.cta1LeadMagnetId, { resource_label: config.cta1Text, cta_number: 1 });
                         openLeadCapture(config.cta1LeadMagnetId, config.cta1Text || "");
                       }}
                     >
@@ -305,6 +306,7 @@ export default function LandingRenderer({
                       className="block w-full"
                       onClick={() => {
                         trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 });
+                        trackEvent("resource_cta_click", "lead_magnet", config.cta2LeadMagnetId, { resource_label: config.cta2Text, cta_number: 2 });
                         openLeadCapture(config.cta2LeadMagnetId, config.cta2Text || "");
                       }}
                     >
@@ -336,6 +338,7 @@ export default function LandingRenderer({
                       className="block w-full"
                       onClick={() => {
                         trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 });
+                        trackEvent("resource_cta_click", "lead_magnet", config.cta3LeadMagnetId, { resource_label: config.cta3Text, cta_number: 3 });
                         openLeadCapture(config.cta3LeadMagnetId, config.cta3Text || "");
                       }}
                     >
