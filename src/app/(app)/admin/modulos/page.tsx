@@ -96,6 +96,8 @@ export default function AdminModulos() {
 
   // Ref para auto-save por negocio: id → timer
   const autoSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Timer para bulk-save (acciones masivas)
+  const bulkSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref para leer businesses actual sin stale closure
   const businessesRef = useRef<Business[]>([]);
   const missingColsRef = useRef<string[]>([]);
@@ -258,6 +260,13 @@ export default function AdminModulos() {
     );
   };
 
+  // Programa un guardado masivo de todos los negocios (debounce 600ms)
+  // Necesita un pequeño delay para que businessesRef se actualice tras el re-render
+  const scheduleBulkSave = () => {
+    if (bulkSaveTimer.current) clearTimeout(bulkSaveTimer.current);
+    bulkSaveTimer.current = setTimeout(() => saveAll(), 600);
+  };
+
   const toggleAllFid = (value: boolean) => {
     setBusinesses((prev) =>
       prev.map((b) => {
@@ -272,14 +281,17 @@ export default function AdminModulos() {
         }
       })
     );
+    scheduleBulkSave();
   };
 
   const toggleAllCaptacion = (value: boolean) => {
     setBusinesses((prev) => prev.map((b) => ({ ...b, module_captacion: value })));
+    scheduleBulkSave();
   };
 
   const toggleAllModule = (key: keyof Business, value: boolean) => {
     setBusinesses((prev) => prev.map((b) => ({ ...b, [key]: value })));
+    scheduleBulkSave();
   };
 
   // Mostrar mensaje temporal
@@ -437,18 +449,34 @@ export default function AdminModulos() {
 
       {/* ── Acciones masivas ── */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">Aplicar a todos los negocios</span>
+        {/* Cabecera + indicador de guardado */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--foreground)]/40">
+            Aplicar a todos los negocios
+          </span>
+          {saving && (
+            <span className="flex items-center gap-1.5 text-xs text-blue-300">
+              <span className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+              Guardando…
+            </span>
+          )}
+        </div>
 
         {/* Perfiles completos */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-[var(--foreground)]/50 w-24 shrink-0">Perfiles</span>
+          <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0">Perfiles</span>
           {[
-            { label: "Fidelización ON",  action: () => toggleAllFid(true),           cls: "bg-[var(--brand-3)]/20 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/30" },
-            { label: "Fidelización OFF", action: () => toggleAllFid(false),          cls: "bg-gray-500/20 text-[var(--foreground)]/50 hover:bg-gray-500/30" },
-            { label: "Captación ON",     action: () => toggleAllCaptacion(true),     cls: "bg-[var(--brand-4)]/20 text-[var(--brand-4)] hover:bg-[var(--brand-4)]/30" },
-            { label: "Captación OFF",    action: () => toggleAllCaptacion(false),    cls: "bg-gray-500/20 text-[var(--foreground)]/50 hover:bg-gray-500/30" },
+            { label: "✓ Fidelización ON",  action: () => toggleAllFid(true),       cls: "bg-[var(--brand-3)]/20 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/40 border border-[var(--brand-3)]/30" },
+            { label: "✕ Fidelización OFF", action: () => toggleAllFid(false),      cls: "bg-gray-500/10 text-[var(--foreground)]/50 hover:bg-gray-500/20 border border-[var(--border)]" },
+            { label: "✓ Captación ON",     action: () => toggleAllCaptacion(true), cls: "bg-[var(--brand-4)]/20 text-[var(--brand-4)] hover:bg-[var(--brand-4)]/40 border border-[var(--brand-4)]/30" },
+            { label: "✕ Captación OFF",    action: () => toggleAllCaptacion(false),cls: "bg-gray-500/10 text-[var(--foreground)]/50 hover:bg-gray-500/20 border border-[var(--border)]" },
           ].map((btn) => (
-            <button key={btn.label} onClick={btn.action} className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${btn.cls}`}>
+            <button
+              key={btn.label}
+              onClick={btn.action}
+              disabled={saving}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 ${btn.cls}`}
+            >
               {btn.label}
             </button>
           ))}
@@ -459,18 +487,20 @@ export default function AdminModulos() {
         {/* Módulos individuales */}
         {FID_MODULES.map((m) => (
           <div key={m.key} className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-[var(--foreground)]/50 w-24 shrink-0 truncate">{m.label}</span>
+            <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0 truncate">{m.label}</span>
             <button
               onClick={() => toggleAllModule(m.key, true)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${m.color}/20 text-white/70 hover:${m.color}/30`}
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40"
             >
-              Activar todos
+              ✓ Activar todos
             </button>
             <button
               onClick={() => toggleAllModule(m.key, false)}
-              className="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-500/20 text-[var(--foreground)]/40 hover:bg-gray-500/30 transition-colors"
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[var(--border)] bg-gray-500/10 text-[var(--foreground)]/40 hover:bg-gray-500/20 transition-colors disabled:opacity-40"
             >
-              Desactivar
+              ✕ Desactivar
             </button>
           </div>
         ))}
