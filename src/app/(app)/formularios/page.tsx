@@ -1,275 +1,285 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import type { FidelizacionForm, FidelizacionObjective } from "@/types/fidelizacion-forms";
 
-interface Form {
-  id: string;
-  title: string;
-  type: string;
-  objective: string;
-  basis: string;
-  data_collection: string;
-  active: boolean;
-  created_at: string;
-  questions: Array<{ id: string; question_text: string; question_type: string }>;
-}
+const OBJECTIVE_LABELS: Record<FidelizacionObjective, string> = {
+  general: "Opinión general",
+  nps:     "NPS",
+  product: "Producto/Servicio",
+  service: "Empleados",
+};
 
-function FormulariosContent() {
-  const [forms, setForms] = useState<Form[]>([]);
+const OBJECTIVE_DESC: Record<FidelizacionObjective, string> = {
+  general: "Recoge valoraciones, preguntas abiertas y datos. Ideal para cualquier negocio.",
+  nps:     "Mide la probabilidad de recomendación en una escala del 0 al 10.",
+  product: "Evalúa la satisfacción con un producto o servicio concreto.",
+  service: "Valora la atención del equipo: amabilidad, profesionalidad y rapidez.",
+};
+
+export default function FormulariosPage() {
+  const router = useRouter();
+
+  const [forms, setForms] = useState<FidelizacionForm[]>([]);
+  const [businessId, setBusinessId] = useState("");
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
-  const searchParams = useSearchParams();
-  const [businessId, setBusinessId] = useState<string>("");
-  const [togglingId, setTogglingId] = useState<string>("");
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<"list" | "creating">("list");
+  const [creationStep, setCreationStep] = useState<1 | 2>(1);
+  const [newName, setNewName] = useState("");
+  const [newObjective, setNewObjective] = useState<FidelizacionObjective>("general");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const paramId = searchParams.get("businessId");
-    if (paramId) {
-      setBusinessId(paramId);
-      return;
-    }
     const load = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email || "";
-      if (!userEmail) { setBusinessId(""); return; }
+      const { data: s } = await supabase.auth.getSession();
+      const t = s?.session?.access_token;
+      const email = s?.session?.user?.email;
+      if (!email || !t) { setLoading(false); return; }
+      setToken(t);
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("contact_email", email)
         .single();
-      setBusinessId(biz?.id || "");
+      if (!biz) { setLoading(false); return; }
+      setBusinessId(biz.id);
+      await loadForms(biz.id, t);
     };
     load();
-  }, [searchParams]);
+  }, []);
 
-  useEffect(() => {
-    if (!businessId) {
-      setLoading(false);
-      return;
-    }
-    loadForms();
-  }, [businessId]);
-
-  const loadForms = async () => {
-    const { data } = await supabase
-      .from("forms")
-      .select("id, title, type, objective, basis, data_collection, active, created_at, questions")
-      .eq("business_id", businessId)
-      .order("created_at", { ascending: false });
-    setForms(data || []);
+  const loadForms = async (bid: string, tok: string) => {
+    const res = await fetch(`/api/fidelizacion/forms?businessId=${bid}`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    });
+    const data = await res.json();
+    setForms(data.forms || []);
     setLoading(false);
+  };
+
+  const createForm = async () => {
+    if (!newName.trim()) return;
+    setCreating(true);
+    const res = await fetch("/api/fidelizacion/forms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ businessId, name: newName, objective: newObjective }),
+    });
+    const data = await res.json();
+    if (data.form) router.push(`/formularios/${data.form.id}`);
+    setCreating(false);
   };
 
   const deleteForm = async (id: string) => {
     if (!confirm("¿Eliminar este formulario?")) return;
-    await supabase.from("forms").delete().eq("id", id);
-    loadForms();
+    await fetch(`/api/fidelizacion/forms/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await loadForms(businessId, token);
   };
 
-  const toggleActive = async (id: string, currentActive: boolean) => {
-    setTogglingId(id);
-    await supabase.from("forms").update({ active: !currentActive }).eq("id", id);
-    await loadForms();
-    setTogglingId("");
+  const copyLink = async (slug: string, id: string) => {
+    const url = `${window.location.origin}/f/${slug}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
   };
 
-  const getTypeLabel = (type: string) => {
-    return type === "captacion" ? "Captación" : "Fidelización";
-  };
+  const enterCreating = () => { setCreationStep(1); setNewName(""); setNewObjective("general"); setMode("creating"); };
+  const exitCreating  = () => { setCreationStep(1); setNewName(""); setNewObjective("general"); setMode("list"); };
 
-  const getTypeColor = (type: string) => {
-    return type === "captacion" ? "bg-green-500/20 text-green-400" : "bg-blue-500/20 text-blue-400";
-  };
-
-  const getObjectiveLabel = (objective: string) => {
-    const labels: Record<string, string> = {
-      contacto: "Recibir contacto",
-      reserva: "Agendar cita",
-      datos: "Captar datos",
-      opinion: "Recoger opinión",
-      retorno: "Motivar retorno",
-      comunidad: "Crear comunidad",
-    };
-    return labels[objective] || objective;
-  };
-
-  const getBasisLabel = (basis: string) => {
-    const labels: Record<string, string> = {
-      producto_servicio: "Producto/Servicio",
-      info_experiencia: "Información/Experiencia",
-    };
-    return labels[basis] || basis;
-  };
-
-  const getDataCollectionLabel = (value: string) => {
-    const labels: Record<string, string> = {
-      name_phone_email: "Recolecta datos",
-      anonymous: "Anónimo",
-      thanks_page: "Página de gracias",
-    };
-    return labels[value] || value;
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Formularios</h1>
-        <p className="text-sm text-[var(--brand-1)]">
-          Crea formularios para captar leads o fidelizar clientes
-        </p>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-[var(--foreground)]/50 text-sm">Cargando...</p>
       </div>
+    );
+  }
 
-      {/* Opciones de creación */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {/* Asistente */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
-          <div className="text-center mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-white">Asistente</h2>
-            <p className="text-xs md:text-sm text-white mt-2">
-              Creación guiada paso a paso. Ideal para principiantes.
-            </p>
-          </div>
-          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> 5 pasos guiados
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Máximo 3 preguntas
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Captación o Fidelización
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Preview en tiempo real
-            </li>
-          </ul>
-          <Link
-            href={businessId ? `/formularios/wizard?businessId=${businessId}` : "/formularios/wizard"}
-            className="block w-full py-3 text-center rounded-lg bg-[var(--brand-4)] text-black font-semibold hover:opacity-90"
-          >
-            Crear con Asistente
-          </Link>
-        </div>
-
-        {/* Avanzado */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-white">Avanzado</h2>
-            <p className="text-sm text-white mt-2">
-              Control total sobre el diseño y contenido.
-            </p>
-          </div>
-          <ul className="text-xs md:text-sm text-white space-y-2 mb-6">
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Edición libre
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Todas las opciones
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[var(--brand-4)]">✓</span> Personalización completa
-            </li>
-          </ul>
-<Link
-  href={businessId ? `/formularios/new?businessId=${businessId}` : "/formularios/new"}
-  className="block w-full py-3 text-center rounded-lg bg-[var(--brand-1)] text-black font-semibold hover:opacity-90"
->
-  Crear en modo Avanzado
-</Link>
-        </div>
-      </div>
-
-      {/* Formularios generados */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 md:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-          <h2 className="text-base md:text-lg font-bold">Formularios creados</h2>
-          <span className="text-xs px-2 py-1 bg-[var(--brand-1)]/20 text-[var(--brand-1)] rounded">
-            {forms.length} formulario{forms.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8 text-white">Cargando...</div>
-        ) : forms.length === 0 ? (
-          <div className="text-center py-8 text-white">
-            <p>No hay formularios todavía</p>
-            <p className="text-sm mt-1">Crea uno usando el Asistente o el modo Avanzado</p>
-          </div>
-        ) : (
-          <div className="space-y-3 max-h-[48rem] overflow-y-auto">
-            {forms.map((form) => (
-              <div
-                key={form.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[var(--background)] rounded-lg border border-[var(--border)]"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{form.title || "Sin título"}</div>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
-                    <span className={`px-2 py-0.5 rounded ${getTypeColor(form.type)}`}>
-                      {getTypeLabel(form.type)}
-                    </span>
-                    <span className="text-white">
-                    {getObjectiveLabel(form.objective)}
-                    </span>
-                    <span className="text-white">
-                    {getBasisLabel(form.basis)}
-                    </span>
-                    <span className="text-white">
-                    {getDataCollectionLabel(form.data_collection)}
-                    </span>
-                    <span className="text-white">
-                    {form.questions?.length || 0} pregunta{form.questions?.length !== 1 ? 's' : ''}
-                    </span>
-                    <span className="text-white">
-                    {new Date(form.created_at).toLocaleDateString("es-ES")}
-                    </span>
-                    {!form.active && (
-                      <span className="px-2 py-0.5 bg-gray-500/20 text-white rounded">
-                        Inactivo
-                      </span>
-                    )}
+  if (mode === "creating") {
+    return (
+      <div className="max-w-2xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <button onClick={exitCreating} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">
+            ← Volver a la lista
+          </button>
+          <div className="flex items-center gap-2">
+            {([1, 2] as const).map((step, idx) => {
+              const isCompleted = creationStep > step;
+              const isCurrent   = creationStep === step;
+              return (
+                <div key={step} className="flex items-center gap-2">
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
+                      isCompleted ? "bg-green-500 text-white" : isCurrent ? "text-white" : "text-[var(--foreground)]/50"
+                    }`}
+                    style={isCurrent && !isCompleted ? { background: "var(--brand-1)" } : !isCompleted && !isCurrent ? { background: "rgba(var(--foreground-rgb, 255 255 255) / 0.1)" } : undefined}
+                  >
+                    {isCompleted ? "✓" : step}
                   </div>
+                  {idx < 1 && <div className={`w-8 h-px transition-colors ${creationStep > 1 ? "bg-green-500" : "bg-[var(--border)]"}`} />}
                 </div>
-                <div className="flex flex-wrap gap-2 sm:ml-3">
+              );
+            })}
+          </div>
+        </div>
+
+        {creationStep === 1 && (
+          <div className="rounded-2xl border p-6 md:p-8" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <h2 className="text-xl font-bold mb-2">Ponle nombre a tu formulario</h2>
+            <p className="text-sm text-[var(--foreground)]/50 mb-6">El nombre es solo interno, el cliente no lo verá</p>
+            <div>
+              <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Nombre del formulario *</label>
+              <input
+                className="w-full rounded-lg border px-3 py-3 text-sm bg-transparent outline-none focus:border-[var(--brand-1)] transition-colors"
+                style={{ borderColor: "var(--border)" }}
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && newName.trim()) setCreationStep(2); }}
+                placeholder="Ej: Feedback clientes mayo 2026"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setCreationStep(2)}
+                disabled={!newName.trim()}
+                className="px-8 py-3 rounded-full text-white font-semibold disabled:opacity-40 transition-opacity"
+                style={{ background: "var(--brand-1)" }}
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {creationStep === 2 && (
+          <div className="rounded-2xl border p-6 md:p-8" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <h2 className="text-xl font-bold mb-2">¿Qué tipo de feedback quieres recoger?</h2>
+            <p className="text-sm text-[var(--foreground)]/50 mb-6">Elige el objetivo. Podrás personalizar los bloques después.</p>
+            <div className="space-y-3">
+              {(["general", "nps", "product", "service"] as FidelizacionObjective[]).map(obj => {
+                const selected = newObjective === obj;
+                return (
                   <button
-                    onClick={() => toggleActive(form.id, form.active)}
-                   disabled={togglingId === form.id}
-                   className={`text-xs px-3 py-1 rounded border ${
-                   form.active
-                   ? "border-green-500 text-green-500 hover:bg-green-500/10"
-                   : "border-yellow-500 text-yellow-500 hover:bg-yellow-500/10"
-                   } ${togglingId === form.id ? "opacity-60 cursor-not-allowed" : ""}`}
-                   >
-                  {togglingId === form.id ? "Actualizando..." : form.active ? "Desactivar" : "Activar"}
-                  </button>
-                  <Link
-                    href={businessId ? `/formularios/new?businessId=${businessId}&edit=${form.id}` : `/formularios/new?edit=${form.id}`}
-                    className="text-xs px-3 py-1 border border-[var(--border)] rounded hover:bg-white/5"
+                    key={obj}
+                    onClick={() => setNewObjective(obj)}
+                    className="w-full rounded-xl border p-4 text-left transition-colors"
+                    style={{
+                      borderColor: selected ? "var(--brand-1)" : "var(--border)",
+                      background: selected ? "rgba(var(--brand-1-rgb, 57 161 169) / 0.08)" : "transparent",
+                    }}
                   >
-                    Editar
-                  </Link>
-                  <button
-                    onClick={() => deleteForm(form.id)}
-                    className="text-xs px-2 py-1 border border-red-500 text-red-500 rounded hover:bg-red-500/10"
-                  >
-                    Eliminar
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors"
+                        style={{ borderColor: selected ? "var(--brand-1)" : "var(--border)", background: selected ? "var(--brand-1)" : "transparent" }}
+                      >
+                        {selected && <div className="w-2 h-2 rounded-full bg-white" />}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{OBJECTIVE_LABELS[obj]}</p>
+                        <p className="text-xs text-[var(--foreground)]/50 mt-1">{OBJECTIVE_DESC[obj]}</p>
+                      </div>
+                    </div>
                   </button>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-6">
+              <button onClick={() => setCreationStep(1)} className="px-6 py-3 rounded-full border text-sm font-medium" style={{ borderColor: "var(--border)" }}>
+                ← Atrás
+              </button>
+              <button
+                onClick={createForm}
+                disabled={creating}
+                className="px-8 py-3 rounded-full text-white font-semibold disabled:opacity-50"
+                style={{ background: "var(--brand-1)" }}
+              >
+                {creating ? "Creando..." : "Crear formulario"}
+              </button>
+            </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-export default function FormulariosPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm">Cargando...</div>}>
-      <FormulariosContent />
-    </Suspense>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Formularios de Feedback</h1>
+          <p className="text-sm text-[var(--foreground)]/50 mt-1">Crea formularios para recoger opiniones de tus clientes</p>
+        </div>
+        <button onClick={enterCreating} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--brand-1)", color: "white" }}>
+          + Nuevo formulario
+        </button>
+      </div>
+
+      {forms.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <svg className="w-12 h-12 text-[var(--foreground)]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
+            />
+          </svg>
+          <p className="text-[var(--foreground)]/50 text-sm">Aún no tienes formularios de feedback</p>
+          <button onClick={enterCreating} className="px-5 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--brand-1)", color: "white" }}>
+            Crear primer formulario
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {forms.map(f => (
+            <div key={f.id} className="rounded-xl border p-5 flex flex-col gap-3" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  f.status === "published" ? "bg-green-500/15 text-green-400"
+                  : f.status === "archived" ? "bg-[var(--foreground)]/10 text-[var(--foreground)]/50"
+                  : "bg-yellow-500/15 text-yellow-400"
+                }`}>
+                  {f.status === "published" ? "Publicado" : f.status === "archived" ? "Archivado" : "Borrador"}
+                </span>
+                <span className="text-xs text-[var(--foreground)]/40">{OBJECTIVE_LABELS[f.objective]}</span>
+                <span className="text-xs text-[var(--foreground)]/40 ml-auto">
+                  {f.response_count} {f.response_count === 1 ? "respuesta" : "respuestas"}
+                </span>
+              </div>
+              <h2 className="font-semibold">{f.name}</h2>
+              <p className="text-xs text-[var(--foreground)]/40">{f.blocks?.length || 0} bloques</p>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => router.push(`/formularios/${f.id}`)}
+                  className="flex-1 border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => copyLink(f.slug, f.id)}
+                  className="flex-1 border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
+                  style={{
+                    borderColor: copied === f.id ? "var(--brand-1)" : "var(--border)",
+                    color: copied === f.id ? "var(--brand-1)" : undefined,
+                  }}
+                >
+                  {copied === f.id ? "✓ Copiado" : "Copiar enlace"}
+                </button>
+                <button onClick={() => deleteForm(f.id)} className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
