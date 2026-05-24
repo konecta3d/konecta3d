@@ -62,7 +62,7 @@ const DEFAULT_MODULES: Record<string, boolean> = {
   module_lead_magnet: true,
   module_whatsapp: true,
   module_tools: true,
-  module_forms: false,
+  module_forms: true,   // visible por defecto hasta que DB confirme lo contrario
   module_gpt: false,
   module_captacion: false,
   module_recorrido: false,

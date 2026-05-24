@@ -111,12 +111,12 @@ export default function FormulariosPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-8">
         {/* Top bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <button
             onClick={exitCreating}
-            className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors"
+            className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors shrink-0"
           >
-            ← Volver a la lista
+            ← Volver
           </button>
 
           {/* Step indicator */}
@@ -268,16 +268,16 @@ export default function FormulariosPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Formularios</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Formularios</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-1">
             Construye formularios para tus campañas
           </p>
         </div>
         <button
           onClick={enterCreating}
-          className="px-4 py-2 rounded-lg text-sm font-semibold"
+          className="self-start sm:self-auto px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
           style={{ background: "var(--brand-1)", color: "white" }}
         >
           + Nuevo formulario
@@ -343,17 +343,17 @@ export default function FormulariosPage() {
               </p>
 
               {/* Buttons row */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/captacion/formularios/${f.id}`}
-                  className="flex-1 border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
+                  className="flex-1 min-w-[70px] border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
                   style={{ borderColor: "var(--border)" }}
                 >
                   Editar
                 </Link>
                 <button
                   onClick={() => deleteForm(f.id)}
-                  className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors"
+                  className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors whitespace-nowrap"
                 >
                   Eliminar
                 </button>

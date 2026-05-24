@@ -105,9 +105,9 @@ export default function FormulariosPage() {
   if (mode === "creating") {
     return (
       <div className="max-w-2xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <button onClick={exitCreating} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">
-            ← Volver a la lista
+        <div className="flex items-center justify-between gap-4">
+          <button onClick={exitCreating} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors shrink-0">
+            ← Volver
           </button>
           <div className="flex items-center gap-2">
             {([1, 2] as const).map((step, idx) => {
@@ -213,12 +213,12 @@ export default function FormulariosPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Formularios de Feedback</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Formularios de Feedback</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-1">Crea formularios para recoger opiniones de tus clientes</p>
         </div>
-        <button onClick={enterCreating} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--brand-1)", color: "white" }}>
+        <button onClick={enterCreating} className="self-start sm:self-auto px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap" style={{ background: "var(--brand-1)", color: "white" }}>
           + Nuevo formulario
         </button>
       </div>
@@ -254,17 +254,17 @@ export default function FormulariosPage() {
               </div>
               <h2 className="font-semibold">{f.name}</h2>
               <p className="text-xs text-[var(--foreground)]/40">{f.blocks?.length || 0} bloques</p>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => router.push(`/formularios/${f.id}`)}
-                  className="flex-1 border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
+                  className="flex-1 min-w-[70px] border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
                   style={{ borderColor: "var(--border)" }}
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => copyLink(f.slug, f.id)}
-                  className="flex-1 border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
+                  className="flex-1 min-w-[100px] border rounded-lg text-xs text-center py-2 transition-colors hover:border-[var(--brand-1)]/50"
                   style={{
                     borderColor: copied === f.id ? "var(--brand-1)" : "var(--border)",
                     color: copied === f.id ? "var(--brand-1)" : undefined,
@@ -272,7 +272,7 @@ export default function FormulariosPage() {
                 >
                   {copied === f.id ? "✓ Copiado" : "Copiar enlace"}
                 </button>
-                <button onClick={() => deleteForm(f.id)} className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors">
+                <button onClick={() => deleteForm(f.id)} className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors whitespace-nowrap">
                   Eliminar
                 </button>
               </div>
