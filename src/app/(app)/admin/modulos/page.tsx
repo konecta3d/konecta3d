@@ -20,6 +20,7 @@ type Business = {
   module_ai_recursos: boolean;
   // Captación
   module_captacion: boolean;
+  module_recorrido: boolean;
   created_at: string;
   // UI state
   expanded: boolean;
@@ -80,7 +81,8 @@ ALTER TABLE businesses
   ADD COLUMN IF NOT EXISTS module_gpt          BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS module_ai_landing   BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS module_ai_recursos  BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS module_captacion    BOOLEAN DEFAULT false;`;
+  ADD COLUMN IF NOT EXISTS module_captacion    BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS module_recorrido    BOOLEAN DEFAULT false;`;
 
 export default function AdminModulos() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -145,6 +147,7 @@ export default function AdminModulos() {
           module_ai_landing:   Boolean(b.module_ai_landing ?? false),
           module_ai_recursos:  Boolean(b.module_ai_recursos ?? false),
           module_captacion:    Boolean(b.module_captacion ?? false),
+          module_recorrido:    Boolean(b.module_recorrido ?? false),
           created_at:          String(b.created_at ?? ""),
           expanded:            false,
         }))
@@ -159,7 +162,7 @@ export default function AdminModulos() {
   const ALL_MODULE_FIELDS: (keyof Business)[] = [
     "module_lead_magnet", "module_vip_benefits", "module_whatsapp",
     "module_tools", "module_forms", "module_gpt",
-    "module_ai_landing", "module_ai_recursos", "module_captacion",
+    "module_ai_landing", "module_ai_recursos", "module_captacion", "module_recorrido",
   ];
 
   const saveOneBusiness = async (id: string) => {
@@ -541,6 +544,16 @@ export default function AdminModulos() {
               />
             </div>
 
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs text-[var(--foreground)]/50 w-28 shrink-0 truncate">Recorrido</span>
+              <Seg
+                labelOn="Activo" labelOff="Inactivo"
+                state={colState('module_recorrido')} colorOn="bg-indigo-500"
+                onOn={() => toggleAllModule('module_recorrido', true)}
+                onOff={() => toggleAllModule('module_recorrido', false)}
+              />
+            </div>
+
             <div className="border-t border-[var(--border)]" />
 
             {/* Módulos individuales */}
@@ -693,6 +706,30 @@ export default function AdminModulos() {
                         {b.module_captacion ? "Activo" : "Inactivo"}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Módulos de Captación */}
+                  <p className="text-xs text-[var(--foreground)]/40 uppercase tracking-widest py-3">
+                    Módulos de Captación
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleModule(b.id, "module_recorrido"); }}
+                      className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 border text-xs font-medium transition-colors ${
+                        b.module_recorrido
+                          ? "border-indigo-500/40 bg-indigo-500/10 text-[var(--foreground)]"
+                          : "border-[var(--border)] bg-transparent text-[var(--foreground)]/40"
+                      }`}
+                    >
+                      <span>Recorrido del Cliente</span>
+                      <Toggle
+                        checked={Boolean(b.module_recorrido)}
+                        activeColor="bg-indigo-500"
+                        onChange={() => toggleModule(b.id, "module_recorrido")}
+                        size="sm"
+                      />
+                    </button>
                   </div>
 
                   <p className="text-xs text-[var(--foreground)]/40 uppercase tracking-widest py-3">

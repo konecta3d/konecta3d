@@ -23,18 +23,17 @@ const negocioLinks: SidebarLink[] = [
   { label: "Estadísticas", href: "/negocio/estadisticas", category: "Mi Negocio" },
   { label: "Herramientas", href: "/negocio/herramientas", category: "Mi Negocio", module: "module_tools" },
   { label: "Clientes", href: "/negocio/clientes", category: "Mi Negocio" },
-  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
 ];
 
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
+  // Contexto aparece primero → debajo del Dashboard y encima de Generadores
+  { label: "Contexto de Fidelización", href: "/mi-contexto", category: "Contexto" },
   { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
   { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Generadores", nameKey: "vipBenefits", module: "module_vip_benefits" },
   { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
-  { label: "Contexto de Fidelización", href: "/mi-contexto", category: "Configuración" },
-  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "Configuración", module: "module_gpt" },
-  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
+  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "Avanzado", module: "module_gpt" },
 ];
 
 // Perfil de Captación
@@ -44,8 +43,8 @@ const captacionLinks: SidebarLink[] = [
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Lead Magnets", href: "/captacion/lead-magnets", category: "Captación" },
-  { label: "Recorrido del Cliente", href: "/captacion/recorrido", category: "Captación" },
-  { label: "← Cambiar perfil", href: "/business/select-profile", category: "" },
+  // Recorrido del Cliente: oculto si module_recorrido === false
+  { label: "Recorrido del Cliente", href: "/captacion/recorrido", category: "Captación", module: "module_recorrido" },
 ];
 
 
@@ -66,6 +65,7 @@ const DEFAULT_MODULES: Record<string, boolean> = {
   module_forms: false,
   module_gpt: false,
   module_captacion: false,
+  module_recorrido: false,
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -146,7 +146,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         // profile_active: se lee de forma separada (columna opcional post-migración)
         const { data: accessData } = await supabase
           .from("businesses")
-          .select("profile_active, module_tools, module_forms, module_gpt, module_captacion")
+          .select("profile_active, module_tools, module_forms, module_gpt, module_captacion, module_recorrido")
           .eq("contact_email", userEmail)
           .single();
 
@@ -159,6 +159,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           module_forms: (accessData as Record<string, unknown>)?.module_forms as boolean ?? false,
           module_gpt: (accessData as Record<string, unknown>)?.module_gpt as boolean ?? false,
           module_captacion: (accessData as Record<string, unknown>)?.module_captacion as boolean ?? false,
+          module_recorrido: (accessData as Record<string, unknown>)?.module_recorrido as boolean ?? false,
         });
 
         // Comprobar si el contexto está incompleto para mostrar badge en sidebar
@@ -272,6 +273,56 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Pie del drawer móvil */}
             <div className="pt-3 border-t border-[var(--border)] space-y-2">
+
+              {/* Acceso rápido a otros perfiles (móvil) */}
+              {!isAdminMode && (
+                <div className="space-y-1.5 pb-1">
+                  <p className="text-[10px] uppercase tracking-widest px-1 mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Cambiar a</p>
+                  {isCaptacionMode && (
+                    <>
+                      <Link href="/mi-negocio/dashboard" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                        <span>Fidelización</span><span>→</span>
+                      </Link>
+                      <Link href="/negocio/perfil" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                        <span>Mi Negocio</span><span>→</span>
+                      </Link>
+                    </>
+                  )}
+                  {isNegocioMode && (
+                    <>
+                      <Link href="/mi-negocio/dashboard" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                        <span>Fidelización</span><span>→</span>
+                      </Link>
+                      <Link href="/captacion" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                        <span>Captación</span><span>→</span>
+                      </Link>
+                    </>
+                  )}
+                  {!isCaptacionMode && !isNegocioMode && (
+                    <>
+                      <Link href="/captacion" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                        <span>Captación</span><span>→</span>
+                      </Link>
+                      <Link href="/negocio/perfil" onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                        <span>Mi Negocio</span><span>→</span>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => { toggleTheme(); }}

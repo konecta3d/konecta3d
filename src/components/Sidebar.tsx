@@ -18,9 +18,7 @@ interface SidebarLink {
 interface SidebarProps {
     links: SidebarLink[];
     title?: React.ReactNode;
-    /** Estado del tema controlado desde el layout */
     darkMode?: boolean;
-    /** Callback para cambiar el tema desde el layout */
     onToggleTheme?: () => void;
 }
 
@@ -29,8 +27,10 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     const [customNames, setCustomNames] = React.useState<Record<string, string>>({});
     const [modules, setModules] = React.useState<Record<string, boolean>>({});
 
-    const isAdminMode = pathname.startsWith("/admin");
+    const isAdminMode     = pathname.startsWith("/admin");
     const isCaptacionMode = pathname.startsWith("/captacion");
+    const isNegocioMode   = pathname.startsWith("/negocio");
+    const isFidelizacionMode = !isAdminMode && !isCaptacionMode && !isNegocioMode;
     const showBusinessSidebar = !isAdminMode;
 
     const [mounted, setMounted] = useState(false);
@@ -38,14 +38,11 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
 
     const [fromAdminBusiness, setFromAdminBusiness] = useState(false);
 
-    // ── Tema: controlado externamente si se pasan props, interno como fallback ──
+    // ── Tema ────────────────────────────────────────────────────────────────
     const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
     const [internalDarkMode, setInternalDarkMode] = useState(true);
-
-    // Si el layout pasa darkMode como prop, úsalo; si no, usa el estado interno
     const darkMode = darkModeProp !== undefined ? darkModeProp : internalDarkMode;
 
-    // Cargar tema solo cuando no viene controlado externamente
     React.useEffect(() => {
         if (darkModeProp !== undefined) return;
         const saved = typeof window !== "undefined" ? localStorage.getItem(themeKey) : null;
@@ -67,7 +64,6 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (next) document.documentElement.classList.add("dark");
         else document.documentElement.classList.remove("dark");
     };
-
     const toggleTheme = onToggleThemeProp ?? internalToggleTheme;
     // ────────────────────────────────────────────────────────────────────────
 
@@ -83,16 +79,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 .eq("contact_email", userEmail)
                 .single();
             if (!biz?.id) return;
-            // Columnas garantizadas primero
             const { data } = await supabase
                 .from("businesses")
                 .select("module_vip_benefits,module_lead_magnet,module_whatsapp")
                 .eq("id", biz.id)
                 .single();
-            // Columnas opcionales (post-migración) por separado para no romper si no existen
             const { data: optData } = await supabase
                 .from("businesses")
-                .select("module_tools,module_forms,module_gpt")
+                .select("module_tools,module_forms,module_gpt,module_recorrido")
                 .eq("id", biz.id)
                 .single();
             if (data) {
@@ -103,15 +97,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     module_tools: (optData as Record<string, unknown>)?.module_tools as boolean ?? true,
                     module_forms: (optData as Record<string, unknown>)?.module_forms as boolean ?? false,
                     module_gpt: (optData as Record<string, unknown>)?.module_gpt as boolean ?? false,
+                    module_recorrido: (optData as Record<string, unknown>)?.module_recorrido as boolean ?? false,
                 });
-            } else {
-                setModules({ module_vip_benefits: false, module_lead_magnet: true, module_whatsapp: true, module_tools: true, module_forms: false, module_gpt: false });
             }
         };
         if (showBusinessSidebar) load();
     }, [pathname, showBusinessSidebar]);
 
-    // Cargar nombres personalizados desde Supabase
+    // Cargar nombres personalizados
     React.useEffect(() => {
         const loadNames = async () => {
             const { data } = await supabase.from("settings").select("value").eq("key", "names").single();
@@ -121,50 +114,36 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             }
         };
         loadNames();
-
         const handleUpdate = (e: Event) => {
             const detail = (e as CustomEvent<Record<string, string>>).detail;
             if (detail) setCustomNames(detail);
         };
-
         window.addEventListener("konecta-sidebar-names-update", handleUpdate as EventListener);
         return () => window.removeEventListener("konecta-sidebar-names-update", handleUpdate as EventListener);
     }, []);
 
-    // Filtrar links
+    // Filtrar links por módulo
     const filteredLinks = links.filter((l) => {
-        if (showBusinessSidebar && l.module && modules[l.module] === false) {
-            return false;
-        }
+        if (showBusinessSidebar && l.module && modules[l.module] === false) return false;
         return true;
     });
 
     // Agrupar por categoría
     const categories: Record<string, SidebarLink[]> = {};
-    const noCategory: SidebarLink[] = [];
-
     filteredLinks.forEach((link) => {
         if (link.category) {
             if (!categories[link.category]) categories[link.category] = [];
             categories[link.category].push(link);
-        } else {
-            noCategory.push(link);
         }
     });
 
     const renderLink = (link: SidebarLink) => {
-        const linkPathname = link.href.split('?')[0];
+        const linkPathname = link.href.split("?")[0];
         const isActive = pathname === linkPathname;
         const label = (link.nameKey && customNames[link.nameKey]) || link.label;
-
         const baseClasses = "block rounded-lg px-3 py-2 text-sm transition-colors font-medium";
-        const activeClasses = darkMode
-            ? "bg-white/10 text-white"
-            : "bg-[var(--brand-1)] text-white";
-        const inactiveClasses = darkMode
-            ? "text-white/70 hover:bg-white/5 hover:text-white"
-            : "text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10";
-
+        const activeClasses = darkMode ? "bg-white/10 text-white" : "bg-[var(--brand-1)] text-white";
+        const inactiveClasses = darkMode ? "text-white/70 hover:bg-white/5 hover:text-white" : "text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10";
         return (
             <Link
                 key={link.href}
@@ -172,15 +151,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} flex items-center justify-between`}
             >
                 <span>{label}</span>
-                {link.badge && (
-                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0 ml-2" />
-                )}
+                {link.badge && <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0 ml-2" />}
             </Link>
         );
     };
 
     const [businessName, setBusinessName] = useState<string | null>(null);
-
     useEffect(() => {
         const loadName = async () => {
             try {
@@ -193,29 +169,89 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     .eq("contact_email", userEmail)
                     .single();
                 if (data?.name) setBusinessName(data.name);
-            } catch (e) {
-                // silencioso
-            }
+            } catch { /* silencioso */ }
         };
-        if (!isAdminMode) {
-            loadName();
-        }
+        if (!isAdminMode) loadName();
     }, [pathname, isAdminMode]);
 
+    // ── Botones de acceso rápido a otros perfiles ──────────────────────────
+    const QuickProfileButtons = () => {
+        if (!showBusinessSidebar) return null;
+
+        const btnBase = "w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:opacity-90";
+
+        if (isFidelizacionMode) return (
+            <>
+                <Link href="/captacion" className={btnBase}
+                    style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                    <span>Captación</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+                <Link href="/negocio/perfil" className={btnBase}
+                    style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                    <span>Mi Negocio</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+            </>
+        );
+
+        if (isCaptacionMode) return (
+            <>
+                <Link href="/mi-negocio/dashboard" className={btnBase}
+                    style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                    <span>Fidelización</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+                <Link href="/negocio/perfil" className={btnBase}
+                    style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                    <span>Mi Negocio</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+            </>
+        );
+
+        if (isNegocioMode) return (
+            <>
+                <Link href="/mi-negocio/dashboard" className={btnBase}
+                    style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                    <span>Fidelización</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+                <Link href="/captacion" className={btnBase}
+                    style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                    <span>Captación</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </Link>
+            </>
+        );
+
+        return null;
+    };
+
     return (
-        <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:block">
+        <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:flex md:flex-col">
             {title ? title : <SidebarTitle />}
             {!isAdminMode && businessName && (
-                <div
-                    className="mb-6 font-semibold"
-                    style={{ fontSize: "var(--sidebar-title-size)", color: "var(--foreground)" }}
-                >
+                <div className="mb-6 font-semibold"
+                    style={{ fontSize: "var(--sidebar-title-size)", color: "var(--foreground)" }}>
                     {businessName}
                 </div>
             )}
 
-            {/* Botón Dashboard — solo en modo fidelización (no en captación) */}
-            {showBusinessSidebar && !isCaptacionMode && (
+            {/* Botón Dashboard — solo en modo fidelización */}
+            {showBusinessSidebar && isFidelizacionMode && (
                 <Link
                     href="/mi-negocio/dashboard"
                     className={`flex items-center gap-2 mb-4 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
@@ -225,13 +261,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                     }`}
                 >
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     Dashboard
                 </Link>
             )}
 
-            <nav className="space-y-4 text-sm">
+            <nav className="flex-1 space-y-4 text-sm overflow-y-auto">
                 {Object.entries(categories).map(([category, catLinks]) => (
                     <div key={category} className="space-y-1">
                         <div className="mt-6 mb-2 text-xs uppercase tracking-wide text-[var(--brand-1)] px-3">
@@ -245,16 +282,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             {/* ── Pie del sidebar Admin ── */}
             {isAdminMode && (
                 <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-2">
-                    <button
-                        type="button"
-                        onClick={toggleTheme}
+                    <button type="button" onClick={toggleTheme}
                         className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
-                        style={{ color: "var(--foreground)" }}
-                    >
+                        style={{ color: "var(--foreground)" }}>
                         {darkMode ? <><span>☀</span> Modo claro</> : <><span>🌙</span> Modo oscuro</>}
                     </button>
-                    <button
-                        type="button"
+                    <button type="button"
                         onClick={async () => {
                             await supabase.auth.signOut();
                             if (typeof window !== "undefined") {
@@ -262,49 +295,52 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                                 window.location.href = "/login";
                             }
                         }}
-                        className="w-full rounded-lg border border-red-500/40 px-3 py-2 text-sm text-center flex items-center justify-center gap-2 text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
+                        className="w-full rounded-lg border border-red-500/40 px-3 py-2 text-sm text-center flex items-center justify-center gap-2 text-red-400 hover:bg-red-500/10 transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         Cerrar sesión
                     </button>
                 </div>
             )}
 
-            {showBusinessSidebar && (
-                <div className="mt-6 pt-4 border-t border-[var(--border)] text-sm space-y-3">
+            {/* ── Pie del sidebar Business ── */}
+            {showBusinessSidebar && mounted && (
+                <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-2">
+                    {/* Volver al panel admin (solo si accedió desde admin) */}
                     {fromAdminBusiness && (
-                        <button
-                            type="button"
+                        <button type="button"
                             onClick={() => {
                                 if (typeof window !== "undefined") {
                                     localStorage.removeItem("konecta-from-admin-business");
                                     window.location.href = "/admin/dashboard";
                                 }
                             }}
-                            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center"
-                        >
-                            Volver al panel admin
+                            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center hover:bg-white/5 transition-colors"
+                            style={{ color: "var(--foreground)" }}>
+                            ← Panel admin
                         </button>
                     )}
 
-                    {/* Toggle modo claro / oscuro */}
-                    <button
-                        type="button"
-                        onClick={toggleTheme}
+                    {/* ── Acceso rápido a los otros 2 perfiles ── */}
+                    <div className="space-y-1.5 pb-1">
+                        <p className="text-[10px] uppercase tracking-widest px-1 mb-1.5"
+                            style={{ color: "rgba(255,255,255,0.25)" }}>
+                            Cambiar a
+                        </p>
+                        <QuickProfileButtons />
+                    </div>
+
+                    {/* Toggle modo claro/oscuro */}
+                    <button type="button" onClick={toggleTheme}
                         className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center flex items-center justify-center gap-2 hover:bg-[var(--brand-1)]/10 transition-colors"
-                        style={{ color: "var(--foreground)" }}
-                    >
-                        {darkMode ? (
-                            <><span>☀</span> Modo claro</>
-                        ) : (
-                            <><span>🌙</span> Modo oscuro</>
-                        )}
+                        style={{ color: "var(--foreground)" }}>
+                        {darkMode ? <><span>☀</span> Modo claro</> : <><span>🌙</span> Modo oscuro</>}
                     </button>
 
-                    <button
-                        type="button"
+                    {/* Cerrar sesión */}
+                    <button type="button"
                         onClick={async () => {
                             await supabase.auth.signOut();
                             if (typeof window !== "undefined") {
@@ -314,13 +350,10 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                                 window.location.href = "/business/login";
                             }
                         }}
-                        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center"
-                        style={{ color: "var(--foreground)" }}
-                    >
+                        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center hover:bg-red-500/10 transition-colors"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>
                         Cerrar sesión
                     </button>
-
-                    {noCategory.map(renderLink)}
                 </div>
             )}
         </aside>
