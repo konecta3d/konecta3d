@@ -290,7 +290,15 @@ export default function CampanasPage() {
     setSaveError(null);
     try {
       const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-      const body = { ...form, businessId };
+      // Convertir strings vacíos en fechas a null para evitar error de timestamp en PostgreSQL
+      const body = {
+        ...form,
+        businessId,
+        starts_at: form.starts_at.trim() !== "" ? form.starts_at : null,
+        ends_at:   form.ends_at.trim()   !== "" ? form.ends_at   : null,
+        form_id:         form.form_id        || null,
+        lead_magnet_id:  form.lead_magnet_id || null,
+      };
       const res = editingId
         ? await fetch(`/api/captacion/campaigns/${editingId}`, { method: "PUT", headers, body: JSON.stringify(body) })
         : await fetch("/api/captacion/campaigns", { method: "POST", headers, body: JSON.stringify(body) });
