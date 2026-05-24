@@ -56,11 +56,12 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
   }
 
   const config = {
-  ...defaultLandingConfig,
-  ...resolvedConfig,
-  businessName: business.name,
-  businessId: business.id,
-};
+    ...defaultLandingConfig,
+    ...resolvedConfig,
+    businessName: business.name,
+    businessId: business.id,
+    slug: business.slug,
+  };
 
   return <LandingRenderer config={config} activeForms={activeForms || []} />;
 }

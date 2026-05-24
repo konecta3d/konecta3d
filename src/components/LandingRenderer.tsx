@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { LandingConfig } from "@/lib/landingTypes";
 import FormModal from "./FormModal";
+import LeadCaptureModal from "./LeadCaptureModal";
 import { supabase } from "@/lib/supabase";
 
 interface ActiveForm {
@@ -94,7 +95,16 @@ export default function LandingRenderer({
   if (!config) return null;
 
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [activeLmId, setActiveLmId]             = useState("");
+  const [activeLmText, setActiveLmText]         = useState("");
   const activeForm = activeForms[0] as ActiveForm | undefined;
+
+  const openLeadCapture = (leadMagnetId: string, ctaText: string) => {
+    setActiveLmId(leadMagnetId);
+    setActiveLmText(ctaText);
+    setCaptureModalOpen(true);
+  };
 
   // Registrar visita al montar el componente (solo en la landing pública)
   useEffect(() => {
@@ -259,60 +269,96 @@ export default function LandingRenderer({
                 <style dangerouslySetInnerHTML={{ __html: ctaInjectedCss }} />
 
                 {config.showCta1 && (
-                  <a
-                    href={
-                      config.cta1LeadMagnetId
-                        ? `/api/lead-magnet/download?id=${config.cta1LeadMagnetId}`
-                        : config.cta1BenefitId
-                        ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}`
-                        : normalizeUrl(config.cta1Link)
-                    }
-                    className="block"
-                    download={Boolean(config.cta1LeadMagnetId || config.cta1BenefitId)}
-                    onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
-                  >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
-                      {config.cta1Text || "WhatsApp"}
-                    </div>
-                  </a>
+                  config.cta1LeadMagnetId ? (
+                    <button
+                      className="block w-full"
+                      onClick={() => {
+                        trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 });
+                        openLeadCapture(config.cta1LeadMagnetId, config.cta1Text || "");
+                      }}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta1Text || "Descargar recurso"}
+                      </div>
+                    </button>
+                  ) : (
+                    <a
+                      href={
+                        config.cta1BenefitId
+                          ? `/api/benefits/generate-pdf?id=${config.cta1BenefitId}`
+                          : normalizeUrl(config.cta1Link)
+                      }
+                      className="block"
+                      download={Boolean(config.cta1BenefitId)}
+                      onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 1 })}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta1Text || "WhatsApp"}
+                      </div>
+                    </a>
+                  )
                 )}
 
                 {config.showCta2 && (
-                  <a
-                    href={
-                      config.cta2LeadMagnetId
-                        ? `/api/lead-magnet/download?id=${config.cta2LeadMagnetId}`
-                        : config.cta2BenefitId
-                        ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}`
-                        : normalizeUrl(config.cta2Link)
-                    }
-                    className="block"
-                    download={Boolean(config.cta2LeadMagnetId || config.cta2BenefitId)}
-                    onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })}
-                  >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
-                      {config.cta2Text || "Instagram"}
-                    </div>
-                  </a>
+                  config.cta2LeadMagnetId ? (
+                    <button
+                      className="block w-full"
+                      onClick={() => {
+                        trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 });
+                        openLeadCapture(config.cta2LeadMagnetId, config.cta2Text || "");
+                      }}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta2Text || "Descargar recurso"}
+                      </div>
+                    </button>
+                  ) : (
+                    <a
+                      href={
+                        config.cta2BenefitId
+                          ? `/api/benefits/generate-pdf?id=${config.cta2BenefitId}`
+                          : normalizeUrl(config.cta2Link)
+                      }
+                      className="block"
+                      download={Boolean(config.cta2BenefitId)}
+                      onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 2 })}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta2Text || "Instagram"}
+                      </div>
+                    </a>
+                  )
                 )}
 
                 {config.showCta3 && (
-                  <a
-                    href={
-                      config.cta3LeadMagnetId
-                        ? `/api/lead-magnet/download?id=${config.cta3LeadMagnetId}`
-                        : config.cta3BenefitId
-                        ? `/api/benefits/generate-pdf?id=${config.cta3BenefitId}`
-                        : normalizeUrl(config.cta3Link)
-                    }
-                    className="block"
-                    download={Boolean(config.cta3LeadMagnetId || config.cta3BenefitId)}
-                    onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })}
-                  >
-                    <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
-                      {config.cta3Text || "Página Web"}
-                    </div>
-                  </a>
+                  config.cta3LeadMagnetId ? (
+                    <button
+                      className="block w-full"
+                      onClick={() => {
+                        trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 });
+                        openLeadCapture(config.cta3LeadMagnetId, config.cta3Text || "");
+                      }}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta3Text || "Descargar recurso"}
+                      </div>
+                    </button>
+                  ) : (
+                    <a
+                      href={
+                        config.cta3BenefitId
+                          ? `/api/benefits/generate-pdf?id=${config.cta3BenefitId}`
+                          : normalizeUrl(config.cta3Link)
+                      }
+                      className="block"
+                      download={Boolean(config.cta3BenefitId)}
+                      onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 3 })}
+                    >
+                      <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
+                        {config.cta3Text || "Página Web"}
+                      </div>
+                    </a>
+                  )
                 )}
 
                 {config.showMoreButtons && config.showCta4 && (
@@ -485,7 +531,7 @@ export default function LandingRenderer({
         </div>
       </div>
 
-      {/* Modal formulario */}
+      {/* Modal formulario captación existente */}
       {activeForm && (
         <FormModal
           isOpen={formModalOpen}
@@ -493,6 +539,17 @@ export default function LandingRenderer({
           form={activeForm}
         />
       )}
+
+      {/* Modal captación de datos antes de entregar el lead magnet */}
+      <LeadCaptureModal
+        isOpen={captureModalOpen}
+        onClose={() => setCaptureModalOpen(false)}
+        businessId={config.businessId || ""}
+        slug={config.slug || ""}
+        leadMagnetId={activeLmId}
+        ctaText={activeLmText}
+        accentColor={ctaBg}
+      />
     </div>
   );
 }

@@ -104,6 +104,9 @@ export interface LandingConfig {
     // ID del negocio (para analytics, no se persiste en la config)
     businessId?: string;
 
+    // Slug del negocio (para URLs, no se persiste en la config)
+    slug?: string;
+
     // Estilos de botones
     ctaBg: string;
     ctaTextColor: string;
