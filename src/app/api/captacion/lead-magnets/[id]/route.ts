@@ -58,12 +58,24 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   ]);
   if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
-  // Archivar en vez de borrar (preserva estadísticas)
-  const { error } = await supabaseAdmin()
-    .from("captacion_lead_magnets")
-    .update({ status: "archived" })
-    .eq("id", id);
+  const url = new URL(req.url);
+  const permanent = url.searchParams.get("permanent") === "true";
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (permanent) {
+    // Borrado permanente — elimina el registro de la base de datos
+    const { error } = await supabaseAdmin()
+      .from("captacion_lead_magnets")
+      .delete()
+      .eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  } else {
+    // Archivar (preserva estadísticas)
+    const { error } = await supabaseAdmin()
+      .from("captacion_lead_magnets")
+      .update({ status: "archived" })
+      .eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json({ ok: true });
 }

@@ -8,7 +8,7 @@ import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type ResourceType = "pdf" | "url" | "code";
+type ResourceType = "pdf" | "url";
 type DocType = "guia" | "checklist" | "recomendacion";
 type Objective =
   | "captar" | "educar" | "referidos" | "temporada" | "lanzamiento"
@@ -98,7 +98,7 @@ function getStepStatus(
   steps: WizardStep[],
   state: {
     name: string; type: ResourceType; docType: DocType; objective: Objective;
-    customTitle: string; customContent: string; externalUrl: string; codeValue: string;
+    customTitle: string; customContent: string; externalUrl: string;
   }
 ): StepStatus {
   if (s === currentStep) return "current";
@@ -120,7 +120,6 @@ function getStepStatus(
         return "done";
       }
       if (state.type === "url" && !state.externalUrl.trim()) return "warning";
-      if (state.type === "code" && !state.codeValue.trim()) return "warning";
       if (!state.customTitle.trim()) return "error";
       return "done";
     }
@@ -170,7 +169,6 @@ function CaptacionLeadMagnetWizardInner() {
   const [description, setDescription] = useState("");  // for url/code
   const [ctaText, setCtaText] = useState("Obtener recurso gratis");
   const [externalUrl, setExternalUrl] = useState("");
-  const [codeValue, setCodeValue] = useState("");
 
   // ── PDF-specific fields ────────────────────────────────────────────────────
   const [objective, setObjective] = useState<Objective>("captar");
@@ -245,7 +243,6 @@ function CaptacionLeadMagnetWizardInner() {
           setDescription(lm.description || "");
           setCtaText(lm.cta_text || "Obtener recurso gratis");
           setExternalUrl(lm.external_url || "");
-          setCodeValue(lm.code_value || "");
           setStep("tipo");
         }
       }
@@ -268,7 +265,7 @@ function CaptacionLeadMagnetWizardInner() {
   }, [objective, docType, type]);
 
   // ── Step status helper ─────────────────────────────────────────────────────
-  const stepState = { name, type, docType, objective, customTitle, customContent, externalUrl, codeValue };
+  const stepState = { name, type, docType, objective, customTitle, customContent, externalUrl };
   const getStatus = (s: WizardStep) => getStepStatus(s, step, steps, stepState);
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
@@ -290,7 +287,7 @@ function CaptacionLeadMagnetWizardInner() {
     const payload = {
       businessId, name, type,
       title: customTitle, description, cta_text: ctaText,
-      external_url: externalUrl, code_value: codeValue,
+      external_url: externalUrl,
     };
     const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
     try {
@@ -435,7 +432,7 @@ function CaptacionLeadMagnetWizardInner() {
             <div className="rounded-xl p-6 border" style={{ background: "linear-gradient(to right, #0a323c, #001e3c)", borderColor: "rgba(57,161,169,0.3)" }}>
               <h3 className="text-lg font-bold mb-3 text-white">¿Qué vas a crear?</h3>
               <ul className="text-sm text-white space-y-2">
-                {[["PDF personalizado:", "guía, checklist o recomendación con tu imagen de marca"], ["Enlace:", "vídeo, artículo o página web útil para tu cliente"], ["Código:", "descuento, cupón o acceso exclusivo"]].map(([k, v]) => (
+                {[["PDF personalizado:", "guía, checklist o recomendación con tu imagen de marca"], ["Enlace:", "vídeo, artículo o página web útil para tu cliente"]].map(([k, v]) => (
                   <li key={k} className="flex items-center gap-2"><span style={{ color: "var(--brand-4)" }}>+</span><strong>{k}</strong> {v}</li>
                 ))}
               </ul>
@@ -457,11 +454,10 @@ function CaptacionLeadMagnetWizardInner() {
               <p className="text-white/70">Elige el formato que mejor encaje con lo que tienes</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {([
                 { t: "pdf" as ResourceType, sub: "Documento descargable", desc: "PDF profesional con tu conocimiento y marca — mismo generador que Recursos de Valor" },
-                { t: "url" as ResourceType, sub: "Recurso online",        desc: "Vídeo de YouTube, artículo, landing page o cualquier URL" },
-                { t: "code" as ResourceType, sub: "Cupón o acceso",        desc: "Descuento, código promocional o acceso exclusivo" },
+                { t: "url" as ResourceType, sub: "Recurso online",        desc: "Vídeo de YouTube, artículo, landing page o cualquier URL útil para tu cliente" },
               ]).map(({ t, sub, desc }) => (
                 <button key={t} onClick={() => { setType(t); contentCustomized.current = false; }} className="p-5 md:p-6 rounded-xl text-left transition-all border-2 relative" style={{ borderColor: type === t ? "var(--brand-1)" : "rgba(255,255,255,0.1)", backgroundColor: type === t ? "rgba(57,161,169,0.08)" : "rgba(255,255,255,0.05)" }}>
                   {type === t && <span className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--brand-1)", color: "white" }}>✓</span>}
@@ -661,14 +657,7 @@ function CaptacionLeadMagnetWizardInner() {
                   <input type="url" value={externalUrl} onChange={e => setExternalUrl(e.target.value)} placeholder="https://..."
                     className="w-full px-4 py-3 rounded-lg border text-white text-sm"
                     style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }} />
-                </div>
-              )}
-              {type === "code" && (
-                <div>
-                  <label className="block text-xs uppercase tracking-widest mb-2" style={{ color: "var(--brand-1)" }}>Código o cupón</label>
-                  <input type="text" value={codeValue} onChange={e => setCodeValue(e.target.value)} placeholder="BIENVENIDO20"
-                    className="w-full px-4 py-3 rounded-lg border text-white text-sm font-mono tracking-widest"
-                    style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }} />
+                  <p className="text-xs text-white/40 mt-1">Incluye siempre https:// al inicio de la URL</p>
                 </div>
               )}
             </div>
@@ -806,7 +795,6 @@ function CaptacionLeadMagnetWizardInner() {
             <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-3 max-w-sm mx-auto">
               <div className="font-bold text-white text-base leading-snug">{customTitle || "Título del recurso"}</div>
               <div className="text-sm text-white/70">{description || "Descripción de lo que obtendrá el cliente."}</div>
-              {type === "code" && codeValue && <div className="text-center py-2 rounded border border-white/20 font-mono font-bold text-white text-lg tracking-widest">{codeValue}</div>}
               {type === "url" && externalUrl && <div className="text-xs text-white/40 break-all">{externalUrl}</div>}
               <button className="w-full py-2.5 rounded-lg text-sm font-bold" style={{ background: "var(--brand-1)", color: "white" }}>{ctaText || "Obtener recurso gratis"}</button>
             </div>
@@ -814,7 +802,7 @@ function CaptacionLeadMagnetWizardInner() {
               <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "var(--brand-1)" }}>Resumen</div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="text-white/40 text-xs">Nombre interno</div><div className="text-white font-medium text-xs">{name || "—"}</div>
-                <div className="text-white/40 text-xs">Tipo</div><div className="text-white font-medium text-xs">{type === "url" ? "Enlace" : "Código"}</div>
+                <div className="text-white/40 text-xs">Tipo</div><div className="text-white font-medium text-xs">{type === "url" ? "Enlace" : "PDF"}</div>
                 <div className="text-white/40 text-xs">Título</div><div className="text-white font-medium text-xs truncate">{customTitle || "—"}</div>
               </div>
             </div>

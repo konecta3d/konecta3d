@@ -134,7 +134,7 @@ export interface CaptacionLeadMagnet {
   id: string;
   business_id: string;
   name: string;
-  type: 'pdf' | 'url' | 'code';
+  type: 'pdf' | 'url';
   file_url?: string;
   external_url?: string;
   code_value?: string;
