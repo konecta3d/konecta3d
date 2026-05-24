@@ -20,7 +20,7 @@ ALTER TABLE fidelizacion_forms ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "owner_fid_forms" ON fidelizacion_forms FOR ALL
   USING (business_id IN (
-    SELECT id FROM businesses WHERE user_id = auth.uid()
+    SELECT id FROM businesses WHERE user_id = auth.uid()::text
   ));
 
 -- Tabla de respuestas / feedback
@@ -41,7 +41,7 @@ ALTER TABLE fidelizacion_feedback ENABLE ROW LEVEL SECURITY;
 -- Solo el dueño del negocio puede leer las respuestas
 CREATE POLICY "owner_reads_feedback" ON fidelizacion_feedback FOR SELECT
   USING (business_id IN (
-    SELECT id FROM businesses WHERE user_id = auth.uid()
+    SELECT id FROM businesses WHERE user_id = auth.uid()::text
   ));
 
 -- Cualquiera puede insertar una respuesta (formulario público)

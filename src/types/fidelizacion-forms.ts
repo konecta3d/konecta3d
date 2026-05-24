@@ -312,6 +312,20 @@ export const DEFAULT_FID_BLOCKS: Record<FidelizacionObjective, FidFormBlock[]> =
   ],
 };
 
+// ── Feedback (respuestas de clientes) ────────────────────────
+
+export interface FidelizacionFeedback {
+  id: string;
+  form_id: string;
+  business_id: string;
+  respondent_name: string | null;
+  respondent_email: string | null;
+  answers: Record<string, unknown>;
+  nps_score: number | null;
+  avg_rating: number | null;
+  submitted_at: string;
+}
+
 export const FID_BLOCK_LABELS: Record<FidBlockType, string> = {
   fid_welcome:    "Bienvenida",
   fid_rating:     "Valoración por categorías",

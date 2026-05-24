@@ -1,11 +1,46 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 
 function supabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+// GET /api/fidelizacion/feedback?formId=xxx — requiere auth del negocio
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const formId = searchParams.get("formId");
+  if (!formId) return NextResponse.json({ error: "formId requerido" }, { status: 400 });
+
+  const db = supabaseAdmin();
+
+  const { data: form } = await db
+    .from("fidelizacion_forms")
+    .select("business_id")
+    .eq("id", formId)
+    .single();
+
+  if (!form) return NextResponse.json({ error: "Formulario no encontrado" }, { status: 404 });
+
+  const [owns, { isAdmin }] = await Promise.all([
+    verifyBusinessOwnership(req, form.business_id),
+    verifyAdminSession(req),
+  ]);
+  if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+
+  const { data, error } = await db
+    .from("fidelizacion_feedback")
+    .select("*")
+    .eq("form_id", formId)
+    .order("submitted_at", { ascending: false })
+    .limit(200);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ feedback: data ?? [] });
 }
 
 // POST /api/fidelizacion/feedback — pública, sin autenticación requerida

@@ -7,7 +7,7 @@ import type {
   FidelizacionForm, FidFormBlock, FidBlockType, FidBlockConfig,
   FidWelcomeConfig, FidRatingConfig, FidNpsConfig, FidQuestionsConfig,
   FidOpenTextConfig, FidCaptureConfig, FidThankYouConfig,
-  RatingCategory, FidQuestion, FormDesign,
+  RatingCategory, FidQuestion, FormDesign, FidelizacionFeedback,
 } from "@/types/fidelizacion-forms";
 import { FID_BLOCK_LABELS, FID_BLOCK_OBJECTIVES, DEFAULT_FID_DESIGN } from "@/types/fidelizacion-forms";
 
@@ -683,6 +683,337 @@ function BlockEditor({ block, onChange }: { block: FidFormBlock; onChange: (conf
   }
 }
 
+// ── Vista de respuestas ───────────────────────────────────────
+
+function StarDisplay({ value, max = 5 }: { value: number; max?: number }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} style={{ color: i < Math.round(value) ? "#C5A059" : "rgba(255,255,255,0.15)", fontSize: "14px" }}>★</span>
+      ))}
+    </span>
+  );
+}
+
+function NpsBadge({ score }: { score: number }) {
+  const color = score >= 9 ? "#22c55e" : score >= 7 ? "#f59e0b" : "#ef4444";
+  const label = score >= 9 ? "Promotor" : score >= 7 ? "Pasivo" : "Detractor";
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-xl font-bold" style={{ color }}>{score}/10</span>
+      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: `${color}20`, color }}>{label}</span>
+    </span>
+  );
+}
+
+function AnswerBlock({ block, answers }: { block: FidFormBlock; answers: Record<string, unknown> }) {
+  const val = answers[block.id];
+
+  if (block.type === "fid_welcome" || block.type === "fid_thank_you" || block.type === "fid_capture") return null;
+
+  const border = "var(--border)";
+  const card = "rounded-xl border p-4";
+
+  if (block.type === "fid_rating") {
+    const cfg = block.config as FidRatingConfig;
+    const ratings = (val as Record<string, number>) ?? {};
+    if (!cfg.categories?.length) return null;
+    return (
+      <div className={card} style={{ borderColor: border }}>
+        <p className="text-xs font-semibold text-[var(--foreground)]/50 mb-3">{cfg.title || "Valoración"}</p>
+        <div className="space-y-2">
+          {cfg.categories.map(cat => {
+            const stars = ratings[cat.id] ?? null;
+            return (
+              <div key={cat.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm text-[var(--foreground)]/80 truncate">{cat.label}</span>
+                {stars !== null
+                  ? <div className="flex items-center gap-1.5 flex-shrink-0"><StarDisplay value={stars} /><span className="text-xs text-[var(--foreground)]/50">{stars}/5</span></div>
+                  : <span className="text-xs text-[var(--foreground)]/30 flex-shrink-0">Sin respuesta</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "fid_nps") {
+    const cfg = block.config as FidNpsConfig;
+    if (val === null || val === undefined) return null;
+    return (
+      <div className={card} style={{ borderColor: border }}>
+        <p className="text-xs font-semibold text-[var(--foreground)]/50 mb-2">{cfg.question || "NPS"}</p>
+        <NpsBadge score={val as number} />
+      </div>
+    );
+  }
+
+  if (block.type === "fid_questions") {
+    const cfg = block.config as FidQuestionsConfig;
+    const qa = (val as Record<string, unknown>) ?? {};
+    if (!cfg.questions?.length) return null;
+    return (
+      <div className={card} style={{ borderColor: border }}>
+        <p className="text-xs font-semibold text-[var(--foreground)]/50 mb-3">Preguntas</p>
+        <div className="space-y-2">
+          {cfg.questions.map(q => {
+            const ans = qa[q.id];
+            return (
+              <div key={q.id}>
+                <p className="text-xs text-[var(--foreground)]/60 mb-0.5">{q.text}</p>
+                {ans !== undefined && ans !== null && ans !== ""
+                  ? <p className="text-sm font-medium">{String(ans)}</p>
+                  : <p className="text-xs text-[var(--foreground)]/30 italic">Sin respuesta</p>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "fid_open_text") {
+    const cfg = block.config as FidOpenTextConfig;
+    const text = val as string;
+    if (!text) return null;
+    return (
+      <div className={card} style={{ borderColor: border }}>
+        <p className="text-xs font-semibold text-[var(--foreground)]/50 mb-2">{cfg.title || "Comentario"}</p>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">&ldquo;{text}&rdquo;</p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function ResponseCard({ entry, blocks }: { entry: FidelizacionFeedback; blocks: FidFormBlock[] }) {
+  const [expanded, setExpanded] = useState(true);
+  const date = new Date(entry.submitted_at);
+  const dateStr = date.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+  const timeStr = date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  const name  = entry.respondent_name  || null;
+  const email = entry.respondent_email || null;
+  const isAnon = !name && !email;
+
+  const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
+
+  return (
+    <div className="rounded-xl border overflow-hidden" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/3 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+            style={{ background: isAnon ? "rgba(255,255,255,0.08)" : "rgba(197,160,89,0.2)", color: isAnon ? "var(--foreground)" : "#C5A059" }}>
+            {isAnon ? "?" : (name?.[0] || email?.[0] || "?").toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">
+              {isAnon ? <span className="text-[var(--foreground)]/40 italic">Anónimo</span> : (name || email)}
+            </p>
+            {name && email && <p className="text-xs text-[var(--foreground)]/40 truncate">{email}</p>}
+          </div>
+          {/* Badges rápidos */}
+          <div className="hidden sm:flex items-center gap-2 ml-2 flex-shrink-0">
+            {entry.nps_score !== null && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: entry.nps_score >= 9 ? "#22c55e20" : entry.nps_score >= 7 ? "#f59e0b20" : "#ef444420",
+                         color:      entry.nps_score >= 9 ? "#22c55e"   : entry.nps_score >= 7 ? "#f59e0b"   : "#ef4444" }}>
+                NPS {entry.nps_score}
+              </span>
+            )}
+            {entry.avg_rating !== null && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(197,160,89,0.15)", color: "#C5A059" }}>
+                ★ {Number(entry.avg_rating).toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+          <span className="text-xs text-[var(--foreground)]/40">{dateStr} {timeStr}</span>
+          <svg className={`w-4 h-4 text-[var(--foreground)]/30 transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {/* Body */}
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: "var(--border)" }}>
+          <div className="pt-3 space-y-3">
+            {sortedBlocks.map(block => (
+              <AnswerBlock key={block.id} block={block} answers={entry.answers} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResponsesView({
+  formId, blocks, token,
+}: {
+  formId: string;
+  blocks: FidFormBlock[];
+  token: string;
+}) {
+  const [feedback, setFeedback] = useState<FidelizacionFeedback[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const res = await fetch(`/api/fidelizacion/feedback?formId=${formId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Error al cargar respuestas"); setLoading(false); return; }
+      setFeedback(data.feedback || []);
+      setLoading(false);
+    };
+    load();
+  }, [formId, token]);
+
+  // ── Estadísticas ─────────────────────────────────────────────
+  const total    = feedback.length;
+  const npsVals  = feedback.map(f => f.nps_score).filter((v): v is number => v !== null);
+  const ratVals  = feedback.map(f => f.avg_rating ? Number(f.avg_rating) : null).filter((v): v is number => v !== null);
+
+  const avgNps = npsVals.length ? npsVals.reduce((a, b) => a + b, 0) / npsVals.length : null;
+  const avgRat = ratVals.length ? ratVals.reduce((a, b) => a + b, 0) / ratVals.length : null;
+
+  // NPS real = % promotores (9-10) - % detractores (0-6)
+  const promoters   = npsVals.filter(n => n >= 9).length;
+  const detractors  = npsVals.filter(n => n <= 6).length;
+  const npsScore    = npsVals.length ? Math.round(((promoters - detractors) / npsVals.length) * 100) : null;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-[var(--foreground)]/40 text-sm">Cargando respuestas...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-400 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          {
+            label: "Respuestas totales",
+            value: String(total),
+            sub: total === 0 ? "Aún no hay respuestas" : total === 1 ? "1 respuesta recibida" : `${total} respuestas recibidas`,
+            color: "var(--brand-1)",
+          },
+          {
+            label: "NPS (índice)",
+            value: npsScore !== null ? (npsScore > 0 ? `+${npsScore}` : String(npsScore)) : "—",
+            sub: npsScore !== null
+              ? (npsScore >= 50 ? "Excelente" : npsScore >= 0 ? "Aceptable" : "Mejorable")
+              : "Sin datos NPS",
+            color: npsScore === null ? "var(--foreground)" : npsScore >= 50 ? "#22c55e" : npsScore >= 0 ? "#f59e0b" : "#ef4444",
+          },
+          {
+            label: "Puntuación media",
+            value: avgRat !== null ? `${avgRat.toFixed(1)}/5` : "—",
+            sub: avgRat !== null ? `${ratVals.length} valoraciones` : "Sin valoraciones",
+            color: avgRat !== null ? "#C5A059" : "var(--foreground)",
+          },
+          {
+            label: "Promotores NPS",
+            value: npsVals.length ? `${Math.round((promoters / npsVals.length) * 100)}%` : "—",
+            sub: npsVals.length ? `${promoters} de ${npsVals.length}` : "Sin datos",
+            color: promoters > 0 ? "#22c55e" : "var(--foreground)",
+          },
+        ].map(stat => (
+          <div key={stat.label} className="rounded-xl border p-4" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <p className="text-xs text-[var(--foreground)]/50 mb-1">{stat.label}</p>
+            <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
+            <p className="text-xs text-[var(--foreground)]/40 mt-0.5">{stat.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* NPS breakdown visual */}
+      {npsVals.length > 0 && (
+        <div className="rounded-xl border p-4" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+          <p className="text-xs font-semibold text-[var(--foreground)]/50 mb-3 uppercase tracking-widest">Distribución NPS</p>
+          <div className="flex gap-1 h-6 rounded-lg overflow-hidden mb-2">
+            {[
+              { label: "Detractores (0-6)", count: detractors, color: "#ef4444" },
+              { label: "Pasivos (7-8)", count: npsVals.filter(n => n >= 7 && n <= 8).length, color: "#f59e0b" },
+              { label: "Promotores (9-10)", count: promoters, color: "#22c55e" },
+            ].map(({ label, count, color }) => {
+              const pct = npsVals.length ? (count / npsVals.length) * 100 : 0;
+              return pct > 0 ? (
+                <div key={label} className="flex items-center justify-center text-[10px] font-bold text-white"
+                  style={{ width: `${pct}%`, background: color, minWidth: pct > 0 ? "2px" : "0" }}
+                  title={`${label}: ${count} (${Math.round(pct)}%)`}>
+                  {pct > 15 ? `${Math.round(pct)}%` : ""}
+                </div>
+              ) : null;
+            })}
+          </div>
+          <div className="flex gap-4 flex-wrap">
+            {[
+              { label: "Detractores", count: detractors, color: "#ef4444" },
+              { label: "Pasivos", count: npsVals.filter(n => n >= 7 && n <= 8).length, color: "#f59e0b" },
+              { label: "Promotores", count: promoters, color: "#22c55e" },
+            ].map(({ label, count, color }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+                <span className="text-xs text-[var(--foreground)]/60">{label}: <strong style={{ color }}>{count}</strong></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lista de respuestas */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-[var(--foreground)]/70">
+            {total === 0 ? "Sin respuestas aún" : `${total} ${total === 1 ? "respuesta" : "respuestas"}`}
+          </p>
+        </div>
+
+        {total === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3 rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--card)" }}>
+            <svg className="w-10 h-10 text-[var(--foreground)]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+            </svg>
+            <p className="text-sm text-[var(--foreground)]/40">Aún no hay respuestas para este formulario</p>
+            <p className="text-xs text-[var(--foreground)]/30">Comparte el enlace del formulario con tus clientes para empezar a recibir feedback</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {feedback.map(entry => (
+              <ResponseCard key={entry.id} entry={entry} blocks={blocks} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Página principal ──────────────────────────────────────────
 
 export default function FidFormBuilderPage() {
@@ -699,6 +1030,7 @@ export default function FidFormBuilderPage() {
   const [selectedBlock, setSelectedBlock]     = useState<string | null>(null);
   const [previewBlock, setPreviewBlock]       = useState<FidFormBlock | null>(null);
   const [showDesignModal, setShowDesignModal] = useState(false);
+  const [activeTab, setActiveTab]             = useState<"editor" | "responses">("editor");
 
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
@@ -864,50 +1196,96 @@ export default function FidFormBuilderPage() {
 
         {/* Barra superior */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">← Volver</button>
-            <h1 className="font-bold text-lg">{formData.name}</h1>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${formData.status === "published" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/15 text-yellow-400"}`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => router.back()} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors flex-shrink-0">← Volver</button>
+            <h1 className="font-bold text-lg truncate">{formData.name}</h1>
+            <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${formData.status === "published" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/15 text-yellow-400"}`}>
               {formData.status === "published" ? "Publicado" : "Borrador"}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Ver formulario público */}
             {formData.status === "published" && formData.slug && (
               <a
                 href={`/f/${formData.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all hover:opacity-80 flex items-center gap-1.5"
+                className="px-3 py-2 rounded-lg text-sm font-semibold border-2 transition-all hover:opacity-80 flex items-center gap-1.5"
                 style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
               >
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Ver formulario
+                <span className="hidden sm:inline">Ver formulario</span>
               </a>
             )}
-            {/* Diseño */}
-            <button
-              onClick={() => setShowDesignModal(true)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all hover:opacity-80 flex items-center gap-2"
-              style={{ borderColor: "var(--brand-1)", color: "var(--brand-1)" }}
-            >
-              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: design.accent_color }} />
-              Diseño
-            </button>
-            {/* Guardar */}
-            <button
-              onClick={save}
-              disabled={saving}
-              className="px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
-              style={{ background: "var(--brand-1)", color: "white" }}
-            >
-              {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
-            </button>
+            {/* Diseño — solo en tab editor */}
+            {activeTab === "editor" && (
+              <button
+                onClick={() => setShowDesignModal(true)}
+                className="px-3 py-2 rounded-lg text-sm font-semibold border-2 transition-all hover:opacity-80 flex items-center gap-2"
+                style={{ borderColor: "var(--brand-1)", color: "var(--brand-1)" }}
+              >
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: design.accent_color }} />
+                <span className="hidden sm:inline">Diseño</span>
+              </button>
+            )}
+            {/* Guardar — solo en tab editor */}
+            {activeTab === "editor" && (
+              <button
+                onClick={save}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+                style={{ background: "var(--brand-1)", color: "white" }}
+              >
+                {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar"}
+              </button>
+            )}
           </div>
         </div>
 
+        {/* Tabs Editor / Respuestas */}
+        <div className="flex border-b mb-4 flex-shrink-0" style={{ borderColor: "var(--border)" }}>
+          {(([
+            { id: "editor",    label: "Editor",     icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z", badge: undefined },
+            { id: "responses", label: "Respuestas", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+              badge: formData.response_count > 0 ? String(formData.response_count) : undefined },
+          ]) as { id: "editor" | "responses"; label: string; icon: string; badge: string | undefined }[]).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
+                activeTab === tab.id
+                  ? "border-[var(--brand-1)] text-[var(--brand-1)]"
+                  : "border-transparent text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+              }`}
+            >
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tab.icon} />
+              </svg>
+              {tab.label}
+              {tab.badge && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "var(--brand-1)", color: "white" }}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab: Respuestas */}
+        {activeTab === "responses" && (
+          <div className="flex-1 overflow-y-auto pr-1">
+            <ResponsesView
+              formId={id}
+              blocks={formData.blocks}
+              token={token}
+            />
+          </div>
+        )}
+
+        {/* Tab: Editor */}
+        {activeTab === "editor" && (
         <div className="flex gap-4 flex-1 min-h-0">
 
           {/* Panel izquierdo: bloques */}
@@ -1027,6 +1405,7 @@ export default function FidFormBuilderPage() {
             </p>
           </div>
         </div>
+        )} {/* fin tab editor */}
       </div>
     </>
   );
