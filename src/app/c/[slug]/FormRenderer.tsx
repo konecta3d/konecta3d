@@ -88,6 +88,7 @@ function DefaultForm({
   const [step, setStep] = useState<"capture" | "done">("capture");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
@@ -108,6 +109,7 @@ function DefaultForm({
 
   const submit = async () => {
     if (!phone.trim()) { setError("El teléfono es obligatorio"); return; }
+    if (!consent) { setError("Debes aceptar la política de privacidad para continuar."); return; }
     setSubmitting(true);
     setError("");
     const res = await fetch("/api/captacion/leads", {
@@ -222,15 +224,50 @@ function DefaultForm({
             style={{ background: `${s.text_color}15`, border: `1px solid ${s.border_color}`, color: s.text_color }}
             type="tel" placeholder="+34 600 000 000" value={phone} onChange={e => setPhone(e.target.value)} />
         </div>
+        {/* Checkbox de consentimiento */}
+        <label className="flex items-start gap-3 cursor-pointer select-none">
+          <div className="relative flex-shrink-0 mt-0.5">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={e => setConsent(e.target.checked)}
+              className="sr-only"
+            />
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center transition-all"
+              style={{
+                background: consent ? s.accent_color : `${s.text_color}10`,
+                border: `2px solid ${consent ? s.accent_color : s.border_color}`,
+              }}
+            >
+              {consent && (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  style={{ color: s.bg_color }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <span className="text-xs leading-relaxed" style={{ opacity: 0.55 }}>
+            He leído y acepto la{" "}
+            <a
+              href="#"
+              onClick={e => e.preventDefault()}
+              className="underline underline-offset-2"
+              style={{ opacity: 1, color: s.accent_color }}
+            >
+              política de privacidad
+            </a>
+            {" "}y consiento el tratamiento de mis datos para recibir información comercial. *
+          </span>
+        </label>
+
         {error && <p className="text-red-400 text-xs">{error}</p>}
-        <button onClick={submit} disabled={submitting}
-          className="w-full py-3.5 rounded-xl font-semibold text-sm disabled:opacity-50 transition-opacity"
+        <button onClick={submit} disabled={submitting || !consent}
+          className="w-full py-3.5 rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity"
           style={{ background: s.accent_color, color: s.bg_color }}>
           {submitting ? "Enviando..." : leadMagnet?.cta_text || "Continuar →"}
         </button>
-        <p className="text-xs text-center" style={{ opacity: 0.3 }}>
-          Tus datos se tratan conforme a nuestra política de privacidad.
-        </p>
       </div>
     </div>
   );
@@ -247,6 +284,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
   const [captureData, setCaptureData] = useState<Record<string, string>>({});
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
@@ -283,6 +321,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const submitLead = async () => {
     const phoneField = captureData.phone;
     if (!phoneField?.trim()) { setSubmitError("El teléfono es obligatorio"); return; }
+    if (!consent) { setSubmitError("Debes aceptar la política de privacidad para continuar."); return; }
     setSubmitting(true);
     setSubmitError("");
     const res = await fetch("/api/captacion/leads", {
@@ -472,15 +511,50 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 </div>
               ))}
             </div>
-            {submitError && <p className="text-red-400 text-xs mb-3">{submitError}</p>}
-            <button onClick={submitLead} disabled={submitting}
-              className="w-full py-4 rounded-2xl font-semibold disabled:opacity-50 transition-opacity"
+            {/* Checkbox de consentimiento */}
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={e => setConsent(e.target.checked)}
+                  className="sr-only"
+                />
+                <div
+                  className="w-5 h-5 rounded flex items-center justify-center transition-all"
+                  style={{
+                    background: consent ? s.accent_color : `${s.text_color}10`,
+                    border: `2px solid ${consent ? s.accent_color : s.border_color}`,
+                  }}
+                >
+                  {consent && (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      style={{ color: s.bg_color }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs leading-relaxed" style={{ opacity: 0.55 }}>
+                He leído y acepto la{" "}
+                <a
+                  href="#"
+                  onClick={e => e.preventDefault()}
+                  className="underline underline-offset-2"
+                  style={{ opacity: 1, color: s.accent_color }}
+                >
+                  política de privacidad
+                </a>
+                {" "}y consiento el tratamiento de mis datos para recibir información comercial. *
+              </span>
+            </label>
+
+            {submitError && <p className="text-red-400 text-xs">{submitError}</p>}
+            <button onClick={submitLead} disabled={submitting || !consent}
+              className="w-full py-4 rounded-2xl font-semibold disabled:opacity-40 transition-opacity"
               style={{ background: s.accent_color, color: s.bg_color }}>
               {submitting ? "Enviando..." : isLastBlock ? "Enviar" : "Continuar →"}
             </button>
-            <p className="text-xs text-center mt-3" style={{ opacity: 0.3 }}>
-              Tus datos se tratan conforme a nuestra política de privacidad.
-            </p>
           </div>
         );
       }

@@ -20,6 +20,7 @@ export default function LeadCaptureModal({
   const router = useRouter();
   const [name, setName]       = useState("");
   const [phone, setPhone]     = useState("");
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]     = useState("");
 
@@ -29,6 +30,10 @@ export default function LeadCaptureModal({
     e.preventDefault();
     if (!name.trim() && !phone.trim()) {
       setError("Introduce tu nombre o teléfono para continuar.");
+      return;
+    }
+    if (!consent) {
+      setError("Debes aceptar la política de privacidad para continuar.");
       return;
     }
     setSubmitting(true);
@@ -127,22 +132,55 @@ export default function LeadCaptureModal({
               />
             </div>
 
+            {/* Checkbox de consentimiento */}
+            <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={e => setConsent(e.target.checked)}
+                  className="sr-only"
+                />
+                <div
+                  className="w-5 h-5 rounded flex items-center justify-center transition-all"
+                  style={{
+                    background: consent ? accentColor : "rgba(255,255,255,0.07)",
+                    border: `2px solid ${consent ? accentColor : "rgba(255,255,255,0.18)"}`,
+                  }}
+                >
+                  {consent && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-[11px] text-white/45 leading-relaxed">
+                He leído y acepto la{" "}
+                <a
+                  href="#"
+                  onClick={e => e.preventDefault()}
+                  className="underline underline-offset-2"
+                  style={{ color: accentColor, opacity: 1 }}
+                >
+                  política de privacidad
+                </a>
+                {" "}y consiento el tratamiento de mis datos. *
+              </span>
+            </label>
+
             {error && (
-              <p className="text-xs text-red-400 pt-1">{error}</p>
+              <p className="text-xs text-red-400">{error}</p>
             )}
 
             <button
               type="submit"
-              disabled={submitting}
-              className="w-full py-4 rounded-xl text-sm font-bold transition-opacity disabled:opacity-50 mt-2"
+              disabled={submitting || !consent}
+              className="w-full py-4 rounded-xl text-sm font-bold transition-opacity disabled:opacity-40 mt-1"
               style={{ background: accentColor, color: "#fff" }}
             >
               {submitting ? "Enviando..." : "Recibir recurso"}
             </button>
-
-            <p className="text-[11px] text-white/25 text-center pt-1">
-              Tus datos no se compartirán con terceros
-            </p>
           </form>
         </div>
       </div>
