@@ -332,7 +332,7 @@ export default function EstadisticasPage() {
   const maxCtaClicks = Math.max(...behavior.ctaClicks.map(c => c.count), 1);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
 
       {/* ── Cabecera ─────────────────────────────────────────────────────────── */}
       <div>
@@ -361,7 +361,7 @@ export default function EstadisticasPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:gap-6">
           {/* CTAs más pulsados */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
             <div className="flex items-center justify-between mb-4">
@@ -395,7 +395,7 @@ export default function EstadisticasPage() {
         </div>
 
         {/* Descargas */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:gap-6">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-xs text-[var(--foreground)]/60 mb-1">Descargas de Recursos de Valor</p>
             <p className="text-3xl font-bold text-[var(--brand-4)]">{behavior.pdfDownloads}</p>
@@ -416,7 +416,7 @@ export default function EstadisticasPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]/40">Recursos de Valor</h2>
 
         {/* Métricas rápidas */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3 xl:gap-6">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-xs text-[var(--foreground)]/60 mb-1">Recursos creados</p>
             <p className="text-3xl font-bold text-[var(--brand-1)]">{resources.leadMagnets.length}</p>
@@ -493,7 +493,7 @@ export default function EstadisticasPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]/40">Formularios de Fidelización</h2>
 
         {/* KPIs principales */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-6">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-xs text-[var(--foreground)]/60 mb-1">Respuestas totales</p>
             <p className="text-3xl font-bold text-[var(--brand-1)]">{fidelizacion.totalResponses}</p>
@@ -526,7 +526,7 @@ export default function EstadisticasPage() {
         </div>
 
         {/* Distribución + Tendencia */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:gap-6">
           {/* Distribución Promotor / Pasivo / Detractor */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-sm font-semibold mb-4">Distribución NPS</p>

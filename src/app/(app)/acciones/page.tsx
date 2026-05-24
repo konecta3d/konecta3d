@@ -293,14 +293,14 @@ useEffect(() => {
           <strong>Consejo:</strong> Si ya usas una o varias de estas herramientas, pega el link generado y centralízalas en una página con un objetivo concreto.
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
           {Object.entries(ACTION_CATEGORIES).map(([key, category]) => {
             const count = savedLinks.filter(l => l.type === key).length;
             return (
               <button
                 key={key}
                 onClick={() => setActiveCategory(key as ActionType)}
-                className="p-4 md:p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] text-left hover:border-[var(--brand-1)] transition-all"
+                className="p-4 md:p-5 xl:p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] text-left hover:border-[var(--brand-1)] transition-all hover:scale-[1.02]"
               >
                 <h3 className="font-bold text-base md:text-lg mb-1">{category.title}</h3>
                 <p className="text-sm text-white mb-3">{category.description}</p>
