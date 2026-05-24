@@ -34,7 +34,7 @@ function LeadMagnetListContent() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("email", userEmail)
+        .eq("contact_email", userEmail)
         .single();
       setBusinessId(biz?.id || "");
     };
