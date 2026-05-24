@@ -42,6 +42,10 @@ export default function AdminSettings() {
   const [migrationResult, setMigrationResult] = useState<null | { results: Record<string, string>; hasMissing: boolean; sql?: string | null }>(null);
   const [migrationLoading, setMigrationLoading] = useState(false);
 
+  // Banner de mantenimiento
+  const [banner, setBanner] = useState<{ active: boolean; message: string }>({ active: false, message: "" });
+  const [savingBanner, setSavingBanner] = useState(false);
+
   useEffect(() => {
     loadSettings();
   }, []);
@@ -70,6 +74,17 @@ export default function AdminSettings() {
       if (featuresData?.value) {
         const saved = typeof featuresData.value === 'string' ? JSON.parse(featuresData.value) : featuresData.value;
         setFeatures({ ...defaultFeatures, ...saved });
+      }
+
+      // Load maintenance banner
+      const { data: bannerData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "maintenance_banner")
+        .single();
+      if (bannerData?.value) {
+        const saved = typeof bannerData.value === 'string' ? JSON.parse(bannerData.value) : bannerData.value;
+        setBanner({ active: saved.active ?? false, message: saved.message ?? "" });
       }
     } catch (err) {
       console.error("Error cargando configuración:", err);
@@ -124,6 +139,24 @@ export default function AdminSettings() {
     }
     setSavingFeatures(false);
     setTimeout(() => setMsg(""), 3000);
+  };
+
+  const saveBanner = async () => {
+    setSavingBanner(true);
+    setMsg("Guardando aviso...");
+    try {
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "maintenance_banner", value: JSON.stringify(banner), updated_at: new Date().toISOString() },
+          { onConflict: "key" }
+        );
+      setMsg(banner.active ? "✓ Aviso activado — los clientes ya lo ven" : "✓ Aviso desactivado");
+    } catch {
+      setMsg("Error al guardar el aviso");
+    }
+    setSavingBanner(false);
+    setTimeout(() => setMsg(""), 4000);
   };
 
   if (loading) {
@@ -183,6 +216,15 @@ export default function AdminSettings() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeSection === "features" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
         >
           Funcionalidades
+        </button>
+        <button
+          onClick={() => setActiveSection("avisos")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${activeSection === "avisos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+        >
+          Avisos
+          {banner.active && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400" />
+          )}
         </button>
       </div>
 
@@ -475,8 +517,84 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {/* Save Button (hidden on features tab — that section has its own button) */}
-      {activeSection !== "features" && (
+      {/* Avisos / Maintenance Banner Section */}
+      {activeSection === "avisos" && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">Banner de aviso a clientes</h2>
+            <p className="text-sm text-[var(--foreground)]/60">
+              Cuando está activo, todos los clientes verán este mensaje en la parte superior de su panel al iniciar sesión.
+              Úsalo antes de hacer cambios importantes para que puedan guardar su información.
+            </p>
+          </div>
+
+          {/* Toggle activo */}
+          <div className="rounded-lg border border-[var(--border)] p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="font-medium text-sm">Estado del aviso</div>
+                <div className="text-xs text-[var(--foreground)]/60 mt-1">
+                  {banner.active ? "Los clientes ven el aviso ahora mismo" : "El aviso está desactivado — los clientes no lo ven"}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBanner(b => ({ ...b, active: !b.active }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                  banner.active ? "bg-amber-500" : "bg-[var(--border)]"
+                }`}
+                role="switch"
+                aria-checked={banner.active}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${banner.active ? "translate-x-5" : "translate-x-0"}`} />
+              </button>
+            </div>
+            <div className="mt-2">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${banner.active ? "bg-amber-500/15 text-amber-400" : "bg-[var(--border)]/40 text-[var(--foreground)]/40"}`}>
+                {banner.active ? "⚠ Activo — visible para clientes" : "Inactivo"}
+              </span>
+            </div>
+          </div>
+
+          {/* Mensaje */}
+          <div>
+            <label className="text-xs uppercase tracking-wide text-[var(--brand-4)] block mb-2">Mensaje del aviso</label>
+            <textarea
+              rows={3}
+              value={banner.message}
+              onChange={e => setBanner(b => ({ ...b, message: e.target.value }))}
+              placeholder="Ej: El próximo martes 28 realizaremos una actualización de la plataforma entre las 02:00 y las 04:00. Guarda tu información antes de esa hora."
+              className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm resize-none"
+            />
+            <p className="text-xs text-[var(--foreground)]/40 mt-1">{banner.message.length} / 300 caracteres</p>
+          </div>
+
+          {/* Preview */}
+          {banner.message && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-[var(--foreground)]/40 mb-2">Vista previa del aviso</p>
+              <div className="flex items-start gap-3 px-4 py-3 text-sm font-medium rounded-lg"
+                style={{ background: "rgba(234,179,8,0.15)", border: "1px solid rgba(234,179,8,0.3)", color: "#fbbf24" }}>
+                <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                <span>{banner.message}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              onClick={saveBanner}
+              disabled={savingBanner}
+              className="px-6 py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {savingBanner ? "Guardando..." : banner.active ? "Activar aviso" : "Guardar cambios"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Button (hidden on features and avisos tabs — those sections have their own button) */}
+      {activeSection !== "features" && activeSection !== "avisos" && (
         <div className="flex justify-end">
           <button
             onClick={saveSettings}

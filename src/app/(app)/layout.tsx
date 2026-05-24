@@ -38,7 +38,7 @@ const fidelizacionLinks: SidebarLink[] = [
 
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
-  { label: "Inicio", href: "/captacion", category: "Captación" },
+  // "Inicio" se renderiza como botón destacado en Sidebar.tsx (igual que Dashboard en Fidelización)
   { label: "Contexto de Captación", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
@@ -77,6 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [profileActive, setProfileActive] = useState<boolean | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [contextIncomplete, setContextIncomplete] = useState(false);
+  const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
 
   // ── Tema claro/oscuro ────────────────────────────────────────────────────
   const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
@@ -111,7 +112,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         // silencioso
       }
     };
+
+    const loadBanner = async () => {
+      try {
+        const { data } = await supabase.from("settings").select("value").eq("key", "maintenance_banner").single();
+        if (data?.value) {
+          const banner = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+          setMaintenanceBanner(banner);
+        }
+      } catch {
+        // silencioso
+      }
+    };
+
     loadNames();
+    if (!isAdminMode) loadBanner();
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent<Record<string, string>>).detail;
@@ -383,6 +398,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </header>
+          {/* ── Banner de mantenimiento / avisos ── */}
+          {!isAdminMode && maintenanceBanner?.active && maintenanceBanner.message && (
+            <div className="flex items-start gap-3 px-4 py-3 text-sm font-medium"
+              style={{ background: "rgba(234,179,8,0.15)", borderBottom: "1px solid rgba(234,179,8,0.3)", color: "#fbbf24" }}>
+              <span className="flex-shrink-0 mt-0.5">⚠️</span>
+              <span>{maintenanceBanner.message}</span>
+            </div>
+          )}
           <main className="p-4 md:p-8">{children}</main>
         </div>
       </div>

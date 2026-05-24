@@ -243,6 +243,21 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     return (
         <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:flex md:flex-col">
             {title ? title : <SidebarTitle />}
+
+            {/* ── Etiqueta del perfil activo ── */}
+            {!isAdminMode && (
+                <div className="mb-1 text-[10px] uppercase tracking-widest font-bold px-0.5"
+                    style={{
+                        color: isCaptacionMode
+                            ? "rgba(147,149,255,0.75)"
+                            : isNegocioMode
+                            ? "rgba(197,160,98,0.75)"
+                            : "rgba(57,161,169,0.75)"
+                    }}>
+                    {isCaptacionMode ? "Captación" : isNegocioMode ? "Mi Negocio" : "Fidelización"}
+                </div>
+            )}
+
             {!isAdminMode && businessName && (
                 <div className="mb-6 font-semibold"
                     style={{ fontSize: "var(--sidebar-title-size)", color: "var(--foreground)" }}>
@@ -265,6 +280,24 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     Dashboard
+                </Link>
+            )}
+
+            {/* Botón Inicio — solo en modo captación (mismo estilo que Dashboard) */}
+            {showBusinessSidebar && isCaptacionMode && (
+                <Link
+                    href="/captacion"
+                    className={`flex items-center gap-2 mb-4 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                        pathname === "/captacion"
+                            ? "bg-[var(--brand-4)] text-black"
+                            : "bg-[var(--brand-3)]/15 text-[var(--brand-3)] hover:bg-[var(--brand-3)]/25"
+                    }`}
+                >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Inicio
                 </Link>
             )}
 
