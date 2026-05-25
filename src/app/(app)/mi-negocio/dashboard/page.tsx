@@ -24,11 +24,12 @@ interface ModuleCounts {
   leadMagnets: number;
   benefits: number;
   leads: number;
+  forms: number;
 }
 
 export default function DashboardPage() {
   const [business, setBusiness] = useState<BusinessData | null>(null);
-  const [counts, setCounts] = useState<ModuleCounts>({ landings: 0, leadMagnets: 0, benefits: 0, leads: 0 });
+  const [counts, setCounts] = useState<ModuleCounts>({ landings: 0, leadMagnets: 0, benefits: 0, leads: 0, forms: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,31 +47,27 @@ export default function DashboardPage() {
       if (!biz) { setLoading(false); return; }
       setBusiness(biz);
 
-      // Solo consultar módulos activos
-      const queries: PromiseLike<{ count: number | null }>[] = [
+      // Consultar todos los módulos en paralelo
+      const [landingsRes, leadsRes, leadMagnetsRes, benefitsRes, formsRes] = await Promise.all([
         supabase.from("landing_configs").select("id", { count: "exact", head: true }).eq("business_id", biz.id).then(r => ({ count: r.count })),
         supabase.from("leads").select("id", { count: "exact", head: true }).eq("business_id", biz.id).then(r => ({ count: r.count })),
-      ];
-
-      if (biz.module_lead_magnet !== false) {
-        queries.push(supabase.from("lead_magnets").select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("active", true).then(r => ({ count: r.count })));
-      } else {
-        queries.push(Promise.resolve({ count: 0 }));
-      }
-
-      if (biz.module_vip_benefits !== false) {
-        queries.push(supabase.from("benefits").select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("active", true).then(r => ({ count: r.count })));
-      } else {
-        queries.push(Promise.resolve({ count: 0 }));
-      }
-
-      const [landingsRes, leadsRes, leadMagnetsRes, benefitsRes] = await Promise.all(queries);
+        biz.module_lead_magnet !== false
+          ? supabase.from("lead_magnets").select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("active", true).then(r => ({ count: r.count }))
+          : Promise.resolve({ count: 0 }),
+        biz.module_vip_benefits !== false
+          ? supabase.from("benefits").select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("active", true).then(r => ({ count: r.count }))
+          : Promise.resolve({ count: 0 }),
+        biz.module_forms !== false
+          ? supabase.from("fidelizacion_forms").select("id", { count: "exact", head: true }).eq("business_id", biz.id).then(r => ({ count: r.count }))
+          : Promise.resolve({ count: 0 }),
+      ]);
 
       setCounts({
         landings: landingsRes.count || 0,
         leads: leadsRes.count || 0,
         leadMagnets: leadMagnetsRes.count || 0,
         benefits: benefitsRes.count || 0,
+        forms: formsRes.count || 0,
       });
 
       setLoading(false);
@@ -140,6 +137,22 @@ export default function DashboardPage() {
       ),
     },
     {
+      key: "forms",
+      label: "Formularios",
+      description: "Crea formularios de feedback y satisfacción.",
+      href: "/formularios",
+      enabled: business?.module_forms !== false,
+      count: counts.forms,
+      countLabel: "formulario",
+      countLabelPlural: "formularios",
+      color: "var(--brand-3)",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
       key: "tools",
       label: "Herramientas",
       description: "Acciones rápidas, WhatsApp y recursos del negocio.",
@@ -157,43 +170,6 @@ export default function DashboardPage() {
       ),
     },
   ].filter((m) => m.enabled);
-
-  // Secciones Mi Negocio (siempre visibles)
-  const miNegocioLinks = [
-    {
-      label: "Perfil",
-      description: "Nombre, logo, descripción y datos de contacto",
-      href: "/mi-negocio/perfil",
-      color: "var(--brand-1)",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-    },
-    {
-      label: "Clientes",
-      description: `${counts.leads} lead${counts.leads !== 1 ? "s" : ""} captado${counts.leads !== 1 ? "s" : ""}`,
-      href: "/mi-negocio/cliente-ideal",
-      color: "var(--brand-3)",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: "Estadísticas",
-      description: "Actividad, beneficios y clientes registrados",
-      href: "/mi-negocio/estadisticas",
-      color: "var(--brand-3)",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-  ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -230,34 +206,6 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-      </div>
-
-      {/* Mi Negocio — secciones de gestión */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-1)] mb-3">Mi Negocio</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {miNegocioLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex items-center gap-3 hover:border-[var(--brand-3)] transition-colors group"
-            >
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: `${item.color}22`, color: item.color }}
-              >
-                {item.icon}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-sm">{item.label}</div>
-                <div className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.55 }}>{item.description}</div>
-              </div>
-              <svg className="w-4 h-4 flex-shrink-0 opacity-30 group-hover:opacity-70 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          ))}
-        </div>
       </div>
 
       {/* Generadores — solo módulos activos */}
