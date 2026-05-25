@@ -57,6 +57,7 @@ const [newPassword, setNewPassword] = useState("");
 const [showResetPassword, setShowResetPassword] = useState(false);
 const [copiedResetMsg, setCopiedResetMsg] = useState("");
 const [resetting, setResetting] = useState(false);
+const [generatingPdf, setGeneratingPdf] = useState(false);
 
 const searchParams = useSearchParams();
 const rawTab = searchParams.get("tab");
@@ -217,6 +218,43 @@ body: JSON.stringify({
   setResetting(false);
   setTimeout(() => setMsg(""), 4000);
 };
+
+const generateOnboardingPdf = async () => {
+  if (!resetPasswordBusiness?.contact_email || !newPassword || newPassword.length < 6) return;
+  setGeneratingPdf(true);
+  setMsg("Generando PDF...");
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token || "";
+    const res = await fetch("/api/admin/onboarding-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ businessId: resetPasswordBusiness.id, newPassword }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setMsg(data.error || "Error al generar el PDF");
+    } else {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `onboarding-${resetPasswordBusiness.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setMsg("✓ Contraseña actualizada y PDF descargado");
+      setNewPassword("");
+      setShowResetModal(false);
+    }
+  } catch {
+    setMsg("Error de red al generar el PDF");
+  }
+  setGeneratingPdf(false);
+  setTimeout(() => setMsg(""), 4000);
+};
+
   // Actualizar negocio — usa API (service role, bypassea RLS)
   const updateBusiness = async () => {
     if (!editingBusiness) return;
@@ -722,13 +760,23 @@ body: JSON.stringify({
   {copiedResetMsg && <div className="text-xs text-green-500 mt-1">{copiedResetMsg}</div>}
 </div>
 
-                  <button
-                    onClick={resetPassword}
-                    disabled={resetting || newPassword.length < 6}
-                    className="w-full py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
-                  >
-                    {resetting ? "Guardando..." : "Guardar Contraseña"}
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={generateOnboardingPdf}
+                      disabled={generatingPdf || resetting || newPassword.length < 6}
+                      className="w-full py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      style={{ background: "var(--brand-1)", color: "white" }}
+                    >
+                      {generatingPdf ? "Generando PDF..." : "📄 Guardar contraseña y generar Onboarding PDF"}
+                    </button>
+                    <button
+                      onClick={resetPassword}
+                      disabled={resetting || generatingPdf || newPassword.length < 6}
+                      className="w-full py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] disabled:opacity-50 transition-colors"
+                    >
+                      {resetting ? "Guardando..." : "Solo guardar contraseña"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
