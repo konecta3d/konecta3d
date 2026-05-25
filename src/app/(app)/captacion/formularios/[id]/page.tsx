@@ -1175,7 +1175,7 @@ export default function FormBuilderPage() {
   }, []);
 
   const activeBlock = formData?.blocks.find(b => b.id === selectedBlock) || null;
-  const BLOCK_TYPES: BlockType[] = ["welcome", "segmentation", "questions", "capture", "final_message", "thank_you"];
+  const BLOCK_TYPES: BlockType[] = ["welcome", "questions", "capture", "final_message", "thank_you"];
 
   if (loading) {
     return (

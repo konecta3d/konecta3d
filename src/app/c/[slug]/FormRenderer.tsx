@@ -93,19 +93,9 @@ function DefaultForm({
   const [error, setError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
   const [codeValue, setCodeValue] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState<number | null>(null);
 
-  // Redirigir automáticamente a la landing de fidelización al completar el flujo
-  useEffect(() => {
-    if (step === "done" && businessPublicId) setCountdown(5);
-  }, [step, businessPublicId]);
-
-  useEffect(() => {
-    if (countdown === null) return;
-    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}/NFC`); return; }
-    const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
-    return () => clearTimeout(t);
-  }, [countdown, businessPublicId]);
+  // La redirección a fidelización ocurre solo al pulsar el CTA de descarga,
+  // no de forma automática. Ver onClick en los botones de descarga.
 
   const submit = async () => {
     if (!phone.trim()) { setError("El teléfono es obligatorio"); return; }
@@ -128,8 +118,7 @@ function DefaultForm({
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
 
-    // Marcar como convertido — próxima visita irá a fidelización
-    if (slug) markConverted(slug);
+    // NO marcamos como convertido aquí — se hace al pulsar el CTA de descarga
 
     setStep("done");
     setSubmitting(false);
@@ -152,18 +141,22 @@ function DefaultForm({
         <h1 className="text-2xl font-bold mb-2">
           {hasResource ? "¡Tu recurso está listo!" : "¡Gracias por registrarte!"}
         </h1>
-        <p className="text-sm mb-2" style={{ opacity: 0.7 }}>
+        <p className="text-sm mb-8" style={{ opacity: 0.7 }}>
           {hasResource ? "Pulsa el botón para descargarlo ahora." : "Hemos guardado tus datos correctamente."}
         </p>
-        {businessPublicId && (
-          <p className="text-sm mb-8" style={{ opacity: 0.5 }}>
-            En breve serás redirigido a nuestra página exclusiva para que sigas disfrutando de nuestros servicios.
-          </p>
-        )}
         {leadMagnet && hasResource && (
           <div className="w-full max-w-sm mb-6">
             {leadMagnetUrl && (
-              <a href={leadMagnetUrl} target="_blank" rel="noopener noreferrer"
+              <a
+                href={leadMagnetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  if (slug) markConverted(slug);
+                  if (businessPublicId) {
+                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                  }
+                }}
                 className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform"
                 style={{ background: s.accent_color, color: s.bg_color }}>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +167,16 @@ function DefaultForm({
               </a>
             )}
             {codeValue && (
-              <div className="rounded-2xl p-5" style={{ background: `${s.text_color}15` }}>
+              <div
+                className="rounded-2xl p-5 cursor-pointer"
+                style={{ background: `${s.text_color}15` }}
+                onClick={() => {
+                  if (slug) markConverted(slug);
+                  if (businessPublicId) {
+                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                  }
+                }}
+              >
                 <p className="text-sm mb-3" style={{ opacity: 0.6 }}>
                   {leadMagnet.cta_text || "Tu código exclusivo:"}
                 </p>
@@ -185,18 +187,6 @@ function DefaultForm({
                 <p className="text-xs mt-3" style={{ opacity: 0.3 }}>Mantén esta pantalla abierta o anota el código</p>
               </div>
             )}
-          </div>
-        )}
-        {/* Countdown de redirección automática */}
-        {countdown !== null && countdown > 0 && (
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <svg className="w-4 h-4 animate-spin" style={{ opacity: 0.35, color: s.accent_color }} fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"/>
-            </svg>
-            <p className="text-xs" style={{ opacity: 0.35 }}>
-              Accediendo a tu área exclusiva en {countdown}s…
-            </p>
           </div>
         )}
       </div>
@@ -297,18 +287,8 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const isLastBlock  = currentBlockIndex === sortedBlocks.length - 1;
   const isThankYou   = currentBlock?.type === "thank_you";
 
-  // Iniciar countdown al llegar al bloque thank_you
-  useEffect(() => {
-    if (isThankYou && businessPublicId) setCountdown(4);
-  }, [isThankYou, businessPublicId]);
-
-  // Ejecutar la redirección cuando el contador llega a 0
-  useEffect(() => {
-    if (countdown === null) return;
-    if (countdown === 0) { window.location.replace(`/l/${businessPublicId}/NFC`); return; }
-    const t = setTimeout(() => setCountdown(c => (c ?? 1) - 1), 1000);
-    return () => clearTimeout(t);
-  }, [countdown, businessPublicId]);
+  // La redirección a fidelización ocurre al pulsar el CTA de descarga,
+  // no de forma automática. Ver onClick en los bloques thank_you / final_message.
 
   if (!blocks || blocks.length === 0) {
     return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} />;
@@ -349,8 +329,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
 
-    // Marcar como convertido — próxima visita al llavero irá a fidelización
-    if (slug) markConverted(slug);
+    // NO marcamos como convertido aquí — se hace al pulsar el CTA de descarga
 
     next();
     setSubmitting(false);
@@ -578,7 +557,16 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
             <p className="text-sm mb-8 max-w-xs" style={{ opacity: 0.6 }}>{cfg.text}</p>
 
             {hasUrl ? (
-              <a href={leadMagnetUrl!} target="_blank" rel="noopener noreferrer"
+              <a
+                href={leadMagnetUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  if (slug) markConverted(slug);
+                  if (businessPublicId) {
+                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                  }
+                }}
                 className="flex items-center justify-center gap-3 w-full max-w-xs py-4 rounded-2xl font-bold active:scale-95 transition-transform mb-4"
                 style={{ background: s.accent_color, color: s.bg_color }}>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -588,7 +576,15 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 {cfg.cta_text}
               </a>
             ) : hasCode ? (
-              <div className="w-full max-w-xs mb-4">
+              <div
+                className="w-full max-w-xs mb-4 cursor-pointer"
+                onClick={() => {
+                  if (slug) markConverted(slug);
+                  if (businessPublicId) {
+                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                  }
+                }}
+              >
                 <p className="text-sm mb-3" style={{ opacity: 0.6 }}>{cfg.cta_text}</p>
                 <div className="font-mono text-3xl font-bold tracking-widest rounded-2xl px-4 py-4 select-all"
                   style={{ background: `${s.text_color}15`, color: s.accent_color }}>
@@ -647,6 +643,12 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                   href={leadMagnetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    if (slug) markConverted(slug);
+                    if (businessPublicId) {
+                      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                    }
+                  }}
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform"
                   style={{ background: s.accent_color, color: s.bg_color }}
                 >
@@ -658,7 +660,16 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 </a>
               )}
               {codeValue && !leadMagnetUrl && (
-                <div className="rounded-2xl p-4 mb-2" style={{ background: `${s.text_color}12` }}>
+                <div
+                  className="rounded-2xl p-4 mb-2 cursor-pointer"
+                  style={{ background: `${s.text_color}12` }}
+                  onClick={() => {
+                    if (slug) markConverted(slug);
+                    if (businessPublicId) {
+                      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+                    }
+                  }}
+                >
                   <p className="text-xs mb-2" style={{ opacity: 0.6 }}>{leadMagnet?.cta_text || "Tu código exclusivo:"}</p>
                   <div className="font-mono text-3xl font-bold tracking-widest rounded-xl px-4 py-3 select-all"
                     style={{ background: `${s.text_color}20`, color: s.accent_color }}>
@@ -696,18 +707,6 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 </a>
               )}
             </div>
-            {/* Countdown de redirección automática a la landing de fidelización */}
-            {businessPublicId && countdown !== null && countdown > 0 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
-                <svg className="w-4 h-4 animate-spin" style={{ opacity: 0.35, color: s.accent_color }} fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"/>
-                </svg>
-                <p className="text-xs" style={{ opacity: 0.35 }}>
-                  Accediendo a tu área exclusiva en {countdown}s…
-                </p>
-              </div>
-            )}
           </div>
         );
       }
