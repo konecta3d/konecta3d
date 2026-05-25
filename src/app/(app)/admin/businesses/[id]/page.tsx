@@ -46,6 +46,7 @@ export default function BusinessDetail() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [copiedMsg, setCopiedMsg] = useState("");
   const [isResetting, setIsResetting] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -144,6 +145,42 @@ export default function BusinessDetail() {
     setIsResetting(false);
     setTimeout(() => setMsg(null), 3000);
   };
+
+  const handleGenerateOnboardingPdf = async () => {
+    if (!newPassword || !business?.contact_email) return;
+    setIsGeneratingPdf(true);
+    setMsg(null);
+    try {
+      const authHeader = await getAuthHeader();
+      const res = await fetch("/api/admin/onboarding-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader },
+        body: JSON.stringify({ businessId: id, newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setMsg(data.error || "Error al generar el PDF");
+      } else {
+        // Descarga automática del PDF
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `onboarding-${business.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setMsg("✓ Contraseña actualizada y PDF descargado");
+        setNewPassword("");
+      }
+    } catch {
+      setMsg("Error de red al generar el PDF");
+    }
+    setIsGeneratingPdf(false);
+    setTimeout(() => setMsg(null), 4000);
+  };
+
   const openAsProfile = async (_profile: "fidelizacion" | "captacion") => {
     window.open(`/business/select-profile?businessId=${id}&fromAdmin=1`, "_blank");
   };
@@ -479,13 +516,23 @@ export default function BusinessDetail() {
                   </div>
                   {copiedMsg && <div className="text-xs text-green-500 mt-1">{copiedMsg}</div>}
                 </div>
-                <button
-                  onClick={handlePasswordReset}
-                  disabled={isResetting || !newPassword || !business.contact_email}
-                  className="px-4 py-2 w-full md:w-auto rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm font-medium hover:bg-red-500/20 disabled:opacity-50 transition-colors"
-                >
-                  {isResetting ? "Actualizando..." : "Actualizar Contraseña"}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <button
+                    onClick={handlePasswordReset}
+                    disabled={isResetting || isGeneratingPdf || !newPassword || !business.contact_email}
+                    className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm font-medium hover:bg-red-500/20 disabled:opacity-50 transition-colors whitespace-nowrap"
+                  >
+                    {isResetting ? "Actualizando..." : "Actualizar contraseña"}
+                  </button>
+                  <button
+                    onClick={handleGenerateOnboardingPdf}
+                    disabled={isGeneratingPdf || isResetting || !newPassword || !business.contact_email}
+                    className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors whitespace-nowrap"
+                    style={{ background: "var(--brand-1)", color: "white" }}
+                  >
+                    {isGeneratingPdf ? "Generando PDF..." : "📄 Generar Onboarding PDF"}
+                  </button>
+                </div>
               </div>
               {!business.contact_email && (
                 <p className="text-xs text-red-400 mt-2">El negocio debe tener un Email guardado para poder operar su contraseña.</p>
