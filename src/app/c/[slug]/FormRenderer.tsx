@@ -93,9 +93,21 @@ function DefaultForm({
   const [error, setError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
   const [codeValue, setCodeValue] = useState<string | null>(null);
+  const [leadId, setLeadId] = useState<string | null>(null);
 
-  // La redirección a fidelización ocurre solo al pulsar el CTA de descarga,
-  // no de forma automática. Ver onClick en los botones de descarga.
+  // La redirección a fidelización ocurre solo al pulsar el CTA de descarga.
+  const handleDownload = () => {
+    // 1. Marcar LM como descargado en la BD
+    if (leadId) {
+      fetch(`/api/captacion/leads/${leadId}/lm-downloaded`, { method: "PATCH" })
+        .catch(() => {/* silencioso */});
+    }
+    // 2. Marcar cookie de fidelización y redirigir tras iniciar descarga
+    if (slug) markConverted(slug);
+    if (businessPublicId) {
+      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+    }
+  };
 
   const submit = async () => {
     if (!phone.trim()) { setError("El teléfono es obligatorio"); return; }
@@ -110,6 +122,9 @@ function DefaultForm({
     const data = await res.json();
     if (!res.ok) { setError(data.error || "Error al enviar"); setSubmitting(false); return; }
 
+    // Guardar el ID del lead para marcarlo como descargado al pulsar el CTA
+    if (data.lead?.id) setLeadId(data.lead.id);
+
     // URL desde API o fallback directo desde prop
     const url = data.lead_magnet_url
       || (leadMagnet?.type === "pdf" ? leadMagnet.file_url : null)
@@ -117,8 +132,6 @@ function DefaultForm({
       || null;
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
-
-    // NO marcamos como convertido aquí — se hace al pulsar el CTA de descarga
 
     setStep("done");
     setSubmitting(false);
@@ -151,12 +164,7 @@ function DefaultForm({
                 href={leadMagnetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => {
-                  if (slug) markConverted(slug);
-                  if (businessPublicId) {
-                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                  }
-                }}
+                onClick={handleDownload}
                 className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform"
                 style={{ background: s.accent_color, color: s.bg_color }}>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,12 +178,7 @@ function DefaultForm({
               <div
                 className="rounded-2xl p-5 cursor-pointer"
                 style={{ background: `${s.text_color}15` }}
-                onClick={() => {
-                  if (slug) markConverted(slug);
-                  if (businessPublicId) {
-                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                  }
-                }}
+                onClick={handleDownload}
               >
                 <p className="text-sm mb-3" style={{ opacity: 0.6 }}>
                   {leadMagnet.cta_text || "Tu código exclusivo:"}
@@ -279,6 +282,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const [submitError, setSubmitError] = useState("");
   const [leadMagnetUrl, setLeadMagnetUrl] = useState<string | null>(null);
   const [codeValue, setCodeValue] = useState<string | null>(null);
+  const [leadId, setLeadId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Calcular bloque actual antes de los hooks (los hooks no pueden ir después de un return condicional)
@@ -287,8 +291,17 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   const isLastBlock  = currentBlockIndex === sortedBlocks.length - 1;
   const isThankYou   = currentBlock?.type === "thank_you";
 
-  // La redirección a fidelización ocurre al pulsar el CTA de descarga,
-  // no de forma automática. Ver onClick en los bloques thank_you / final_message.
+  // La redirección a fidelización ocurre al pulsar el CTA de descarga.
+  const handleDownload = () => {
+    if (leadId) {
+      fetch(`/api/captacion/leads/${leadId}/lm-downloaded`, { method: "PATCH" })
+        .catch(() => {/* silencioso */});
+    }
+    if (slug) markConverted(slug);
+    if (businessPublicId) {
+      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
+    }
+  };
 
   if (!blocks || blocks.length === 0) {
     return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} />;
@@ -321,6 +334,9 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
     const data = await res.json();
     if (!res.ok) { setSubmitError(data.error || "Error al enviar"); setSubmitting(false); return; }
 
+    // Guardar el ID del lead para marcarlo como descargado al pulsar el CTA
+    if (data.lead?.id) setLeadId(data.lead.id);
+
     // URL desde API; si no viene, intentar desde prop (ej: PDF sin URL guardada)
     const url = data.lead_magnet_url
       || (leadMagnet?.type === "pdf" ? leadMagnet.file_url : null)
@@ -328,8 +344,6 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
       || null;
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
-
-    // NO marcamos como convertido aquí — se hace al pulsar el CTA de descarga
 
     next();
     setSubmitting(false);
@@ -561,12 +575,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 href={leadMagnetUrl!}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => {
-                  if (slug) markConverted(slug);
-                  if (businessPublicId) {
-                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                  }
-                }}
+                onClick={handleDownload}
                 className="flex items-center justify-center gap-3 w-full max-w-xs py-4 rounded-2xl font-bold active:scale-95 transition-transform mb-4"
                 style={{ background: s.accent_color, color: s.bg_color }}>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -578,12 +587,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
             ) : hasCode ? (
               <div
                 className="w-full max-w-xs mb-4 cursor-pointer"
-                onClick={() => {
-                  if (slug) markConverted(slug);
-                  if (businessPublicId) {
-                    setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                  }
-                }}
+                onClick={handleDownload}
               >
                 <p className="text-sm mb-3" style={{ opacity: 0.6 }}>{cfg.cta_text}</p>
                 <div className="font-mono text-3xl font-bold tracking-widest rounded-2xl px-4 py-4 select-all"
@@ -643,12 +647,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                   href={leadMagnetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => {
-                    if (slug) markConverted(slug);
-                    if (businessPublicId) {
-                      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                    }
-                  }}
+                  onClick={handleDownload}
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform"
                   style={{ background: s.accent_color, color: s.bg_color }}
                 >
@@ -663,12 +662,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
                 <div
                   className="rounded-2xl p-4 mb-2 cursor-pointer"
                   style={{ background: `${s.text_color}12` }}
-                  onClick={() => {
-                    if (slug) markConverted(slug);
-                    if (businessPublicId) {
-                      setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
-                    }
-                  }}
+                  onClick={handleDownload}
                 >
                   <p className="text-xs mb-2" style={{ opacity: 0.6 }}>{leadMagnet?.cta_text || "Tu código exclusivo:"}</p>
                   <div className="font-mono text-3xl font-bold tracking-widest rounded-xl px-4 py-3 select-all"

@@ -88,8 +88,10 @@ export async function POST(req: Request) {
       segment: segment || null,
       quiz_answers: quiz_answers || {},
       lead_magnet_id: leadMagnetId,
-      lead_magnet_delivered: !!leadMagnetId,
-      lead_magnet_delivered_at: leadMagnetId ? new Date().toISOString() : null,
+      lead_magnet_delivered: false,
+      lead_magnet_delivered_at: null,
+      lm_status: "pending",
+      funnel_step: "submitted",
       status: "new",
     })
     .select()
@@ -121,12 +123,8 @@ export async function POST(req: Request) {
       else if (lm.type === "url" && lm.external_url) leadMagnetUrl = lm.external_url;
       // type === "code": se muestra en pantalla, no hay URL
 
-      // Incrementar contador (fire-and-forget, no bloquea la respuesta)
-      const prevCount = lm.delivered_count ?? 0;
-      db.from("captacion_lead_magnets")
-        .update({ delivered_count: prevCount + 1 })
-        .eq("id", leadMagnetId)
-        .then(() => {/* ignorar resultado */});
+      // El contador delivered_count se incrementa en el endpoint /lm-downloaded,
+      // que se llama cuando el cliente pulsa el CTA de descarga.
     }
   }
 

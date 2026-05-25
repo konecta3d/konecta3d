@@ -15,6 +15,15 @@ const STATUS_COLORS: Record<string, string> = {
   discarded: "bg-[var(--foreground)]/10 text-[var(--foreground)]/40",
 };
 
+const LM_STATUS_LABEL: Record<string, string> = {
+  pending: "Sin descargar",
+  downloaded: "Descargado",
+};
+const LM_STATUS_COLOR: Record<string, string> = {
+  pending: "bg-orange-500/15 text-orange-400",
+  downloaded: "bg-green-500/15 text-green-400",
+};
+
 interface CampaignGroup {
   id: string;
   name: string;
@@ -88,7 +97,39 @@ function LeadPanel({
           </div>
         )}
 
-        {/* Estado */}
+        {/* Lead Magnet — estado de descarga */}
+        {lead.lead_magnet_id && (
+          <div>
+            <h3 className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider mb-2">Lead Magnet</h3>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${LM_STATUS_COLOR[lead.lm_status ?? "pending"]}`}>
+              <span>{lead.lm_status === "downloaded" ? "✓" : "⚠"}</span>
+              <span>{LM_STATUS_LABEL[lead.lm_status ?? "pending"]}</span>
+              {lead.lead_magnet_delivered_at && (
+                <span className="ml-auto opacity-60">
+                  {new Date(lead.lead_magnet_delivered_at).toLocaleDateString("es-ES")}
+                </span>
+              )}
+            </div>
+            {/* Botón WhatsApp de seguimiento si no descargó */}
+            {lead.lm_status !== "downloaded" && lead.phone && (
+              <a
+                href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`¡Hola ${lead.name || ""}! 👋 Te enviamos el recurso que pediste. Puedes descargarlo aquí cuando quieras. ¿Tienes alguna duda?`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 mt-2 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: "#25d366", color: "white" }}
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.057 24l6.305-1.654A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.7 9.7 0 01-4.948-1.352l-.355-.21-3.676 1.025 1.025-3.676-.21-.355A9.693 9.693 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
+                </svg>
+                Enviar recordatorio por WhatsApp
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Estado CRM */}
         <div>
           <h3 className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider mb-2">Estado</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -214,9 +255,13 @@ function CampaignLeadsTable({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {lead.lead_magnet_delivered
-                        ? <span className="text-xs text-green-400">✓ Entregado</span>
-                        : <span className="text-xs text-[var(--foreground)]/30">—</span>}
+                      {lead.lead_magnet_id ? (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LM_STATUS_COLOR[lead.lm_status ?? "pending"]}`}>
+                          {lead.lm_status === "downloaded" ? "✓ Descargado" : "⚠ Pendiente"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--foreground)]/30">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {lead.migrated_to_fidelizacion
@@ -261,7 +306,9 @@ function CampaignCard({
   const total = group.leads.length;
   const migrated = group.leads.filter(l => l.migrated_to_fidelizacion).length;
   const pending = total - migrated;
-  const delivered = group.leads.filter(l => l.lead_magnet_delivered).length;
+  const lmLeads = group.leads.filter(l => l.lead_magnet_id);
+  const lmDownloaded = lmLeads.filter(l => l.lm_status === "downloaded").length;
+  const lmPending = lmLeads.filter(l => l.lm_status !== "downloaded").length;
 
   const exportCSV = () => {
     const rows = [
@@ -307,7 +354,12 @@ function CampaignCard({
             {/* Stats */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--foreground)]/50">
               <span><strong className="text-[var(--foreground)]">{total}</strong> leads</span>
-              <span><strong className="text-green-400">{delivered}</strong> lead magnet entregado</span>
+              {lmLeads.length > 0 && <>
+                <span><strong className="text-green-400">{lmDownloaded}</strong> descargaron el LM</span>
+                {lmPending > 0 && (
+                  <span><strong className="text-orange-400">{lmPending}</strong> sin descargar</span>
+                )}
+              </>}
               <span><strong className="text-[var(--brand-1)]">{migrated}</strong> en fidelización</span>
               {pending > 0 && (
                 <span><strong className="text-yellow-400">{pending}</strong> pendientes de migrar</span>
@@ -406,7 +458,7 @@ function ClientesPage() {
   const [globalSearch, setGlobalSearch] = useState("");
 
   // Tab activo
-  const [activeTab, setActiveTab] = useState<"todos" | "fidelizacion" | "manuales">("todos");
+  const [activeTab, setActiveTab] = useState<"todos" | "sin_lm" | "fidelizacion" | "manuales">("todos");
 
   // Modal añadir cliente manual
   const [showAddModal, setShowAddModal] = useState(false);
@@ -516,11 +568,13 @@ function ClientesPage() {
     .filter(g => {
       if (activeTab === "fidelizacion") return g.leads.some(l => l.migrated_to_fidelizacion);
       if (activeTab === "manuales") return g.id === MANUAL_KEY;
+      if (activeTab === "sin_lm") return g.leads.some(l => l.lead_magnet_id && l.lm_status !== "downloaded");
       return true; // todos
     })
     .map(g => {
       let filteredLeads = g.leads;
       if (activeTab === "fidelizacion") filteredLeads = filteredLeads.filter(l => l.migrated_to_fidelizacion);
+      if (activeTab === "sin_lm") filteredLeads = filteredLeads.filter(l => l.lead_magnet_id && l.lm_status !== "downloaded");
       if (globalSearch) {
         const q = globalSearch.toLowerCase();
         filteredLeads = filteredLeads.filter(l =>
@@ -536,6 +590,8 @@ function ClientesPage() {
   const totalLeads = leads.length;
   const totalMigrated = leads.filter(l => l.migrated_to_fidelizacion).length;
   const totalManual = leads.filter(l => l.campaign_id === null).length;
+  const totalWithLm = leads.filter(l => l.lead_magnet_id).length;
+  const totalLmPending = leads.filter(l => l.lead_magnet_id && l.lm_status !== "downloaded").length;
   const fidelizacionPct = totalLeads > 0 ? Math.round((totalMigrated / totalLeads) * 100) : 0;
 
   if (loading) {
@@ -602,13 +658,36 @@ function ClientesPage() {
         </div>
       )}
 
+      {/* Alerta leads sin descargar LM */}
+      {totalLmPending > 0 && (
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors"
+          style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}
+          onClick={() => setActiveTab("sin_lm")}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-orange-400 text-lg">⚠</span>
+            <div>
+              <p className="text-sm font-semibold text-orange-400">
+                {totalLmPending} lead{totalLmPending !== 1 ? "s" : ""} {totalLmPending !== 1 ? "no descargaron" : "no descargó"} el recurso
+              </p>
+              <p className="text-xs text-orange-400/60">
+                Puedes contactarles por WhatsApp para enviarles el enlace.
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-orange-400 whitespace-nowrap">Ver →</span>
+        </div>
+      )}
+
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="flex flex-wrap gap-1 p-1 rounded-xl w-fit" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {([
           { key: "todos", label: `Todos (${totalLeads})` },
+          { key: "sin_lm", label: `Sin LM (${totalLmPending})`, hidden: totalWithLm === 0 },
           { key: "fidelizacion", label: `Fidelización (${totalMigrated})` },
           { key: "manuales", label: `Añadidos (${totalManual})` },
-        ] as const).map(tab => (
+        ] as const).filter(t => !("hidden" in t && t.hidden)).map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}

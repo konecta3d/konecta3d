@@ -211,6 +211,10 @@ export default function CaptacionPage() {
   const contacted = activeCampaignLeads.filter((l) => l.status !== "new" && l.status !== "discarded");
   const delivered = activeCampaignLeads.filter((l) => l.lead_magnet_delivered);
 
+  // Leads con LM asociado que aún no descargaron
+  const leadsWithLm = allLeads.filter(l => l.lead_magnet_id);
+  const lmPendingLeads = leadsWithLm.filter(l => (l.lm_status ?? "pending") !== "downloaded");
+
   const now = Date.now();
   const oldUncontacted = uncontacted.filter(
     (l) => now - new Date(l.created_at).getTime() > 48 * 60 * 60 * 1000
@@ -354,6 +358,28 @@ export default function CaptacionPage() {
         </div>
       </div>
 
+      {/* ── Alerta leads sin descargar LM ── */}
+      {lmPendingLeads.length > 0 && (
+        <Link
+          href="/captacion/clientes?tab=sin_lm"
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-colors"
+          style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-orange-400 text-lg flex-shrink-0">⚠</span>
+            <div>
+              <p className="text-sm font-semibold text-orange-400">
+                {lmPendingLeads.length} lead{lmPendingLeads.length !== 1 ? "s" : ""} {lmPendingLeads.length !== 1 ? "no descargaron" : "no descargó"} el recurso
+              </p>
+              <p className="text-xs text-orange-400/60">
+                Puedes contactarles por WhatsApp con el enlace de descarga.
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-orange-400 whitespace-nowrap flex-shrink-0">Ver y contactar →</span>
+        </Link>
+      )}
+
       {/* ── Banner campaña activa ── */}
       {counts.activeCampaign && (
         <div className="rounded-xl p-5 border-2"
@@ -439,10 +465,12 @@ export default function CaptacionPage() {
             )}
             {deliveryRate !== null && (
               <MetricCard
-                label="Lead magnet"
+                label="LM descargado"
                 value={`${deliveryRate}%`}
-                sub="entregado"
+                sub={`${delivered.length} de ${activeCampaignLeads.length}`}
                 light={deliveryLight}
+                action={activeCampaignLeads.filter(l => l.lead_magnet_id && (l.lm_status ?? "pending") !== "downloaded").length > 0 ? "Ver pendientes" : undefined}
+                actionHref="/captacion/clientes"
               />
             )}
             {conversionRate !== null && kc > 0 && (

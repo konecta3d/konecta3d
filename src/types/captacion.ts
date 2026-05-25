@@ -168,6 +168,9 @@ export interface CaptacionCampaign {
   captacion_lead_magnets?: Pick<CaptacionLeadMagnet, 'id' | 'name'>;
 }
 
+export type LeadFunnelStep = 'submitted' | 'lm_downloaded';
+export type LeadLmStatus  = 'pending'   | 'downloaded';
+
 export interface CaptacionLead {
   id: string;
   business_id: string;
@@ -182,6 +185,10 @@ export interface CaptacionLead {
   lead_magnet_id?: string;
   lead_magnet_delivered: boolean;
   lead_magnet_delivered_at?: string;
+  /** Estado del lead magnet: pending = formulario enviado pero sin descargar */
+  lm_status: LeadLmStatus;
+  /** Paso del embudo alcanzado */
+  funnel_step: LeadFunnelStep;
   status: 'new' | 'contacted' | 'active' | 'discarded';
   notes?: string;
   migrated_to_fidelizacion: boolean;
