@@ -1297,6 +1297,7 @@ export default function FidFormBuilderPage() {
 
         {/* Tab: Editor */}
         {activeTab === "editor" && (
+        <>
         {/* ── Tabs móvil ── */}
         <div className="flex lg:hidden gap-1 rounded-xl p-1 mb-3 flex-shrink-0"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
@@ -1434,6 +1435,7 @@ export default function FidFormBuilderPage() {
             </p>
           </div>
         </div>
+        </>
         )} {/* fin tab editor */}
       </div>
     </>
