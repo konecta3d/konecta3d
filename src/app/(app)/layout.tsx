@@ -205,10 +205,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const links = baseLinks
     .filter((l) => {
-      if (!isAdminMode && !isCaptacionMode && !isNegocioMode && l.module && modules[l.module] === false) {
-        return false;
-      }
-      if (isNegocioMode && l.module && modules[l.module] === false) {
+      if (!isAdminMode && l.module && modules[l.module] === false) {
         return false;
       }
       return true;
