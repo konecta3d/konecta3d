@@ -304,9 +304,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             <nav className="flex-1 space-y-4 text-sm overflow-y-auto">
                 {Object.entries(categories).map(([category, catLinks]) => (
                     <div key={category} className="space-y-1">
-                        <div className="mt-6 mb-2 text-xs uppercase tracking-wide text-[var(--brand-1)] px-3">
+                        {/* Ocultar etiqueta "Generadores" en Fidelización — queda más limpio */}
+                        {!(isFidelizacionMode && category === "Generadores") && (
+                          <div className="mt-6 mb-2 text-xs uppercase tracking-wide text-[var(--brand-1)] px-3">
                             {category}
-                        </div>
+                          </div>
+                        )}
                         {catLinks.map(renderLink)}
                     </div>
                 ))}
