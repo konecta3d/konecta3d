@@ -1006,6 +1006,7 @@ export default function FormBuilderPage() {
 
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale]   = useState(1);
+  const [mobileTab, setMobileTab]         = useState<"bloques" | "editor" | "preview">("bloques");
 
   // Cargar fuentes de Google
   useEffect(() => {
@@ -1063,6 +1064,8 @@ export default function FormBuilderPage() {
   const selectBlock = (block: FormBlock) => {
     setSelectedBlock(block.id);
     setPreviewBlock(block);
+    // En móvil, saltar al tab de editor al seleccionar un bloque
+    setMobileTab("editor");
   };
 
   // Añadir bloque
@@ -1248,10 +1251,28 @@ export default function FormBuilderPage() {
           </div>
         </div>
 
+        {/* ── Tabs móvil ── */}
+        <div className="flex lg:hidden gap-1 rounded-xl p-1 mb-3 flex-shrink-0"
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          {([
+            { id: "bloques",  label: "Bloques"  },
+            { id: "editor",   label: "Editor"   },
+            { id: "preview",  label: "Preview"  },
+          ] as const).map(tab => (
+            <button key={tab.id} onClick={() => setMobileTab(tab.id)}
+              className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                mobileTab === tab.id ? "text-white" : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+              }`}
+              style={mobileTab === tab.id ? { background: "var(--brand-1)" } : {}}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex gap-4 flex-1 min-h-0">
 
           {/* Panel izquierdo: bloques */}
-          <div className="w-64 flex-shrink-0 flex flex-col gap-4 min-h-0">
+          <div className={`flex-shrink-0 flex flex-col gap-4 min-h-0 w-full lg:w-64 ${mobileTab !== "bloques" ? "hidden lg:flex" : "flex"}`}>
 
             {/* Lista de bloques */}
             <div className="rounded-xl border overflow-hidden flex-shrink-0"
@@ -1322,7 +1343,7 @@ export default function FormBuilderPage() {
           </div>
 
           {/* Panel central: editor */}
-          <div className="flex-1 min-w-0 rounded-xl border overflow-hidden flex flex-col"
+          <div className={`min-w-0 rounded-xl border overflow-hidden flex flex-col flex-1 ${mobileTab !== "editor" ? "hidden lg:flex" : "flex"}`}
             style={{ background: "var(--card)", borderColor: "var(--border)" }}>
             {activeBlock ? (
               <>
@@ -1350,7 +1371,7 @@ export default function FormBuilderPage() {
           </div>
 
           {/* Panel derecho: preview móvil */}
-          <div ref={previewWrapRef} className="w-80 flex-shrink-0 flex flex-col gap-3">
+          <div ref={previewWrapRef} className={`flex-shrink-0 flex flex-col gap-3 w-full lg:w-80 ${mobileTab !== "preview" ? "hidden lg:flex" : "flex"}`}>
 
             {/* Header + step dots */}
             <div className="flex items-center justify-between">
