@@ -13,9 +13,7 @@ type Settings = {
   force_password_change: boolean;
 };
 
-type Features = {
-  module_lead_magnet_advanced: boolean;
-};
+type Features = Record<string, boolean>;
 
 const defaultSettings: Settings = {
   email_from: "noreply@konecta3d.com",
@@ -27,9 +25,7 @@ const defaultSettings: Settings = {
   force_password_change: false,
 };
 
-const defaultFeatures: Features = {
-  module_lead_magnet_advanced: true,
-};
+const defaultFeatures: Features = {};
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
@@ -462,47 +458,8 @@ export default function AdminSettings() {
             </p>
           </div>
 
-          <div className="space-y-4">
-            {/* Recurso de Valor — editor Avanzado */}
-            <div className="rounded-lg border border-[var(--border)] p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-medium text-sm">Editor Avanzado — Recursos de Valor</div>
-                  <div className="text-xs text-[var(--foreground)]/60 mt-1">
-                    Cuando está activo, los negocios ven la opción &quot;Avanzado&quot; además del Asistente.
-                    Si lo desactivas, solo verán el Asistente (ocupará el ancho completo).
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFeatures((f) => ({ ...f, module_lead_magnet_advanced: !f.module_lead_magnet_advanced }))
-                  }
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-                    features.module_lead_magnet_advanced ? "bg-[var(--brand-4)]" : "bg-[var(--border)]"
-                  }`}
-                  role="switch"
-                  aria-checked={features.module_lead_magnet_advanced}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${
-                      features.module_lead_magnet_advanced ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <div className="mt-2">
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    features.module_lead_magnet_advanced
-                      ? "bg-green-500/15 text-green-400"
-                      : "bg-red-500/15 text-red-400"
-                  }`}
-                >
-                  {features.module_lead_magnet_advanced ? "Activo" : "Desactivado"}
-                </span>
-              </div>
-            </div>
+          <div className="rounded-lg border border-[var(--border)] border-dashed p-6 text-center">
+            <p className="text-sm text-[var(--foreground)]/40">Próximamente — controles globales de funcionalidades</p>
           </div>
 
           <div className="flex justify-end">
