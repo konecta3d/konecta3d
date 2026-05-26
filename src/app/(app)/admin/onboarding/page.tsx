@@ -6,8 +6,8 @@ import { buildOnboardingHtml } from "@/lib/onboarding-html";
 
 // ─── Constantes A4 ───────────────────────────────────────────────────────────
 
-const A4_W = 794;  // 210mm a 96dpi
-const A4_H = 1123; // 297mm a 96dpi
+const A4_W = 794;
+const A4_H = 1123;
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +26,7 @@ type Feature = {
 type OnboardingTemplate = {
   header_subtitle: string;
   notice_text: string;
+  platform_url: string;
   steps: [Step, Step, Step];
   features: Feature[];
   support_text: string;
@@ -34,11 +35,18 @@ type OnboardingTemplate = {
   footer_text: string;
 };
 
+type Business = {
+  id: string;
+  name: string;
+  contact_email: string | null;
+};
+
 // ─── Valores por defecto ─────────────────────────────────────────────────────
 
 const DEFAULT_TEMPLATE: OnboardingTemplate = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
+  platform_url: "konecta3d.vercel.app",
   steps: [
     {
       title: "Perfil de negocio",
@@ -199,7 +207,7 @@ function StepEditor({
   );
 }
 
-// ─── Preview A4 con iframe ───────────────────────────────────────────────────
+// ─── Preview A4 con iframe ────────────────────────────────────────────────────
 
 function OnboardingPreview({ html }: { html: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -228,7 +236,8 @@ function OnboardingPreview({ html }: { html: string }) {
         <iframe
           srcDoc={html}
           title="Vista previa Onboarding"
-          sandbox="allow-same-origin"
+          sandbox="allow-scripts allow-same-origin"
+          allow="clipboard-write"
           style={{
             width: `${A4_W}px`,
             height: `${A4_H}px`,
@@ -249,19 +258,27 @@ function OnboardingPreview({ html }: { html: string }) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function OnboardingEditorPage() {
+  // ── Template (contenido guardado en Supabase) ──
   const [template, setTemplate] = useState<OnboardingTemplate>(deepClone(DEFAULT_TEMPLATE));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
+  // ── Preview data (negocio seleccionado, solo para la vista previa) ──
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBizId, setSelectedBizId] = useState("");
+  const [previewName, setPreviewName] = useState("Nombre del Negocio");
+  const [previewEmail, setPreviewEmail] = useState("cliente@ejemplo.com");
+  const [previewPassword, setPreviewPassword] = useState("ContraseñaEjemplo");
+
   // ── HTML en tiempo real ──
   const previewHtml = useMemo(
-    () => buildOnboardingHtml("Nombre del Negocio", "cliente@ejemplo.com", "ContraseñaEjemplo", template),
-    [template]
+    () => buildOnboardingHtml(previewName, previewEmail, previewPassword, template),
+    [template, previewName, previewEmail, previewPassword]
   );
 
-  // ── Carga desde Supabase ──
+  // ── Carga template desde Supabase ──
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -280,12 +297,39 @@ export default function OnboardingEditorPage() {
     load();
   }, []);
 
+  // ── Carga lista de negocios ──
+  useEffect(() => {
+    const loadBiz = async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("id, name, contact_email")
+        .order("name");
+      if (data) setBusinesses(data as Business[]);
+    };
+    loadBiz();
+  }, []);
+
+  // ── Selección de negocio ──
+  const handleBizSelect = (id: string) => {
+    setSelectedBizId(id);
+    if (!id) {
+      setPreviewName("Nombre del Negocio");
+      setPreviewEmail("cliente@ejemplo.com");
+      return;
+    }
+    const biz = businesses.find((b) => b.id === id);
+    if (biz) {
+      setPreviewName(biz.name);
+      setPreviewEmail(biz.contact_email ?? "cliente@ejemplo.com");
+    }
+  };
+
   const showMsg = (text: string, ok = true) => {
     setMsg({ text, ok });
     setTimeout(() => setMsg(null), 3500);
   };
 
-  // ── Guardar ──
+  // ── Guardar template ──
   const save = async () => {
     setSaving(true);
     try {
@@ -334,7 +378,7 @@ export default function OnboardingEditorPage() {
     setPreviewing(false);
   };
 
-  // ── Helpers de mutación ──
+  // ── Mutaciones de template ──
   const setStep = (i: number, s: Step) => {
     const next = deepClone(template);
     next.steps[i] = s;
@@ -372,12 +416,12 @@ export default function OnboardingEditorPage() {
   return (
     <div className="max-w-[1400px] mx-auto pb-12">
 
-      {/* ── Cabecera ── */}
+      {/* ── Cabecera de página ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold">Editor de Onboarding</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-0.5">
-            Edita el contenido del PDF que se genera al dar acceso a un cliente. La vista previa se actualiza en tiempo real.
+            Edita el contenido del PDF. La vista previa se actualiza en tiempo real.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
@@ -417,7 +461,7 @@ export default function OnboardingEditorPage() {
       {/* ── Layout 2 columnas ── */}
       <div className="grid xl:grid-cols-[1fr_400px] gap-8 items-start">
 
-        {/* ── Columna izquierda: formulario ── */}
+        {/* ══ Columna izquierda: formulario ══ */}
         <div className="space-y-5 min-w-0">
 
           {/* CABECERA DEL PDF */}
@@ -428,6 +472,23 @@ export default function OnboardingEditorPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
               Cabecera
             </h2>
+
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                URL de la plataforma
+              </label>
+              <input
+                type="text"
+                value={template.platform_url}
+                onChange={(e) => setTemplate({ ...template, platform_url: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+                placeholder="konecta3d.vercel.app"
+              />
+              <p className="text-xs text-[var(--foreground)]/30 mt-1">
+                Sin https:// — aparece en las credenciales del header
+              </p>
+            </div>
+
             <div>
               <label className="block text-xs text-[var(--foreground)]/50 mb-1">
                 Subtítulo del header
@@ -439,6 +500,7 @@ export default function OnboardingEditorPage() {
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
               />
             </div>
+
             <div>
               <label className="block text-xs text-[var(--foreground)]/50 mb-1">
                 Aviso de privacidad / credenciales
@@ -593,20 +655,83 @@ export default function OnboardingEditorPage() {
           </div>
         </div>
 
-        {/* ── Columna derecha: vista previa en tiempo real ── */}
-        <div className="sticky top-6 space-y-3 hidden xl:block">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
-              Vista previa
-            </h2>
-            <span className="text-xs text-[var(--foreground)]/30 italic">
-              datos de ejemplo
-            </span>
+        {/* ══ Columna derecha: selector de negocio + preview ══ */}
+        <div className="sticky top-6 space-y-4 hidden xl:block">
+
+          {/* Panel de datos de preview */}
+          <div
+            className="rounded-xl border border-[var(--border)] p-4 space-y-3"
+            style={{ background: "var(--card)" }}
+          >
+            <div className="flex items-center justify-between mb-0.5">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+                Datos del cliente
+              </h2>
+              <span className="text-xs text-[var(--foreground)]/25 italic">solo para preview</span>
+            </div>
+
+            {/* Selector de negocio */}
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">Negocio</label>
+              <select
+                value={selectedBizId}
+                onChange={(e) => handleBizSelect(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
+              >
+                <option value="">— Datos de ejemplo —</option>
+                {businesses.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Email (auto-rellena al seleccionar negocio) */}
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">Email de acceso</label>
+              <input
+                type="text"
+                value={previewEmail}
+                onChange={(e) => setPreviewEmail(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+                placeholder="cliente@ejemplo.com"
+              />
+            </div>
+
+            {/* Contraseña (manual) */}
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                Contraseña de acceso
+              </label>
+              <input
+                type="text"
+                value={previewPassword}
+                onChange={(e) => setPreviewPassword(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+                placeholder="ContraseñaEjemplo"
+              />
+              <p className="text-xs text-[var(--foreground)]/25 mt-1">
+                Introduce la contraseña que generaste para este cliente.
+              </p>
+            </div>
           </div>
+
+          {/* Label de preview */}
+          <div className="flex items-center justify-between px-0.5">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+              Vista previa A4
+            </h2>
+            <span className="text-xs text-[var(--foreground)]/25 italic">tiempo real</span>
+          </div>
+
+          {/* Preview iframe */}
           <OnboardingPreview html={previewHtml} />
-          <p className="text-center text-xs text-[var(--foreground)]/25 pt-1">
-            La vista previa refleja los cambios al instante.
-            <br />Usa &ldquo;⬇ Descargar PDF&rdquo; para obtener el archivo real generado por Puppeteer.
+
+          <p className="text-center text-xs text-[var(--foreground)]/25 pt-0.5">
+            Los botones &ldquo;Copiar&rdquo; funcionan en la vista previa.
+            <br />
+            Usa &ldquo;⬇ Descargar PDF&rdquo; para obtener el archivo imprimible.
           </p>
         </div>
 

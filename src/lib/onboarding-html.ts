@@ -17,6 +17,7 @@ export type OnboardingFeature = {
 export type OnboardingTemplate = {
   header_subtitle?: string;
   notice_text?: string;
+  platform_url?: string;
   steps?: [OnboardingStep, OnboardingStep, OnboardingStep];
   features?: OnboardingFeature[];
   support_text?: string;
@@ -30,6 +31,7 @@ export type OnboardingTemplate = {
 const DEFAULT: Required<OnboardingTemplate> = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
+  platform_url: "konecta3d.vercel.app",
   steps: [
     {
       title: "Perfil de negocio",
@@ -83,15 +85,16 @@ export function buildOnboardingHtml(
 ): string {
   const t: Required<OnboardingTemplate> = { ...DEFAULT, ...tpl };
 
-  const name     = escapeHtml(businessName);
-  const mail     = escapeHtml(email);
-  const pass     = escapeHtml(password);
-  const subtitle = escapeHtml(t.header_subtitle);
-  const notice   = escapeHtml(t.notice_text);
-  const supText  = escapeHtml(t.support_text);
-  const supPhone = escapeHtml(t.support_phone);
-  const supBtn   = escapeHtml(t.support_btn_text);
-  const footer   = escapeHtml(t.footer_text);
+  const name       = escapeHtml(businessName);
+  const mail       = escapeHtml(email);
+  const pass       = escapeHtml(password);
+  const subtitle   = escapeHtml(t.header_subtitle);
+  const notice     = escapeHtml(t.notice_text);
+  const platformUrl = escapeHtml(t.platform_url || DEFAULT.platform_url);
+  const supText    = escapeHtml(t.support_text);
+  const supPhone   = escapeHtml(t.support_phone);
+  const supBtn     = escapeHtml(t.support_btn_text);
+  const footer     = escapeHtml(t.footer_text);
 
   const steps = (t.steps ?? DEFAULT.steps) as [OnboardingStep, OnboardingStep, OnboardingStep];
 
@@ -197,8 +200,26 @@ export function buildOnboardingHtml(
     .hc-row { margin-bottom: 9px; }
     .hc-row:last-child { margin-bottom: 0; }
     .hc-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-    .hc-value { font-size: 12.5px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; }
+    .hc-value-wrap { display: flex; align-items: center; gap: 6px; }
+    .hc-value { font-size: 12px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 9px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .hc-value.accent { color: #C5A059; font-size: 11px; }
+    .copy-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.6);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+    .copy-btn.ok { background: rgba(37,211,102,0.2); color: #4ade80; border-color: rgba(37,211,102,0.35); }
     .notice {
       margin: 14px 28px;
       background: rgba(197,160,89,0.07); border: 1px solid rgba(197,160,89,0.22);
@@ -243,13 +264,6 @@ export function buildOnboardingHtml(
     .step-bullets li { font-size: 11.5px; color: #555; display: flex; gap: 6px; align-items: flex-start; line-height: 1.45; }
     .step-bullets li::before { content: '·'; color: #C5A059; font-weight: 900; font-size: 16px; line-height: 1; flex-shrink: 0; }
     .step-connector { width: 1px; background: linear-gradient(to bottom, #1A4D4A40, #e0eeec); margin: 3px 0 3px 13px; height: 10px; }
-    .access-box { background: #fafaf7; border: 1px solid #e8e4d8; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .access-title { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
-    .access-row { margin-bottom: 8px; }
-    .access-row:last-child { margin-bottom: 0; }
-    .access-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
-    .access-value { font-size: 12.5px; font-weight: 600; color: #1a1a1a; background: #fff; border: 1px solid #e0ddd4; border-radius: 6px; padding: 6px 10px; }
-    .access-value.accent { color: #1A4D4A; }
     .features-box { background: #f7fbfa; border: 1.5px solid #d0e8e5; border-radius: 12px; overflow: hidden; }
     .features-header { background: linear-gradient(135deg, #1A4D4A, #2D7A74); padding: 9px 14px; display: flex; align-items: center; gap: 7px; }
     .features-header-text { font-size: 10px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.07em; }
@@ -292,15 +306,24 @@ export function buildOnboardingHtml(
         <div class="hc-title">🔑 Tus datos de acceso</div>
         <div class="hc-row">
           <div class="hc-label">Plataforma</div>
-          <div class="hc-value accent">konecta3d.vercel.app</div>
+          <div class="hc-value-wrap">
+            <div class="hc-value accent">${platformUrl}</div>
+            <button class="copy-btn" data-v="${platformUrl}" onclick="copyVal(this)">Copiar</button>
+          </div>
         </div>
         <div class="hc-row">
           <div class="hc-label">Email</div>
-          <div class="hc-value">${mail}</div>
+          <div class="hc-value-wrap">
+            <div class="hc-value">${mail}</div>
+            <button class="copy-btn" data-v="${mail}" onclick="copyVal(this)">Copiar</button>
+          </div>
         </div>
         <div class="hc-row">
           <div class="hc-label">Contraseña</div>
-          <div class="hc-value">${pass}</div>
+          <div class="hc-value-wrap">
+            <div class="hc-value">${pass}</div>
+            <button class="copy-btn" data-v="${pass}" onclick="copyVal(this)">Copiar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -318,23 +341,7 @@ export function buildOnboardingHtml(
       ${stepsConnected}
     </div>
     <div class="col-right">
-      <div class="section-title">Cómo acceder</div>
-      <div class="access-box">
-        <div class="access-title">🌐 Entra desde cualquier dispositivo</div>
-        <div class="access-row">
-          <div class="access-label">URL</div>
-          <div class="access-value accent">konecta3d.vercel.app</div>
-        </div>
-        <div class="access-row">
-          <div class="access-label">Usuario</div>
-          <div class="access-value">${mail}</div>
-        </div>
-        <div class="access-row">
-          <div class="access-label">Contraseña</div>
-          <div class="access-value">${pass}</div>
-        </div>
-      </div>
-      <div class="section-title" style="margin-top:16px;">Qué encontrarás</div>
+      <div class="section-title">Qué encontrarás</div>
       <div class="features-box">
         <div class="features-header">
           <span style="font-size:13px;">✦</span>
@@ -366,6 +373,37 @@ export function buildOnboardingHtml(
     <p class="footer-logo">KONECTA3D</p>
     <p class="footer-text">${footer}</p>
   </div>
+
+  <script>
+    function copyVal(btn) {
+      var text = btn.getAttribute('data-v');
+      var done = function() {
+        var orig = btn.textContent;
+        btn.textContent = '✓ OK';
+        btn.classList.add('ok');
+        setTimeout(function() {
+          btn.textContent = orig === '✓ OK' ? 'Copiar' : orig;
+          btn.classList.remove('ok');
+        }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function() {
+          fallbackCopy(text); done();
+        });
+      } else {
+        fallbackCopy(text); done();
+      }
+    }
+    function fallbackCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+    }
+  </script>
 </body>
 </html>`;
 }
