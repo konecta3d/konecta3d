@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { buildOnboardingHtml } from "@/lib/onboarding-html";
+
+// ─── Constantes A4 ───────────────────────────────────────────────────────────
+
+const A4_W = 794;  // 210mm a 96dpi
+const A4_H = 1123; // 297mm a 96dpi
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +34,7 @@ type OnboardingTemplate = {
   footer_text: string;
 };
 
-// ─── Valores por defecto (los que tiene el PDF actual) ───────────────────────
+// ─── Valores por defecto ─────────────────────────────────────────────────────
 
 const DEFAULT_TEMPLATE: OnboardingTemplate = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
@@ -76,13 +82,13 @@ const DEFAULT_TEMPLATE: OnboardingTemplate = {
   footer_text: "Documento personal con credenciales de acceso. No lo compartas con terceros.",
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v));
 }
 
-// ─── Componente reutilizable: lista de bullets ────────────────────────────────
+// ─── Componentes reutilizables ────────────────────────────────────────────────
 
 function BulletList({
   bullets,
@@ -125,8 +131,6 @@ function BulletList({
     </div>
   );
 }
-
-// ─── Componente reutilizable: sección de paso ────────────────────────────────
 
 function StepEditor({
   index,
@@ -195,6 +199,53 @@ function StepEditor({
   );
 }
 
+// ─── Preview A4 con iframe ───────────────────────────────────────────────────
+
+function OnboardingPreview({ html }: { html: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.45);
+
+  useEffect(() => {
+    const update = () => {
+      if (!containerRef.current) return;
+      const w = containerRef.current.offsetWidth;
+      if (w > 0) setScale(w / A4_W);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const wrapperHeight = Math.round(A4_H * scale);
+
+  return (
+    <div
+      ref={containerRef}
+      className="rounded-xl border border-[var(--border)] overflow-hidden w-full"
+      style={{ background: "#f0f0f0" }}
+    >
+      <div style={{ position: "relative", height: `${wrapperHeight}px`, overflow: "hidden" }}>
+        <iframe
+          srcDoc={html}
+          title="Vista previa Onboarding"
+          sandbox="allow-same-origin"
+          style={{
+            width: `${A4_W}px`,
+            height: `${A4_H}px`,
+            border: "none",
+            transformOrigin: "top left",
+            transform: `scale(${scale})`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            display: "block",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function OnboardingEditorPage() {
@@ -204,7 +255,13 @@ export default function OnboardingEditorPage() {
   const [previewing, setPreviewing] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  // ── Carga ──
+  // ── HTML en tiempo real ──
+  const previewHtml = useMemo(
+    () => buildOnboardingHtml("Nombre del Negocio", "cliente@ejemplo.com", "ContraseñaEjemplo", template),
+    [template]
+  );
+
+  // ── Carga desde Supabase ──
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -247,8 +304,8 @@ export default function OnboardingEditorPage() {
     setSaving(false);
   };
 
-  // ── Previsualizar PDF ──
-  const preview = async () => {
+  // ── Descargar PDF de muestra ──
+  const downloadPreviewPdf = async () => {
     setPreviewing(true);
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -269,7 +326,7 @@ export default function OnboardingEditorPage() {
         a.remove();
         URL.revokeObjectURL(url);
       } else {
-        showMsg("Error al generar la preview", false);
+        showMsg("Error al generar el PDF", false);
       }
     } catch {
       showMsg("Error de red", false);
@@ -304,25 +361,32 @@ export default function OnboardingEditorPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2" style={{ borderColor: "var(--brand-1)" }} />
+        <div
+          className="animate-spin rounded-full h-10 w-10 border-b-2"
+          style={{ borderColor: "var(--brand-1)" }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="max-w-[1400px] mx-auto pb-12">
 
-      {/* Cabecera */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* ── Cabecera ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold">Editor de Onboarding</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-0.5">
-            Edita el contenido del PDF que se genera al dar acceso a un cliente.
+            Edita el contenido del PDF que se genera al dar acceso a un cliente. La vista previa se actualiza en tiempo real.
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
           {msg && (
-            <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${msg.ok ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
+            <span
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
+                msg.ok ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"
+              }`}
+            >
               {msg.text}
             </span>
           )}
@@ -333,11 +397,11 @@ export default function OnboardingEditorPage() {
             Restaurar
           </button>
           <button
-            onClick={preview}
+            onClick={downloadPreviewPdf}
             disabled={previewing || saving}
             className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
           >
-            {previewing ? "Generando…" : "👁 Preview PDF"}
+            {previewing ? "Generando…" : "⬇ Descargar PDF"}
           </button>
           <button
             onClick={save}
@@ -350,150 +414,202 @@ export default function OnboardingEditorPage() {
         </div>
       </div>
 
-      {/* ── CABECERA DEL PDF ── */}
-      <section className="rounded-xl border border-[var(--border)] p-5 space-y-4" style={{ background: "var(--card)" }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">Cabecera</h2>
+      {/* ── Layout 2 columnas ── */}
+      <div className="grid xl:grid-cols-[1fr_400px] gap-8 items-start">
 
-        <div>
-          <label className="block text-xs text-[var(--foreground)]/50 mb-1">Subtítulo del header</label>
-          <input
-            type="text"
-            value={template.header_subtitle}
-            onChange={(e) => setTemplate({ ...template, header_subtitle: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-          />
-        </div>
+        {/* ── Columna izquierda: formulario ── */}
+        <div className="space-y-5 min-w-0">
 
-        <div>
-          <label className="block text-xs text-[var(--foreground)]/50 mb-1">Aviso de privacidad / credenciales</label>
-          <input
-            type="text"
-            value={template.notice_text}
-            onChange={(e) => setTemplate({ ...template, notice_text: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-          />
-        </div>
-      </section>
-
-      {/* ── PASOS ── */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50 px-1">Pasos</h2>
-        {template.steps.map((step, i) => (
-          <StepEditor key={i} index={i} step={step} onChange={(s) => setStep(i, s)} />
-        ))}
-      </section>
-
-      {/* ── QUÉ ENCONTRARÁS ── */}
-      <section className="rounded-xl border border-[var(--border)] p-5 space-y-4" style={{ background: "var(--card)" }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">Qué encontrarás</h2>
-        <p className="text-xs text-[var(--foreground)]/40">Lista de perfiles/secciones que verá el cliente en el PDF.</p>
-
-        <div className="space-y-2">
-          {template.features.map((f, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-[var(--brand-1)] font-bold text-sm flex-shrink-0">→</span>
+          {/* CABECERA DEL PDF */}
+          <section
+            className="rounded-xl border border-[var(--border)] p-5 space-y-4"
+            style={{ background: "var(--card)" }}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+              Cabecera
+            </h2>
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                Subtítulo del header
+              </label>
               <input
                 type="text"
-                value={f.label}
-                onChange={(e) => setFeature(i, { ...f, label: e.target.value })}
-                className="w-28 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm font-semibold"
-                placeholder="Etiqueta"
+                value={template.header_subtitle}
+                onChange={(e) => setTemplate({ ...template, header_subtitle: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
               />
-              <span className="text-[var(--foreground)]/30 flex-shrink-0">—</span>
-              <input
-                type="text"
-                value={f.desc}
-                onChange={(e) => setFeature(i, { ...f, desc: e.target.value })}
-                className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-                placeholder="Descripción breve"
-              />
-              <button
-                type="button"
-                onClick={() => removeFeature(i)}
-                className="text-red-400 hover:text-red-300 text-xs px-2 py-1.5 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
-              >
-                ✕
-              </button>
             </div>
-          ))}
-        </div>
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                Aviso de privacidad / credenciales
+              </label>
+              <input
+                type="text"
+                value={template.notice_text}
+                onChange={(e) => setTemplate({ ...template, notice_text: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+              />
+            </div>
+          </section>
 
-        <button
-          type="button"
-          onClick={addFeature}
-          className="text-xs text-[var(--brand-1)] hover:underline"
-        >
-          + Añadir item
-        </button>
-      </section>
+          {/* PASOS */}
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50 px-1">
+              Pasos
+            </h2>
+            {template.steps.map((step, i) => (
+              <StepEditor key={i} index={i} step={step} onChange={(s) => setStep(i, s)} />
+            ))}
+          </section>
 
-      {/* ── SOPORTE ── */}
-      <section className="rounded-xl border border-[var(--border)] p-5 space-y-4" style={{ background: "var(--card)" }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">Bloque de soporte</h2>
+          {/* QUÉ ENCONTRARÁS */}
+          <section
+            className="rounded-xl border border-[var(--border)] p-5 space-y-4"
+            style={{ background: "var(--card)" }}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+              Qué encontrarás
+            </h2>
+            <p className="text-xs text-[var(--foreground)]/40">
+              Lista de perfiles/secciones que verá el cliente en el PDF.
+            </p>
+            <div className="space-y-2">
+              {template.features.map((f, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-[var(--brand-1)] font-bold text-sm flex-shrink-0">→</span>
+                  <input
+                    type="text"
+                    value={f.label}
+                    onChange={(e) => setFeature(i, { ...f, label: e.target.value })}
+                    className="w-28 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm font-semibold"
+                    placeholder="Etiqueta"
+                  />
+                  <span className="text-[var(--foreground)]/30 flex-shrink-0">—</span>
+                  <input
+                    type="text"
+                    value={f.desc}
+                    onChange={(e) => setFeature(i, { ...f, desc: e.target.value })}
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                    placeholder="Descripción breve"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFeature(i)}
+                    className="text-red-400 hover:text-red-300 text-xs px-2 py-1.5 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addFeature}
+              className="text-xs text-[var(--brand-1)] hover:underline"
+            >
+              + Añadir item
+            </button>
+          </section>
 
-        <div>
-          <label className="block text-xs text-[var(--foreground)]/50 mb-1">Texto</label>
-          <input
-            type="text"
-            value={template.support_text}
-            onChange={(e) => setTemplate({ ...template, support_text: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-          />
-        </div>
+          {/* SOPORTE */}
+          <section
+            className="rounded-xl border border-[var(--border)] p-5 space-y-4"
+            style={{ background: "var(--card)" }}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+              Bloque de soporte
+            </h2>
+            <div>
+              <label className="block text-xs text-[var(--foreground)]/50 mb-1">Texto</label>
+              <input
+                type="text"
+                value={template.support_text}
+                onChange={(e) => setTemplate({ ...template, support_text: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                  Número WhatsApp
+                </label>
+                <input
+                  type="text"
+                  value={template.support_phone}
+                  onChange={(e) => setTemplate({ ...template, support_phone: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+                  placeholder="34623759451"
+                />
+                <p className="text-xs text-[var(--foreground)]/30 mt-1">Sin + ni espacios</p>
+              </div>
+              <div>
+                <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                  Texto del botón CTA
+                </label>
+                <input
+                  type="text"
+                  value={template.support_btn_text}
+                  onChange={(e) => setTemplate({ ...template, support_btn_text: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                  placeholder="Equipo Konecta3D"
+                />
+              </div>
+            </div>
+          </section>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-[var(--foreground)]/50 mb-1">Número WhatsApp</label>
+          {/* PIE DE PÁGINA */}
+          <section
+            className="rounded-xl border border-[var(--border)] p-5"
+            style={{ background: "var(--card)" }}
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50 mb-3">
+              Pie de página
+            </h2>
             <input
               type="text"
-              value={template.support_phone}
-              onChange={(e) => setTemplate({ ...template, support_phone: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
-              placeholder="34623759451"
-            />
-            <p className="text-xs text-[var(--foreground)]/30 mt-1">Sin + ni espacios</p>
-          </div>
-          <div>
-            <label className="block text-xs text-[var(--foreground)]/50 mb-1">Texto del botón CTA</label>
-            <input
-              type="text"
-              value={template.support_btn_text}
-              onChange={(e) => setTemplate({ ...template, support_btn_text: e.target.value })}
+              value={template.footer_text}
+              onChange={(e) => setTemplate({ ...template, footer_text: e.target.value })}
               className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-              placeholder="Equipo Konecta3D"
             />
+          </section>
+
+          {/* Botones inferiores */}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={downloadPreviewPdf}
+              disabled={previewing || saving}
+              className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
+            >
+              {previewing ? "Generando…" : "⬇ Descargar PDF"}
+            </button>
+            <button
+              onClick={save}
+              disabled={saving || previewing}
+              className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
+              style={{ background: "var(--brand-1)", color: "white" }}
+            >
+              {saving ? "Guardando…" : "Guardar"}
+            </button>
           </div>
         </div>
-      </section>
 
-      {/* ── PIE DE PÁGINA ── */}
-      <section className="rounded-xl border border-[var(--border)] p-5" style={{ background: "var(--card)" }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50 mb-3">Pie de página</h2>
-        <input
-          type="text"
-          value={template.footer_text}
-          onChange={(e) => setTemplate({ ...template, footer_text: e.target.value })}
-          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-        />
-      </section>
+        {/* ── Columna derecha: vista previa en tiempo real ── */}
+        <div className="sticky top-6 space-y-3 hidden xl:block">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+              Vista previa
+            </h2>
+            <span className="text-xs text-[var(--foreground)]/30 italic">
+              datos de ejemplo
+            </span>
+          </div>
+          <OnboardingPreview html={previewHtml} />
+          <p className="text-center text-xs text-[var(--foreground)]/25 pt-1">
+            La vista previa refleja los cambios al instante.
+            <br />Usa &ldquo;⬇ Descargar PDF&rdquo; para obtener el archivo real generado por Puppeteer.
+          </p>
+        </div>
 
-      {/* Botones inferiores (duplicados para scroll largo) */}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          onClick={preview}
-          disabled={previewing || saving}
-          className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
-        >
-          {previewing ? "Generando…" : "👁 Preview PDF"}
-        </button>
-        <button
-          onClick={save}
-          disabled={saving || previewing}
-          className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
-          style={{ background: "var(--brand-1)", color: "white" }}
-        >
-          {saving ? "Guardando…" : "Guardar"}
-        </button>
       </div>
     </div>
   );
