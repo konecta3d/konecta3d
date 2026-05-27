@@ -362,7 +362,12 @@ export default function OnboardingEditorPage() {
       const res = await fetch("/api/admin/onboarding-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(template),
+        body: JSON.stringify({
+          template,
+          businessName: previewName,
+          email: previewEmail,
+          password: previewPassword,
+        }),
       });
       if (res.ok) {
         const blob = await res.blob();

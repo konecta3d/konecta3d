@@ -15,14 +15,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const template = await req.json();
+    const body = await req.json();
 
-    const html = buildOnboardingHtml(
-      "Nombre del Negocio",
-      "cliente@ejemplo.com",
-      "ContraseñaEjemplo",
-      template
-    );
+    // Acepta tanto el template solo (llamada antigua) como un objeto con datos del negocio
+    const template = body?.template ?? body;
+    const businessName: string = body?.businessName || "Nombre del Negocio";
+    const email: string = body?.email || "cliente@ejemplo.com";
+    const password: string = body?.password || "ContraseñaEjemplo";
+
+    const html = buildOnboardingHtml(businessName, email, password, template);
 
     const browser = await launchBrowser();
     try {
