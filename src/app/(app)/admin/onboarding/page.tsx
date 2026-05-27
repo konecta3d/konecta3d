@@ -28,6 +28,7 @@ type OnboardingTemplate = {
   notice_text: string;
   platform_url: string;
   steps: [Step, Step, Step];
+  show_features: boolean;
   features: Feature[];
   support_text: string;
   support_phone: string;
@@ -48,6 +49,7 @@ const DEFAULT_TEMPLATE: OnboardingTemplate = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
   platform_url: "konecta3d.vercel.app",
+  show_features: true,
   steps: [
     {
       title: "Perfil de negocio",
@@ -569,48 +571,77 @@ export default function OnboardingEditorPage() {
             className="rounded-xl border border-[var(--border)] p-5 space-y-4"
             style={{ background: "var(--card)" }}
           >
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
-              Qué encontrarás
-            </h2>
-            <p className="text-xs text-[var(--foreground)]/40">
-              Lista de perfiles/secciones que verá el cliente en el PDF.
-            </p>
-            <div className="space-y-2">
-              {template.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-[var(--brand-1)] font-bold text-sm flex-shrink-0">→</span>
-                  <input
-                    type="text"
-                    value={f.label}
-                    onChange={(e) => setFeature(i, { ...f, label: e.target.value })}
-                    className="w-28 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm font-semibold"
-                    placeholder="Etiqueta"
-                  />
-                  <span className="text-[var(--foreground)]/30 flex-shrink-0">—</span>
-                  <input
-                    type="text"
-                    value={f.desc}
-                    onChange={(e) => setFeature(i, { ...f, desc: e.target.value })}
-                    className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-                    placeholder="Descripción breve"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeFeature(i)}
-                    className="text-red-400 hover:text-red-300 text-xs px-2 py-1.5 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+                Qué encontrarás
+              </h2>
+              {/* Toggle activar/desactivar sección */}
+              <button
+                type="button"
+                onClick={() => setTemplate((t) => ({ ...t, show_features: !t.show_features }))}
+                className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                  template.show_features ? "bg-[var(--brand-1)]" : "bg-[var(--foreground)]/20"
+                }`}
+                role="switch"
+                aria-checked={template.show_features}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                    template.show_features ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={addFeature}
-              className="text-xs text-[var(--brand-1)] hover:underline"
-            >
-              + Añadir item
-            </button>
+            {!template.show_features && (
+              <p className="text-xs text-[var(--foreground)]/40 italic">
+                Sección oculta — no aparecerá en el PDF.
+              </p>
+            )}
+            {template.show_features && (
+              <p className="text-xs text-[var(--foreground)]/40">
+                Lista de perfiles/secciones que verá el cliente en el PDF.
+              </p>
+            )}
+            {template.show_features && (
+              <>
+                <div className="space-y-2">
+                  {template.features.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-[var(--brand-1)] font-bold text-sm flex-shrink-0">→</span>
+                      <input
+                        type="text"
+                        value={f.label}
+                        onChange={(e) => setFeature(i, { ...f, label: e.target.value })}
+                        className="w-28 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm font-semibold"
+                        placeholder="Etiqueta"
+                      />
+                      <span className="text-[var(--foreground)]/30 flex-shrink-0">—</span>
+                      <input
+                        type="text"
+                        value={f.desc}
+                        onChange={(e) => setFeature(i, { ...f, desc: e.target.value })}
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                        placeholder="Descripción breve"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeFeature(i)}
+                        className="text-red-400 hover:text-red-300 text-xs px-2 py-1.5 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addFeature}
+                  className="text-xs text-[var(--brand-1)] hover:underline"
+                >
+                  + Añadir item
+                </button>
+              </>
+            )}
           </section>
 
           {/* SOPORTE */}

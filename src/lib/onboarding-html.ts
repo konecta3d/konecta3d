@@ -19,6 +19,7 @@ export type OnboardingTemplate = {
   notice_text?: string;
   platform_url?: string;
   steps?: [OnboardingStep, OnboardingStep, OnboardingStep];
+  show_features?: boolean;
   features?: OnboardingFeature[];
   support_text?: string;
   support_phone?: string;
@@ -32,6 +33,7 @@ const DEFAULT: Required<OnboardingTemplate> = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
   platform_url: "konecta3d.vercel.app",
+  show_features: true,
   steps: [
     {
       title: "Perfil de negocio",
@@ -121,6 +123,7 @@ export function buildOnboardingHtml(
     renderStep(steps[2], 2),
   ].join("\n");
 
+  const showFeatures = t.show_features !== false; // true por defecto
   const features = (t.features ?? DEFAULT.features) as OnboardingFeature[];
   const featuresHtml = features
     .map(
@@ -339,11 +342,12 @@ export function buildOnboardingHtml(
 
   <div class="divider" style="margin-top:14px;"></div>
 
-  <div class="body-grid">
-    <div class="col-left">
+  <div class="body-grid" style="${showFeatures ? "" : "grid-template-columns: 1fr;"}">
+    <div class="col-left" style="${showFeatures ? "" : "border-right: none; padding-right: 0;"}">
       <div class="section-title">Tus 3 primeros pasos</div>
       ${stepsConnected}
     </div>
+    ${showFeatures ? `
     <div class="col-right">
       <div class="section-title">Qué encontrarás</div>
       <div class="features-box">
@@ -355,7 +359,7 @@ export function buildOnboardingHtml(
           ${featuresHtml}
         </div>
       </div>
-    </div>
+    </div>` : ""}
   </div>
 
   <div class="divider"></div>
