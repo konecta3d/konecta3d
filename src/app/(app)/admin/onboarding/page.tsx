@@ -385,6 +385,20 @@ export default function OnboardingEditorPage() {
     setSaving(false);
   };
 
+  // ── Descargar HTML interactivo (botones Copiar funcionales) ──
+  const downloadHtml = () => {
+    const name = previewName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    const blob = new Blob([previewHtml], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `onboarding-${name}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // ── Descargar PDF de muestra ──
   const downloadPreviewPdf = async () => {
     setPreviewing(true);
@@ -483,11 +497,18 @@ export default function OnboardingEditorPage() {
             Restaurar
           </button>
           <button
+            onClick={downloadHtml}
+            className="px-3 py-2 rounded-lg border border-[var(--brand-1)]/40 text-sm font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
+            title="HTML con botones Copiar funcionales — se abre en el navegador"
+          >
+            ⬇ HTML interactivo
+          </button>
+          <button
             onClick={downloadPreviewPdf}
             disabled={previewing || saving}
             className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
           >
-            {previewing ? "Generando…" : "⬇ Descargar PDF"}
+            {previewing ? "Generando…" : "⬇ PDF imprimible"}
           </button>
           <button
             onClick={save}
@@ -707,13 +728,19 @@ export default function OnboardingEditorPage() {
           </section>
 
           {/* Botones inferiores */}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 flex-wrap">
+            <button
+              onClick={downloadHtml}
+              className="px-3 py-2 rounded-lg border border-[var(--brand-1)]/40 text-sm font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
+            >
+              ⬇ HTML interactivo
+            </button>
             <button
               onClick={downloadPreviewPdf}
               disabled={previewing || saving}
               className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
             >
-              {previewing ? "Generando…" : "⬇ Descargar PDF"}
+              {previewing ? "Generando…" : "⬇ PDF imprimible"}
             </button>
             <button
               onClick={save}
