@@ -39,6 +39,7 @@ type Business = {
   id: string;
   name: string;
   contact_email: string | null;
+  last_onboarding_password: string | null;
 };
 
 // ─── Valores por defecto ─────────────────────────────────────────────────────
@@ -302,7 +303,7 @@ export default function OnboardingEditorPage() {
     const loadBiz = async () => {
       const { data } = await supabase
         .from("businesses")
-        .select("id, name, contact_email")
+        .select("id, name, contact_email, last_onboarding_password")
         .order("name");
       if (data) setBusinesses(data as Business[]);
     };
@@ -315,12 +316,16 @@ export default function OnboardingEditorPage() {
     if (!id) {
       setPreviewName("Nombre del Negocio");
       setPreviewEmail("cliente@ejemplo.com");
+      setPreviewPassword("ContraseñaEjemplo");
       return;
     }
     const biz = businesses.find((b) => b.id === id);
     if (biz) {
       setPreviewName(biz.name);
       setPreviewEmail(biz.contact_email ?? "cliente@ejemplo.com");
+      if (biz.last_onboarding_password) {
+        setPreviewPassword(biz.last_onboarding_password);
+      }
     }
   };
 
@@ -699,11 +704,16 @@ export default function OnboardingEditorPage() {
               />
             </div>
 
-            {/* Contraseña (manual) */}
+            {/* Contraseña (auto si hay last_onboarding_password, manual si no) */}
             <div>
-              <label className="block text-xs text-[var(--foreground)]/50 mb-1">
-                Contraseña de acceso
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-[var(--foreground)]/50">
+                  Contraseña de acceso
+                </label>
+                {selectedBizId && businesses.find(b => b.id === selectedBizId)?.last_onboarding_password && (
+                  <span className="text-xs text-green-400 font-medium">✓ cargada</span>
+                )}
+              </div>
               <input
                 type="text"
                 value={previewPassword}
@@ -711,9 +721,11 @@ export default function OnboardingEditorPage() {
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
                 placeholder="ContraseñaEjemplo"
               />
-              <p className="text-xs text-[var(--foreground)]/25 mt-1">
-                Introduce la contraseña que generaste para este cliente.
-              </p>
+              {(!selectedBizId || !businesses.find(b => b.id === selectedBizId)?.last_onboarding_password) && (
+                <p className="text-xs text-[var(--foreground)]/25 mt-1">
+                  Se carga automáticamente al generar el PDF desde Configuración.
+                </p>
+              )}
             </div>
           </div>
 

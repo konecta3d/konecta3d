@@ -105,7 +105,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // 4. Generar PDF con el template (personalizado o default)
+    // 4. Guardar la contraseña en la tabla businesses para poder mostrarla en el editor
+    await supabaseAdmin
+      .from("businesses")
+      .update({ last_onboarding_password: newPassword })
+      .eq("id", businessId);
+
+    // 5. Generar PDF con el template (personalizado o default)
     const html = buildOnboardingHtml(
       business.name,
       business.contact_email,

@@ -147,7 +147,9 @@ export function buildOnboardingHtml(
       font-size: 13px;
       line-height: 1.55;
       width: 210mm;
-      min-height: 297mm;
+      height: 297mm;
+      display: flex;
+      flex-direction: column;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -239,6 +241,7 @@ export function buildOnboardingHtml(
     .body-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
       padding: 20px 28px;
+      flex: 1;
     }
     .col-left { padding-right: 20px; border-right: 1px solid #efefef; }
     .col-right { padding-left: 20px; }
