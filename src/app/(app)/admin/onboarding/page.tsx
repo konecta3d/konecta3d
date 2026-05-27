@@ -264,6 +264,7 @@ export default function OnboardingEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   // ── Preview data (negocio seleccionado, solo para la vista previa) ──
@@ -327,6 +328,35 @@ export default function OnboardingEditorPage() {
         setPreviewPassword(biz.last_onboarding_password);
       }
     }
+  };
+
+  // ── Guardar contraseña en la BD (para negocios anteriores) ──
+  const savePasswordToDB = async () => {
+    if (!selectedBizId || !previewPassword) return;
+    setSavingPassword(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token || "";
+      const res = await fetch("/api/admin/business-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ businessId: selectedBizId, password: previewPassword }),
+      });
+      if (res.ok) {
+        // Actualizar en memoria para que el indicador "✓ cargada" aparezca
+        setBusinesses((prev) =>
+          prev.map((b) =>
+            b.id === selectedBizId ? { ...b, last_onboarding_password: previewPassword } : b
+          )
+        );
+        showMsg("✓ Contraseña guardada");
+      } else {
+        showMsg("Error al guardar la contraseña", false);
+      }
+    } catch {
+      showMsg("Error de red", false);
+    }
+    setSavingPassword(false);
   };
 
   const showMsg = (text: string, ok = true) => {
@@ -709,14 +739,14 @@ export default function OnboardingEditorPage() {
               />
             </div>
 
-            {/* Contraseña (auto si hay last_onboarding_password, manual si no) */}
+            {/* Contraseña de acceso */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs text-[var(--foreground)]/50">
                   Contraseña de acceso
                 </label>
                 {selectedBizId && businesses.find(b => b.id === selectedBizId)?.last_onboarding_password && (
-                  <span className="text-xs text-green-400 font-medium">✓ cargada</span>
+                  <span className="text-xs text-green-400 font-medium">✓ guardada</span>
                 )}
               </div>
               <input
@@ -724,11 +754,22 @@ export default function OnboardingEditorPage() {
                 value={previewPassword}
                 onChange={(e) => setPreviewPassword(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
-                placeholder="ContraseñaEjemplo"
+                placeholder="Contraseña actual del negocio"
               />
-              {(!selectedBizId || !businesses.find(b => b.id === selectedBizId)?.last_onboarding_password) && (
+              {/* Botón guardar: visible solo cuando hay negocio seleccionado */}
+              {selectedBizId && (
+                <button
+                  type="button"
+                  onClick={savePasswordToDB}
+                  disabled={savingPassword || !previewPassword}
+                  className="mt-2 w-full px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-white/5 disabled:opacity-40 transition-colors"
+                >
+                  {savingPassword ? "Guardando…" : "💾 Guardar contraseña en el perfil"}
+                </button>
+              )}
+              {!selectedBizId && (
                 <p className="text-xs text-[var(--foreground)]/25 mt-1">
-                  Se carga automáticamente al generar el PDF desde Configuración.
+                  Selecciona un negocio para guardar su contraseña.
                 </p>
               )}
             </div>
