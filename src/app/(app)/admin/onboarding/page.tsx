@@ -103,6 +103,112 @@ function deepClone<T>(v: T): T {
 
 // ─── Componentes reutilizables ────────────────────────────────────────────────
 
+// ─── ImageUploadField ─────────────────────────────────────────────────────────
+
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+  kind,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  kind: string;
+  hint?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token || "";
+      const form = new FormData();
+      form.append("file", file);
+      form.append("kind", kind);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setUploadError(json.error || "Error al subir");
+      } else {
+        onChange(json.url);
+      }
+    } catch {
+      setUploadError("Error de red al subir");
+    }
+    setUploading(false);
+    // reset input so same file can be re-selected if needed
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-[var(--foreground)]/50 mb-1">{label}</label>
+
+      {/* Preview */}
+      {value && (
+        <div className="mb-2 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--background)] flex items-center justify-center" style={{ height: 80 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={value}
+            alt="preview"
+            style={{ maxHeight: 80, maxWidth: "100%", objectFit: "contain" }}
+          />
+        </div>
+      )}
+
+      <div className="flex gap-2 items-center">
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-white/5 disabled:opacity-40 transition-colors text-center"
+        >
+          {uploading ? "Subiendo…" : value ? "Cambiar imagen" : "Seleccionar imagen"}
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="px-3 py-2 rounded-lg border border-[var(--border)] text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex-shrink-0"
+            title="Quitar imagen"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/svg+xml,image/gif"
+        className="hidden"
+        onChange={handleFile}
+      />
+
+      {uploadError && (
+        <p className="text-xs text-red-400 mt-1">{uploadError}</p>
+      )}
+      {hint && !uploadError && (
+        <p className="text-xs text-[var(--foreground)]/30 mt-1">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+// ─── ColorField ───────────────────────────────────────────────────────────────
+
 function ColorField({
   label,
   value,
@@ -253,17 +359,13 @@ function HeroEditorModal({
               {h.bg_type === "image" && (
                 <>
                   <div>
-                    <label className="block text-xs text-[var(--foreground)]/50 mb-1">URL de la imagen de fondo</label>
-                    <input
-                      type="url"
+                    <ImageUploadField
+                      label="Imagen de fondo"
                       value={h.bg_image_url}
-                      onChange={(e) => set({ bg_image_url: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-                      placeholder="https://..."
+                      onChange={(url) => set({ bg_image_url: url })}
+                      kind="onboarding-bg"
+                      hint="JPG, PNG, WebP o SVG · máx. 5 MB · se recomienda formato ancho (landscape)"
                     />
-                    <p className="text-xs text-[var(--foreground)]/30 mt-1">
-                      Usa una URL pública (Supabase Storage, Unsplash, etc.)
-                    </p>
                   </div>
                   <div>
                     <label className="block text-xs text-[var(--foreground)]/50 mb-1">
@@ -392,17 +494,13 @@ function HeroEditorModal({
 
                   {h.logo_type === "image" && (
                     <div>
-                      <label className="block text-xs text-[var(--foreground)]/50 mb-1">URL del logo</label>
-                      <input
-                        type="url"
+                      <ImageUploadField
+                        label="Imagen del logo"
                         value={h.logo_url}
-                        onChange={(e) => set({ logo_url: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
-                        placeholder="https://..."
+                        onChange={(url) => set({ logo_url: url })}
+                        kind="onboarding-logo"
+                        hint="PNG con fondo transparente recomendado · máx. 5 MB · se recomienda máx. 200 px de alto"
                       />
-                      <p className="text-xs text-[var(--foreground)]/30 mt-1">
-                        Recomendado: PNG con fondo transparente, máx. 200 px de alto
-                      </p>
                     </div>
                   )}
                 </>
