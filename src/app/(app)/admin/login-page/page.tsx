@@ -367,48 +367,168 @@ export default function LoginPageEditor() {
             {/* ── Tab: Marca ── */}
             {tab === "marca" && (
               <>
-                <Field label="Nombre de la plataforma">
-                  <TextInput value={c.brand_name} onChange={(v) => set({ brand_name: v })} placeholder="KONECTA3D" />
-                </Field>
-                <ColorField label="Color de marca (badge K, botón, acento)" value={c.brand_color} onChange={(v) => set({ brand_color: v })} />
-                <div className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--foreground)]/50">
-                  <p className="text-xs font-semibold text-[var(--foreground)]/70 mb-1">Vista del badge</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0"
-                      style={{ background: c.brand_color, color: "#0f3d3a" }}>
-                      {(c.brand_name || "K").charAt(0)}
-                    </div>
-                    <span className="text-xs font-bold tracking-widest uppercase" style={{ color: c.brand_color }}>
-                      {c.brand_name || "KONECTA3D"}
-                    </span>
+                {/* Tipo de logo */}
+                <Field label="Tipo de logo">
+                  <div className="flex gap-2">
+                    {(["badge", "image"] as const).map((type) => (
+                      <button key={type} type="button"
+                        onClick={() => set({ logo_type: type })}
+                        className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                          (c.logo_type ?? "badge") === type
+                            ? "border-[var(--brand-1)] text-[var(--brand-1)] bg-[var(--brand-1)]/10"
+                            : "border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+                        }`}>
+                        {type === "badge" ? "Badge (letra + nombre)" : "Logo personalizado"}
+                      </button>
+                    ))}
                   </div>
-                </div>
+                </Field>
+
+                {/* Badge */}
+                {(c.logo_type ?? "badge") === "badge" && (
+                  <>
+                    <Field label="Nombre de la plataforma">
+                      <TextInput value={c.brand_name} onChange={(v) => set({ brand_name: v })} placeholder="KONECTA3D" />
+                    </Field>
+                    <ColorField
+                      label="Color de marca (badge, acento decorativo)"
+                      value={c.brand_color}
+                      onChange={(v) => set({ brand_color: v })}
+                    />
+                    {/* Vista previa inline */}
+                    <div className="rounded-xl border border-[var(--border)] p-4"
+                      style={{ background: "var(--background)" }}>
+                      <p className="text-xs text-[var(--foreground)]/40 mb-3">Vista previa del badge</p>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                          style={{ background: c.brand_color, color: c.button_text_color || "#0f3d3a" }}>
+                          {(c.brand_name || "K").charAt(0)}
+                        </div>
+                        <span className="text-sm font-bold tracking-widest uppercase" style={{ color: c.brand_color }}>
+                          {c.brand_name || "KONECTA3D"}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Logo imagen */}
+                {c.logo_type === "image" && (
+                  <>
+                    <ImageUploadField
+                      label="Imagen del logo"
+                      value={c.logo_url ?? ""}
+                      onChange={(url) => set({ logo_url: url })}
+                      kind="login-logo"
+                      hint="PNG con fondo transparente recomendado · máx. 5 MB"
+                    />
+                    <Field label={`Altura del logo: ${c.logo_height ?? 40} px`}>
+                      <input type="range" min={20} max={120} step={4}
+                        value={c.logo_height ?? 40}
+                        onChange={(e) => set({ logo_height: Number(e.target.value) })}
+                        className="w-full" style={{ accentColor: "var(--brand-1)" }} />
+                      <div className="flex justify-between text-xs text-[var(--foreground)]/25 mt-0.5">
+                        <span>20 px</span><span>120 px</span>
+                      </div>
+                    </Field>
+                    {/* Preview */}
+                    {c.logo_url && (
+                      <div className="rounded-xl border border-[var(--border)] p-4 flex items-center justify-start"
+                        style={{ background: "var(--background)" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={c.logo_url} alt="logo preview"
+                          style={{ height: Math.min(c.logo_height ?? 40, 80), maxWidth: "100%", objectFit: "contain" }} />
+                      </div>
+                    )}
+                    <ColorField
+                      label="Color de acento (decoración)"
+                      value={c.brand_color}
+                      onChange={(v) => set({ brand_color: v })}
+                    />
+                  </>
+                )}
               </>
             )}
 
             {/* ── Tab: Textos ── */}
             {tab === "textos" && (
               <>
-                <Field label="Titular principal">
-                  <textarea
-                    value={c.headline}
-                    onChange={(e) => set({ headline: e.target.value })}
-                    rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm resize-none"
-                    placeholder="Accede a tu&#10;panel de negocio"
+                {/* Titular */}
+                <div className="rounded-xl border border-[var(--border)] p-4 space-y-3"
+                  style={{ background: "var(--background)" }}>
+                  <p className="text-xs font-semibold text-[var(--foreground)]/60 uppercase tracking-wide">Titular</p>
+                  <Field label="Texto">
+                    <textarea
+                      value={c.headline}
+                      onChange={(e) => set({ headline: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm resize-none"
+                      placeholder={"Accede a tu\npanel de negocio"}
+                    />
+                    <p className="text-xs text-[var(--foreground)]/30 mt-1">Salto de línea para dividir en dos líneas.</p>
+                  </Field>
+                  <ColorField
+                    label="Color del titular"
+                    value={c.headline_color ?? "#ffffff"}
+                    onChange={(v) => set({ headline_color: v })}
                   />
-                  <p className="text-xs text-[var(--foreground)]/30 mt-1">Usa salto de línea para dividir en dos líneas.</p>
-                </Field>
-                <Field label="Subtítulo">
-                  <TextInput
-                    value={c.subtext}
-                    onChange={(v) => set({ subtext: v })}
-                    placeholder="Gestiona tu presencia digital y captación de leads."
+                </div>
+
+                {/* Subtítulo */}
+                <div className="rounded-xl border border-[var(--border)] p-4 space-y-3"
+                  style={{ background: "var(--background)" }}>
+                  <p className="text-xs font-semibold text-[var(--foreground)]/60 uppercase tracking-wide">Subtítulo</p>
+                  <Field label="Texto">
+                    <TextInput
+                      value={c.subtext}
+                      onChange={(v) => set({ subtext: v })}
+                      placeholder="Gestiona tu presencia digital y captación de leads."
+                    />
+                  </Field>
+                  <ColorField
+                    label="Color del subtítulo"
+                    value={c.subtext_color ?? "#ffffff"}
+                    onChange={(v) => set({ subtext_color: v })}
                   />
-                </Field>
-                <Field label="Texto del botón de acceso">
-                  <TextInput value={c.button_text} onChange={(v) => set({ button_text: v })} placeholder="Entrar →" />
-                </Field>
+                  <Field label={`Opacidad: ${Math.round((c.subtext_opacity ?? 0.45) * 100)}%`}>
+                    <input type="range" min={0.1} max={1} step={0.05}
+                      value={c.subtext_opacity ?? 0.45}
+                      onChange={(e) => set({ subtext_opacity: Number(e.target.value) })}
+                      className="w-full" style={{ accentColor: "var(--brand-1)" }} />
+                    <div className="flex justify-between text-xs text-[var(--foreground)]/25 mt-0.5">
+                      <span>10%</span><span>100%</span>
+                    </div>
+                  </Field>
+                </div>
+
+                {/* Botón */}
+                <div className="rounded-xl border border-[var(--border)] p-4 space-y-3"
+                  style={{ background: "var(--background)" }}>
+                  <p className="text-xs font-semibold text-[var(--foreground)]/60 uppercase tracking-wide">Botón de acceso</p>
+                  <Field label="Texto del botón">
+                    <TextInput value={c.button_text} onChange={(v) => set({ button_text: v })} placeholder="Entrar →" />
+                  </Field>
+                  <ColorField
+                    label="Color de fondo del botón"
+                    value={c.button_color || c.brand_color}
+                    onChange={(v) => set({ button_color: v })}
+                  />
+                  <ColorField
+                    label="Color del texto del botón"
+                    value={c.button_text_color ?? "#0f3d3a"}
+                    onChange={(v) => set({ button_text_color: v })}
+                  />
+                  {/* Preview del botón */}
+                  <div className="pt-1">
+                    <div className="w-full py-3 rounded-xl text-sm font-bold text-center"
+                      style={{
+                        background: c.button_color || c.brand_color,
+                        color: c.button_text_color || "#0f3d3a",
+                      }}>
+                      {c.button_text || "Entrar →"}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 

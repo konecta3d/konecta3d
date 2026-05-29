@@ -88,7 +88,10 @@ export default function BusinessLoginPage() {
   else
     pageBg = `linear-gradient(${cfg.bg_angle}deg, ${cfg.bg_color_1} 0%, ${cfg.bg_color_2} 100%)`;
 
-  const brandColor = cfg.brand_color || "#C5A059";
+  const brandColor  = cfg.brand_color || "#C5A059";
+  const btnBg       = cfg.button_color || brandColor;
+  const btnTxt      = cfg.button_text_color || "#0f3d3a";
+  const subtextRgba = hexToRgba(cfg.subtext_color || "#ffffff", cfg.subtext_opacity ?? 0.45);
   const headlineLines = (cfg.headline || "").split("\n");
 
   return (
@@ -120,26 +123,37 @@ export default function BusinessLoginPage() {
         />
 
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
-            style={{ background: brandColor, color: "#0f3d3a" }}
-          >
-            {(cfg.brand_name || "K").charAt(0)}
+        {cfg.logo_type === "image" && cfg.logo_url ? (
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={cfg.logo_url}
+              alt={cfg.brand_name || "Logo"}
+              style={{ height: cfg.logo_height || 40, maxWidth: "100%", objectFit: "contain", display: "block" }}
+            />
           </div>
-          <span className="text-sm font-bold tracking-widest uppercase" style={{ color: brandColor }}>
-            {cfg.brand_name || "KONECTA3D"}
-          </span>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+              style={{ background: brandColor, color: btnTxt }}
+            >
+              {(cfg.brand_name || "K").charAt(0)}
+            </div>
+            <span className="text-sm font-bold tracking-widest uppercase" style={{ color: brandColor }}>
+              {cfg.brand_name || "KONECTA3D"}
+            </span>
+          </div>
+        )}
 
         {/* Headline */}
         <div>
-          <h1 className="text-2xl font-bold text-white leading-tight">
+          <h1 className="text-2xl font-bold leading-tight" style={{ color: cfg.headline_color || "#ffffff" }}>
             {headlineLines.map((line, i) => (
               <span key={i}>{line}{i < headlineLines.length - 1 && <br />}</span>
             ))}
           </h1>
-          <p className="text-sm mt-1.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p className="text-sm mt-1.5" style={{ color: subtextRgba }}>
             {cfg.subtext}
           </p>
         </div>
@@ -222,9 +236,9 @@ export default function BusinessLoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-[0.98]"
             style={{
-              background: loading ? hexToRgba(brandColor, 0.5) : brandColor,
-              color: "#0f3d3a",
-              boxShadow: loading ? "none" : `0 4px 20px ${hexToRgba(brandColor, 0.3)}`,
+              background: loading ? hexToRgba(btnBg, 0.5) : btnBg,
+              color: btnTxt,
+              boxShadow: loading ? "none" : `0 4px 20px ${hexToRgba(btnBg, 0.3)}`,
             }}
           >
             {loading ? "Verificando…" : cfg.button_text || "Entrar →"}
