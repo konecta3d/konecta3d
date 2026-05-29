@@ -2,24 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { DEFAULT_LOGIN_CONFIG, LoginPageConfig } from "@/lib/login-page-config";
+import { DEFAULT_LOGIN_CONFIG, LoginPageConfig, buildLoginPageHtml } from "@/lib/login-page-config";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v));
-}
-
-function hexToRgba(hex: string, alpha: number) {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3
-    ? clean.split("").map((c) => c + c).join("")
-    : clean;
-  const r = parseInt(full.slice(0, 2), 16);
-  const g = parseInt(full.slice(2, 4), 16);
-  const b = parseInt(full.slice(4, 6), 16);
-  if (isNaN(r)) return `rgba(0,0,0,${alpha})`;
-  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 // ─── Subcomponentes de control ────────────────────────────────────────────────
@@ -133,104 +121,63 @@ function ImageUploadField({
   );
 }
 
-// ─── Preview de la página de login ───────────────────────────────────────────
+// ─── Preview iframe (desktop 1280×800 escalado) ───────────────────────────────
 
-function LoginPreview({ config: c }: { config: LoginPageConfig }) {
-  // Fondo
-  let bg: string;
-  if (c.bg_type === "solid") bg = c.bg_color_1;
-  else if (c.bg_type === "image" && c.bg_image_url)
-    bg = `url('${c.bg_image_url}') center/cover no-repeat`;
-  else
-    bg = `linear-gradient(${c.bg_angle}deg, ${c.bg_color_1} 0%, ${c.bg_color_2} 100%)`;
+const PREVIEW_W = 1280;
+const PREVIEW_H = 800;
 
-  const brandColor = c.brand_color || "#C5A059";
-  const lines = (c.headline || "").split("\n");
+function LoginPreview({ config }: { config: LoginPageConfig }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.32);
+
+  useEffect(() => {
+    const update = () => {
+      if (!containerRef.current) return;
+      const w = containerRef.current.offsetWidth;
+      if (w > 0) setScale(w / PREVIEW_W);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const html = buildLoginPageHtml(config);
+  const wrapperHeight = Math.round(PREVIEW_H * scale);
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden relative flex items-center justify-center"
-      style={{ background: bg, minHeight: 520, padding: "40px 24px" }}
+      ref={containerRef}
+      className="rounded-xl border border-[var(--border)] overflow-hidden w-full"
+      style={{ background: "#1a1a1a" }}
     >
-      {/* Overlay imagen */}
-      {c.bg_type === "image" && c.bg_image_url && (
-        <div style={{
-          position: "absolute", inset: 0,
-          background: hexToRgba(c.bg_overlay_color || "#000", c.bg_overlay ?? 0.45),
-          pointerEvents: "none"
-        }} />
-      )}
-      {/* Card */}
-      <div
-        className="w-full max-w-xs rounded-2xl p-7 space-y-5 relative"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
-        }}
-      >
-        {/* Decoración */}
-        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full pointer-events-none"
-          style={{ background: hexToRgba(brandColor, 0.08) }} />
-
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black"
-            style={{ background: brandColor, color: "#0f3d3a" }}>
-            {(c.brand_name || "K").charAt(0)}
-          </div>
-          <span className="text-xs font-bold tracking-widest uppercase" style={{ color: brandColor }}>
-            {c.brand_name || "KONECTA3D"}
-          </span>
+      {/* Barra del navegador simulada */}
+      <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10" style={{ background: "#2a2a2a" }}>
+        <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+        <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+        <div className="flex-1 mx-3 px-3 py-0.5 rounded text-[10px] text-white/30 text-center"
+          style={{ background: "#1a1a1a" }}>
+          app.konecta3d.com
         </div>
-
-        {/* Headline */}
-        <div>
-          <h1 className="text-xl font-bold text-white leading-tight">
-            {lines.map((line, i) => (
-              <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-            ))}
-          </h1>
-          <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-            {c.subtext}
-          </p>
-        </div>
-
-        {/* Fields mock */}
-        <div className="space-y-3">
-          {["EMAIL", "CONTRASEÑA"].map((lbl) => (
-            <div key={lbl}>
-              <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>{lbl}</div>
-              <div className="w-full px-3 py-2.5 rounded-xl text-sm" style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.10)",
-              }} />
-            </div>
-          ))}
-        </div>
-
-        {/* Button */}
-        <div
-          className="w-full py-3 rounded-xl text-sm font-bold text-center"
-          style={{ background: brandColor, color: "#0f3d3a", boxShadow: `0 4px 20px ${hexToRgba(brandColor, 0.3)}` }}
-        >
-          {c.button_text || "Entrar →"}
-        </div>
-
-        {/* Support */}
-        <p className="text-center text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
-          ¿Problemas de acceso? Contacta con{" "}
-          <span style={{ color: hexToRgba(brandColor, 0.7) }}>
-            {c.support_label || "soporte"}
-          </span>
-        </p>
       </div>
-
-      {/* Admin link mock */}
-      <div className="absolute bottom-4 left-0 right-0 text-center text-xs"
-        style={{ color: "rgba(255,255,255,0.15)" }}>
-        Acceso administrador
+      {/* Viewport escalado */}
+      <div style={{ position: "relative", height: `${wrapperHeight}px`, overflow: "hidden" }}>
+        <iframe
+          srcDoc={html}
+          title="Vista previa página de acceso"
+          sandbox="allow-same-origin"
+          style={{
+            width: `${PREVIEW_W}px`,
+            height: `${PREVIEW_H}px`,
+            border: "none",
+            transformOrigin: "top left",
+            transform: `scale(${scale})`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            display: "block",
+          }}
+        />
       </div>
     </div>
   );
