@@ -1,11 +1,34 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { DEFAULT_LOGIN_CONFIG, LoginPageConfig } from "@/lib/login-page-config";
+
+function hexToRgba(hex: string, alpha: number) {
+  const clean = hex.replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if (isNaN(r)) return `rgba(0,0,0,${alpha})`;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 export default function BusinessLoginPage() {
   const router = useRouter();
+  const [cfg, setCfg] = useState<LoginPageConfig>(DEFAULT_LOGIN_CONFIG);
+
+  // Carga la config desde el servidor (sin auth)
+  useEffect(() => {
+    fetch("/api/login-page-config")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.config) setCfg({ ...DEFAULT_LOGIN_CONFIG, ...json.config });
+      })
+      .catch(() => {});
+  }, []);
+
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -57,16 +80,32 @@ export default function BusinessLoginPage() {
     router.push("/business/select-profile");
   };
 
+  // Calcula el fondo según la config
+  let pageBg: string;
+  if (cfg.bg_type === "solid") pageBg = cfg.bg_color_1;
+  else if (cfg.bg_type === "image" && cfg.bg_image_url)
+    pageBg = `url('${cfg.bg_image_url}') center/cover no-repeat fixed`;
+  else
+    pageBg = `linear-gradient(${cfg.bg_angle}deg, ${cfg.bg_color_1} 0%, ${cfg.bg_color_2} 100%)`;
+
+  const brandColor = cfg.brand_color || "#C5A059";
+  const headlineLines = (cfg.headline || "").split("\n");
+
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-4"
-      style={{
-        background: "linear-gradient(145deg, #0a2422 0%, #0f3d3a 50%, #122e2c 100%)",
-      }}
+      className="min-h-screen flex flex-col items-center justify-center p-4 relative"
+      style={{ background: pageBg }}
     >
+      {/* Overlay cuando es imagen */}
+      {cfg.bg_type === "image" && cfg.bg_image_url && (
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: hexToRgba(cfg.bg_overlay_color || "#000", cfg.bg_overlay ?? 0.45)
+        }} />
+      )}
+
       {/* ── Card ── */}
       <div
-        className="w-full max-w-sm rounded-2xl p-8 space-y-6 relative overflow-hidden"
+        className="w-full max-w-sm rounded-2xl p-8 space-y-6 relative overflow-hidden z-10"
         style={{
           background: "rgba(255,255,255,0.04)",
           border: "1px solid rgba(255,255,255,0.10)",
@@ -77,32 +116,31 @@ export default function BusinessLoginPage() {
         {/* Decorative circle */}
         <div
           className="absolute -top-16 -right-16 w-40 h-40 rounded-full pointer-events-none"
-          style={{ background: "rgba(197,160,89,0.08)" }}
+          style={{ background: hexToRgba(brandColor, 0.08) }}
         />
 
         {/* Logo */}
         <div className="flex items-center gap-2.5">
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
-            style={{ background: "#C5A059", color: "#0f3d3a" }}
+            style={{ background: brandColor, color: "#0f3d3a" }}
           >
-            K
+            {(cfg.brand_name || "K").charAt(0)}
           </div>
-          <span
-            className="text-sm font-bold tracking-widest uppercase"
-            style={{ color: "#C5A059" }}
-          >
-            Konecta3D
+          <span className="text-sm font-bold tracking-widest uppercase" style={{ color: brandColor }}>
+            {cfg.brand_name || "KONECTA3D"}
           </span>
         </div>
 
         {/* Headline */}
         <div>
           <h1 className="text-2xl font-bold text-white leading-tight">
-            Accede a tu<br />panel de negocio
+            {headlineLines.map((line, i) => (
+              <span key={i}>{line}{i < headlineLines.length - 1 && <br />}</span>
+            ))}
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-            Gestiona tu presencia digital y captación de leads.
+            {cfg.subtext}
           </p>
         </div>
 
@@ -184,12 +222,12 @@ export default function BusinessLoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-[0.98]"
             style={{
-              background: loading ? "rgba(197,160,89,0.5)" : "#C5A059",
+              background: loading ? hexToRgba(brandColor, 0.5) : brandColor,
               color: "#0f3d3a",
-              boxShadow: loading ? "none" : "0 4px 20px rgba(197,160,89,0.3)",
+              boxShadow: loading ? "none" : `0 4px 20px ${hexToRgba(brandColor, 0.3)}`,
             }}
           >
-            {loading ? "Verificando…" : "Entrar →"}
+            {loading ? "Verificando…" : cfg.button_text || "Entrar →"}
           </button>
         </form>
 
@@ -197,13 +235,13 @@ export default function BusinessLoginPage() {
         <p className="text-center text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
           ¿Problemas de acceso? Contacta con{" "}
           <a
-            href="https://wa.me/34623759451?text=Hola, necesito ayuda para acceder a mi panel"
+            href={`https://wa.me/${cfg.support_phone}?text=Hola, necesito ayuda para acceder a mi panel`}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2 transition-colors hover:text-white/50"
-            style={{ color: "rgba(197,160,89,0.6)" }}
+            className="underline underline-offset-2 transition-colors"
+            style={{ color: hexToRgba(brandColor, 0.7) }}
           >
-            soporte
+            {cfg.support_label || "soporte"}
           </a>
           .
         </p>
@@ -212,7 +250,7 @@ export default function BusinessLoginPage() {
       {/* Admin access — very discreet */}
       <a
         href="/login"
-        className="mt-8 text-xs transition-colors"
+        className="mt-8 text-xs transition-colors z-10"
         style={{ color: "rgba(255,255,255,0.15)" }}
         onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "rgba(255,255,255,0.35)")}
         onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(255,255,255,0.15)")}
