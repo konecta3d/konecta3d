@@ -2,6 +2,26 @@ import { escapeHtml } from "@/lib/sanitize";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
+export type HeroConfig = {
+  bg_type?: "gradient" | "solid" | "image";
+  bg_color_1?: string;
+  bg_color_2?: string;
+  bg_angle?: number;
+  bg_image_url?: string;
+  bg_overlay?: number;
+  text_color?: string;
+  accent_color?: string;
+  logo_show?: boolean;
+  logo_type?: "badge" | "image";
+  logo_url?: string;
+  logo_text?: string;
+  logo_dot_color?: string;
+  logo_dot_text_color?: string;
+  logo_dot_char?: string;
+  welcome_text?: string;
+  greeting_prefix?: string;
+};
+
 export type OnboardingStep = {
   title: string;
   time: string;
@@ -18,6 +38,7 @@ export type OnboardingTemplate = {
   header_subtitle?: string;
   notice_text?: string;
   platform_url?: string;
+  hero?: HeroConfig;
   steps?: [OnboardingStep, OnboardingStep, OnboardingStep];
   show_features?: boolean;
   features?: OnboardingFeature[];
@@ -27,13 +48,33 @@ export type OnboardingTemplate = {
   footer_text?: string;
 };
 
-// ─── Plantilla por defecto ────────────────────────────────────────────────────
+// ─── Valores por defecto ──────────────────────────────────────────────────────
+
+export const DEFAULT_HERO: Required<HeroConfig> = {
+  bg_type: "gradient",
+  bg_color_1: "#0f3d3a",
+  bg_color_2: "#1e5c57",
+  bg_angle: 140,
+  bg_image_url: "",
+  bg_overlay: 0.5,
+  text_color: "#ffffff",
+  accent_color: "#C5A059",
+  logo_show: true,
+  logo_type: "badge",
+  logo_url: "",
+  logo_text: "Konecta3D",
+  logo_dot_color: "#C5A059",
+  logo_dot_text_color: "#0f3d3a",
+  logo_dot_char: "K",
+  welcome_text: "Bienvenido a la plataforma",
+  greeting_prefix: "¡Ya estás dentro,",
+};
 
 const DEFAULT: Required<OnboardingTemplate> = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
   platform_url: "konecta3d.vercel.app",
-  show_features: true,
+  hero: { ...DEFAULT_HERO },
   steps: [
     {
       title: "Perfil de negocio",
@@ -66,6 +107,7 @@ const DEFAULT: Required<OnboardingTemplate> = {
       ],
     },
   ],
+  show_features: true,
   features: [
     { label: "Mi Negocio", desc: "tu identidad digital y enlace NFC" },
     { label: "Fidelización", desc: "landing, recursos de valor y comunicación" },
@@ -77,6 +119,24 @@ const DEFAULT: Required<OnboardingTemplate> = {
   footer_text: "Documento personal con credenciales de acceso. No lo compartas con terceros.",
 };
 
+// ─── Helper: hex → rgba ───────────────────────────────────────────────────────
+
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "");
+  const full =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : clean;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(255,255,255,${alpha})`;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 // ─── Builder ──────────────────────────────────────────────────────────────────
 
 export function buildOnboardingHtml(
@@ -87,6 +147,7 @@ export function buildOnboardingHtml(
 ): string {
   const t: Required<OnboardingTemplate> = { ...DEFAULT, ...tpl };
 
+  // ── Strings escapados ──
   const name       = escapeHtml(businessName);
   const mail       = escapeHtml(email);
   const pass       = escapeHtml(password);
@@ -98,6 +159,51 @@ export function buildOnboardingHtml(
   const supBtn     = escapeHtml(t.support_btn_text);
   const footer     = escapeHtml(t.footer_text);
 
+  // ── Hero config ──
+  const h: Required<HeroConfig> = { ...DEFAULT_HERO, ...(t.hero ?? {}) };
+
+  const textColor   = h.text_color || "#ffffff";
+  const accentColor = h.accent_color || "#C5A059";
+
+  // Background CSS
+  let headerBg: string;
+  if (h.bg_type === "solid") {
+    headerBg = h.bg_color_1;
+  } else if (h.bg_type === "image" && h.bg_image_url) {
+    headerBg = `url('${h.bg_image_url}') center/cover no-repeat`;
+  } else {
+    headerBg = `linear-gradient(${h.bg_angle}deg, ${h.bg_color_1} 0%, ${h.bg_color_2} 100%)`;
+  }
+
+  // Overlay (solo cuando imagen)
+  const overlayHtml =
+    h.bg_type === "image" && h.bg_image_url
+      ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${h.bg_overlay});pointer-events:none;z-index:0;"></div>`
+      : "";
+
+  // Decorative circles (usan accent_color)
+  const deco1 = hexToRgba(accentColor, 0.07);
+  const deco2 = `rgba(255,255,255,0.04)`;
+
+  // Logo HTML
+  let logoHtml = "";
+  if (h.logo_show) {
+    if (h.logo_type === "image" && h.logo_url) {
+      logoHtml = `<div style="margin-bottom:14px;">
+        <img src="${escapeHtml(h.logo_url)}" alt="logo"
+          style="max-height:36px;max-width:160px;object-fit:contain;display:block;" />
+      </div>`;
+    } else {
+      const badgeBg     = hexToRgba(accentColor, 0.15);
+      const badgeBorder = hexToRgba(accentColor, 0.3);
+      logoHtml = `<div class="logo-badge" style="background:${badgeBg};border-color:${badgeBorder};margin-bottom:14px;">
+        <div class="logo-dot" style="background:${h.logo_dot_color};color:${h.logo_dot_text_color};">${escapeHtml(h.logo_dot_char)}</div>
+        <span class="logo-text" style="color:${accentColor};">${escapeHtml(h.logo_text)}</span>
+      </div>`;
+    }
+  }
+
+  // ── Pasos ──
   const steps = (t.steps ?? DEFAULT.steps) as [OnboardingStep, OnboardingStep, OnboardingStep];
 
   const renderStep = (step: OnboardingStep, idx: number) => `
@@ -106,7 +212,7 @@ export function buildOnboardingHtml(
       <div class="step-content">
         <div class="step-header">
           <span class="step-title">${escapeHtml(step.title)}</span>
-          <span class="step-time">${escapeHtml(step.time)}</span>
+          <span class="step-time" style="color:${accentColor};background:${hexToRgba(accentColor,0.1)};">${escapeHtml(step.time)}</span>
         </div>
         <p class="step-where">${escapeHtml(step.where)}</p>
         <ul class="step-bullets">
@@ -123,7 +229,8 @@ export function buildOnboardingHtml(
     renderStep(steps[2], 2),
   ].join("\n");
 
-  const showFeatures = t.show_features !== false; // true por defecto
+  // ── Features ──
+  const showFeatures = t.show_features !== false;
   const features = (t.features ?? DEFAULT.features) as OnboardingFeature[];
   const featuresHtml = features
     .map(
@@ -158,22 +265,9 @@ export function buildOnboardingHtml(
       print-color-adjust: exact;
     }
     .header {
-      background: linear-gradient(140deg, #0f3d3a 0%, #1A4D4A 55%, #1e5c57 100%);
       padding: 28px 32px 26px;
       position: relative;
       overflow: hidden;
-    }
-    .header::before {
-      content: '';
-      position: absolute; top: -50px; right: -50px;
-      width: 200px; height: 200px; border-radius: 50%;
-      background: rgba(197,160,89,0.07);
-    }
-    .header::after {
-      content: '';
-      position: absolute; bottom: -30px; left: -30px;
-      width: 120px; height: 120px; border-radius: 50%;
-      background: rgba(255,255,255,0.04);
     }
     .header-inner {
       display: flex; align-items: flex-start;
@@ -183,20 +277,18 @@ export function buildOnboardingHtml(
     .header-left { flex: 1; }
     .logo-badge {
       display: inline-flex; align-items: center; gap: 7px;
-      background: rgba(197,160,89,0.15);
-      border: 1px solid rgba(197,160,89,0.3);
-      border-radius: 20px; padding: 4px 12px 4px 4px; margin-bottom: 14px;
+      border: 1px solid transparent;
+      border-radius: 20px; padding: 4px 12px 4px 4px;
     }
     .logo-dot {
       width: 24px; height: 24px; border-radius: 50%;
-      background: #C5A059;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800; color: #0f3d3a;
+      font-size: 12px; font-weight: 800;
     }
-    .logo-text { font-size: 10.5px; font-weight: 700; color: #C5A059; letter-spacing: 0.06em; text-transform: uppercase; }
-    .header-welcome { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 4px; }
-    .header-name { font-size: 23px; font-weight: 800; color: #ffffff; line-height: 1.15; margin-bottom: 10px; }
-    .header-sub { font-size: 11.5px; color: rgba(255,255,255,0.6); line-height: 1.55; }
+    .logo-text { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .header-welcome { font-size: 11px; font-weight: 500; margin-bottom: 4px; }
+    .header-name { font-size: 23px; font-weight: 800; line-height: 1.15; margin-bottom: 10px; }
+    .header-sub { font-size: 11.5px; line-height: 1.55; }
     .header-credentials {
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.12);
@@ -208,21 +300,12 @@ export function buildOnboardingHtml(
     .hc-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
     .hc-value-wrap { display: flex; align-items: center; gap: 6px; }
     .hc-value { font-size: 12px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 9px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hc-value.accent { color: #C5A059; font-size: 11px; }
+    .hc-value.accent { font-size: 11px; }
     .copy-btn {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.6);
-      border-radius: 5px;
-      padding: 4px 8px;
-      font-size: 9px;
-      font-weight: 700;
-      cursor: pointer;
-      flex-shrink: 0;
-      font-family: inherit;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      transition: all 0.15s;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.6); border-radius: 5px; padding: 4px 8px;
+      font-size: 9px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      font-family: inherit; letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.15s;
     }
     .copy-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
     .copy-btn.ok { background: rgba(37,211,102,0.2); color: #4ade80; border-color: rgba(37,211,102,0.35); }
@@ -233,7 +316,6 @@ export function buildOnboardingHtml(
       display: flex; gap: 9px; align-items: center;
     }
     .notice-text { font-size: 11.5px; color: #7a6030; line-height: 1.45; }
-    .notice-text strong { color: #5a4520; }
     .divider { height: 1px; background: #efefef; margin: 0 28px; }
     .section-title {
       font-size: 9px; font-weight: 700; color: #1A4D4A;
@@ -243,7 +325,7 @@ export function buildOnboardingHtml(
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: #e8f0ef; }
     .body-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      display: grid; gap: 0;
       padding: 20px 28px;
       flex: 1;
     }
@@ -259,13 +341,9 @@ export function buildOnboardingHtml(
       flex-shrink: 0; margin-top: 1px;
     }
     .step-content { flex: 1; }
-    .step-header {
-      display: flex; align-items: baseline;
-      justify-content: space-between; gap: 6px;
-      margin-bottom: 4px; flex-wrap: wrap;
-    }
+    .step-header { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
     .step-title { font-size: 13px; font-weight: 700; color: #1a1a1a; }
-    .step-time { font-size: 9.5px; font-weight: 600; color: #C5A059; background: rgba(197,160,89,0.1); border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+    .step-time { font-size: 9.5px; font-weight: 600; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
     .step-where { font-size: 10.5px; font-weight: 600; color: #2D7A74; margin-bottom: 6px; }
     .step-bullets { list-style: none; display: flex; flex-direction: column; gap: 3px; }
     .step-bullets li { font-size: 11.5px; color: #555; display: flex; gap: 6px; align-items: flex-start; line-height: 1.45; }
@@ -298,23 +376,30 @@ export function buildOnboardingHtml(
   </style>
 </head>
 <body>
-  <div class="header">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="header" style="background:${headerBg};">
+    <!-- Overlay (solo imagen) -->
+    ${overlayHtml}
+    <!-- Decorativo círculo top-right -->
+    <div style="position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:${deco1};pointer-events:none;"></div>
+    <!-- Decorativo círculo bottom-left -->
+    <div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:${deco2};pointer-events:none;"></div>
+
     <div class="header-inner">
       <div class="header-left">
-        <div class="logo-badge">
-          <div class="logo-dot">K</div>
-          <span class="logo-text">Konecta3D</span>
-        </div>
-        <p class="header-welcome">Bienvenido a la plataforma</p>
-        <h1 class="header-name">¡Ya estás dentro,<br>${name}!</h1>
-        <p class="header-sub">${subtitle}</p>
+        ${logoHtml}
+        <p class="header-welcome" style="color:${hexToRgba(textColor,0.55)};">${escapeHtml(h.welcome_text)}</p>
+        <h1 class="header-name" style="color:${textColor};">${escapeHtml(h.greeting_prefix)}<br>${name}!</h1>
+        <p class="header-sub" style="color:${hexToRgba(textColor,0.65)};">${subtitle}</p>
       </div>
+
       <div class="header-credentials">
         <div class="hc-title">🔑 Tus datos de acceso</div>
         <div class="hc-row">
           <div class="hc-label">Plataforma</div>
           <div class="hc-value-wrap">
-            <div class="hc-value accent">${platformUrl}</div>
+            <div class="hc-value accent" style="color:${accentColor};">${platformUrl}</div>
             <button class="copy-btn" data-v="${platformUrl}" onclick="copyVal(this)">Copiar</button>
           </div>
         </div>
@@ -342,8 +427,8 @@ export function buildOnboardingHtml(
 
   <div class="divider" style="margin-top:14px;"></div>
 
-  <div class="body-grid" style="${showFeatures ? "" : "grid-template-columns: 1fr;"}">
-    <div class="col-left" style="${showFeatures ? "" : "border-right: none; padding-right: 0;"}">
+  <div class="body-grid" style="grid-template-columns:${showFeatures ? "1fr 1fr" : "1fr"};">
+    <div class="col-left" style="${showFeatures ? "" : "border-right:none;padding-right:0;"}">
       <div class="section-title">Tus 3 primeros pasos</div>
       ${stepsConnected}
     </div>
@@ -355,9 +440,7 @@ export function buildOnboardingHtml(
           <span style="font-size:13px;">✦</span>
           <span class="features-header-text">Tres perfiles de trabajo</span>
         </div>
-        <div class="features-body">
-          ${featuresHtml}
-        </div>
+        <div class="features-body">${featuresHtml}</div>
       </div>
     </div>` : ""}
   </div>
@@ -386,28 +469,17 @@ export function buildOnboardingHtml(
     function copyVal(btn) {
       var text = btn.getAttribute('data-v');
       var done = function() {
-        var orig = btn.textContent;
-        btn.textContent = '✓ OK';
-        btn.classList.add('ok');
-        setTimeout(function() {
-          btn.textContent = orig === '✓ OK' ? 'Copiar' : orig;
-          btn.classList.remove('ok');
-        }, 1800);
+        btn.textContent = '✓ OK'; btn.classList.add('ok');
+        setTimeout(function() { btn.textContent = 'Copiar'; btn.classList.remove('ok'); }, 1800);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(function() {
-          fallbackCopy(text); done();
-        });
-      } else {
-        fallbackCopy(text); done();
-      }
+        navigator.clipboard.writeText(text).then(done).catch(function() { fallbackCopy(text); done(); });
+      } else { fallbackCopy(text); done(); }
     }
     function fallbackCopy(text) {
       var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
+      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+      document.body.appendChild(ta); ta.focus(); ta.select();
       try { document.execCommand('copy'); } catch(e) {}
       document.body.removeChild(ta);
     }

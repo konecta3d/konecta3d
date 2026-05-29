@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { buildOnboardingHtml } from "@/lib/onboarding-html";
+import { buildOnboardingHtml, HeroConfig, DEFAULT_HERO } from "@/lib/onboarding-html";
 
 // ─── Constantes A4 ───────────────────────────────────────────────────────────
 
@@ -27,6 +27,7 @@ type OnboardingTemplate = {
   header_subtitle: string;
   notice_text: string;
   platform_url: string;
+  hero: HeroConfig;
   steps: [Step, Step, Step];
   show_features: boolean;
   features: Feature[];
@@ -49,6 +50,7 @@ const DEFAULT_TEMPLATE: OnboardingTemplate = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
   platform_url: "konecta3d.vercel.app",
+  hero: { ...DEFAULT_HERO },
   show_features: true,
   steps: [
     {
@@ -100,6 +102,367 @@ function deepClone<T>(v: T): T {
 }
 
 // ─── Componentes reutilizables ────────────────────────────────────────────────
+
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-[var(--foreground)]/50 mb-1">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-8 w-10 rounded cursor-pointer border border-[var(--border)] bg-transparent p-0.5 flex-shrink-0"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+          placeholder="#000000"
+        />
+      </div>
+    </div>
+  );
+}
+
+function HeroEditorModal({
+  hero,
+  onChange,
+  onClose,
+}: {
+  hero: HeroConfig;
+  onChange: (h: HeroConfig) => void;
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<"fondo" | "colores" | "logo" | "textos">("fondo");
+  const h = { ...DEFAULT_HERO, ...hero };
+  const set = (patch: Partial<HeroConfig>) => onChange({ ...hero, ...patch });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.65)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] shadow-2xl flex flex-col"
+        style={{ background: "var(--card)", maxHeight: "90vh" }}
+      >
+        {/* Modal header */}
+        <div className="flex items-center justify-between p-5 border-b border-[var(--border)] flex-shrink-0">
+          <div>
+            <h2 className="text-base font-bold">Personalizar Hero</h2>
+            <p className="text-xs text-[var(--foreground)]/40 mt-0.5">
+              Apariencia del encabezado del documento de onboarding
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[var(--foreground)]/40 hover:text-[var(--foreground)] transition-colors text-lg leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-[var(--border)] flex-shrink-0">
+          {(["fondo", "colores", "logo", "textos"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2.5 text-xs font-semibold capitalize transition-colors border-b-2 ${
+                tab === t
+                  ? "text-[var(--brand-1)] border-[var(--brand-1)]"
+                  : "text-[var(--foreground)]/40 border-transparent hover:text-[var(--foreground)]/70"
+              }`}
+            >
+              {t === "fondo" ? "Fondo" : t === "colores" ? "Colores" : t === "logo" ? "Logo" : "Textos"}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="p-5 space-y-4 overflow-y-auto flex-1">
+
+          {/* ── Tab: Fondo ── */}
+          {tab === "fondo" && (
+            <>
+              <div>
+                <label className="block text-xs text-[var(--foreground)]/50 mb-2">Tipo de fondo</label>
+                <div className="flex gap-2">
+                  {(["gradient", "solid", "image"] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => set({ bg_type: type })}
+                      className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                        h.bg_type === type
+                          ? "border-[var(--brand-1)] text-[var(--brand-1)] bg-[var(--brand-1)]/10"
+                          : "border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+                      }`}
+                    >
+                      {type === "gradient" ? "Degradado" : type === "solid" ? "Sólido" : "Imagen"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {h.bg_type !== "image" && (
+                <ColorField
+                  label={h.bg_type === "gradient" ? "Color primario" : "Color de fondo"}
+                  value={h.bg_color_1}
+                  onChange={(v) => set({ bg_color_1: v })}
+                />
+              )}
+
+              {h.bg_type === "gradient" && (
+                <>
+                  <ColorField
+                    label="Color secundario"
+                    value={h.bg_color_2}
+                    onChange={(v) => set({ bg_color_2: v })}
+                  />
+                  <div>
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                      Ángulo del degradado: <strong>{h.bg_angle}°</strong>
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      value={h.bg_angle}
+                      onChange={(e) => set({ bg_angle: Number(e.target.value) })}
+                      className="w-full"
+                      style={{ accentColor: "var(--brand-1)" }}
+                    />
+                    <div className="flex justify-between text-xs text-[var(--foreground)]/25 mt-0.5">
+                      <span>0°</span><span>180°</span><span>360°</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {h.bg_type === "image" && (
+                <>
+                  <div>
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-1">URL de la imagen de fondo</label>
+                    <input
+                      type="url"
+                      value={h.bg_image_url}
+                      onChange={(e) => set({ bg_image_url: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                      placeholder="https://..."
+                    />
+                    <p className="text-xs text-[var(--foreground)]/30 mt-1">
+                      Usa una URL pública (Supabase Storage, Unsplash, etc.)
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                      Oscurecimiento: <strong>{Math.round(h.bg_overlay * 100)}%</strong>
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={h.bg_overlay}
+                      onChange={(e) => set({ bg_overlay: Number(e.target.value) })}
+                      className="w-full"
+                      style={{ accentColor: "var(--brand-1)" }}
+                    />
+                    <div className="flex justify-between text-xs text-[var(--foreground)]/25 mt-0.5">
+                      <span>0%</span><span>50%</span><span>100%</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ── Tab: Colores ── */}
+          {tab === "colores" && (
+            <>
+              <p className="text-xs text-[var(--foreground)]/40">
+                Colores aplicados sobre el fondo del hero.
+              </p>
+              <ColorField
+                label="Color del texto"
+                value={h.text_color}
+                onChange={(v) => set({ text_color: v })}
+              />
+              <ColorField
+                label="Color de acento (badges, tiempo de pasos)"
+                value={h.accent_color}
+                onChange={(v) => set({ accent_color: v })}
+              />
+            </>
+          )}
+
+          {/* ── Tab: Logo ── */}
+          {tab === "logo" && (
+            <>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)]">
+                <label className="text-sm font-medium">Mostrar logo</label>
+                <button
+                  type="button"
+                  onClick={() => set({ logo_show: !h.logo_show })}
+                  className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
+                    h.logo_show ? "bg-[var(--brand-1)]" : "bg-[var(--foreground)]/20"
+                  }`}
+                  role="switch"
+                  aria-checked={h.logo_show}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                      h.logo_show ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {h.logo_show && (
+                <>
+                  <div>
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-2">Tipo de logo</label>
+                    <div className="flex gap-2">
+                      {(["badge", "image"] as const).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => set({ logo_type: type })}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                            h.logo_type === type
+                              ? "border-[var(--brand-1)] text-[var(--brand-1)] bg-[var(--brand-1)]/10"
+                              : "border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+                          }`}
+                        >
+                          {type === "badge" ? "Badge + Texto" : "Imagen / URL"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {h.logo_type === "badge" && (
+                    <>
+                      <div>
+                        <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                          Nombre de la plataforma
+                        </label>
+                        <input
+                          type="text"
+                          value={h.logo_text}
+                          onChange={(e) => set({ logo_text: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                          placeholder="Konecta3D"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                          Carácter del badge
+                        </label>
+                        <input
+                          type="text"
+                          value={h.logo_dot_char}
+                          onChange={(e) => set({ logo_dot_char: e.target.value.slice(0, 2) })}
+                          className="w-20 px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-bold text-center"
+                          maxLength={2}
+                          placeholder="K"
+                        />
+                      </div>
+                      <ColorField
+                        label="Color de fondo del badge"
+                        value={h.logo_dot_color}
+                        onChange={(v) => set({ logo_dot_color: v })}
+                      />
+                      <ColorField
+                        label="Color del texto del badge"
+                        value={h.logo_dot_text_color}
+                        onChange={(v) => set({ logo_dot_text_color: v })}
+                      />
+                    </>
+                  )}
+
+                  {h.logo_type === "image" && (
+                    <div>
+                      <label className="block text-xs text-[var(--foreground)]/50 mb-1">URL del logo</label>
+                      <input
+                        type="url"
+                        value={h.logo_url}
+                        onChange={(e) => set({ logo_url: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                        placeholder="https://..."
+                      />
+                      <p className="text-xs text-[var(--foreground)]/30 mt-1">
+                        Recomendado: PNG con fondo transparente, máx. 200 px de alto
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {/* ── Tab: Textos ── */}
+          {tab === "textos" && (
+            <>
+              <div>
+                <label className="block text-xs text-[var(--foreground)]/50 mb-1">Texto de bienvenida</label>
+                <input
+                  type="text"
+                  value={h.welcome_text}
+                  onChange={(e) => set({ welcome_text: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                  placeholder="Bienvenido a la plataforma"
+                />
+                <p className="text-xs text-[var(--foreground)]/30 mt-1">
+                  Aparece en la parte superior del hero, encima del saludo
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs text-[var(--foreground)]/50 mb-1">Prefijo del saludo</label>
+                <input
+                  type="text"
+                  value={h.greeting_prefix}
+                  onChange={(e) => set({ greeting_prefix: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm"
+                  placeholder="¡Ya estás dentro,"
+                />
+                <p className="text-xs text-[var(--foreground)]/30 mt-1">
+                  Aparece antes del nombre del negocio en el saludo principal
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Modal footer */}
+        <div className="flex items-center justify-between p-5 border-t border-[var(--border)] flex-shrink-0">
+          <button
+            onClick={() => onChange({ ...DEFAULT_HERO })}
+            className="text-xs text-[var(--foreground)]/40 hover:text-[var(--foreground)]/70 transition-colors"
+          >
+            Restaurar defaults
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm font-semibold"
+            style={{ background: "var(--brand-1)", color: "white" }}
+          >
+            Aplicar cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function BulletList({
   bullets,
@@ -268,6 +631,9 @@ export default function OnboardingEditorPage() {
   const [previewing, setPreviewing] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
+  // ── Modal hero ──
+  const [showHeroModal, setShowHeroModal] = useState(false);
 
   // ── Preview data (negocio seleccionado, solo para la vista previa) ──
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -532,9 +898,19 @@ export default function OnboardingEditorPage() {
             className="rounded-xl border border-[var(--border)] p-5 space-y-4"
             style={{ background: "var(--card)" }}
           >
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
-              Cabecera
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+                Cabecera
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowHeroModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--brand-1)]/40 text-xs font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
+              >
+                <span>✏️</span>
+                <span>Personalizar Hero</span>
+              </button>
+            </div>
 
             <div>
               <label className="block text-xs text-[var(--foreground)]/50 mb-1">
@@ -852,6 +1228,15 @@ export default function OnboardingEditorPage() {
         </div>
 
       </div>
+
+      {/* ── Modal: Personalizar Hero ── */}
+      {showHeroModal && (
+        <HeroEditorModal
+          hero={template.hero ?? {}}
+          onChange={(h) => setTemplate((t) => ({ ...t, hero: h }))}
+          onClose={() => setShowHeroModal(false)}
+        />
+      )}
     </div>
   );
 }
