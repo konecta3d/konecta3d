@@ -10,7 +10,8 @@ export default function NewBusinessPage() {
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ name: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const generarPassword = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
@@ -43,8 +44,7 @@ export default function NewBusinessPage() {
     if (!res.ok) {
       setError(data.error || "Error al crear negocio");
     } else {
-      setSuccess(`Negocio creado. Contraseña: ${password} — Cópiala y envíala al cliente.`);
-      setTimeout(() => (window.location.href = "/admin/businesses"), 3000);
+      setSuccess({ name, password });
     }
     setSaving(false);
   };
@@ -87,8 +87,33 @@ export default function NewBusinessPage() {
           </button>
           {error && <div className="mt-2 text-sm text-red-500">{error}</div>}
           {success && (
-            <div className="mt-2 p-3 rounded-lg bg-green-500/20 text-green-400 text-sm font-mono">
-              {success}
+            <div className="mt-3 p-4 rounded-xl border border-green-500/30 bg-green-500/10 space-y-3">
+              <p className="text-green-400 font-semibold text-sm">✓ Negocio &ldquo;{success.name}&rdquo; creado correctamente</p>
+              <div>
+                <p className="text-xs text-green-300/70 mb-1">Contraseña de acceso — <strong>cópiala antes de salir</strong></p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-black/30 rounded-lg px-3 py-2 text-green-300 font-mono text-sm tracking-wider">
+                    {success.password}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(success.password);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2500);
+                    }}
+                    className="px-3 py-2 rounded-lg border border-green-500/30 text-xs text-green-400 hover:bg-green-500/20 transition-colors whitespace-nowrap"
+                  >
+                    {copied ? "✓ Copiada" : "Copiar"}
+                  </button>
+                </div>
+              </div>
+              <a
+                href="/admin/businesses"
+                className="inline-block mt-1 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                Ir a lista de negocios →
+              </a>
             </div>
           )}
         </div>

@@ -30,7 +30,30 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    // Normalizar slug: quitar acentos, convertir espacios y chars especiales a guiones
+    const baseSlug = name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")   // eliminar diacríticos
+      .replace(/[^a-z0-9\s-]/g, "")      // solo alfanumérico
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+    // Garantizar unicidad: si ya existe, añadir sufijo numérico
+    let slug = baseSlug;
+    let suffix = 2;
+    while (true) {
+      const { data: existing } = await supabaseAdmin
+        .from("businesses")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (!existing) break;
+      slug = `${baseSlug}-${suffix}`;
+      suffix++;
+    }
+
     const publicId = "K3D-" + randomBytes(4).toString("hex").toUpperCase();
 
     // Buscar si ya existe un usuario con ese email (Supabase JS v2 no tiene getUserByEmail)

@@ -68,7 +68,8 @@ export default function ResultadosPage() {
     );
   }
 
-  const publicSlug = slug || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+  const publicSlug = slug || name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -85,7 +86,7 @@ export default function ResultadosPage() {
           <div>
             <h2 className="text-lg font-semibold mb-1">Landing pública</h2>
             <p className="text-sm text-white mb-2">Esta es la página que puedes compartir con tus clientes.</p>
-            <p className="text-xs text-white break-words">konecta3d.com/l/{publicSlug}</p>
+            <p className="text-xs text-white break-words">{baseUrl}/l/{publicSlug}</p>
           </div>
           <div className="mt-3 flex gap-2">
             <a

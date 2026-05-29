@@ -12,11 +12,20 @@ const PROTECTED_PREFIXES = [
   "/documents",
   "/settings",
   "/business/dashboard",
+  "/business/select-profile",
   "/mi-negocio",
   "/formularios",
   "/acciones",
   "/gpt-fidelizacion",
   "/ayuda",
+  // Módulo de captación
+  "/captacion",
+  // Panel alternativo de negocio
+  "/negocio",
+  "/mi-contexto",
+  // Debug/test — solo admin, proteger para evitar exposición
+  "/debug",
+  "/test",
 ];
 
 export async function middleware(req: NextRequest) {

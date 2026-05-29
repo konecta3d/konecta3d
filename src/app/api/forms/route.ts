@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 
 export async function GET(req: Request) {
   try {
@@ -8,6 +9,15 @@ export async function GET(req: Request) {
 
     if (!businessId) {
       return NextResponse.json({ error: "businessId requerido" }, { status: 400 });
+    }
+
+    // Verificar autenticación
+    const [owns, { isAdmin }] = await Promise.all([
+      verifyBusinessOwnership(req, businessId),
+      verifyAdminSession(req),
+    ]);
+    if (!owns && !isAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const supabaseAdmin = createClient(
@@ -38,6 +48,15 @@ export async function POST(req: Request) {
 
     if (!business_id) {
       return NextResponse.json({ error: "business_id requerido" }, { status: 400 });
+    }
+
+    // Verificar autenticación
+    const [owns, { isAdmin }] = await Promise.all([
+      verifyBusinessOwnership(req, business_id),
+      verifyAdminSession(req),
+    ]);
+    if (!owns && !isAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     if (!title?.trim()) {
