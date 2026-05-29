@@ -45,8 +45,12 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-[var(--brand-2)]">Konecta3D</h1>
-        <p className="mt-2 text-sm text-[var(--brand-1)]">Acceso a herramientas</p>
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ background: "var(--brand-4)", color: "#0f3d3a" }}>K</div>
+          <span className="text-xs font-bold tracking-widest uppercase text-[var(--brand-4)]">Konecta3D</span>
+        </div>
+        <h1 className="text-xl font-bold">Panel de administración</h1>
+        <p className="mt-1 text-xs text-[var(--foreground)]/40">Acceso restringido</p>
       </div>
       <form className="space-y-4" onSubmit={handleLogin}>
         <div>
@@ -84,6 +88,11 @@ export default function LoginPage() {
           {loading ? "Entrando…" : "Entrar"}
         </button>
       </form>
+      <div className="text-center pt-2">
+        <a href="/" className="text-xs text-[var(--foreground)]/25 hover:text-[var(--foreground)]/50 transition-colors">
+          ← Acceso para negocios
+        </a>
+      </div>
     </div>
   );
 }
