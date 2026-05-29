@@ -358,31 +358,87 @@ function HeroEditorModal({
 
               {h.bg_type === "image" && (
                 <>
+                  {/* Imagen */}
+                  <ImageUploadField
+                    label="Imagen de fondo"
+                    value={h.bg_image_url}
+                    onChange={(url) => set({ bg_image_url: url })}
+                    kind="onboarding-bg"
+                    hint="JPG, PNG, WebP o SVG · máx. 5 MB"
+                  />
+
+                  {/* Tamaño */}
                   <div>
-                    <ImageUploadField
-                      label="Imagen de fondo"
-                      value={h.bg_image_url}
-                      onChange={(url) => set({ bg_image_url: url })}
-                      kind="onboarding-bg"
-                      hint="JPG, PNG, WebP o SVG · máx. 5 MB · se recomienda formato ancho (landscape)"
-                    />
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-2">Tamaño</label>
+                    <div className="flex gap-2">
+                      {(["cover", "contain", "auto"] as const).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => set({ bg_image_size: s })}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                            (h.bg_image_size ?? "cover") === s
+                              ? "border-[var(--brand-1)] text-[var(--brand-1)] bg-[var(--brand-1)]/10"
+                              : "border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+                          }`}
+                        >
+                          {s === "cover" ? "Cubrir" : s === "contain" ? "Contener" : "Original"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-[var(--foreground)]/25 mt-1">
+                      Cubrir recorta la imagen para llenar. Contener la muestra completa.
+                    </p>
                   </div>
+
+                  {/* Posición */}
+                  <div>
+                    <label className="block text-xs text-[var(--foreground)]/50 mb-2">Posición</label>
+                    <div className="grid grid-cols-3 gap-1 w-28">
+                      {[
+                        ["top left",    "↖"], ["top center",    "↑"], ["top right",    "↗"],
+                        ["center left", "←"], ["center center", "·"], ["center right", "→"],
+                        ["bottom left", "↙"], ["bottom center", "↓"], ["bottom right", "↘"],
+                      ].map(([pos, icon]) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() => set({ bg_image_position: pos })}
+                          className={`h-8 w-8 rounded-lg border text-sm flex items-center justify-center transition-colors ${
+                            (h.bg_image_position ?? "center center") === pos
+                              ? "border-[var(--brand-1)] bg-[var(--brand-1)]/20 text-[var(--brand-1)]"
+                              : "border-[var(--border)] text-[var(--foreground)]/40 hover:text-[var(--foreground)]"
+                          }`}
+                          title={pos}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Overlay — color + opacidad */}
+                  <ColorField
+                    label="Color del velo"
+                    value={h.bg_overlay_color ?? "#000000"}
+                    onChange={(v) => set({ bg_overlay_color: v })}
+                  />
                   <div>
                     <label className="block text-xs text-[var(--foreground)]/50 mb-1">
-                      Oscurecimiento: <strong>{Math.round(h.bg_overlay * 100)}%</strong>
+                      Opacidad del velo: <strong>{Math.round((h.bg_overlay ?? 0.45) * 100)}%</strong>
                     </label>
                     <input
                       type="range"
                       min={0}
                       max={1}
                       step={0.05}
-                      value={h.bg_overlay}
+                      value={h.bg_overlay ?? 0.45}
                       onChange={(e) => set({ bg_overlay: Number(e.target.value) })}
                       className="w-full"
                       style={{ accentColor: "var(--brand-1)" }}
                     />
                     <div className="flex justify-between text-xs text-[var(--foreground)]/25 mt-0.5">
-                      <span>0%</span><span>50%</span><span>100%</span>
+                      <span>Sin velo</span><span>100%</span>
                     </div>
                   </div>
                 </>

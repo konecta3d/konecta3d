@@ -8,7 +8,10 @@ export type HeroConfig = {
   bg_color_2?: string;
   bg_angle?: number;
   bg_image_url?: string;
+  bg_image_position?: string;   // e.g. "center", "top", "bottom center"
+  bg_image_size?: "cover" | "contain" | "auto";
   bg_overlay?: number;
+  bg_overlay_color?: string;    // hex color for the tint overlay
   text_color?: string;
   accent_color?: string;
   logo_show?: boolean;
@@ -56,7 +59,10 @@ export const DEFAULT_HERO: Required<HeroConfig> = {
   bg_color_2: "#1e5c57",
   bg_angle: 140,
   bg_image_url: "",
-  bg_overlay: 0.5,
+  bg_image_position: "center center",
+  bg_image_size: "cover",
+  bg_overlay: 0.45,
+  bg_overlay_color: "#000000",
   text_color: "#ffffff",
   accent_color: "#C5A059",
   logo_show: true,
@@ -166,19 +172,23 @@ export function buildOnboardingHtml(
   const accentColor = h.accent_color || "#C5A059";
 
   // Background CSS
+  const imgPos  = h.bg_image_position || "center center";
+  const imgSize = h.bg_image_size     || "cover";
   let headerBg: string;
   if (h.bg_type === "solid") {
     headerBg = h.bg_color_1;
   } else if (h.bg_type === "image" && h.bg_image_url) {
-    headerBg = `url('${h.bg_image_url}') center/cover no-repeat`;
+    headerBg = `url('${h.bg_image_url}') ${imgPos}/${imgSize} no-repeat`;
   } else {
     headerBg = `linear-gradient(${h.bg_angle}deg, ${h.bg_color_1} 0%, ${h.bg_color_2} 100%)`;
   }
 
-  // Overlay (solo cuando imagen)
-  const overlayHtml =
+  // Overlay (solo cuando imagen) — usa el color + opacidad configurados
+  const overlayColor = h.bg_overlay_color || "#000000";
+  const overlayRgba  = hexToRgba(overlayColor, h.bg_overlay ?? 0.45);
+  const overlayHtml  =
     h.bg_type === "image" && h.bg_image_url
-      ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${h.bg_overlay});pointer-events:none;z-index:0;"></div>`
+      ? `<div style="position:absolute;inset:0;background:${overlayRgba};pointer-events:none;z-index:0;"></div>`
       : "";
 
   // Decorative circles (usan accent_color)

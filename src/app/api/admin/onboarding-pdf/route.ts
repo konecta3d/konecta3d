@@ -111,7 +111,29 @@ export async function POST(req: Request) {
       .update({ last_onboarding_password: newPassword })
       .eq("id", businessId);
 
-    // 5. Generar PDF con el template (personalizado o default)
+    // 5. Pre-fetch imágenes para embeber como base64 (Puppeteer no carga URLs externas de forma fiable)
+    if (template.hero?.bg_type === "image" && template.hero?.bg_image_url) {
+      try {
+        const imgRes = await fetch(template.hero.bg_image_url, { signal: AbortSignal.timeout(8000) });
+        if (imgRes.ok) {
+          const mime = imgRes.headers.get("content-type") || "image/jpeg";
+          const buf  = await imgRes.arrayBuffer();
+          template.hero.bg_image_url = `data:${mime};base64,${Buffer.from(buf).toString("base64")}`;
+        }
+      } catch { /* mantener URL original como fallback */ }
+    }
+    if (template.hero?.logo_type === "image" && template.hero?.logo_url) {
+      try {
+        const imgRes = await fetch(template.hero.logo_url, { signal: AbortSignal.timeout(8000) });
+        if (imgRes.ok) {
+          const mime = imgRes.headers.get("content-type") || "image/png";
+          const buf  = await imgRes.arrayBuffer();
+          template.hero.logo_url = `data:${mime};base64,${Buffer.from(buf).toString("base64")}`;
+        }
+      } catch { /* mantener URL original como fallback */ }
+    }
+
+    // 6. Generar PDF con el template (personalizado o default)
     const html = buildOnboardingHtml(
       business.name,
       business.contact_email,
@@ -122,7 +144,7 @@ export async function POST(req: Request) {
     const browser = await launchBrowser();
     try {
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "domcontentloaded" });
+      await page.setContent(html, { waitUntil: "networkidle0" });
       const pdfBuffer = await page.pdf({
         width: "210mm",
         height: "297mm",
