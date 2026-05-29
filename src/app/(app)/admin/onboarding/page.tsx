@@ -888,7 +888,7 @@ export default function OnboardingEditorPage() {
       </div>
 
       {/* ── Layout 2 columnas ── */}
-      <div className="grid xl:grid-cols-[1fr_400px] gap-8 items-start">
+      <div className="grid xl:grid-cols-[1fr_580px] gap-8 items-start">
 
         {/* ══ Columna izquierda: formulario ══ */}
         <div className="space-y-5 min-w-0">
