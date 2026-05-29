@@ -22,75 +22,27 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     setLoading(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token || "";
 
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const res = await fetch("/api/admin/dashboard-stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    // Total businesses
-    const { count: totalBusinesses } = await supabase
-      .from("businesses")
-      .select("id", { count: "exact", head: true });
+      if (!res.ok) {
+        console.error("Dashboard stats error:", await res.text());
+        setLoading(false);
+        return;
+      }
 
-    // Active businesses (created or updated in last 30 days)
-    const { count: activeBusinesses30d } = await supabase
-      .from("businesses")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", thirtyDaysAgo);
-
-    // Total leads
-    const { count: totalLeads } = await supabase
-      .from("leads")
-      .select("id", { count: "exact", head: true });
-
-    // Leads last 30 days
-    const { count: leads30d } = await supabase
-      .from("leads")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", thirtyDaysAgo);
-
-    // Total landings
-    const { count: totalLandings } = await supabase
-      .from("landing_configs")
-      .select("id", { count: "exact", head: true });
-
-    // Onboarding "completado" (heurística): negocios con sector y slug definidos
-    const { count: onboardingCompleted } = await supabase
-      .from("businesses")
-      .select("id", { count: "exact", head: true })
-      .not("sector", "is", null)
-      .not("slug", "is", null);
-
-    setStats({
-      totalBusinesses: totalBusinesses || 0,
-      activeBusinesses30d: activeBusinesses30d || 0,
-      totalLeads: totalLeads || 0,
-      leads30d: leads30d || 0,
-      totalLandings: totalLandings || 0,
-      onboardingCompleted: onboardingCompleted || 0,
-    });
-
-    // Recent businesses
-    const { data: businesses } = await supabase
-      .from("businesses")
-      .select("id, name, sector, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    setRecentBusinesses(businesses || []);
-
-    // Recent leads
-    const { data: leads } = await supabase
-      .from("leads")
-      .select("id, name, email, created_at, businesses(name)")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    
-    if (leads) {
-      setRecentLeads(leads.map(l => ({
-        ...l,
-        business_name: (l.businesses as unknown as { name: string } | null)?.name
-      })));
+      const json = await res.json();
+      setStats(json.stats);
+      setRecentBusinesses(json.recentBusinesses);
+      setRecentLeads(json.recentLeads);
+    } catch (err) {
+      console.error("Dashboard error:", err);
     }
-
     setLoading(false);
   };
 

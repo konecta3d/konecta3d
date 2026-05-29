@@ -20,12 +20,23 @@ export default function BusinessesPage() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("businesses")
-        .select("id,public_id,name,sector,contact_email")
-        .order("created_at", { ascending: false });
-      if (error) setError(error.message);
-      else setItems(data || []);
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        const token = session.session?.access_token || "";
+
+        const res = await fetch("/api/admin/businesses", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+
+        if (!res.ok) {
+          setError(json.error || "Error al cargar negocios");
+        } else {
+          setItems(json.businesses || []);
+        }
+      } catch (err) {
+        setError("Error de red al cargar negocios");
+      }
       setLoading(false);
     };
     load();
