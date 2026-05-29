@@ -19,8 +19,11 @@ export async function verifyAdminSession(req: Request): Promise<{ isAdmin: boole
 
   const email = (data.user.email || "").toLowerCase();
 
-  // Primary: check against NEXT_PUBLIC_ADMIN_EMAIL env var (reliable, no DB dependency)
-  const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
+  // Primary: check against ADMIN_EMAIL env var (server-side only, not exposed to client).
+  // Fallback to NEXT_PUBLIC_ADMIN_EMAIL for backward compatibility during transition.
+  const adminEmail = (
+    process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL || ""
+  ).toLowerCase();
   if (adminEmail && email === adminEmail) {
     return { isAdmin: true, userId: data.user.id };
   }
