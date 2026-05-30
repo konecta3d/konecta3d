@@ -276,51 +276,29 @@ input[type="range"]::-moz-range-thumb {
    lead-magnets captación, formularios) fueron
    diseñados íntegramente sobre fondo oscuro.
    Aplicar la clase .wizard-dark al div raíz
-   restaura ese comportamiento en modo claro.
+   restaura ese comportamiento en modo claro
+   sobreescribiendo las variables de tema para que
+   TODA la jerarquía de tarjetas herede oscuro.
 ───────────────────────────────────────────── */
 :not(.dark) .wizard-dark {
+  --background: #0a1118;   /* mismos valores que .dark */
+  --card:       #0f1720;
+  --foreground: #ffffff;
+  --border:     rgba(255, 255, 255, 0.08);
   background-color: #0a1118;
 }
-
-/* Texto: preservar blancos dentro del wizard */
-:not(.dark) .wizard-dark .text-white,
-:not(.dark) .wizard-dark .text-white\/70,
-:not(.dark) .wizard-dark .text-white\/60,
-:not(.dark) .wizard-dark .text-white\/50,
-:not(.dark) .wizard-dark .text-white\/40 {
-  color: #ffffff;
-}
-:not(.dark) .wizard-dark .hover\:text-white:hover {
-  color: #ffffff;
-}
-
-/* Fondos semi-transparentes → revertir al comportamiento oscuro */
+/* Con --foreground:#fff las reglas globales de .text-white y
+   color:var(--foreground) ya resuelven en blanco — no hacen
+   falta reglas individuales por clase. Solo hay que revertir
+   las sobrescrituras de bg-white/ y border-white/ que el CSS
+   global convierte a var(--card) / colores de borde oscuros. */
 :not(.dark) .wizard-dark .bg-white\/5  { background-color: rgba(255,255,255,0.05); }
 :not(.dark) .wizard-dark .bg-white\/10 { background-color: rgba(255,255,255,0.10); }
 :not(.dark) .wizard-dark .bg-white\/20 { background-color: rgba(255,255,255,0.20); }
-
-/* Bordes semi-transparentes */
 :not(.dark) .wizard-dark .border-white\/10 { border-color: rgba(255,255,255,0.10); }
 :not(.dark) .wizard-dark .border-white\/15 { border-color: rgba(255,255,255,0.15); }
 :not(.dark) .wizard-dark .border-white\/20 { border-color: rgba(255,255,255,0.20); }
 :not(.dark) .wizard-dark .border-white\/30 { border-color: rgba(255,255,255,0.30); }
-
-/* Inputs y textareas — texto blanco sobre fondo oscuro */
-:not(.dark) .wizard-dark input:not([type="color"]),
-:not(.dark) .wizard-dark textarea {
-  color: #ffffff;
-}
-:not(.dark) .wizard-dark input::placeholder,
-:not(.dark) .wizard-dark textarea::placeholder {
-  color: rgba(255,255,255,0.35);
-}
-
-/* Inline style color: #fff/white dentro del wizard */
-:not(.dark) .wizard-dark *[style*="color: #ffffff"],
-:not(.dark) .wizard-dark *[style*="color:#ffffff"],
-:not(.dark) .wizard-dark *[style*="color: white"] {
-  color: #ffffff !important;
-}
 
 /* ─────────────────────────────────────────────
    INLINE DARK BACKGROUNDS en modo claro
