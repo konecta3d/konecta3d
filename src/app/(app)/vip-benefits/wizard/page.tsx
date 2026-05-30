@@ -24,7 +24,6 @@ const TYPE_INFO = {
   free_service: { title: "Servicio gratis", description: "Envío o servicio sin coste", example: "Envío gratis" }
 };
 
-// Plantillas por tipo de beneficio
 const TYPE_TEMPLATES: Record<BenefitType, { title: string; value: string; code: string }> = {
   percent_discount: { title: "20% Descuento", value: "20% Descuento", code: "VIP20" },
   fixed_discount: { title: "20€ Descuento", value: "20€ Descuento", code: "DESCUENTO20" },
@@ -49,19 +48,16 @@ function VipBenefitsWizardInner() {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Datos del beneficio
   const [objective, setObjective] = useState<BenefitObjective>("fidelizar");
   const [type, setType] = useState<BenefitType>("percent_discount");
-  
-  // Contenido
+
   const [title, setTitle] = useState("");
   const [value, setValue] = useState("");
   const [clientName, setClientName] = useState("");
   const [productService, setProductService] = useState("");
   const [instructions, setInstructions] = useState("");
   const [finalNote, setFinalNote] = useState("");
-  
-  // Personalización visual
+
   const [docBg, setDocBg] = useState("#ffffff");
   const [docText, setDocText] = useState("#1f2937");
   const [docAccent, setDocAccent] = useState("#6b7280");
@@ -72,16 +68,13 @@ function VipBenefitsWizardInner() {
   const [docTitleSize, setDocTitleSize] = useState(24);
   const [docBodySize, setDocBodySize] = useState(14);
   const [codeWidth, setCodeWidth] = useState(260);
-  
-  // CTA Button
+
   const [ctaEnabled, setCtaEnabled] = useState(true);
   const [ctaText, setCtaText] = useState("Reservar cita");
   const [ctaLink, setCtaLink] = useState("");
-  
-  // Logo
+
   const [docLogo, setDocLogo] = useState("");
 
-  // Cargar datos del negocio
   useEffect(() => {
     const load = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -106,7 +99,6 @@ function VipBenefitsWizardInner() {
     load();
   }, []);
 
-  // Aplicar plantilla según tipo
   useEffect(() => {
     const template = TYPE_TEMPLATES[type];
     if (template) {
@@ -120,7 +112,7 @@ function VipBenefitsWizardInner() {
   const generatePdf = async () => {
     if (!businessId) return alert("Falta businessId");
     setPdfGenerating(true);
-    
+
     const conditions: any = {
       showLogo: true,
       showTitle: true,
@@ -183,7 +175,6 @@ function VipBenefitsWizardInner() {
     setPdfGenerating(false);
   };
 
-  // Render steps
   const renderStep = () => {
     switch (step) {
       case "bienvenida":
@@ -191,19 +182,19 @@ function VipBenefitsWizardInner() {
           <div className="space-y-6">
             <div className="text-center py-8">
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-white mb-4">Crea beneficios exclusivos para tus clientes</h2>
-                <p className="text-white text-lg max-w-xl mx-auto">
+                <h2 className="text-3xl font-bold text-[var(--foreground)] mb-4">Crea beneficios exclusivos para tus clientes</h2>
+                <p className="text-[var(--foreground)]/70 text-lg max-w-xl mx-auto">
                   Genera documentos PDF con descuentos, regalos y ofertas especiales que tus clientes daran usar.
                 </p>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-[#0a323c] to-[#001e3c] rounded-xl p-6 border border-[#39a1a9]/30">
-              <h3 className="text-lg font-bold text-white mb-3">Qué vas a crear?</h3>
-              <p className="text-white text-sm mb-4">
+            <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
+              <h3 className="text-lg font-bold text-[var(--foreground)] mb-3">Qué vas a crear?</h3>
+              <p className="text-[var(--foreground)]/70 text-sm mb-4">
                 Un documento PDF profesional que puedes entregar a tus clientes. Incluye el beneficio, código de descuento y llamada a la acción.
               </p>
-              <ul className="text-sm text-white space-y-2">
+              <ul className="text-sm text-[var(--foreground)]/70 space-y-2">
                 <li className="flex items-center gap-2">
                   <span className="text-[#ffb400]">+</span> Descuentos y ofertas exclusivas
                 </li>
@@ -231,27 +222,27 @@ function VipBenefitsWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Cuál es tu objetivo?</h2>
-              <p className="text-white">Selecciona el propósito de tu beneficio</p>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Cuál es tu objetivo?</h2>
+              <p className="text-[var(--foreground)]/60">Selecciona el propósito de tu beneficio</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(OBJECTIVE_INFO).map(([key, info]) => (
-                <button 
-                  key={key} 
-                  onClick={() => setObjective(key as BenefitObjective)} 
+                <button
+                  key={key}
+                  onClick={() => setObjective(key as BenefitObjective)}
                   className="p-6 rounded-xl text-left transition-all border-2"
-                  style={{ 
-                    borderColor: objective === key ? info.color : "rgba(255,255,255,0.1)", 
-                    backgroundColor: objective === key ? `${info.color}15` : "rgba(255,255,255,0.05)" 
+                  style={{
+                    borderColor: objective === key ? info.color : "var(--border)",
+                    backgroundColor: objective === key ? `${info.color}15` : "var(--card)"
                   }}
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: info.color }}></div>
-                    <h3 className="text-lg font-bold text-white">{info.title}</h3>
+                    <h3 className="text-lg font-bold text-[var(--foreground)]">{info.title}</h3>
                   </div>
-                  <p className="text-sm text-white mb-3">{info.description}</p>
-                  <div className="text-xs text-white italic">Ej: {info.example}</div>
+                  <p className="text-sm text-[var(--foreground)]/70 mb-3">{info.description}</p>
+                  <div className="text-xs text-[var(--foreground)]/50 italic">Ej: {info.example}</div>
                 </button>
               ))}
             </div>
@@ -268,29 +259,29 @@ function VipBenefitsWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Qué tipo de beneficio es?</h2>
-              <p className="text-white">Elige el formato de tu oferta</p>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Qué tipo de beneficio es?</h2>
+              <p className="text-[var(--foreground)]/60">Elige el formato de tu oferta</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {Object.entries(TYPE_INFO).map(([key, info]) => (
-                <button 
-                  key={key} 
-                  onClick={() => setType(key as BenefitType)} 
+                <button
+                  key={key}
+                  onClick={() => setType(key as BenefitType)}
                   className="p-4 rounded-xl text-center transition-all border-2"
-                  style={{ 
-                    borderColor: type === key ? "#ffb400" : "rgba(255,255,255,0.1)", 
-                    backgroundColor: type === key ? "rgba(255,180,0,0.1)" : "rgba(255,255,255,0.05)" 
+                  style={{
+                    borderColor: type === key ? "#ffb400" : "var(--border)",
+                    backgroundColor: type === key ? "rgba(255,180,0,0.1)" : "var(--card)"
                   }}
                 >
-                  <h3 className="font-bold text-white mb-1">{info.title}</h3>
-                  <p className="text-xs text-white">{info.description}</p>
+                  <h3 className="font-bold text-[var(--foreground)] mb-1">{info.title}</h3>
+                  <p className="text-xs text-[var(--foreground)]/60">{info.description}</p>
                 </button>
               ))}
             </div>
 
             <div className="flex justify-between mt-8">
-              <button onClick={() => setStep("objetivo")} className="px-6 py-3 rounded-full border border-white/20 text-white">
+              <button onClick={() => setStep("objetivo")} className="px-6 py-3 rounded-full border border-[var(--border)] text-[var(--foreground)]">
                 Atrás
               </button>
               <button onClick={() => setStep("contenido")} className="px-8 py-3 rounded-full bg-[#ffb400] text-black font-bold">
@@ -304,10 +295,10 @@ function VipBenefitsWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Personaliza el contenido</h2>
-              <p className="text-white">Define los detalles de tu beneficio</p>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Personaliza el contenido</h2>
+              <p className="text-[var(--foreground)]/60">Define los detalles de tu beneficio</p>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-2">
@@ -317,7 +308,7 @@ function VipBenefitsWizardInner() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
                   placeholder="Ej: 20% Descuento en tu próxima compra"
                 />
               </div>
@@ -330,7 +321,7 @@ function VipBenefitsWizardInner() {
                   type="text"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
                   placeholder="Ej: 20% Descuento"
                 />
               </div>
@@ -343,7 +334,7 @@ function VipBenefitsWizardInner() {
                   type="text"
                   value={productService}
                   onChange={(e) => setProductService(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
                   placeholder="Ej: En todos los servicios de peluquería"
                 />
               </div>
@@ -356,7 +347,7 @@ function VipBenefitsWizardInner() {
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
                   placeholder="Instrucciones para canjear el beneficio..."
                 />
               </div>
@@ -369,14 +360,14 @@ function VipBenefitsWizardInner() {
                   value={finalNote}
                   onChange={(e) => setFinalNote(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
                   placeholder="Texto adicional que aparece al final..."
                 />
               </div>
             </div>
 
             <div className="flex justify-between mt-8">
-              <button onClick={() => setStep("tipo")} className="px-6 py-3 rounded-full border border-white/20 text-white">
+              <button onClick={() => setStep("tipo")} className="px-6 py-3 rounded-full border border-[var(--border)] text-[var(--foreground)]">
                 Atrás
               </button>
               <button onClick={() => setStep("personalizacion")} className="px-8 py-3 rounded-full bg-[#ffb400] text-black font-bold">
@@ -390,90 +381,90 @@ function VipBenefitsWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Personalización</h2>
-              <p className="text-white">Configura los colores y el botón de acción</p>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Personalización</h2>
+              <p className="text-[var(--foreground)]/60">Configura los colores y el botón de acción</p>
             </div>
-            
+
             {/* Colores básicos */}
-            <div className="bg-white/5 rounded-xl p-6">
-              <h3 className="text-white font-bold mb-4">Colores del documento</h3>
+            <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
+              <h3 className="text-[var(--foreground)] font-bold mb-4">Colores del documento</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-white mb-2">Fondo</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Fondo</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docBg} onChange={(e) => setDocBg(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docBg}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docBg}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-2">Texto</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Texto</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docText} onChange={(e) => setDocText(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docText}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docText}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-2">Acento</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Acento</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docAccent} onChange={(e) => setDocAccent(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docAccent}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docAccent}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-2">Borde</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Borde</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docBorder} onChange={(e) => setDocBorder(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docBorder}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docBorder}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-2">Botón fondo</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Botón fondo</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docButtonBg} onChange={(e) => setDocButtonBg(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docButtonBg}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docButtonBg}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-2">Botón texto</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-2">Botón texto</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={docButtonText} onChange={(e) => setDocButtonText(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                    <span className="text-xs text-white">{docButtonText}</span>
+                    <span className="text-xs text-[var(--foreground)]/70 font-mono">{docButtonText}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* CTA Button */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-bold">Botón de acción (CTA)</h3>
-                <label className="flex items-center gap-2 text-sm text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={ctaEnabled} 
-                    onChange={(e) => setCtaEnabled(e.target.checked)} 
-                    className="w-4 h-4 accent-[#ffb400]" 
+                <h3 className="text-[var(--foreground)] font-bold">Botón de acción (CTA)</h3>
+                <label className="flex items-center gap-2 text-sm text-[var(--foreground)]/70">
+                  <input
+                    type="checkbox"
+                    checked={ctaEnabled}
+                    onChange={(e) => setCtaEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-[#ffb400]"
                   />
                   Activar
                 </label>
               </div>
-              
+
               {ctaEnabled && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-white mb-1">Texto del botón</label>
+                    <label className="block text-xs text-[var(--foreground)]/60 mb-1">Texto del botón</label>
                     <input
                       type="text"
                       value={ctaText}
                       onChange={(e) => setCtaText(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                       placeholder="Reservar cita"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-white mb-1">Enlace</label>
-                    <ActionLinkPicker 
-                      value={ctaLink} 
+                    <label className="block text-xs text-[var(--foreground)]/60 mb-1">Enlace</label>
+                    <ActionLinkPicker
+                      value={ctaLink}
                       onChange={setCtaLink}
                       label=""
                     />
@@ -481,7 +472,7 @@ function VipBenefitsWizardInner() {
                       type="text"
                       value={ctaLink}
                       onChange={(e) => setCtaLink(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm mt-2"
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-sm mt-2"
                       placeholder="O escribe una URL..."
                     />
                   </div>
@@ -493,7 +484,7 @@ function VipBenefitsWizardInner() {
             <div className="mb-6">
               <div className="text-xs uppercase tracking-widest text-[#39a1a9] mb-3">VISTA PREVIA</div>
               <div className="flex justify-center overflow-auto" style={{ minHeight: "400px" }}>
-                <div 
+                <div
                   style={{
                     width: "210mm",
                     minHeight: "297mm",
@@ -508,17 +499,17 @@ function VipBenefitsWizardInner() {
                       {(businessName || "MI NEGOCIO").toUpperCase()}
                     </div>
                   </div>
-                  
+
                   {/* Title */}
                   <div style={{ fontSize: `${docTitleSize}px`, fontWeight: 700, color: docText, marginBottom: "20px", textTransform: "uppercase" }}>
                     {title || "TÍTULO DEL BENEFICIO"}
                   </div>
-                  
+
                   {/* Value */}
-                  <div style={{ 
-                    border: `2px solid ${docBorder}`, 
-                    borderRadius: `${docRadius}px`, 
-                    padding: "20px", 
+                  <div style={{
+                    border: `2px solid ${docBorder}`,
+                    borderRadius: `${docRadius}px`,
+                    padding: "20px",
                     textAlign: "center",
                     fontSize: "24px",
                     fontWeight: 700,
@@ -527,18 +518,18 @@ function VipBenefitsWizardInner() {
                   }}>
                     {value || "VALOR"}
                   </div>
-                  
+
                   {/* Product/Service */}
                   {productService && (
                     <div style={{ fontSize: `${docBodySize}px`, color: docAccent, marginBottom: "20px" }}>
                       {productService}
                     </div>
                   )}
-                  
+
                   {/* CTA Button */}
                   {ctaEnabled && ctaText && (
                     <div style={{ marginTop: "30px", textAlign: "center" }}>
-                      <a 
+                      <a
                         href={ctaLink || "#"}
                         style={{
                           display: "inline-block",
@@ -554,14 +545,14 @@ function VipBenefitsWizardInner() {
                       </a>
                     </div>
                   )}
-                  
+
                   {/* Instructions */}
                   {instructions && (
                     <div style={{ marginTop: "30px", fontSize: `${docBodySize}px`, color: docAccent, borderTop: `1px solid ${docBorder}`, paddingTop: "15px" }}>
                       <strong>Cómo canjear:</strong> {instructions}
                     </div>
                   )}
-                  
+
                   {/* Final Note */}
                   {finalNote && (
                     <div style={{ marginTop: "20px", fontSize: `${docBodySize}px`, color: docAccent, textAlign: "center" }}>
@@ -573,7 +564,7 @@ function VipBenefitsWizardInner() {
             </div>
 
             <div className="flex justify-between mt-8">
-              <button onClick={() => setStep("contenido")} className="px-6 py-3 rounded-full border border-white/20 text-white">
+              <button onClick={() => setStep("contenido")} className="px-6 py-3 rounded-full border border-[var(--border)] text-[var(--foreground)]">
                 Atrás
               </button>
               <button onClick={generatePdf} disabled={pdfGenerating} className="px-8 py-3 rounded-full bg-[#ffb400] text-black font-bold">
@@ -586,36 +577,36 @@ function VipBenefitsWizardInner() {
   };
 
   return (
-    <div className="min-h-screen wizard-dark p-4 md:p-6 lg:p-8 overflow-x-auto">
+    <div className="min-h-screen p-4 md:p-6 lg:p-8 overflow-x-auto">
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-[#ffb400] text-lg font-extrabold tracking-widest uppercase">Asistente Beneficios VIP</h1>
-            <p className="text-white text-sm">Crea ofertas exclusivas para tus clientes</p>
+            <p className="text-[var(--foreground)]/60 text-sm">Crea ofertas exclusivas para tus clientes</p>
           </div>
-          <a href="/vip-benefits" className="text-white hover:text-white text-sm">Volver al panel</a>
+          <a href="/vip-benefits" className="text-[var(--foreground)]/50 hover:text-[var(--foreground)] text-sm transition-colors">Volver al panel</a>
         </div>
 
         {/* Progress steps */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
-              <div 
+              <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  step === s 
-                    ? "bg-[#ffb400] text-black" 
-                    : steps.indexOf(step) > i 
+                  step === s
+                    ? "bg-[#ffb400] text-black"
+                    : steps.indexOf(step) > i
                       ? "bg-green-500 text-white"
-                      : "bg-white/10 text-white"
+                      : "bg-[var(--border)] text-[var(--foreground)]"
                 }`}
               >
                 {i + 1}
               </div>
               {i < 4 && (
-                <div 
+                <div
                   className={`w-12 h-0.5 mx-1 ${
-                    steps.indexOf(step) > i ? "bg-green-500" : "bg-white/10"
-                  }`} 
+                    steps.indexOf(step) > i ? "bg-green-500" : "bg-[var(--border)]"
+                  }`}
                 />
               )}
             </div>

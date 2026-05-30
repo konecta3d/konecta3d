@@ -222,7 +222,7 @@ import { Suspense } from "react";
 
 export default function LeadMagnetWizard() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-white">Cargando...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-[var(--foreground)]">Cargando...</div>}>
       <LeadMagnetWizardInner />
     </Suspense>
   );
@@ -587,58 +587,58 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl md:text-3xl font-bold mb-4" style={{ color: "#ffffff" }}>
+              <h2 className="text-xl md:text-3xl font-bold mb-4" style={{ color: "var(--foreground)" }}>
                 Convierte tu conocimiento en un activo para tu negocio
               </h2>
-              <p className="text-sm md:text-lg text-white max-w-2xl mx-auto">
+              <p className="text-sm md:text-lg text-[var(--foreground)] max-w-2xl mx-auto">
                 Este asistente te ayuda a transformar tu experiencia profesional y conocimiento de negocio en un recurso valioso que tus clientes pueden descargar.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
                 <div className="w-12 h-12 rounded-full bg-[#39a1a9] flex items-center justify-center mb-4 mx-auto">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-[var(--foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "#ffffff" }}>Construye confianza</h3>
-                <p className="text-sm text-white text-center">
+                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "var(--foreground)" }}>Construye confianza</h3>
+                <p className="text-sm text-[var(--foreground)] text-center">
                   Comparte tu expertise profesional para que tus clientes vean que eres un experto en tu sector.
                 </p>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
                 <div className="w-12 h-12 rounded-full bg-[#ffb400] flex items-center justify-center mb-4 mx-auto">
                   <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "#ffffff" }}>Educa a tus clientes</h3>
-                <p className="text-sm text-white text-center">
+                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "var(--foreground)" }}>Educa a tus clientes</h3>
+                <p className="text-sm text-[var(--foreground)] text-center">
                   Explica cómo funciona tu servicio, qué beneficios reales ofrecen tus productos y por qué elegirte a ti.
                 </p>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
                 <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mb-4 mx-auto">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-[var(--foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "#ffffff" }}>Genera accion</h3>
-                <p className="text-sm text-white text-center">
+                <h3 className="text-lg font-bold text-center mb-2" style={{ color: "var(--foreground)" }}>Genera accion</h3>
+                <p className="text-sm text-[var(--foreground)] text-center">
                   Convierte tu conocimiento en una herramienta que impulsa a tus clientes a tomar una decision.
                 </p>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-[#0a323c] to-[#001e3c] rounded-xl p-6 border border-[#39a1a9]/30">
-              <h3 className="text-lg font-bold mb-3" style={{ color: "#ffffff" }}>¿Qué vas a crear?</h3>
-              <p className="text-white text-sm mb-4">
+            <div className="bg-[var(--card)] rounded-xl p-6 border border-[var(--border)]">
+              <h3 className="text-lg font-bold mb-3" style={{ color: "var(--foreground)" }}>¿Qué vas a crear?</h3>
+              <p className="text-[var(--foreground)] text-sm mb-4">
                 Un documento PDF profesional que puedes regalar a tus clientes potenciales o actuales. Incluye tu conocimiento, consejos profesionales y una llamada a la accion directa.
               </p>
-              <ul className="text-sm text-white space-y-2">
+              <ul className="text-sm text-[var(--foreground)] space-y-2">
                 <li className="flex items-center gap-2"><span className="text-[#ffb400]">+</span> Guia con pasos clave de tu servicio</li>
                 <li className="flex items-center gap-2"><span className="text-[#ffb400]">+</span> Checklist de verificacion para tus clientes</li>
                 <li className="flex items-center gap-2"><span className="text-[#ffb400]">+</span> Recomendaciones profesionales exclusivas</li>
@@ -660,8 +660,8 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Qué quieres conseguir con este recurso?</h2>
-              <p className="text-white/70 text-sm">Elige el objetivo y el asistente adaptará el contenido a tu negocio</p>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>¿Qué quieres conseguir con este recurso?</h2>
+              <p className="text-[var(--foreground)]/70 text-sm">Elige el objetivo y el asistente adaptará el contenido a tu negocio</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -691,12 +691,12 @@ function LeadMagnetWizardInner() {
                             style={{ backgroundColor: info.color, color: "#000" }}>✓</span>
                         )}
                       </div>
-                      <h3 className="text-sm font-bold leading-tight mb-1" style={{ color: "#ffffff" }}>{info.title}</h3>
-                      <p className="text-[11px] text-white/60 leading-snug">{info.description}</p>
+                      <h3 className="text-sm font-bold leading-tight mb-1" style={{ color: "var(--foreground)" }}>{info.title}</h3>
+                      <p className="text-[11px] text-[var(--foreground)]/60 leading-snug">{info.description}</p>
                       {/* Sector tags */}
                       <div className="flex flex-wrap gap-1 mt-2">
                         {info.sectors.map((s) => (
-                          <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full border border-white/15 text-white/50">
+                          <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--foreground)]/50">
                             {s}
                           </span>
                         ))}
@@ -708,15 +708,15 @@ function LeadMagnetWizardInner() {
                       <button
                         type="button"
                         onClick={() => setOpenGuide(isOpen ? null : key)}
-                        className="text-[10px] text-white/40 hover:text-white/70 flex items-center gap-1"
+                        className="text-[10px] text-[var(--foreground)]/40 hover:text-[var(--foreground)]/70 flex items-center gap-1"
                       >
                         {isOpen ? "▲ ocultar" : "▼ más info"}
                       </button>
                       {isOpen && guide && (
-                        <div className="mt-2 text-[11px] text-white/70 space-y-1 border-t border-white/10 pt-2">
-                          <div><strong className="text-white/90">Qué consigues:</strong> {guide.whatIs}</div>
-                          <div><strong className="text-white/90">Formato:</strong> {guide.format}</div>
-                          <div><strong className="text-white/90">Ejemplo:</strong> <span className="italic">{guide.example}</span></div>
+                        <div className="mt-2 text-[11px] text-[var(--foreground)]/70 space-y-1 border-t border-[var(--border)] pt-2">
+                          <div><strong className="text-[var(--foreground)]/80">Qué consigues:</strong> {guide.whatIs}</div>
+                          <div><strong className="text-[var(--foreground)]/80">Formato:</strong> {guide.format}</div>
+                          <div><strong className="text-[var(--foreground)]/80">Ejemplo:</strong> <span className="italic">{guide.example}</span></div>
                         </div>
                       )}
                     </div>
@@ -727,17 +727,17 @@ function LeadMagnetWizardInner() {
 
             {/* Resumen del objetivo seleccionado */}
             {objective && (
-              <div className="rounded-xl p-4 border border-white/10 bg-white/5">
-                <div className="text-sm font-bold text-white">{OBJECTIVE_INFO[objective].title}</div>
-                <div className="text-xs text-white/60 mt-0.5">{OBJECTIVE_INFO[objective].description}</div>
-                <div className="text-xs text-white/40 mt-1 italic">Ej: {OBJECTIVE_INFO[objective].example}</div>
+              <div className="rounded-xl p-4 border border-[var(--border)] bg-[var(--card)]">
+                <div className="text-sm font-bold text-[var(--foreground)]">{OBJECTIVE_INFO[objective].title}</div>
+                <div className="text-xs text-[var(--foreground)]/60 mt-0.5">{OBJECTIVE_INFO[objective].description}</div>
+                <div className="text-xs text-[var(--foreground)]/40 mt-1 italic">Ej: {OBJECTIVE_INFO[objective].example}</div>
               </div>
             )}
 
             <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
               <button
                 onClick={() => setStep("bienvenida")}
-                className="px-6 py-3 rounded-full border border-white/20 text-white"
+                className="px-6 py-3 rounded-full border border-[var(--border)] text-[var(--foreground)]"
               >
                 Atrás
               </button>
@@ -755,8 +755,8 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>¿Qué tipo de recurso es?</h2>
-              <p className="text-white">Elige el formato</p>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>¿Qué tipo de recurso es?</h2>
+              <p className="text-[var(--foreground)]">Elige el formato</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
               {Object.entries(TYPE_INFO).map(([key, info]) => (
@@ -769,9 +769,9 @@ function LeadMagnetWizardInner() {
                     backgroundColor: type === key ? "rgba(255,180,0,0.1)" : "rgba(255,255,255,0.05)"
                   }}
                 >
-                  <h3 className="text-lg font-bold mb-2" style={{ color: "#ffffff" }}>{info.title}</h3>
-                  <p className="text-sm text-white mb-3">{info.description}</p>
-                  <div className="text-xs text-white italic">Ej: {info.example}</div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: "var(--foreground)" }}>{info.title}</h3>
+                  <p className="text-sm text-[var(--foreground)] mb-3">{info.description}</p>
+                  <div className="text-xs text-[var(--foreground)] italic">Ej: {info.example}</div>
                 </button>
               ))}
             </div>
@@ -783,8 +783,8 @@ function LeadMagnetWizardInner() {
             <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
               <button
                 onClick={() => setStep("objetivo")}
-                className="px-6 py-3 rounded-full border border-white/20"
-                style={{ color: "#ffffff" }}
+                className="px-6 py-3 rounded-full border border-[var(--border)]"
+                style={{ color: "var(--foreground)" }}
               >
                 Atras
               </button>
@@ -807,8 +807,8 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personaliza tu contenido</h2>
-              <p className="text-white">Edita los datos generados</p>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Personaliza tu contenido</h2>
+              <p className="text-[var(--foreground)]">Edita los datos generados</p>
             </div>
 
             <div className="space-y-4 mb-6">
@@ -818,8 +818,8 @@ function LeadMagnetWizardInner() {
                   value={customTitle}
                   onChange={(e) => { contentCustomized.current = true; setCustomTitle(e.target.value); }}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
-                  style={{ color: "#ffffff" }}
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
+                  style={{ color: "var(--foreground)" }}
                 />
               </div>
 
@@ -829,8 +829,8 @@ function LeadMagnetWizardInner() {
                   value={customIntro}
                   onChange={(e) => { contentCustomized.current = true; setCustomIntro(e.target.value); }}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white"
-                  style={{ color: "#ffffff" }}
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]"
+                  style={{ color: "var(--foreground)" }}
                 />
               </div>
 
@@ -848,11 +848,11 @@ function LeadMagnetWizardInner() {
                       }
                     }}
                     rows={5}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white text-sm resize-none"
+                    className="w-full px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm resize-none"
                     placeholder="Escribe aquí el contenido de tu guía en formato texto seguido..."
-                    style={{ color: "#ffffff" }}
+                    style={{ color: "var(--foreground)" }}
                   />
-                  <div className={`text-xs mt-2 ${customContent.length > MAX_CONTENT_CHARS * 0.9 ? "text-red-400" : "text-white"}`}>
+                  <div className={`text-xs mt-2 ${customContent.length > MAX_CONTENT_CHARS * 0.9 ? "text-red-400" : "text-[var(--foreground)]"}`}>
                     {customContent.length} / {MAX_CONTENT_CHARS} caracteres (maximo para 1 pagina)
                   </div>
                 </div>
@@ -867,8 +867,8 @@ function LeadMagnetWizardInner() {
                       type="text"
                       value={newPoint}
                       onChange={(e) => setNewPoint(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
-                      style={{ color: "#f9fafb" }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
+                      style={{ color: "var(--foreground)" }}
                       placeholder="Escribe un nuevo punto y pulsa Añadir"
                     />
                     <button
@@ -886,12 +886,12 @@ function LeadMagnetWizardInner() {
                     </button>
                   </div>
 
-                  <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto bg-[var(--card)] rounded-lg p-3 border border-[var(--border)]">
                     {parsedPoints.length === 0 ? (
-                      <p className="text-white text-sm">No hay puntos disponibles</p>
+                      <p className="text-[var(--foreground)] text-sm">No hay puntos disponibles</p>
                     ) : (
                       parsedPoints.map((point, idx) => (
-                        <div key={idx} className="flex items-start gap-3 p-2 rounded hover:bg-white/5">
+                        <div key={idx} className="flex items-start gap-3 p-2 rounded hover:bg-[var(--card)]">
                           <div className="w-6 h-6 mt-1 flex items-center justify-center rounded-full bg-[#39a1a9]/20 border border-[#39a1a9]/60 text-[10px] font-bold text-[#39a1a9]">
                             {idx + 1}
                           </div>
@@ -903,9 +903,9 @@ function LeadMagnetWizardInner() {
                               setCustomContent(newPoints.join("\n"));
                             }}
                             rows={1}
-                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-white/20 text-white text-sm resize-none"
+                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-none"
                             placeholder={`Punto ${idx + 1}...`}
-                            style={{ color: "#ffffff" }}
+                            style={{ color: "var(--foreground)" }}
                           />
                           <button
                             type="button"
@@ -932,13 +932,13 @@ function LeadMagnetWizardInner() {
                       + Añadir punto
                     </button>
                   </div>
-                  <div className={`text-xs mt-2 ${customContent.length > MAX_CONTENT_CHARS * 0.9 ? "text-red-400" : "text-white"}`}>
+                  <div className={`text-xs mt-2 ${customContent.length > MAX_CONTENT_CHARS * 0.9 ? "text-red-400" : "text-[var(--foreground)]"}`}>
                     {customContent.length} / {MAX_CONTENT_CHARS} caracteres (maximo para 1 pagina)
                   </div>
                 </div>
               )}
 
-              <div className="border-t border-white/10 pt-4">
+              <div className="border-t border-[var(--border)] pt-4">
                 <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-2">Cierre / Llamada a la accion</label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -953,8 +953,8 @@ function LeadMagnetWizardInner() {
                       value={sn1}
                       onChange={(e) => setSn1(e.target.value)}
                       placeholder="Texto de cierre linea 1..."
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
-                      style={{ color: "#ffffff" }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
+                      style={{ color: "var(--foreground)" }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -969,8 +969,8 @@ function LeadMagnetWizardInner() {
                       value={sn2}
                       onChange={(e) => setSn2(e.target.value)}
                       placeholder="Texto de cierre linea 2..."
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
-                      style={{ color: "#ffffff" }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
+                      style={{ color: "var(--foreground)" }}
                     />
                   </div>
                 </div>
@@ -985,8 +985,8 @@ function LeadMagnetWizardInner() {
             <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
               <button
                 onClick={() => setStep("tipo")}
-                className="w-full sm:w-auto px-6 py-3 rounded-full border border-white/20"
-                style={{ color: "#ffffff" }}
+                className="w-full sm:w-auto px-6 py-3 rounded-full border border-[var(--border)]"
+                style={{ color: "var(--foreground)" }}
               >
                 Atras
               </button>
@@ -1005,15 +1005,15 @@ function LeadMagnetWizardInner() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>Personalizacion de botones y colores</h2>
-              <p className="text-white">Configura los botones CTA y los colores del documento</p>
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Personalizacion de botones y colores</h2>
+              <p className="text-[var(--foreground)]">Configura los botones CTA y los colores del documento</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-6">
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="bg-[var(--card)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-bold">Boton Principal (CTA 1)</h3>
-                  <label className="flex items-center gap-2 text-sm text-white">
+                  <h3 className="text-[var(--foreground)] font-bold">Boton Principal (CTA 1)</h3>
+                  <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
                     <input type="checkbox" checked={cta1Enabled} onChange={(e) => setCta1Enabled(e.target.checked)} className="w-4 h-4 accent-[#ffb400]" />
                     Activar
                   </label>
@@ -1021,29 +1021,29 @@ function LeadMagnetWizardInner() {
                 {cta1Enabled && (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-white mb-1">Texto del boton</label>
+                      <label className="block text-xs text-[var(--foreground)] mb-1">Texto del boton</label>
                       <select
                         value={cta1Text}
                         onChange={(e) => setCta1Text(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                         style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white" }}
                       >
                         <option value="" style={{ color: "#999" }}>Seleccionar opcion...</option>
                         {CTA_PRESETS.map(opt => (
-                          <option key={opt} value={opt} style={{ color: "white", backgroundColor: "#1e293b" }}>{opt}</option>
+                          <option key={opt} value={opt} >{opt}</option>
                         ))}
                       </select>
                       <input
                         type="text"
                         value={cta1Text}
                         onChange={(e) => setCta1Text(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm mt-2"
-                        style={{ color: "#f9fafb" }}
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm mt-2"
+                        style={{ color: "var(--foreground)" }}
                         placeholder="O escribe tu propio texto..."
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white mb-1">Enlace (URL)</label>
+                      <label className="block text-xs text-[var(--foreground)] mb-1">Enlace (URL)</label>
                       <div className="space-y-2">
                         <ActionLinkPicker value={cta1Link} onChange={setCta1Link} label="" />
                         <input
@@ -1051,7 +1051,7 @@ function LeadMagnetWizardInner() {
                           value={cta1Link}
                           onChange={(e) => setCta1Link(e.target.value)}
                           placeholder="O escribe una URL manualmente..."
-                          className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                         />
                       </div>
                     </div>
@@ -1059,10 +1059,10 @@ function LeadMagnetWizardInner() {
                 )}
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="bg-[var(--card)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-bold">Boton Secundario (CTA 2)</h3>
-                  <label className="flex items-center gap-2 text-sm text-white">
+                  <h3 className="text-[var(--foreground)] font-bold">Boton Secundario (CTA 2)</h3>
+                  <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
                     <input type="checkbox" checked={cta2Enabled} onChange={(e) => setCta2Enabled(e.target.checked)} className="w-4 h-4 accent-[#ffb400]" />
                     Activar
                   </label>
@@ -1070,29 +1070,29 @@ function LeadMagnetWizardInner() {
                 {cta2Enabled && (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-white mb-1">Texto del boton</label>
+                      <label className="block text-xs text-[var(--foreground)] mb-1">Texto del boton</label>
                       <select
                         value={cta2Text}
                         onChange={(e) => setCta2Text(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                         style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white" }}
                       >
                         <option value="" style={{ color: "#999" }}>Seleccionar opcion...</option>
                         {CTA_PRESETS.map(opt => (
-                          <option key={opt} value={opt} style={{ color: "white", backgroundColor: "#1e293b" }}>{opt}</option>
+                          <option key={opt} value={opt} >{opt}</option>
                         ))}
                       </select>
                       <input
                         type="text"
                         value={cta2Text}
                         onChange={(e) => setCta2Text(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm mt-2"
-                        style={{ color: "#f9fafb" }}
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm mt-2"
+                        style={{ color: "var(--foreground)" }}
                         placeholder="O escribe tu propio texto..."
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white mb-1">Enlace (URL)</label>
+                      <label className="block text-xs text-[var(--foreground)] mb-1">Enlace (URL)</label>
                       <div className="space-y-2">
                         <ActionLinkPicker value={cta2Link} onChange={setCta2Link} label="" />
                         <input
@@ -1100,7 +1100,7 @@ function LeadMagnetWizardInner() {
                           value={cta2Link}
                           onChange={(e) => setCta2Link(e.target.value)}
                           placeholder="O escribe una URL manualmente..."
-                          className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm"
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                         />
                       </div>
                     </div>
@@ -1109,48 +1109,48 @@ function LeadMagnetWizardInner() {
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-xl p-4 md:p-6 mb-6">
-              <h3 className="text-white font-bold mb-4">Colores del documento</h3>
+            <div className="bg-[var(--card)] rounded-xl p-4 md:p-6 mb-6">
+              <h3 className="text-[var(--foreground)] font-bold mb-4">Colores del documento</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <label className="block text-xs text-white mb-2">Color marca (texto nombre negocio, borde)</label>
+                <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Color marca (texto nombre negocio, borde)</label>
                   <div className="flex items-center gap-3">
                     <input type="color" value={colorBrand} onChange={(e) => setColorBrand(e.target.value)} className="w-12 h-12 rounded cursor-pointer" />
-                    <input type="text" value={colorBrand} onChange={(e) => setColorBrand(e.target.value)} className="flex-1 px-2 py-1 rounded bg-white/10 border border-white/10 text-white text-sm uppercase" />
+                    <input type="text" value={colorBrand} onChange={(e) => setColorBrand(e.target.value)} className="flex-1 px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm uppercase" />
                   </div>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <label className="block text-xs text-white mb-2">Color etiqueta (fondo badge)</label>
+                <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Color etiqueta (fondo badge)</label>
                   <div className="flex items-center gap-3">
                     <input type="color" value={colorTag} onChange={(e) => setColorTag(e.target.value)} className="w-12 h-12 rounded cursor-pointer" />
-                    <input type="text" value={colorTag} onChange={(e) => setColorTag(e.target.value)} className="flex-1 px-2 py-1 rounded bg-white/10 border border-white/10 text-white text-sm uppercase" />
+                    <input type="text" value={colorTag} onChange={(e) => setColorTag(e.target.value)} className="flex-1 px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm uppercase" />
                   </div>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <label className="block text-xs text-white mb-2">Color titulo</label>
+                <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Color titulo</label>
                   <div className="flex items-center gap-3">
                     <input type="color" value={colorTitle} onChange={(e) => setColorTitle(e.target.value)} className="w-12 h-12 rounded cursor-pointer" />
-                    <input type="text" value={colorTitle} onChange={(e) => setColorTitle(e.target.value)} className="flex-1 px-2 py-1 rounded bg-white/10 border border-white/10 text-white text-sm uppercase" />
+                    <input type="text" value={colorTitle} onChange={(e) => setColorTitle(e.target.value)} className="flex-1 px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm uppercase" />
                   </div>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <label className="block text-xs text-white mb-2">Color boton (CTA principal)</label>
+                <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Color boton (CTA principal)</label>
                   <div className="flex items-center gap-3">
                     <input type="color" value={colorButton} onChange={(e) => setColorButton(e.target.value)} className="w-12 h-12 rounded cursor-pointer" />
-                    <input type="text" value={colorButton} onChange={(e) => setColorButton(e.target.value)} className="flex-1 px-2 py-1 rounded bg-white/10 border border-white/10 text-white text-sm uppercase" />
+                    <input type="text" value={colorButton} onChange={(e) => setColorButton(e.target.value)} className="flex-1 px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm uppercase" />
                   </div>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10 md:col-span-2">
-                  <label className="block text-xs text-white mb-2">Tamano del titulo</label>
+                <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)] md:col-span-2">
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Tamano del titulo</label>
                   <div className="flex items-center gap-4 mb-3">
                     <input type="range" min="1" max="3" step="0.1" value={titleSize} onChange={(e) => setTitleSize(Number(e.target.value))} className="flex-1" />
-                    <div className="text-sm text-white font-bold w-16 text-center">{titleSize}rem</div>
+                    <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{titleSize}rem</div>
                   </div>
-                  <label className="block text-xs text-white mb-2">Tamano del logo</label>
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Tamano del logo</label>
                   <div className="flex items-center gap-4">
                     <input
                       type="range"
@@ -1161,7 +1161,7 @@ function LeadMagnetWizardInner() {
                       onChange={(e) => setLogoSize(Number(e.target.value))}
                       className="flex-1"
                     />
-                    <div className="text-sm text-white font-bold w-16 text-center">{logoSize}px</div>
+                    <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{logoSize}px</div>
                   </div>
                 </div>
               </div>
@@ -1175,8 +1175,8 @@ function LeadMagnetWizardInner() {
             <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
               <button
                 onClick={() => setStep("contenido")}
-                className="w-full sm:w-auto px-6 py-3 rounded-full border border-white/20"
-                style={{ color: "#ffffff" }}
+                className="w-full sm:w-auto px-6 py-3 rounded-full border border-[var(--border)]"
+                style={{ color: "var(--foreground)" }}
               >
                 Atras
               </button>
@@ -1219,7 +1219,7 @@ function LeadMagnetWizardInner() {
   };
 
   return (
-    <div className="min-h-screen wizard-dark">
+    <div className="min-h-screen">
       {/* Onboarding drawer — guía paso a paso */}
       {businessId && (
         <OnboardingDrawer
@@ -1233,7 +1233,7 @@ function LeadMagnetWizardInner() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
           <div>
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
-            <p className="text-white text-xs md:text-sm">Convierte tu conocimiento en un recurso valioso para tus clientes</p>
+            <p className="text-[var(--foreground)] text-xs md:text-sm">Convierte tu conocimiento en un recurso valioso para tus clientes</p>
           </div>
         </div>
 
@@ -1247,15 +1247,15 @@ function LeadMagnetWizardInner() {
                   step === s
                     ? "bg-[#ffb400] text-black"
                     : steps.indexOf(step) > i
-                    ? "bg-green-500 text-white"
-                    : "bg-white/10 text-white hover:bg-white/20"
+                    ? "bg-green-500 text-[var(--foreground)]"
+                    : "bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--border)]/30"
                 }`}
               >
                 {i + 1}
               </button>
               {i < steps.length - 1 && (
                 <div
-                  className={`w-4 md:w-8 h-0.5 mx-0.5 flex-shrink-0 ${steps.indexOf(step) > i ? "bg-green-500" : "bg-white/10"}`}
+                  className={`w-4 md:w-8 h-0.5 mx-0.5 flex-shrink-0 ${steps.indexOf(step) > i ? "bg-green-500" : "bg-[var(--card)]"}`}
                 />
               )}
             </div>
