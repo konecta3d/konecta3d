@@ -194,8 +194,8 @@ export default function BusinessDetail() {
       <div className="border-b border-[var(--border)] p-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <a className="text-[var(--brand-1)]" href="/admin/configuracion?tab=negocios">← Negocios</a>
-          <span className="text-white">/</span>
-          <span className="text-white">{business.name}</span>
+          <span className="text-[var(--foreground)]/30">/</span>
+          <span className="text-[var(--foreground)]">{business.name}</span>
         </div>
       </div>
 
@@ -205,7 +205,7 @@ export default function BusinessDetail() {
           <div className="mb-6">
             <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mb-2">Negocio</div>
             <div className="font-semibold text-lg">{business.name}</div>
-            <div className="text-xs text-white">{business.sector || "Sin sector"}</div>
+            <div className="text-xs text-[var(--foreground)]/60">{business.sector || "Sin sector"}</div>
           </div>
 
           <nav className="space-y-1 text-sm">
@@ -216,19 +216,19 @@ export default function BusinessDetail() {
                 {editMode ? "Cerrar" : "Editar"}
               </button>
             </div>
-            <div className="px-2 py-1 text-xs text-white space-y-1">
+            <div className="px-2 py-1 text-xs text-[var(--foreground)]/70 space-y-1">
               <div>Slug: {business.slug || "—"}</div>
               <div>Email: {business.contact_email || "—"}</div>
               <div>Teléfono: {business.phone || "—"}</div>
               <div>Fuente: {business.font_family || "—"}</div>
               <div className="flex items-center gap-2">
-                <span className="text-white/50">Contraseña: usa Reset para establecerla</span>
+                <span className="text-[var(--foreground)]/50">Contraseña: usa Reset para establecerla</span>
               </div>
             </div>
 
             {/* MÓDULOS */}
             <div className="text-xs uppercase tracking-wide text-[var(--brand-1)] mt-4 mb-2">Módulos</div>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_lead_magnet}
@@ -237,7 +237,7 @@ export default function BusinessDetail() {
               />
               <span className={business.module_lead_magnet ? "" : "opacity-50"}>Lead Magnet</span>
             </label>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_vip_benefits}
@@ -246,7 +246,7 @@ export default function BusinessDetail() {
               />
               <span className={business.module_vip_benefits ? "" : "opacity-50"}>VIP Beneficios</span>
             </label>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_whatsapp}
@@ -255,7 +255,7 @@ export default function BusinessDetail() {
               />
               <span className={business.module_whatsapp ? "" : "opacity-50"}>WhatsApp</span>
             </label>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_gpt ?? false}
@@ -270,7 +270,7 @@ export default function BusinessDetail() {
               IA Premium
               <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--brand-4)]/20 text-[var(--brand-4)] font-bold normal-case">Upsell</span>
             </div>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_ai_landing ?? false}
@@ -281,7 +281,7 @@ export default function BusinessDetail() {
                 Asistente IA — Landing
               </span>
             </label>
-            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5">
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-[var(--border)]/20">
               <input
                 type="checkbox"
                 checked={business.module_ai_recursos ?? false}
@@ -301,14 +301,14 @@ export default function BusinessDetail() {
               <button
                 type="button"
                 onClick={() => openAsProfile("fidelizacion")}
-                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-white/5 text-left"
+                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-[var(--border)]/20 text-left"
               >
                 Fidelización (activo)
               </button>
               <button
                 type="button"
                 onClick={() => openAsProfile("captacion")}
-                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-white/5 text-left"
+                className="w-full px-3 py-2 rounded border border-[var(--border)] hover:bg-[var(--border)]/20 text-left"
               >
                 Captación (en desarrollo)
               </button>
@@ -319,7 +319,7 @@ export default function BusinessDetail() {
             <a
   href={business.slug ? `/l/${business.slug}/NFC` : "#"}
   target="_blank"
-  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-green-500"
+  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--border)]/20 text-green-500"
 >
   Ver landing
 </a>
@@ -338,7 +338,7 @@ export default function BusinessDetail() {
             <h1 className="text-xl font-semibold">{business.name}</h1>
             <button
               onClick={toggleEditMode}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-white/5"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:bg-[var(--border)]/20"
             >
               {editMode ? "Cancelar" : "Editar"}
             </button>
@@ -350,7 +350,7 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-4">Editar Información</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-white mb-1">Nombre</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Nombre</label>
                   <input
                     type="text"
                     value={editData.name}
@@ -359,7 +359,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-1">Sector</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Sector</label>
                   <input
                     type="text"
                     value={editData.sector}
@@ -368,7 +368,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-1">Slug (URL)</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Slug (URL)</label>
                   <input
                     type="text"
                     value={editData.slug}
@@ -378,7 +378,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-1">Email</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Email</label>
                   <input
                     type="email"
                     value={editData.contact_email}
@@ -387,7 +387,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-1">Teléfono</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Teléfono</label>
                   <input
                     type="tel"
                     value={editData.phone}
@@ -396,7 +396,7 @@ export default function BusinessDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white mb-1">Fuente (Font)</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Fuente (Font)</label>
                   <input
                     type="text"
                     value={editData.font_family}
@@ -460,7 +460,7 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-3">Configuración Landing</h2>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Landing Multiple</span>
-                <span className={`text-xs px-2 py-1 rounded ${business.multi_landing_enabled ? "bg-green-500/20 text-green-500" : "bg-gray-500/20 text-white"}`}>
+                <span className={`text-xs px-2 py-1 rounded ${business.multi_landing_enabled ? "bg-green-500/20 text-green-500" : "bg-[var(--border)] text-[var(--foreground)]"}`}>
                   {business.multi_landing_enabled ? "Activado" : "Desactivado"}
                 </span>
               </div>
@@ -471,7 +471,7 @@ export default function BusinessDetail() {
               <h2 className="text-sm font-semibold mb-3 text-red-400">Control de Acceso (Peligro)</h2>
               <div className="flex flex-col md:flex-row gap-3 items-end">
                 <div className="flex-1 w-full">
-                  <label className="block text-xs text-white mb-1">Nueva Contraseña para {business.contact_email || "usuario"}</label>
+                  <label className="block text-xs text-[var(--foreground)]/60 mb-1">Nueva Contraseña para {business.contact_email || "usuario"}</label>
                   <div className="flex items-center gap-2">
                     <input
                       type={showNewPassword ? "text" : "password"}
@@ -544,13 +544,13 @@ export default function BusinessDetail() {
 <div className="mt-6">
   <h2 className="text-sm font-semibold mb-3">Accesos Rápidos</h2>
   <div className="grid md:grid-cols-3 gap-3">
-    <a href={`/dashboard?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+    <a href={`/dashboard?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/20 text-center">
       <div className="text-sm font-medium">Dashboard</div>
     </a>
-    <a href={`/landing/new?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+    <a href={`/landing/new?businessId=${id}`} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/20 text-center">
       <div className="text-sm font-medium">Generar Landing</div>
     </a>
-    <a href={business.slug ? `/l/${business.slug}/NFC` : "#"} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-white/5 text-center">
+    <a href={business.slug ? `/l/${business.slug}/NFC` : "#"} target="_blank" className="p-4 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/20 text-center">
       <div className="text-sm font-medium">Ver Landing</div>
     </a>
   </div>

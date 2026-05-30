@@ -95,7 +95,7 @@ export default function AdminActividad() {
     if (action.includes("creado") || action.includes("login") && action.includes("exitoso")) return "text-green-400";
     if (action.includes("eliminado")) return "text-red-400";
     if (action.includes("actualizado") || action.includes("editado")) return "text-blue-400";
-    return "text-white";
+    return "text-[var(--foreground)]/80";
   };
 
   if (loading) {
@@ -110,7 +110,7 @@ export default function AdminActividad() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Registro de Actividad</h1>
-        <button onClick={loadData} className="px-3 py-1 rounded-lg border border-[var(--border)] text-sm hover:bg-white/5">
+        <button onClick={loadData} className="px-3 py-1 rounded-lg border border-[var(--border)] text-sm hover:bg-[var(--border)]/20">
           Actualizar
         </button>
       </div>
@@ -151,7 +151,7 @@ export default function AdminActividad() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 text-sm text-white">
+      <div className="flex gap-4 text-sm text-[var(--foreground)]/70">
         <span>{filteredActivity.length} registros</span>
         <span>|</span>
         <span>Total: {activity.length}</span>
@@ -161,7 +161,7 @@ export default function AdminActividad() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[var(--background)] text-xs uppercase text-white">
+            <thead className="bg-[var(--background)] text-xs uppercase text-[var(--foreground)]/60">
               <tr>
                 <th className="px-4 py-3 text-left">Fecha</th>
                 <th className="px-4 py-3 text-left">Negocio</th>
@@ -171,17 +171,17 @@ export default function AdminActividad() {
             </thead>
             <tbody>
               {filteredActivity.map((log) => (
-                <tr key={log.id} className="border-t border-[var(--border)] hover:bg-white/5">
-                  <td className="px-4 py-3 whitespace-nowrap text-white">
+                <tr key={log.id} className="border-t border-[var(--border)] hover:bg-[var(--border)]/20">
+                  <td className="px-4 py-3 whitespace-nowrap text-[var(--foreground)]">
                     {new Date(log.created_at).toLocaleString("es-ES")}
                   </td>
                   <td className="px-4 py-3">
-                    {log.business_name || <span className="text-white">Sistema</span>}
+                    {log.business_name || <span className="text-[var(--foreground)]/50">Sistema</span>}
                   </td>
                   <td className={`px-4 py-3 font-medium ${getActionColor(log.action)}`}>
                     {formatAction(log.action)}
                   </td>
-                  <td className="px-4 py-3 text-white max-w-xs truncate">
+                  <td className="px-4 py-3 text-[var(--foreground)]/70 max-w-xs truncate">
                     {log.details ? (
                       typeof log.details === "string" ? log.details : JSON.stringify(log.details)
                     ) : "—"}
@@ -192,7 +192,7 @@ export default function AdminActividad() {
           </table>
         </div>
         {filteredActivity.length === 0 && (
-          <div className="text-center py-12 text-white">
+          <div className="text-center py-12 text-[var(--foreground)]/50">
             No hay actividad que mostrar
           </div>
         )}

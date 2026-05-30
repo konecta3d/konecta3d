@@ -79,7 +79,7 @@ export default function NewBusinessPage() {
               Generar
             </button>
           </div>
-          <p className="text-xs text-white/50 mt-1">La contraseña se muestra solo al crearla. Cópiala antes de continuar.</p>
+          <p className="text-xs text-[var(--foreground)]/50 mt-1">La contraseña se muestra solo al crearla. Cópiala antes de continuar.</p>
         </div>
         <div className="md:col-span-2">
           <button disabled={saving} className="rounded-lg bg-[var(--brand-4)] px-4 py-2 font-semibold text-black disabled:opacity-50">

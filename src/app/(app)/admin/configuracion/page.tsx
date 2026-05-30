@@ -372,7 +372,7 @@ const generateOnboardingPdf = async () => {
             <button
               type="button"
               onClick={toggleAdminTheme}
-              className="px-3 py-1 rounded-lg border border-[var(--border)] text-xs hover:bg-white/5"
+              className="px-3 py-1 rounded-lg border border-[var(--border)] text-xs hover:bg-[var(--border)]/20"
             >
               {adminDarkMode ? "Modo claro" : "Modo oscuro"}
             </button>
@@ -434,7 +434,7 @@ const generateOnboardingPdf = async () => {
     setEditingBusiness(b);
     setShowEditModal(true);
   }}
-  className="text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-white/5"
+  className="text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/20"
   title="Editar"
 >
   Editar
@@ -510,7 +510,7 @@ const generateOnboardingPdf = async () => {
               <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-md">
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
                   <h3 className="text-lg font-semibold">Nuevo Negocio</h3>
-                  <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white">✕</button>
+                  <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-[var(--foreground)]">✕</button>
                 </div>
                 <div className="p-4 space-y-4">
                   <div>
@@ -572,7 +572,7 @@ const generateOnboardingPdf = async () => {
                           for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
                           setNewBusiness({ ...newBusiness, password: pwd });
                         }}
-                        className="px-3 py-2 rounded-lg border border-[var(--border)] text-xs whitespace-nowrap hover:bg-white/5"
+                        className="px-3 py-2 rounded-lg border border-[var(--border)] text-xs whitespace-nowrap hover:bg-[var(--border)]/20"
                       >
                         Generar
                       </button>
@@ -636,7 +636,7 @@ const generateOnboardingPdf = async () => {
               <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-md">
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
                   <h3 className="text-lg font-semibold">Editar Negocio</h3>
-                  <button onClick={() => setShowEditModal(false)} className="text-gray-500 hover:text-white">✕</button>
+                  <button onClick={() => setShowEditModal(false)} className="text-gray-500 hover:text-[var(--foreground)]">✕</button>
                 </div>
                 <div className="p-4 space-y-4">
                   <div>
@@ -705,12 +705,12 @@ const generateOnboardingPdf = async () => {
               <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-md">
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
                   <h3 className="text-lg font-semibold">Cambiar Contraseña</h3>
-                  <button onClick={() => setShowResetModal(false)} className="text-gray-500 hover:text-white">✕</button>
+                  <button onClick={() => setShowResetModal(false)} className="text-gray-500 hover:text-[var(--foreground)]">✕</button>
                 </div>
                 <div className="p-4 space-y-4">
                   <div className="text-sm text-gray-400">
-                    <p>Negocio: <span className="text-white">{resetPasswordBusiness.name}</span></p>
-                    <p>Email: <span className="text-white">{resetPasswordBusiness.contact_email}</span></p>
+                    <p>Negocio: <span className="text-[var(--foreground)] font-medium">{resetPasswordBusiness.name}</span></p>
+                    <p>Email: <span className="text-[var(--foreground)] font-medium">{resetPasswordBusiness.contact_email}</span></p>
                   </div>
 
 <div>
@@ -804,13 +804,13 @@ const generateOnboardingPdf = async () => {
                 </thead>
                 <tbody>
                   {activity.map((log) => (
-                    <tr key={log.id} className="border-b border-[var(--border)] hover:bg-white/5 last:border-0">
+                    <tr key={log.id} className="border-b border-[var(--border)] hover:bg-[var(--border)]/20 last:border-0">
                       <td className="px-4 py-3 whitespace-nowrap text-gray-400">
                         {new Date(log.created_at).toLocaleString("es-ES")}
                       </td>
                       <td className="px-4 py-3">{log.business_name || "Sistema"}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-1 bg-white/10 rounded">{log.action}</span>
+                        <span className="px-2 py-1 bg-[var(--background)] rounded border border-[var(--border)]">{log.action}</span>
                       </td>
                       <td className="px-4 py-3 max-w-xs truncate text-gray-400">
                         {log.details ? JSON.stringify(log.details) : "—"}
@@ -828,7 +828,7 @@ const generateOnboardingPdf = async () => {
       {(["dashboard", "modulos", "configuracion", "personalizacion"].includes(tab)) && (
         <div className="rounded-xl border border-dashed border-[var(--border)] p-12 text-center text-gray-500 flex flex-col items-center">
           <div className="text-4xl mb-4">🚧</div>
-          <h3 className="text-lg font-medium text-white mb-2">Módulo en Construcción</h3>
+          <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Módulo en Construcción</h3>
           <p className="max-w-md">Esta sección ({tab}) se encuentra actualmente en desarrollo y sus opciones estarán disponibles muy pronto.</p>
         </div>
       )}

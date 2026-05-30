@@ -489,7 +489,7 @@ export default function AdminModulos() {
                   ? `${colorOn} text-white`
                   : state === 'mix'
                   ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-                  : 'bg-transparent text-[var(--foreground)]/40 hover:bg-white/5'
+                  : 'bg-transparent text-[var(--foreground)]/40 hover:bg-[var(--border)]/20'
               }`}
             >
               {state === 'on' ? '● ' : state === 'mix' ? '◑ ' : '○ '}{labelOn}
@@ -502,7 +502,7 @@ export default function AdminModulos() {
               className={`px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
                 state === 'off'
                   ? 'bg-gray-500/40 text-[var(--foreground)]/70'
-                  : 'bg-transparent text-[var(--foreground)]/30 hover:bg-white/5'
+                  : 'bg-transparent text-[var(--foreground)]/30 hover:bg-[var(--border)]/20'
               }`}
             >
               {state === 'off' ? '● ' : '○ '}{labelOff}
@@ -605,7 +605,7 @@ export default function AdminModulos() {
 
               {/* ── Fila principal: layout adaptativo ── */}
               <div
-                className="cursor-pointer hover:bg-white/[0.02] px-4 py-3"
+                className="cursor-pointer hover:bg-[var(--border)]/10 px-4 py-3"
                 onClick={() => toggleExpanded(b.id)}
               >
                 {/* Mobile: flex horizontal compacto */}
