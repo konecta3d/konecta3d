@@ -786,8 +786,9 @@ export default function OnboardingEditorPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  // ── Modal hero ──
+  // ── Modales ──
   const [showHeroModal, setShowHeroModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // ── Preview data (negocio seleccionado, solo para la vista previa) ──
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -1099,6 +1100,14 @@ export default function OnboardingEditorPage() {
               {savingPassword ? "Guardando…" : "💾 Guardar contraseña"}
             </button>
           )}
+          {/* Botón preview — solo visible en pantallas < xl */}
+          <button
+            type="button"
+            onClick={() => setShowPreviewModal(true)}
+            className="xl:hidden px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 transition-colors"
+          >
+            👁 Ver preview
+          </button>
           <button
             onClick={downloadHtml}
             className="px-3 py-1.5 rounded-lg border border-[var(--brand-1)]/40 text-xs font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
@@ -1371,6 +1380,38 @@ export default function OnboardingEditorPage() {
         </div>
 
       </div>
+
+      {/* ── Modal: Preview A4 (móvil) ── */}
+      {showPreviewModal && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col"
+          style={{ background: "rgba(0,0,0,0.85)" }}
+        >
+          {/* Barra superior */}
+          <div
+            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+          >
+            <div>
+              <span className="text-sm font-semibold">Vista previa A4</span>
+              <span className="ml-2 text-xs text-[var(--foreground)]/40 italic">tiempo real</span>
+            </div>
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 transition-colors text-lg"
+            >
+              ✕
+            </button>
+          </div>
+          {/* Preview con scroll */}
+          <div className="flex-1 overflow-auto p-4">
+            <OnboardingPreview html={previewHtml} />
+            <p className="text-center text-xs text-white/30 mt-3">
+              Los botones &ldquo;Copiar&rdquo; funcionan en la vista previa.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal: Personalizar Hero ── */}
       {showHeroModal && (
