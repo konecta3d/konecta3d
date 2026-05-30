@@ -510,7 +510,7 @@ export default function FormulariosWizardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-4 md:p-6 lg:p-8 overflow-x-auto">
+    <div className="min-h-screen wizard-dark p-4 md:p-6 lg:p-8 overflow-x-auto">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>

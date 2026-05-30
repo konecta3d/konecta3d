@@ -245,6 +245,84 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ─────────────────────────────────────────────
+   BRAND-1 BACKGROUNDS — texto blanco preservado
+   bg-[var(--brand-1)] (nav activo, botones primarios)
+   tiene fondo verde oscuro en modo claro (#0a323c).
+   La excepción genérica no cubre var() ni gradientes,
+   así que los añadimos explícitamente.
+───────────────────────────────────────────── */
+:not(.dark) .bg-\[var\(--brand-1\)\].text-white,
+:not(.dark) .bg-\[var\(--brand-1\)\] .text-white,
+:not(.dark) .from-\[var\(--brand-1\)\] .text-white,
+:not(.dark) .from-\[#0a323c\] .text-white,
+:not(.dark) .from-\[#001e3c\] .text-white {
+  color: #ffffff;
+}
+/* Inline style con var(--brand-1) en el fondo → preservar texto blanco */
+:not(.dark) *[style*="var(--brand-1)"].text-white,
+:not(.dark) *[style*="var(--brand-1)"] .text-white {
+  color: #ffffff;
+}
+/* Botones que combinan background+color en inline style */
+:not(.dark) *[style*="var(--brand-1)"][style*="color: white"],
+:not(.dark) *[style*="var(--brand-1)"][style*="color: #ffffff"],
+:not(.dark) *[style*="var(--brand-1)"][style*="color:#ffffff"] {
+  color: #ffffff !important;
+}
+
+/* ─────────────────────────────────────────────
+   WIZARD-DARK — modo oscuro forzado para wizards
+   Los wizards de PDF (lead-magnet, vip-benefits,
+   lead-magnets captación, formularios) fueron
+   diseñados íntegramente sobre fondo oscuro.
+   Aplicar la clase .wizard-dark al div raíz
+   restaura ese comportamiento en modo claro.
+───────────────────────────────────────────── */
+:not(.dark) .wizard-dark {
+  background-color: #0a1118;
+}
+
+/* Texto: preservar blancos dentro del wizard */
+:not(.dark) .wizard-dark .text-white,
+:not(.dark) .wizard-dark .text-white\/70,
+:not(.dark) .wizard-dark .text-white\/60,
+:not(.dark) .wizard-dark .text-white\/50,
+:not(.dark) .wizard-dark .text-white\/40 {
+  color: #ffffff;
+}
+:not(.dark) .wizard-dark .hover\:text-white:hover {
+  color: #ffffff;
+}
+
+/* Fondos semi-transparentes → revertir al comportamiento oscuro */
+:not(.dark) .wizard-dark .bg-white\/5  { background-color: rgba(255,255,255,0.05); }
+:not(.dark) .wizard-dark .bg-white\/10 { background-color: rgba(255,255,255,0.10); }
+:not(.dark) .wizard-dark .bg-white\/20 { background-color: rgba(255,255,255,0.20); }
+
+/* Bordes semi-transparentes */
+:not(.dark) .wizard-dark .border-white\/10 { border-color: rgba(255,255,255,0.10); }
+:not(.dark) .wizard-dark .border-white\/15 { border-color: rgba(255,255,255,0.15); }
+:not(.dark) .wizard-dark .border-white\/20 { border-color: rgba(255,255,255,0.20); }
+:not(.dark) .wizard-dark .border-white\/30 { border-color: rgba(255,255,255,0.30); }
+
+/* Inputs y textareas — texto blanco sobre fondo oscuro */
+:not(.dark) .wizard-dark input:not([type="color"]),
+:not(.dark) .wizard-dark textarea {
+  color: #ffffff;
+}
+:not(.dark) .wizard-dark input::placeholder,
+:not(.dark) .wizard-dark textarea::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+/* Inline style color: #fff/white dentro del wizard */
+:not(.dark) .wizard-dark *[style*="color: #ffffff"],
+:not(.dark) .wizard-dark *[style*="color:#ffffff"],
+:not(.dark) .wizard-dark *[style*="color: white"] {
+  color: #ffffff !important;
+}
+
+/* ─────────────────────────────────────────────
    INLINE DARK BACKGROUNDS en modo claro
    Selects / inputs con fondo oscuro inline
 ───────────────────────────────────────────── */

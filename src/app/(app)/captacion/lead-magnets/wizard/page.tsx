@@ -823,7 +823,7 @@ function CaptacionLeadMagnetWizardInner() {
 
   // ── UI ─────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen wizard-dark">
       <div className="max-w-5xl mx-auto md:px-6 md:py-4 lg:px-8 lg:py-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">

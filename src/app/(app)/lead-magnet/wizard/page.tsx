@@ -1219,7 +1219,7 @@ function LeadMagnetWizardInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen wizard-dark">
       {/* Onboarding drawer — guía paso a paso */}
       {businessId && (
         <OnboardingDrawer
