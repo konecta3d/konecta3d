@@ -1017,20 +1017,6 @@ export default function OnboardingEditorPage() {
             Restaurar
           </button>
           <button
-            onClick={downloadHtml}
-            className="px-3 py-2 rounded-lg border border-[var(--brand-1)]/40 text-sm font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
-            title="HTML con botones Copiar funcionales — se abre en el navegador"
-          >
-            ⬇ HTML interactivo
-          </button>
-          <button
-            onClick={downloadPreviewPdf}
-            disabled={previewing || saving}
-            className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
-          >
-            {previewing ? "Generando…" : "⬇ PDF imprimible"}
-          </button>
-          <button
             onClick={save}
             disabled={saving || previewing}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity"
@@ -1038,6 +1024,99 @@ export default function OnboardingEditorPage() {
           >
             {saving ? "Guardando…" : "Guardar"}
           </button>
+        </div>
+      </div>
+
+      {/* ── Panel datos del cliente (siempre visible) ── */}
+      <div
+        className="rounded-xl border border-[var(--border)] p-4 mb-6 space-y-3"
+        style={{ background: "var(--card)" }}
+      >
+        <div className="flex items-center justify-between mb-0.5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
+            Datos del cliente
+          </h2>
+          <span className="text-xs text-[var(--foreground)]/25 italic">para preview y PDF</span>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-3">
+          {/* Selector de negocio */}
+          <div>
+            <label className="block text-xs text-[var(--foreground)]/50 mb-1">Negocio</label>
+            <select
+              value={selectedBizId}
+              onChange={(e) => handleBizSelect(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
+            >
+              <option value="">— Datos de ejemplo —</option>
+              {businesses.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-xs text-[var(--foreground)]/50 mb-1">Email de acceso</label>
+            <input
+              type="text"
+              value={previewEmail}
+              onChange={(e) => setPreviewEmail(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+              placeholder="cliente@ejemplo.com"
+            />
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-[var(--foreground)]/50">Contraseña de acceso</label>
+              {selectedBizId && businesses.find(b => b.id === selectedBizId)?.last_onboarding_password && (
+                <span className="text-xs text-green-400 font-medium">✓ guardada</span>
+              )}
+            </div>
+            <input
+              type="text"
+              value={previewPassword}
+              onChange={(e) => setPreviewPassword(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
+              placeholder="Contraseña del negocio"
+            />
+          </div>
+        </div>
+
+        {/* Fila de acciones */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          {selectedBizId && (
+            <button
+              type="button"
+              onClick={savePasswordToDB}
+              disabled={savingPassword || !previewPassword}
+              className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-white/5 disabled:opacity-40 transition-colors"
+            >
+              {savingPassword ? "Guardando…" : "💾 Guardar contraseña"}
+            </button>
+          )}
+          <button
+            onClick={downloadHtml}
+            className="px-3 py-1.5 rounded-lg border border-[var(--brand-1)]/40 text-xs font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
+          >
+            ⬇ HTML interactivo
+          </button>
+          <button
+            onClick={downloadPreviewPdf}
+            disabled={previewing || saving}
+            className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
+          >
+            {previewing ? "Generando PDF…" : "⬇ PDF imprimible"}
+          </button>
+          {!selectedBizId && (
+            <p className="text-xs text-[var(--foreground)]/25">
+              Selecciona un negocio para cargar sus datos automáticamente.
+            </p>
+          )}
         </div>
       </div>
 
@@ -1257,111 +1336,21 @@ export default function OnboardingEditorPage() {
             />
           </section>
 
-          {/* Botones inferiores */}
-          <div className="flex justify-end gap-2 pt-2 flex-wrap">
-            <button
-              onClick={downloadHtml}
-              className="px-3 py-2 rounded-lg border border-[var(--brand-1)]/40 text-sm font-medium text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors"
-            >
-              ⬇ HTML interactivo
-            </button>
-            <button
-              onClick={downloadPreviewPdf}
-              disabled={previewing || saving}
-              className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm font-medium disabled:opacity-50 transition-colors hover:bg-white/5"
-            >
-              {previewing ? "Generando…" : "⬇ PDF imprimible"}
-            </button>
+          {/* Botón guardar (pie de formulario) */}
+          <div className="flex justify-end pt-2">
             <button
               onClick={save}
               disabled={saving || previewing}
               className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
               style={{ background: "var(--brand-1)", color: "white" }}
             >
-              {saving ? "Guardando…" : "Guardar"}
+              {saving ? "Guardando…" : "Guardar plantilla"}
             </button>
           </div>
         </div>
 
-        {/* ══ Columna derecha: selector de negocio + preview ══ */}
+        {/* ══ Columna derecha: preview (solo xl) ══ */}
         <div className="sticky top-6 space-y-4 hidden xl:block">
-
-          {/* Panel de datos de preview */}
-          <div
-            className="rounded-xl border border-[var(--border)] p-4 space-y-3"
-            style={{ background: "var(--card)" }}
-          >
-            <div className="flex items-center justify-between mb-0.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/50">
-                Datos del cliente
-              </h2>
-              <span className="text-xs text-[var(--foreground)]/25 italic">solo para preview</span>
-            </div>
-
-            {/* Selector de negocio */}
-            <div>
-              <label className="block text-xs text-[var(--foreground)]/50 mb-1">Negocio</label>
-              <select
-                value={selectedBizId}
-                onChange={(e) => handleBizSelect(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
-              >
-                <option value="">— Datos de ejemplo —</option>
-                {businesses.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Email (auto-rellena al seleccionar negocio) */}
-            <div>
-              <label className="block text-xs text-[var(--foreground)]/50 mb-1">Email de acceso</label>
-              <input
-                type="text"
-                value={previewEmail}
-                onChange={(e) => setPreviewEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
-                placeholder="cliente@ejemplo.com"
-              />
-            </div>
-
-            {/* Contraseña de acceso */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-[var(--foreground)]/50">
-                  Contraseña de acceso
-                </label>
-                {selectedBizId && businesses.find(b => b.id === selectedBizId)?.last_onboarding_password && (
-                  <span className="text-xs text-green-400 font-medium">✓ guardada</span>
-                )}
-              </div>
-              <input
-                type="text"
-                value={previewPassword}
-                onChange={(e) => setPreviewPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-sm font-mono"
-                placeholder="Contraseña actual del negocio"
-              />
-              {/* Botón guardar: visible solo cuando hay negocio seleccionado */}
-              {selectedBizId && (
-                <button
-                  type="button"
-                  onClick={savePasswordToDB}
-                  disabled={savingPassword || !previewPassword}
-                  className="mt-2 w-full px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-white/5 disabled:opacity-40 transition-colors"
-                >
-                  {savingPassword ? "Guardando…" : "💾 Guardar contraseña en el perfil"}
-                </button>
-              )}
-              {!selectedBizId && (
-                <p className="text-xs text-[var(--foreground)]/25 mt-1">
-                  Selecciona un negocio para guardar su contraseña.
-                </p>
-              )}
-            </div>
-          </div>
 
           {/* Label de preview */}
           <div className="flex items-center justify-between px-0.5">
