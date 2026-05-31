@@ -22,7 +22,8 @@ const SECTION_ORDER = [
   "campanas",
   "clientes",
   "herramientas",
-  "contexto-de-negocio",
+  "contexto-fidelizacion",
+  "contexto-captacion",
   "como-funciona",
 ];
 

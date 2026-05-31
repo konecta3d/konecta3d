@@ -348,30 +348,66 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     ],
   },
 
-  "contexto-de-negocio": {
-    slug: "contexto-de-negocio",
-    title: "Contexto del negocio",
-    intro: "Una ficha donde describes tu negocio en profundidad para que la plataforma adapte mejor el contenido que genera para ti.",
+  "contexto-fidelizacion": {
+    slug: "contexto-fidelizacion",
+    title: "Contexto de fidelización",
+    intro: "Describes tu negocio para que la plataforma genere contenido enfocado en retener y hacer volver a los clientes que ya tienes.",
     items: [
       {
-        question: "¿Por qué tengo que rellenar esto si ya tengo el perfil?",
-        answer: "El perfil recoge los datos básicos (nombre, logo, teléfono). El contexto recoge quién eres como negocio: qué haces, para quién, por qué te eligen a ti y no a la competencia. Son dos cosas distintas.",
+        question: "¿Para qué sirve este contexto?",
+        answer: "Para que la plataforma entienda tu negocio y adapte el contenido que genera (textos de la landing, recursos de valor, beneficios VIP) a tu sector, tu tono y tus clientes actuales. Sin este contexto, todo sale genérico.",
       },
       {
-        question: "¿Qué pasa si no lo relleno?",
-        answer: "La plataforma puede seguir funcionando, pero los textos y plantillas que genera serán más genéricos. Cuanto más sepas contarle sobre tu negocio, más ajustado será el contenido que proponga.",
+        question: "¿Qué diferencia tiene con el contexto de captación?",
+        answer: "Este contexto es para los clientes que ya te conocen. El objetivo es que vuelvan, que confíen más en ti y que te recomienden. El tono es más cercano y orientado a la experiencia que ya tienen contigo.",
       },
       {
-        question: "¿Cómo de largo tiene que ser?",
-        answer: "No hace falta escribir un ensayo. Con 2-3 líneas por cada apartado es suficiente. Lo importante es que sea preciso, no extenso.",
+        question: "¿Qué información debo poner?",
+        answer: "Describe a qué te dedicas, cuál es el perfil de tu cliente habitual, qué les hace volver a tu negocio y qué valoran de ti. También puedes indicar el tono con el que sueles comunicarte (cercano, profesional, informal).",
       },
       {
-        question: "¿Qué apartados incluye el contexto?",
-        answer: "A qué te dedicas y qué problema resuelves, quién es tu cliente típico, qué te hace diferente de otros negocios similares y qué resultado consigue el cliente contigo.",
+        question: "¿Cuánto tengo que escribir?",
+        answer: "Con 2-3 líneas por apartado es suficiente. Lo importante es que sea preciso. Una descripción corta pero exacta funciona mejor que un texto largo y vago.",
       },
       {
-        question: "¿Puedo cambiarlo después?",
-        answer: "Sí. Puedes actualizarlo cuando quieras. Si cambias de enfoque, añades un servicio o redefines tu cliente ideal, actualiza el contexto para que la plataforma siga generando contenido relevante.",
+        question: "¿Cómo afecta a mi landing y mis recursos?",
+        answer: "La plataforma usa este contexto para proponer textos, plantillas de recursos de valor y beneficios VIP que encajen con tu negocio. Cuanto mejor lo describes, más útil es lo que genera.",
+      },
+      {
+        question: "¿Puedo cambiarlo cuando quiera?",
+        answer: "Sí. Si añades un servicio, cambias tu enfoque o redefines tu cliente ideal, actualiza el contexto. La próxima vez que generes contenido, la plataforma usará la versión nueva.",
+      },
+    ],
+  },
+
+  "contexto-captacion": {
+    slug: "contexto-captacion",
+    title: "Contexto de captación",
+    intro: "Describes tu negocio para que la plataforma genere contenido enfocado en atraer y convertir a personas que todavía no te conocen.",
+    items: [
+      {
+        question: "¿Para qué sirve este contexto?",
+        answer: "Para que la plataforma entienda qué ofreces y a quién, y pueda generar recursos, campañas y formularios orientados a captar contactos nuevos. Sin este contexto, el contenido que genera es demasiado genérico para convertir.",
+      },
+      {
+        question: "¿Qué diferencia tiene con el contexto de fidelización?",
+        answer: "Este contexto es para personas que aún no te conocen. El objetivo es llamar su atención, generar confianza desde cero y conseguir que te dejen su contacto. El tono debe ser más directo y enfocado al problema que resuelves.",
+      },
+      {
+        question: "¿Qué información debo poner?",
+        answer: "Describe el problema concreto que resuelves, a quién va dirigido tu servicio, qué te diferencia de la competencia y qué consigue el cliente cuando te elige. Piensa en lo que le dirías a alguien que nunca ha oído hablar de ti.",
+      },
+      {
+        question: "¿Cómo afecta a mis campañas y formularios?",
+        answer: "La plataforma usa este contexto para generar los textos de tus campañas, los títulos de tus recursos de captación y las descripciones de tus formularios. Un buen contexto significa que el cliente potencial entiende en segundos qué gana al dejarte su contacto.",
+      },
+      {
+        question: "¿Qué pasa si tengo varios tipos de clientes distintos?",
+        answer: "Describe el perfil principal al que te diriges. Puedes crear campañas distintas para perfiles diferentes, pero el contexto base debe reflejar a tu cliente más habitual o al que más quieres atraer ahora mismo.",
+      },
+      {
+        question: "¿Puedo cambiarlo cuando quiera?",
+        answer: "Sí. Si cambias de nicho, lanzas un servicio nuevo o quieres atraer a un perfil de cliente diferente, actualiza el contexto. Los recursos y campañas que generes a partir de ese momento usarán la versión nueva.",
       },
     ],
   },
@@ -422,14 +458,14 @@ export function getHelpSlug(pathname: string): string {
   if (pathname.startsWith("/captacion/formularios"))   return "formularios";
   if (pathname.startsWith("/captacion/lead-magnets"))  return "recurso-de-valor";
   if (pathname.startsWith("/captacion/clientes"))      return "clientes";
-  if (pathname.startsWith("/captacion/contexto"))      return "contexto-de-negocio";
+  if (pathname.startsWith("/captacion/contexto"))      return "contexto-captacion";
   if (pathname.startsWith("/captacion/recorrido"))     return "como-funciona";
   if (pathname.startsWith("/captacion"))               return "como-funciona";
   if (pathname.startsWith("/negocio/perfil"))          return "perfil";
   if (pathname.startsWith("/negocio/herramientas"))    return "herramientas";
   if (pathname.startsWith("/negocio/clientes"))        return "clientes";
-  if (pathname.startsWith("/mi-contexto"))             return "contexto-de-negocio";
-  if (pathname.startsWith("/gpt-fidelizacion"))        return "contexto-de-negocio";
+  if (pathname.startsWith("/mi-contexto"))             return "contexto-fidelizacion";
+  if (pathname.startsWith("/gpt-fidelizacion"))        return "contexto-fidelizacion";
   if (pathname.startsWith("/landing"))                 return "landing";
   if (pathname.startsWith("/lead-magnet"))             return "recurso-de-valor";
   if (pathname.startsWith("/vip-benefits"))            return "beneficios-vip";
