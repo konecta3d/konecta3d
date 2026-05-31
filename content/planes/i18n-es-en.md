@@ -470,10 +470,13 @@ export function LanguageToggle() {
 }
 ```
 
-**⚠️ DECISIÓN PENDIENTE:** Miguel debe elegir el estilo del toggle:
-- A) Solo texto `ES | EN` — el código de arriba, sin cambios
-- B) Banderas + texto `🇪🇸 ES | 🇬🇧 EN` — añadir el emoji antes del texto
-- C) Solo banderas `🇪🇸 | 🇬🇧` — reemplazar el texto por el emoji
+**✅ DECISIÓN TOMADA (2026-05-31):** Opción C — solo banderas `🇪🇸 | 🇬🇧`
+
+El código del toggle debe usar emojis de bandera en lugar de texto:
+```tsx
+const LABELS: Record<Lang, string> = { es: "🇪🇸", en: "🇬🇧" };
+// Reemplazar {l.toUpperCase()} por {LABELS[l]}
+```
 
 **Dónde colocarlo:**
 - Sidebar desktop → sección "Pie del sidebar" de `src/components/Sidebar.tsx` (solo en modo business, no admin)
