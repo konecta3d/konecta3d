@@ -23,35 +23,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es">
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {`
             try {
-              let t = localStorage.getItem('konecta-theme');
-              // Default to dark mode if not set
-              if (!t) {
-                t = 'dark';
-                localStorage.setItem('konecta-theme', 'dark');
-              }
-              if (t === 'dark') document.documentElement.classList.add('dark');
+              // Leer preferencia guardada — las mismas claves que usa layout.tsx
+              // Prioridad: business > admin. Defecto: modo claro.
+              var bizTheme   = localStorage.getItem('konecta-theme-business');
+              var adminTheme = localStorage.getItem('konecta-theme-admin');
+              var saved = bizTheme || adminTheme;
 
-              const light = JSON.parse(localStorage.getItem('konecta-theme-light') || 'null');
-              const dark = JSON.parse(localStorage.getItem('konecta-theme-dark') || 'null');
-              const current = t === 'dark' ? dark : light;
-              if (current) {
-                document.documentElement.style.setProperty('--background', current.background);
-                document.documentElement.style.setProperty('--card', current.card);
-                document.documentElement.style.setProperty('--foreground', current.foreground);
-                document.documentElement.style.setProperty('--brand-4', current.button);
-                document.documentElement.style.setProperty('--brand-1', current.muted);
-                document.documentElement.style.setProperty('--brightness', current.brightness + '%');
+              if (saved === 'dark') {
+                document.documentElement.classList.add('dark');
               }
+              // Si no hay preferencia guardada → modo claro (sin clase dark)
 
-              const titleColor = localStorage.getItem('konecta-sidebar-title-color');
-              const titleSize = localStorage.getItem('konecta-sidebar-title-size');
+              var titleColor = localStorage.getItem('konecta-sidebar-title-color');
+              var titleSize  = localStorage.getItem('konecta-sidebar-title-size');
               if (titleColor) document.documentElement.style.setProperty('--sidebar-title-color', titleColor);
-              if (titleSize) document.documentElement.style.setProperty('--sidebar-title-size', titleSize);
+              if (titleSize)  document.documentElement.style.setProperty('--sidebar-title-size', titleSize);
             } catch (e) {}
           `}
         </Script>
