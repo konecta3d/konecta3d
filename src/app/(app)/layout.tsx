@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MobileTitle from "@/components/MobileTitle";
+import HelpDrawer from "@/components/HelpDrawer";
 import Sidebar from "@/components/Sidebar";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
@@ -79,6 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [contextIncomplete, setContextIncomplete] = useState(false);
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
+  const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
   // ── Tema claro/oscuro ────────────────────────────────────────────────────
   const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
@@ -126,8 +128,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     };
 
+    const loadHelpDrawer = async () => {
+      try {
+        const { data } = await supabase.from("settings").select("value").eq("key", "help_drawer_enabled").single();
+        if (data?.value) {
+          const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+          setHelpDrawerEnabled(parsed.enabled ?? true);
+        }
+      } catch {
+        // silencioso — por defecto habilitado
+      }
+    };
+
     loadNames();
-    if (!isAdminMode) loadBanner();
+    if (!isAdminMode) {
+      loadBanner();
+      loadHelpDrawer();
+    }
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent<Record<string, string>>).detail;
@@ -407,6 +424,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <main className="p-4 md:p-8">{children}</main>
         </div>
       </div>
+
+      {/* ── Drawer de ayuda contextual ── */}
+      <HelpDrawer enabled={helpDrawerEnabled} isAdmin={isAdminMode} />
     </div>
   );
 }

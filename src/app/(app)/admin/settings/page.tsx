@@ -42,6 +42,10 @@ export default function AdminSettings() {
   const [banner, setBanner] = useState<{ active: boolean; message: string }>({ active: false, message: "" });
   const [savingBanner, setSavingBanner] = useState(false);
 
+  // Drawer de ayuda
+  const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
+  const [savingHelp, setSavingHelp] = useState(false);
+
   useEffect(() => {
     loadSettings();
   }, []);
@@ -81,6 +85,17 @@ export default function AdminSettings() {
       if (bannerData?.value) {
         const saved = typeof bannerData.value === 'string' ? JSON.parse(bannerData.value) : bannerData.value;
         setBanner({ active: saved.active ?? false, message: saved.message ?? "" });
+      }
+
+      // Cargar estado del drawer de ayuda
+      const { data: helpData } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "help_drawer_enabled")
+        .single();
+      if (helpData?.value) {
+        const saved = typeof helpData.value === 'string' ? JSON.parse(helpData.value) : helpData.value;
+        setHelpDrawerEnabled(saved.enabled ?? true);
       }
     } catch (err) {
       console.error("Error cargando configuración:", err);
@@ -155,6 +170,24 @@ export default function AdminSettings() {
     setTimeout(() => setMsg(""), 4000);
   };
 
+  const saveHelp = async () => {
+    setSavingHelp(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token || "";
+      await fetch("/api/admin/help-drawer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ enabled: helpDrawerEnabled }),
+      });
+      setMsg(helpDrawerEnabled ? "✓ Botón de ayuda visible para clientes" : "✓ Botón de ayuda oculto para clientes");
+    } catch {
+      setMsg("Error al guardar");
+    }
+    setSavingHelp(false);
+    setTimeout(() => setMsg(""), 4000);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -215,11 +248,20 @@ export default function AdminSettings() {
         </button>
         <button
           onClick={() => setActiveSection("avisos")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${activeSection === "avisos" ? "bg-[var(--brand-4)] text-black" : "text-white hover:text-white"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${activeSection === "avisos" ? "bg-[var(--brand-4)] text-black" : "text-[var(--foreground)] hover:text-[var(--foreground)]"}`}
         >
           Avisos
           {banner.active && (
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveSection("ayuda")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${activeSection === "ayuda" ? "bg-[var(--brand-4)] text-black" : "text-[var(--foreground)] hover:text-[var(--foreground)]"}`}
+        >
+          Ayuda
+          {!helpDrawerEnabled && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--border)]" title="Botón de ayuda desactivado" />
           )}
         </button>
       </div>
@@ -550,8 +592,68 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {/* Save Button (hidden on features and avisos tabs — those sections have their own button) */}
-      {activeSection !== "features" && activeSection !== "avisos" && (
+      {/* ── Sección: Ayuda contextual ── */}
+      {activeSection === "ayuda" && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">Botón de ayuda contextual</h2>
+            <p className="text-sm text-[var(--foreground)]/50">
+              Cuando está activo, los clientes ven un botón «?» en la esquina inferior derecha con preguntas y respuestas sobre cada sección de la plataforma. Los administradores siempre lo ven, aunque esté desactivado.
+            </p>
+          </div>
+
+          {/* Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--border)]">
+            <div>
+              <p className="text-sm font-medium">
+                {helpDrawerEnabled ? "Visible para clientes" : "Oculto para clientes"}
+              </p>
+              <p className="text-xs text-[var(--foreground)]/40 mt-0.5">
+                {helpDrawerEnabled
+                  ? "Los clientes ven el botón «?» en todas las secciones"
+                  : "Los clientes no ven el botón — tú sí (con indicador naranja)"}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${helpDrawerEnabled ? "bg-green-500/15 text-green-400" : "bg-[var(--border)]/40 text-[var(--foreground)]/40"}`}>
+                {helpDrawerEnabled ? "✓ Activo" : "Inactivo"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setHelpDrawerEnabled(v => !v)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                  helpDrawerEnabled ? "bg-green-500" : "bg-[var(--border)]"
+                }`}
+                role="switch"
+                aria-checked={helpDrawerEnabled}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${helpDrawerEnabled ? "translate-x-5" : "translate-x-0"}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Info sobre el contenido */}
+          <div className="rounded-xl border border-[var(--border)] p-4 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]/40">Contenido del drawer</p>
+            <p className="text-sm text-[var(--foreground)]/60">
+              El drawer muestra automáticamente las preguntas y respuestas correspondientes a la sección en la que se encuentra el cliente. El contenido cubre: llavero NFC, dashboard, perfil, landing, recurso de valor, beneficios VIP, formularios, campañas, clientes, herramientas y contexto de negocio.
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={saveHelp}
+              disabled={savingHelp}
+              className="px-6 py-3 rounded-lg bg-[var(--brand-4)] text-black font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {savingHelp ? "Guardando..." : "Guardar"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Button (hidden on features, avisos and ayuda tabs — those sections have their own button) */}
+      {activeSection !== "features" && activeSection !== "avisos" && activeSection !== "ayuda" && (
         <div className="flex justify-end">
           <button
             onClick={saveSettings}
