@@ -57,6 +57,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
   { label: "Onboarding", href: "/admin/onboarding", category: "Contenido" },
   { label: "Página de acceso", href: "/admin/login-page", category: "Contenido" },
+  { label: "Ayuda contextual", href: "/admin/ayuda-contenido", category: "Contenido" },
 ];
 
 const DEFAULT_MODULES: Record<string, boolean> = {

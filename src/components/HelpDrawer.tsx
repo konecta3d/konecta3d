@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getHelpSection, HelpSection } from "@/lib/help-content";
+import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT } from "@/lib/help-content";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +35,10 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   const [expandedIndex, setExpIdx] = useState<number | null>(null);
   const [section, setSection]     = useState<HelpSection>(getHelpSection(pathname));
 
+  // ── Contenido dinámico (cargado desde la API al primer uso) ──────────────
+  const [dynamicContent, setDynamicContent] = useState<Record<string, HelpSection> | null>(null);
+  const contentLoaded = useRef(false);
+
   // ── Drag state ────────────────────────────────────────────────────────────
   const [pos, setPos]         = useState<Pos | null>(null); // null = usa default
   const [dragging, setDragging] = useState(false);
@@ -52,11 +56,27 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
     }
   }, []);
 
-  // ── Sección: cambio por ruta ──────────────────────────────────────────────
+  // ── Carga contenido dinámico al abrir por primera vez ────────────────────
   useEffect(() => {
-    setSection(getHelpSection(pathname));
+    if (!open || contentLoaded.current) return;
+    contentLoaded.current = true;
+    fetch("/api/admin/help-content")
+      .then(r => r.json())
+      .then(json => {
+        if (json.content) {
+          setDynamicContent(json.content);
+        }
+      })
+      .catch(() => {}); // silencioso — usa defaults
+  }, [open]);
+
+  // ── Sección: cambio por ruta o por contenido dinámico ────────────────────
+  useEffect(() => {
+    const slug = getHelpSlug(pathname);
+    const src  = dynamicContent ?? HELP_CONTENT;
+    setSection(src[slug] ?? src["como-funciona"] ?? getHelpSection(pathname));
     setExpIdx(null);
-  }, [pathname]);
+  }, [pathname, dynamicContent]);
 
   // ── Tecla Escape ─────────────────────────────────────────────────────────
   useEffect(() => {
