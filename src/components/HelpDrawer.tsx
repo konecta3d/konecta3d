@@ -56,16 +56,18 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Abrir ayuda"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-xs font-semibold transition-all hover:scale-105 active:scale-95"
+        className="fixed z-40 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 active:scale-95 shadow-md
+          top-[68px] left-3
+          md:top-3 md:left-[296px]"
         style={{
           background: "var(--brand-1)",
           color: "#ffffff",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
         }}
       >
         <span className="text-sm leading-none font-bold">?</span>
-        <span className="hidden sm:inline">Ayuda</span>
-        {/* Indicador admin */}
+        <span>Ayuda</span>
+        {/* Indicador admin cuando está deshabilitado para clientes */}
         {isAdmin && !enabled && (
           <span
             className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2"
