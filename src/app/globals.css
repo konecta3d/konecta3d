@@ -20,7 +20,7 @@
   --background: #f7fcfc;
   --card:       #ffffff;
   --foreground: #000000;
-  --border:     rgba(7, 45, 48, 0.14);   /* #072d30 al 14% */
+  --border:     rgba(7, 45, 48, 0.22);   /* #072d30 al 22% — contraste mejorado en modo claro */
 
   /* Sidebar */
   --sidebar-title-color: #0a323c;
@@ -150,9 +150,9 @@ textarea::placeholder {
 }
 
 /* Bordes semitransparentes blancos → oscuros en modo claro */
-:not(.dark) .border-white\/10 { border-color: rgba(7, 45, 48, 0.12); }
-:not(.dark) .border-white\/20 { border-color: rgba(7, 45, 48, 0.18); }
-:not(.dark) .border-white\/30 { border-color: rgba(7, 45, 48, 0.25); }
+:not(.dark) .border-white\/10 { border-color: rgba(7, 45, 48, 0.18); }
+:not(.dark) .border-white\/20 { border-color: rgba(7, 45, 48, 0.26); }
+:not(.dark) .border-white\/30 { border-color: rgba(7, 45, 48, 0.34); }
 
 /* Fondos semitransparentes blancos → fondos sólidos con variables CSS
    En modo oscuro evita los "cajones blancos" semi-transparentes.

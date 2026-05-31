@@ -85,11 +85,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // ── Tema claro/oscuro ────────────────────────────────────────────────────
   const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(themeKey);
-    const isDark = saved ? saved === "dark" : true;
+    const isDark = saved ? saved === "dark" : false;
     setDarkMode(isDark);
     if (isDark) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -308,17 +308,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Acceso rápido a otros perfiles (móvil) */}
               {!isAdminMode && (
                 <div className="space-y-1.5 pb-1">
-                  <p className="text-[10px] uppercase tracking-widest px-1 mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Cambiar a</p>
+                  <p className="text-[10px] uppercase tracking-widest px-1 mb-1 text-[var(--foreground)]/40">Cambiar a</p>
                   {isCaptacionMode && (
                     <>
                       <Link href="/mi-negocio/dashboard" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                        style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
                         <span>Fidelización</span><span>→</span>
                       </Link>
                       <Link href="/negocio/perfil" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                        style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
                         <span>Mi Negocio</span><span>→</span>
                       </Link>
                     </>
@@ -327,12 +327,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <>
                       <Link href="/mi-negocio/dashboard" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                        style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
                         <span>Fidelización</span><span>→</span>
                       </Link>
                       <Link href="/captacion" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                        style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
                         <span>Captación</span><span>→</span>
                       </Link>
                     </>
@@ -341,12 +341,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <>
                       <Link href="/captacion" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                        style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
                         <span>Captación</span><span>→</span>
                       </Link>
                       <Link href="/negocio/perfil" onClick={() => setMobileMenuOpen(false)}
                         className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold"
-                        style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                        style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
                         <span>Mi Negocio</span><span>→</span>
                       </Link>
                     </>

@@ -40,13 +40,13 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
 
     // ── Tema ────────────────────────────────────────────────────────────────
     const themeKey = isAdminMode ? "konecta-theme-admin" : "konecta-theme-business";
-    const [internalDarkMode, setInternalDarkMode] = useState(true);
+    const [internalDarkMode, setInternalDarkMode] = useState(false);
     const darkMode = darkModeProp !== undefined ? darkModeProp : internalDarkMode;
 
     React.useEffect(() => {
         if (darkModeProp !== undefined) return;
         const saved = typeof window !== "undefined" ? localStorage.getItem(themeKey) : null;
-        const isDark = saved ? saved === "dark" : true;
+        const isDark = saved ? saved === "dark" : false;
         setInternalDarkMode(isDark);
         if (isDark) document.documentElement.classList.add("dark");
         else document.documentElement.classList.remove("dark");
@@ -183,14 +183,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (isFidelizacionMode) return (
             <>
                 <Link href="/captacion" className={btnBase}
-                    style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                    style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
                     <span>Captación</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/negocio/perfil" className={btnBase}
-                    style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                    style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
                     <span>Mi Negocio</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -202,14 +202,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (isCaptacionMode) return (
             <>
                 <Link href="/mi-negocio/dashboard" className={btnBase}
-                    style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                    style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
                     <span>Fidelización</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/negocio/perfil" className={btnBase}
-                    style={{ background: "rgba(197,160,98,0.12)", color: "rgba(197,160,98,0.9)", border: "1px solid rgba(197,160,98,0.2)" }}>
+                    style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
                     <span>Mi Negocio</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -221,14 +221,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (isNegocioMode) return (
             <>
                 <Link href="/mi-negocio/dashboard" className={btnBase}
-                    style={{ background: "rgba(57,161,169,0.12)", color: "rgba(57,161,169,0.9)", border: "1px solid rgba(57,161,169,0.2)" }}>
+                    style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
                     <span>Fidelización</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/captacion" className={btnBase}
-                    style={{ background: "rgba(99,102,241,0.12)", color: "rgba(147,149,255,0.9)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                    style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
                     <span>Captación</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -361,8 +361,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
 
                     {/* ── Acceso rápido a los otros 2 perfiles ── */}
                     <div className="space-y-1.5 pb-1">
-                        <p className="text-[10px] uppercase tracking-widest px-1 mb-1.5"
-                            style={{ color: "rgba(255,255,255,0.25)" }}>
+                        <p className="text-[10px] uppercase tracking-widest px-1 mb-1.5 text-[var(--foreground)]/40">
                             Cambiar a
                         </p>
                         <QuickProfileButtons />
@@ -386,8 +385,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                                 window.location.href = "/business/login";
                             }
                         }}
-                        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center hover:bg-red-500/10 transition-colors"
-                        style={{ color: "rgba(255,255,255,0.5)" }}>
+                        className="w-full rounded-lg border border-red-500/30 px-3 py-2 text-sm text-center text-red-500 hover:bg-red-500/10 transition-colors">
                         Cerrar sesión
                     </button>
                 </div>

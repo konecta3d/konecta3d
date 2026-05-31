@@ -52,8 +52,8 @@ function SelectProfileContent() {
 
         {/* Título */}
         <div className="text-center mb-2">
-          <h1 className="text-2xl font-bold text-white">Selecciona tu perfil</h1>
-          <p className="text-sm text-white/60 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Selecciona tu perfil</h1>
+          <p className="text-sm text-[var(--foreground)]/60 mt-1">
             Elige el área con la que quieres trabajar hoy
           </p>
         </div>
@@ -83,12 +83,12 @@ function SelectProfileContent() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-white">Perfil de Negocio</h2>
-                  <p className="text-sm text-white/60 mt-1">
+                  <h2 className="text-lg font-bold text-[var(--foreground)]">Perfil de Negocio</h2>
+                  <p className="text-sm text-[var(--foreground)]/60 mt-1">
                     Datos, clientes, estadísticas y herramientas globales de tu negocio
                   </p>
                 </div>
-                <svg className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] transition-colors ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-[var(--foreground)]/30 group-hover:text-[#C5A059] transition-colors ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -111,9 +111,9 @@ function SelectProfileContent() {
 
         {/* Separador */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
-          <span className="text-xs text-white/30 uppercase tracking-widest">Estrategia</span>
-          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          <span className="text-xs text-[var(--foreground)]/40 uppercase tracking-widest">Estrategia</span>
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
         </div>
 
         {/* Cards inferiores: Fidelización + Captación */}
@@ -141,12 +141,12 @@ function SelectProfileContent() {
               </div>
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">Fidelización</h2>
-                  <p className="text-xs text-white/60 mt-1">
+                  <h2 className="text-base font-bold text-[var(--foreground)]">Fidelización</h2>
+                  <p className="text-xs text-[var(--foreground)]/60 mt-1">
                     Fideliza clientes, genera recursos de valor y aumenta la recurrencia
                   </p>
                 </div>
-                <svg className="w-4 h-4 text-white/30 group-hover:text-[#39a1a9] transition-colors ml-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[var(--foreground)]/30 group-hover:text-[#39a1a9] transition-colors ml-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -183,12 +183,12 @@ function SelectProfileContent() {
               </div>
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">Captación</h2>
-                  <p className="text-xs text-white/60 mt-1">
+                  <h2 className="text-base font-bold text-[var(--foreground)]">Captación</h2>
+                  <p className="text-xs text-[var(--foreground)]/60 mt-1">
                     Crea campañas, capta leads en eventos y conviértelos en clientes
                   </p>
                 </div>
-                <svg className="w-4 h-4 text-white/30 group-hover:text-[#818cf8] transition-colors ml-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[var(--foreground)]/30 group-hover:text-[#818cf8] transition-colors ml-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -210,7 +210,7 @@ function SelectProfileContent() {
 
 export default function SelectProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-white/50">Cargando...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-[var(--foreground)]/50">Cargando...</div>}>
       <SelectProfileContent />
     </Suspense>
   );
