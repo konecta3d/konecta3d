@@ -26,20 +26,7 @@ const SECTION_ORDER = [
   "como-funciona",
 ];
 
-const SECTION_ICONS: Record<string, string> = {
-  "llavero-nfc":        "🔑",
-  "dashboard":          "📊",
-  "perfil":             "🏢",
-  "landing":            "📱",
-  "recurso-de-valor":   "📄",
-  "beneficios-vip":     "🎁",
-  "formularios":        "📋",
-  "campanas":           "📣",
-  "clientes":           "👥",
-  "herramientas":       "🔧",
-  "contexto-de-negocio":"🧭",
-  "como-funciona":      "🔄",
-};
+const SECTION_ICONS: Record<string, string> = {};
 
 // ─── Subcomponentes ───────────────────────────────────────────────────────────
 
@@ -315,7 +302,6 @@ export default function HelpContentEditor() {
                   }`}
                   style={isActive ? { background: "var(--brand-1)", color: "white" } : {}}
                 >
-                  <span className="text-base flex-shrink-0">{SECTION_ICONS[slug] ?? "❓"}</span>
                   <span className="flex-1 truncate">{sec.title}</span>
                   <span
                     className={`flex-shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium ${
@@ -340,7 +326,6 @@ export default function HelpContentEditor() {
               style={{ background: "var(--card)" }}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl">{SECTION_ICONS[selectedSlug] ?? "❓"}</span>
                 <h2 className="text-base font-bold">Datos de la sección</h2>
               </div>
 
