@@ -1,73 +1,190 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getHelpSection, HelpSection } from "@/lib/help-content";
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface HelpDrawerProps {
-  /** Cuando es false Y no es admin, el botón queda oculto */
   enabled: boolean;
-  /** Los admins siempre ven el botón independientemente de `enabled` */
   isAdmin: boolean;
+}
+
+interface Pos { x: number; y: number }
+
+// Posición por defecto (arriba-izquierda del área de contenido)
+const DEFAULT_POS: Pos = { x: 296, y: 12 };
+const STORAGE_KEY = "konecta-help-btn-pos";
+
+// Mantiene el botón dentro de los límites de la ventana
+function clamp(pos: Pos, btnW = 110, btnH = 36): Pos {
+  return {
+    x: Math.max(4, Math.min(window.innerWidth  - btnW - 4, pos.x)),
+    y: Math.max(4, Math.min(window.innerHeight - btnH - 4, pos.y)),
+  };
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [section, setSection] = useState<HelpSection>(getHelpSection(pathname));
 
-  // Actualiza el contenido y resetea el acordeón al cambiar de sección
+  // ── Drawer state ──────────────────────────────────────────────────────────
+  const [open, setOpen]           = useState(false);
+  const [expandedIndex, setExpIdx] = useState<number | null>(null);
+  const [section, setSection]     = useState<HelpSection>(getHelpSection(pathname));
+
+  // ── Drag state ────────────────────────────────────────────────────────────
+  const [pos, setPos]         = useState<Pos | null>(null); // null = usa default
+  const [dragging, setDragging] = useState(false);
+  const dragOffset  = useRef<Pos>({ x: 0, y: 0 });
+  const didMove     = useRef(false); // distingue click de drag
+  const btnRef      = useRef<HTMLButtonElement>(null);
+
+  // ── Init: cargar posición guardada ────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setPos(clamp(JSON.parse(raw)));
+    } catch {
+      // ignora errores de localStorage (SSR, privado)
+    }
+  }, []);
+
+  // ── Sección: cambio por ruta ──────────────────────────────────────────────
   useEffect(() => {
     setSection(getHelpSection(pathname));
-    setExpandedIndex(null);
+    setExpIdx(null);
   }, [pathname]);
 
-  // Cierra con Escape
+  // ── Tecla Escape ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [open]);
 
-  // Bloquea scroll del body cuando el drawer está abierto
+  // ── Scroll lock ───────────────────────────────────────────────────────────
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  // ── Drag: eventos globales durante el arrastre ────────────────────────────
+  useEffect(() => {
+    if (!dragging) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      didMove.current = true;
+      setPos(clamp({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y }));
+    };
+    const onMouseUp = () => {
+      setDragging(false);
+      setPos(prev => {
+        if (prev) {
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prev)); } catch {}
+        }
+        return prev;
+      });
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!e.touches[0]) return;
+      didMove.current = true;
+      setPos(clamp({ x: e.touches[0].clientX - dragOffset.current.x, y: e.touches[0].clientY - dragOffset.current.y }));
+    };
+    const onTouchEnd = () => onMouseUp();
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [dragging]);
+
+  // ── Visibilidad ───────────────────────────────────────────────────────────
   const shouldShow = isAdmin || enabled;
   if (!shouldShow) return null;
 
-  const toggle = (i: number) =>
-    setExpandedIndex((prev) => (prev === i ? null : i));
+  // ── Handlers del botón ────────────────────────────────────────────────────
+  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    didMove.current = false;
+    const rect = btnRef.current?.getBoundingClientRect();
+    dragOffset.current = {
+      x: e.clientX - (rect?.left ?? e.clientX),
+      y: e.clientY - (rect?.top  ?? e.clientY),
+    };
+    setDragging(true);
+    e.preventDefault(); // evita selección de texto
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
+    if (!e.touches[0]) return;
+    didMove.current = false;
+    const rect = btnRef.current?.getBoundingClientRect();
+    dragOffset.current = {
+      x: e.touches[0].clientX - (rect?.left ?? e.touches[0].clientX),
+      y: e.touches[0].clientY - (rect?.top  ?? e.touches[0].clientY),
+    };
+    setDragging(true);
+  };
+
+  const handleClick = () => {
+    if (!didMove.current) setOpen(true);
+  };
+
+  const toggle = (i: number) => setExpIdx(prev => (prev === i ? null : i));
+
+  // ── Posición efectiva del botón ───────────────────────────────────────────
+  const effectivePos = pos ?? DEFAULT_POS;
 
   return (
     <>
-      {/* ── Botón flotante ─────────────────────────────────────────────────── */}
+      {/* ── Botón arrastrable ──────────────────────────────────────────────── */}
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen(true)}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onClick={handleClick}
         aria-label="Abrir ayuda"
-        className="fixed z-40 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 active:scale-95 shadow-md
-          top-[68px] left-3
-          md:top-3 md:left-[296px]"
+        className="fixed z-40 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-md select-none"
         style={{
-          background: "var(--brand-1)",
-          color: "#ffffff",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+          top:    effectivePos.y,
+          left:   effectivePos.x,
+          background:  "var(--brand-1)",
+          color:       "#ffffff",
+          boxShadow:   "0 2px 10px rgba(0,0,0,0.18)",
+          cursor:      dragging ? "grabbing" : "grab",
+          transition:  dragging ? "none" : "box-shadow 0.15s, opacity 0.15s",
+          opacity:     dragging ? 0.85 : 1,
+          touchAction: "none",
+          userSelect:  "none",
         }}
       >
+        {/* Icono de arrastre */}
+        <svg
+          width="10" height="14" viewBox="0 0 10 14" fill="none"
+          className="opacity-50 flex-shrink-0"
+          aria-hidden="true"
+        >
+          <circle cx="2.5" cy="2"  r="1.5" fill="currentColor" />
+          <circle cx="7.5" cy="2"  r="1.5" fill="currentColor" />
+          <circle cx="2.5" cy="7"  r="1.5" fill="currentColor" />
+          <circle cx="7.5" cy="7"  r="1.5" fill="currentColor" />
+          <circle cx="2.5" cy="12" r="1.5" fill="currentColor" />
+          <circle cx="7.5" cy="12" r="1.5" fill="currentColor" />
+        </svg>
         <span className="text-sm leading-none font-bold">?</span>
         <span>Ayuda</span>
-        {/* Indicador admin cuando está deshabilitado para clientes */}
+
+        {/* Indicador: oculto para clientes */}
         {isAdmin && !enabled && (
           <span
             className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2"
@@ -97,9 +214,9 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
           ${open ? "translate-x-0" : "translate-x-full"}
         `}
         style={{
-          background: "var(--card)",
-          borderLeft: "1px solid var(--border)",
-          boxShadow: "-8px 0 40px rgba(0,0,0,0.15)",
+          background:  "var(--card)",
+          borderLeft:  "1px solid var(--border)",
+          boxShadow:   "-8px 0 40px rgba(0,0,0,0.15)",
         }}
       >
         {/* Cabecera */}
@@ -154,11 +271,10 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
                   key={i}
                   className="rounded-xl overflow-hidden transition-all"
                   style={{
-                    border: `1px solid ${isOpen ? "rgba(10,50,60,0.2)" : "var(--border)"}`,
+                    border:     `1px solid ${isOpen ? "rgba(10,50,60,0.2)" : "var(--border)"}`,
                     background: isOpen ? "var(--background)" : "transparent",
                   }}
                 >
-                  {/* Pregunta */}
                   <button
                     type="button"
                     onClick={() => toggle(i)}
@@ -173,14 +289,13 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
                       }`}
                       style={{
                         background: isOpen ? "var(--brand-1)" : "var(--border)",
-                        color: isOpen ? "#fff" : "var(--foreground)",
+                        color:      isOpen ? "#fff" : "var(--foreground)",
                       }}
                     >
                       +
                     </span>
                   </button>
 
-                  {/* Respuesta */}
                   <div
                     className={`overflow-hidden transition-all duration-300 ${
                       isOpen ? "max-h-96" : "max-h-0"
@@ -211,7 +326,7 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
                 Oculto para clientes
               </span>
             )}
-            {section.items.length} preguntas sobre esta sección
+            {section.items.length} preguntas · arrastra para mover
           </p>
         </div>
       </div>
