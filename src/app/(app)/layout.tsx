@@ -54,6 +54,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Módulos", href: "/admin/modulos", category: "Panel Admin" },
   { label: "Configuración", href: "/admin/settings", category: "Panel Admin" },
   { label: "Actividad", href: "/admin/actividad", category: "Panel Admin" },
+  { label: "Playbook", href: "/admin/crm/playbook", category: "CRM Comercial" },
   { label: "Pipeline de ventas", href: "/admin/crm/pipeline", category: "CRM Comercial" },
   { label: "Agenda", href: "/admin/crm/agenda", category: "CRM Comercial" },
   { label: "Tareas", href: "/admin/crm/tareas", category: "CRM Comercial" },
