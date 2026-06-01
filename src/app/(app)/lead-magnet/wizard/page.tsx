@@ -874,7 +874,7 @@ function LeadMagnetWizardInner() {
                         if (!newPoint.trim()) return;
                         contentCustomized.current = true;
                         const updated = [...parsedPoints, newPoint.trim()];
-                        setCustomContent(updated.join("\n"));
+                        setCustomContent(joinPoints(updated));
                         setNewPoint("");
                       }}
                       className="text-xs px-3 py-2 rounded-lg bg-[#39a1a9]/80 text-black font-bold hover:bg-[#39a1a9]"
@@ -897,10 +897,10 @@ function LeadMagnetWizardInner() {
                             onChange={(e) => {
                               const newPoints = [...parsedPoints];
                               newPoints[idx] = e.target.value;
-                              setCustomContent(newPoints.join("\n"));
+                              setCustomContent(joinPoints(newPoints));
                             }}
-                            rows={1}
-                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-none"
+                            rows={Math.max(1, point.split("\n").length)}
+                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-y"
                             placeholder={`Punto ${idx + 1}...`}
                             style={{ color: "var(--foreground)" }}
                           />
@@ -908,7 +908,7 @@ function LeadMagnetWizardInner() {
                             type="button"
                             onClick={() => {
                               const newPoints = parsedPoints.filter((_, i) => i !== idx);
-                              setCustomContent(newPoints.join("\n"));
+                              setCustomContent(joinPoints(newPoints));
                             }}
                             className="ml-2 text-xs text-red-300 hover:text-red-400"
                             title="Eliminar punto"

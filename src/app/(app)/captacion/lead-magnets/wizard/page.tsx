@@ -585,8 +585,8 @@ function CaptacionLeadMagnetWizardInner() {
                       ) : parsedPoints.map((pt, idx) => (
                         <div key={idx} className="flex items-start gap-2 p-2 rounded hover:bg-[var(--border)]/20">
                           <div className="w-6 h-6 mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "rgba(57,161,169,0.2)", color: "var(--brand-1)", border: "1px solid var(--brand-1)" }}>{idx + 1}</div>
-                          <textarea value={pt} onChange={e => { const np = [...parsedPoints]; np[idx] = e.target.value; setCustomContent(joinPoints(np)); }} rows={1}
-                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-none"
+                          <textarea value={pt} onChange={e => { const np = [...parsedPoints]; np[idx] = e.target.value; setCustomContent(joinPoints(np)); }} rows={Math.max(1, pt.split("\n").length)}
+                            className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-y"
                             placeholder={`Punto ${idx + 1}...`} />
                           <button type="button" onClick={() => setCustomContent(joinPoints(parsedPoints.filter((_, i) => i !== idx)))}
                             className="text-xs text-red-400 hover:text-red-300 flex-shrink-0 mt-1">✕</button>
