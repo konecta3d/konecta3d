@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
+import { splitPoints, joinPoints, stripBullet, pointToHtml } from "@/lib/leadmagnet-format";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -326,15 +327,15 @@ function CaptacionLeadMagnetWizardInner() {
       }
 
       // 2. Build HTML for PDF (same logic as Recursos de Valor)
-      let contentHtml = customContent;
+      let contentHtml = pointToHtml(customContent);
       if (docType === "checklist") {
-        contentHtml = customContent.split("\n").filter(l => l.trim())
-          .map(l => `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${l}</span></li>`)
+        contentHtml = splitPoints(customContent)
+          .map(l => `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${pointToHtml(l)}</span></li>`)
           .join("");
         contentHtml = `<ul style="list-style:none;padding:0">${contentHtml}</ul>`;
       } else if (docType === "recomendacion") {
-        contentHtml = customContent.split("\n").filter(l => l.trim())
-          .map(l => `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000;list-style-position:inside">${l}</li>`)
+        contentHtml = splitPoints(customContent)
+          .map(l => `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000;list-style-position:inside">${pointToHtml(l)}</li>`)
           .join("");
         contentHtml = `<ol style="padding-left:1.5rem;color:#000000;list-style:decimal;">${contentHtml}</ol>`;
       }
@@ -534,8 +535,7 @@ function CaptacionLeadMagnetWizardInner() {
       // ── CONTENIDO ──────────────────────────────────────────────────────────
       case "contenido":
         if (type === "pdf") {
-          const contentPoints = customContent.split("\n").filter(l => l.trim());
-          const parsedPoints = contentPoints.map(p => p.replace(/^(\d+[.)]) */, "").replace(/^[-•] */, ""));
+          const parsedPoints = splitPoints(customContent).map(stripBullet);
 
           return (
             <div className="space-y-6">
@@ -572,11 +572,11 @@ function CaptacionLeadMagnetWizardInner() {
                   <div>
                     <label className="block text-xs uppercase tracking-widest mb-2" style={{ color: "var(--brand-1)" }}>Puntos del {docType === "checklist" ? "checklist" : "recomendación"}</label>
                     <div className="flex gap-2 mb-3">
-                      <input type="text" value={newPoint} onChange={e => setNewPoint(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newPoint.trim()) { contentCustomized.current = true; setCustomContent([...parsedPoints, newPoint.trim()].join("\n")); setNewPoint(""); } }}
+                      <input type="text" value={newPoint} onChange={e => setNewPoint(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newPoint.trim()) { contentCustomized.current = true; setCustomContent(joinPoints([...parsedPoints, newPoint.trim()])); setNewPoint(""); } }}
                         className="flex-1 px-3 py-2 rounded-lg border text-[var(--foreground)] text-sm"
                         style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
                         placeholder="Escribe un punto y pulsa Enter o Añadir" />
-                      <button type="button" onClick={() => { if (!newPoint.trim()) return; contentCustomized.current = true; setCustomContent([...parsedPoints, newPoint.trim()].join("\n")); setNewPoint(""); }}
+                      <button type="button" onClick={() => { if (!newPoint.trim()) return; contentCustomized.current = true; setCustomContent(joinPoints([...parsedPoints, newPoint.trim()])); setNewPoint(""); }}
                         className="text-xs px-3 py-2 rounded-lg font-bold" style={{ background: "var(--brand-1)", color: "white" }}>Añadir</button>
                     </div>
                     <div className="space-y-2 max-h-56 overflow-y-auto bg-[var(--card)] rounded-lg p-3 border border-[var(--border)]">
@@ -585,10 +585,10 @@ function CaptacionLeadMagnetWizardInner() {
                       ) : parsedPoints.map((pt, idx) => (
                         <div key={idx} className="flex items-start gap-2 p-2 rounded hover:bg-[var(--border)]/20">
                           <div className="w-6 h-6 mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "rgba(57,161,169,0.2)", color: "var(--brand-1)", border: "1px solid var(--brand-1)" }}>{idx + 1}</div>
-                          <textarea value={pt} onChange={e => { const np = [...parsedPoints]; np[idx] = e.target.value; setCustomContent(np.join("\n")); }} rows={1}
+                          <textarea value={pt} onChange={e => { const np = [...parsedPoints]; np[idx] = e.target.value; setCustomContent(joinPoints(np)); }} rows={1}
                             className="flex-1 px-2 py-1 rounded bg-transparent border border-transparent hover:border-[var(--border)] text-[var(--foreground)] text-sm resize-none"
                             placeholder={`Punto ${idx + 1}...`} />
-                          <button type="button" onClick={() => setCustomContent(parsedPoints.filter((_, i) => i !== idx).join("\n"))}
+                          <button type="button" onClick={() => setCustomContent(joinPoints(parsedPoints.filter((_, i) => i !== idx)))}
                             className="text-xs text-red-400 hover:text-red-300 flex-shrink-0 mt-1">✕</button>
                         </div>
                       ))}

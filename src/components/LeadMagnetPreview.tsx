@@ -1,8 +1,28 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import { splitPoints } from "@/lib/leadmagnet-format";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
+
+// Renderiza **negrita** y saltos de línea dentro de un punto
+function RichText({ text }: { text: string }) {
+  const lines = text.split("\n");
+  return (
+    <>
+      {lines.map((line, li) => (
+        <React.Fragment key={li}>
+          {li > 0 && <br />}
+          {line.split(/(\*\*.+?\*\*)/g).map((part, pi) =>
+            part.startsWith("**") && part.endsWith("**")
+              ? <strong key={pi}>{part.slice(2, -2)}</strong>
+              : <React.Fragment key={pi}>{part}</React.Fragment>
+          )}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
 
 export interface LeadMagnetPreviewProps {
   businessName: string;
@@ -87,33 +107,27 @@ export function LeadMagnetPreview({
     if (type === "checklist") {
       return (
         <ul style={{ listStyle: "none", padding: 0 }}>
-          {customContent
-            .split("\n")
-            .filter((l) => l.trim())
-            .map((l, i) => (
-              <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "0.8rem" }}>
-                <span style={{ minWidth: "18px", height: "18px", border: `2px solid ${colorButton}`, borderRadius: "4px", display: "inline-block", marginTop: "3px" }} />
-                <span style={{ color: "#374151" }}>{l}</span>
-              </li>
-            ))}
+          {splitPoints(customContent).map((l, i) => (
+            <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "0.8rem" }}>
+              <span style={{ minWidth: "18px", height: "18px", border: `2px solid ${colorButton}`, borderRadius: "4px", display: "inline-block", marginTop: "3px" }} />
+              <span style={{ color: "#374151" }}><RichText text={l} /></span>
+            </li>
+          ))}
         </ul>
       );
     }
     if (type === "recomendacion") {
       return (
         <ol style={{ paddingLeft: "1.5rem", color: "#000000", listStyle: "decimal" }}>
-          {customContent
-            .split("\n")
-            .filter((l) => l.trim())
-            .map((l, i) => (
-              <li key={i} style={{ marginBottom: "1rem", paddingLeft: "10px", color: "#000000", listStylePosition: "inside" }}>
-                {l}
-              </li>
-            ))}
+          {splitPoints(customContent).map((l, i) => (
+            <li key={i} style={{ marginBottom: "1rem", paddingLeft: "10px", color: "#000000", listStylePosition: "inside" }}>
+              <RichText text={l} />
+            </li>
+          ))}
         </ol>
       );
     }
-    return <div style={{ whiteSpace: "pre-line", color: "#374151", lineHeight: 1.8 }}>{customContent}</div>;
+    return <div style={{ whiteSpace: "pre-line", color: "#374151", lineHeight: 1.8 }}><RichText text={customContent} /></div>;
   };
 
   const getTypeLabel = () => {

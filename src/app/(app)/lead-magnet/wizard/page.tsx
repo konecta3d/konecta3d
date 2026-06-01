@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
+import { splitPoints, joinPoints, stripBullet, pointToHtml } from "@/lib/leadmagnet-format";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
@@ -508,24 +509,20 @@ function LeadMagnetWizardInner() {
       }
     }
 
-    let contentHtml = customContent;
+    let contentHtml = pointToHtml(customContent);
     if (type === "checklist") {
-      contentHtml = customContent
-        .split("\n")
-        .filter((l) => l.trim())
+      contentHtml = splitPoints(customContent)
         .map(
           (l) =>
-            `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${l}</span></li>`
+            `<li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.8rem"><span style="min-width:18px;height:18px;border:2px solid ${colorButton};border-radius:4px;display:inline-block;margin-top:3px"></span><span>${pointToHtml(l)}</span></li>`
         )
         .join("");
       contentHtml = `<ul style="list-style:none;padding:0">${contentHtml}</ul>`;
     } else if (type === "recomendacion") {
-      contentHtml = customContent
-        .split("\n")
-        .filter((l) => l.trim())
+      contentHtml = splitPoints(customContent)
         .map(
           (l) =>
-            `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000;list-style-position:inside">${l}</li>`
+            `<li style="margin-bottom:1rem;padding-left:10px;list-style:decimal;color:#000000;list-style-position:inside">${pointToHtml(l)}</li>`
         )
         .join("");
       contentHtml = `<ol style="padding-left:1.5rem;color:#000000;list-style:decimal;">${contentHtml}</ol>`;
@@ -799,10 +796,7 @@ function LeadMagnetWizardInner() {
         );
 
       case "contenido": {
-        const contentPoints = customContent.split("\n").filter(l => l.trim());
-        const parsedPoints = contentPoints.map((point) =>
-          point.replace(/^(\d+[.)]) */, "").replace(/^[-•] */, "")
-        );
+        const parsedPoints = splitPoints(customContent).map(stripBullet);
 
         return (
           <div className="space-y-6">
@@ -858,9 +852,12 @@ function LeadMagnetWizardInner() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-2">
+                  <label className="block text-xs uppercase tracking-widest text-[#39a1a9] mb-1">
                     Contenido - Puntos (seleccionables)
                   </label>
+                  <p className="text-[11px] text-[var(--foreground)]/40 mb-2">
+                    Usa <span className="font-mono">**texto**</span> para poner una parte en <strong>negrita</strong>. Pulsa Enter dentro de un punto para escribir en un renglón más abajo.
+                  </p>
 
                   <div className="flex gap-2 mb-3">
                     <input
