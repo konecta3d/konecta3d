@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 import { sendLeadNotification, sendLeadDelivery } from "@/lib/email";
+import { addContactToGetResponse } from "@/lib/getresponse";
 
 function supabaseAdmin() {
   return createClient(
@@ -44,8 +45,10 @@ export async function POST(req: Request) {
   if (!campaign_id) {
     return NextResponse.json({ error: "campaign_id es obligatorio" }, { status: 400 });
   }
-  if (!phone?.trim()) {
-    return NextResponse.json({ error: "El teléfono es obligatorio" }, { status: 400 });
+  // Se requiere al menos un método de contacto (teléfono o email).
+  // Esto permite formularios que piden solo nombre + email.
+  if (!phone?.trim() && !email?.trim()) {
+    return NextResponse.json({ error: "Se requiere teléfono o email" }, { status: 400 });
   }
 
   const db = supabaseAdmin();
@@ -81,7 +84,7 @@ export async function POST(req: Request) {
       business_id: campaign.business_id,
       campaign_id,
       name: name?.trim() || null,
-      phone: phone.trim(),
+      phone: phone?.trim() || null,
       email: email?.trim() || null,
       company: company?.trim() || null,
       position: position?.trim() || null,
@@ -146,7 +149,7 @@ export async function POST(req: Request) {
         businessEmail: typedBiz.email,
         businessName: typedBiz.name ?? "Tu negocio",
         leadName: name?.trim() || null,
-        leadPhone: phone.trim(),
+        leadPhone: phone?.trim() || "",
         leadEmail: email?.trim() || null,
         campaignName: campaignTyped.name ?? "Campaña",
         capturedAt: new Date(),
@@ -166,6 +169,16 @@ export async function POST(req: Request) {
         resourceUrl: leadMagnetUrl,
         ctaText: leadMagnetData.cta_text ?? null,
       })
+    );
+  }
+
+  // 3. Sincronizar con GetResponse — solo para el negocio Konecta.
+  //    Al añadir el contacto a la campaña, GetResponse dispara el
+  //    autoresponder (primer email + secuencia) automáticamente.
+  const konectaBizId = process.env.KONECTA_BUSINESS_ID || "";
+  if (email?.trim() && konectaBizId && campaign.business_id === konectaBizId) {
+    emailTasks.push(
+      addContactToGetResponse(email.trim(), name?.trim() || null)
     );
   }
 
