@@ -5,9 +5,34 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
-  STAGES, STAGE_BY_KEY, getStage, getTimeStatus, TIME_STATUS_COLOR,
+  STAGES, getStage, getTimeStatus, TIME_STATUS_COLOR,
   PERFIL_INFO, FUENTES, SECTORES, ASIGNADOS, PERFILES,
 } from "@/lib/crm/stages";
+
+const TIPOS_ACTIVIDAD = [
+  { key: "llamada",   label: "Llamada" },
+  { key: "whatsapp",  label: "WhatsApp" },
+  { key: "email",     label: "Email" },
+  { key: "dm",        label: "DM" },
+  { key: "demo",      label: "Demo" },
+  { key: "propuesta", label: "Propuesta" },
+  { key: "feria",     label: "Feria" },
+];
+
+const RESULTADOS = [
+  { key: "muy_positivo", label: "Muy positivo", color: "#22c55e" },
+  { key: "positivo",     label: "Positivo",     color: "#84cc16" },
+  { key: "neutral",      label: "Neutral",      color: "#94a3b8" },
+  { key: "negativo",     label: "Negativo",     color: "#f97316" },
+  { key: "sin_respuesta",label: "Sin respuesta",color: "#ef4444" },
+];
+
+interface Activity {
+  id: string; tipo: string; realizado_por: string | null;
+  resultado: string | null; resumen: string | null;
+  siguiente_accion: string | null; fecha_siguiente_accion: string | null;
+  duracion_min: number | null; fecha: string;
+}
 
 interface Lead {
   id: string;
@@ -51,6 +76,7 @@ export default function LeadDetailPage() {
 
   const [lead, setLead] = useState<Lead | null>(null);
   const [history, setHistory] = useState<StageRecord[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -62,6 +88,7 @@ export default function LeadDetailPage() {
       const json = await res.json();
       if (json.lead) { setLead(json.lead); setForm(json.lead); }
       if (json.history) setHistory(json.history);
+      if (json.activities) setActivities(json.activities);
     } catch { /* silencioso */ }
     setLoading(false);
   };
@@ -243,6 +270,9 @@ export default function LeadDetailPage() {
               <Field label="Motivo de pérdida"><input className={inputCls} value={form.motivo_perdida ?? ""} onChange={e => set("motivo_perdida", e.target.value)} /></Field>
             )}
           </div>
+
+          {/* Actividad */}
+          <ActivitySection leadId={id} activities={activities} onChange={load} defaultPerson={lead.asignado_a} />
         </div>
 
         {/* ── Columna derecha: historial de tiempos ── */}
@@ -295,6 +325,126 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="block text-xs text-[var(--foreground)]/50 mb-1">{label}</label>
       {children}
+    </div>
+  );
+}
+
+// ─── Sección de actividad ─────────────────────────────────────────────────────
+
+function ActivitySection({
+  leadId, activities, onChange, defaultPerson,
+}: {
+  leadId: string; activities: Activity[]; onChange: () => void; defaultPerson: string | null;
+}) {
+  const [tipo, setTipo] = useState("llamada");
+  const [resultado, setResultado] = useState("positivo");
+  const [resumen, setResumen] = useState("");
+  const [siguienteAccion, setSiguienteAccion] = useState("");
+  const [fechaSiguiente, setFechaSiguiente] = useState("");
+  const [persona, setPersona] = useState(defaultPerson || "Miguel");
+  const [saving, setSaving] = useState(false);
+
+  const inputCls = "w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm";
+
+  const registrar = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/admin/crm/activities", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({
+          lead_id: leadId, tipo, resultado, resumen,
+          realizado_por: persona,
+          siguiente_accion: siguienteAccion || null,
+          fecha_siguiente_accion: fechaSiguiente || null,
+        }),
+      });
+      setResumen(""); setSiguienteAccion(""); setFechaSiguiente("");
+      onChange();
+    } catch { /* silencioso */ }
+    setSaving(false);
+  };
+
+  const borrar = async (id: string) => {
+    await fetch(`/api/admin/crm/activities/${id}`, { method: "DELETE", headers: await authHeaders() });
+    onChange();
+  };
+
+  const tipoLabel = (k: string) => TIPOS_ACTIVIDAD.find(t => t.key === k)?.label || k;
+  const resInfo = (k: string | null) => RESULTADOS.find(r => r.key === k);
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] p-5 space-y-4" style={{ background: "var(--card)" }}>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]/50">Actividad</h2>
+
+      {/* Registro rápido */}
+      <div className="rounded-lg border border-[var(--border)] p-3 space-y-2.5" style={{ background: "var(--background)" }}>
+        <div className="grid grid-cols-3 gap-2">
+          <select className={inputCls} value={tipo} onChange={e => setTipo(e.target.value)}>
+            {TIPOS_ACTIVIDAD.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+          </select>
+          <select className={inputCls} value={resultado} onChange={e => setResultado(e.target.value)}>
+            {RESULTADOS.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+          </select>
+          <select className={inputCls} value={persona} onChange={e => setPersona(e.target.value)}>
+            {ASIGNADOS.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <textarea className={inputCls + " resize-none"} rows={2} value={resumen}
+          onChange={e => setResumen(e.target.value)} placeholder="¿Qué pasó? ¿Qué se dijo?" />
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <input className={inputCls} value={siguienteAccion}
+            onChange={e => setSiguienteAccion(e.target.value)} placeholder="Próxima acción (opcional)" />
+          <input type="date" className={inputCls} value={fechaSiguiente}
+            onChange={e => setFechaSiguiente(e.target.value)} />
+        </div>
+        <button onClick={registrar} disabled={saving}
+          className="w-full py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
+          style={{ background: "var(--brand-1)", color: "white" }}>
+          {saving ? "Registrando…" : "Registrar actividad"}
+        </button>
+      </div>
+
+      {/* Historial de actividad */}
+      {activities.length === 0 ? (
+        <p className="text-xs text-[var(--foreground)]/30 text-center py-2">Sin actividad registrada todavía.</p>
+      ) : (
+        <div className="space-y-2">
+          {activities.map(a => {
+            const ri = resInfo(a.resultado);
+            return (
+              <div key={a.id} className="rounded-lg border border-[var(--border)] p-3 group" style={{ background: "var(--background)" }}>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold">{tipoLabel(a.tipo)}</span>
+                    {ri && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                        style={{ background: `${ri.color}22`, color: ri.color }}>
+                        {ri.label}
+                      </span>
+                    )}
+                    {a.realizado_por && <span className="text-[10px] text-[var(--foreground)]/40">{a.realizado_por}</span>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-[var(--foreground)]/30">
+                      {new Date(a.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <button onClick={() => borrar(a.id)}
+                      className="text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                  </div>
+                </div>
+                {a.resumen && <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">{a.resumen}</p>}
+                {a.siguiente_accion && (
+                  <p className="text-[11px] text-[var(--foreground)]/50 mt-1 border-t border-[var(--border)] pt-1">
+                    → {a.siguiente_accion}
+                    {a.fecha_siguiente_accion && ` · ${new Date(a.fecha_siguiente_accion).toLocaleDateString("es-ES")}`}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
