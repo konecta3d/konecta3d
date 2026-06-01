@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
-  ClientProfile, DEFAULT_CLIENT_PROFILE, PROFILE_LISTS, Objecion,
+  ClientProfile, DEFAULT_CLIENT_PROFILE, PROFILE_LISTS, Objecion, Solucion,
 } from "@/lib/crm/client-profile";
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -72,6 +72,55 @@ function ObjecionesEditor({ items, onChange }: { items: Objecion[]; onChange: (i
       <button onClick={() => onChange([...items, { objecion: "", respuesta: "" }])}
         className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">
         + Añadir objeción
+      </button>
+    </div>
+  );
+}
+
+// Editor del mapeo problema → beneficio → solución
+function SolucionesEditor({ items, onChange }: { items: Solucion[]; onChange: (items: Solucion[]) => void }) {
+  const set = (i: number, field: keyof Solucion, v: string) => {
+    const n = [...items]; n[i] = { ...n[i], [field]: v }; onChange(n);
+  };
+  return (
+    <div className="space-y-3">
+      {items.map((s, i) => (
+        <div key={i} className="rounded-lg border border-[var(--border)] p-3 group" style={{ background: "var(--background)" }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] uppercase tracking-wide text-[var(--foreground)]/40">Mapeo {i + 1}</span>
+            <button onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2 mb-2">
+            <div>
+              <label className="block text-[10px] text-red-400/70 mb-0.5">Problema</label>
+              <input value={s.problema} onChange={e => set(i, "problema", e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm" />
+            </div>
+            <div>
+              <label className="block text-[10px] text-green-500/70 mb-0.5">Beneficio Konecta</label>
+              <input value={s.beneficio} onChange={e => set(i, "beneficio", e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm" />
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-[auto_1fr] gap-2 items-start">
+            <select value={s.tipo} onChange={e => set(i, "tipo", e.target.value)}
+              className="px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-xs">
+              <option>Directo</option>
+              <option>Indirecto</option>
+              <option>Directo + Indirecto</option>
+            </select>
+            <div>
+              <textarea value={s.mensaje} onChange={e => set(i, "mensaje", e.target.value)} rows={1}
+                placeholder="Mensaje de solución (cómo se comunica)"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm resize-y" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button onClick={() => onChange([...items, { problema: "", beneficio: "", tipo: "Directo", mensaje: "" }])}
+        className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">
+        + Añadir mapeo
       </button>
     </div>
   );
@@ -192,6 +241,11 @@ export default function ClientProfilePage() {
         {/* Objeciones */}
         <Section title="Objeciones y respuestas" desc="Lo que frena la venta y cómo rebatirlo" count={profile.objeciones.length}>
           <ObjecionesEditor items={profile.objeciones} onChange={items => set({ objeciones: items })} />
+        </Section>
+
+        {/* Mapeo problema → beneficio → solución */}
+        <Section title="Problema → Beneficio → Solución" desc="Cómo cada problema del cliente se convierte en un beneficio de Konecta. La base de toda la comunicación." count={profile.soluciones.length}>
+          <SolucionesEditor items={profile.soluciones} onChange={items => set({ soluciones: items })} />
         </Section>
       </div>
     </div>

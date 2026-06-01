@@ -8,6 +8,13 @@ export interface Objecion {
   respuesta: string;
 }
 
+export interface Solucion {
+  problema: string;   // el problema del cliente
+  beneficio: string;  // el beneficio de Konecta que lo resuelve
+  tipo: string;       // Directo / Indirecto / Directo + Indirecto
+  mensaje: string;    // cómo se comunica como solución
+}
+
 export interface ClientProfile {
   nombre: string;
   descripcion: string;
@@ -19,6 +26,7 @@ export interface ClientProfile {
   miedos: string[];
   motivaciones: string[];
   objeciones: Objecion[];
+  soluciones: Solucion[];
   senales: string[];
 }
 
@@ -122,6 +130,19 @@ export const DEFAULT_CLIENT_PROFILE: ClientProfile = {
       objecion: "Ya tenemos un CRM / sistema",
       respuesta: "Perfecto, esto no lo reemplaza: lo alimenta. El llavero captura el contacto en la feria y tú lo vuelcas a tu sistema. Resolvemos justo el punto donde hoy perdéis a la gente.",
     },
+  ],
+
+  soluciones: [
+    { problema: "Pierde a quien pasa sin detenerse a hablar", beneficio: "Captura con un toque del llavero", tipo: "Directo", mensaje: "Cada persona que toca el llavero queda capturada, hables con ella o no." },
+    { problema: "No activa al lead en las primeras 48h", beneficio: "El contacto entra en el sistema al instante", tipo: "Directo", mensaje: "El lunes tienes los contactos listos para escribir, no buscándolos." },
+    { problema: "Tiene el contacto pero no el contexto", beneficio: "Formulario configurable", tipo: "Directo", mensaje: "Sabes qué le interesó, no solo su nombre." },
+    { problema: "No tiene activo digital post-feria", beneficio: "El llavero se queda con el cliente", tipo: "Directo + Indirecto", mensaje: "Tu marca sigue en su llavero cuando ya olvidó los demás stands." },
+    { problema: "No mide el ROI de cada feria", beneficio: "Dashboard con datos reales", tipo: "Directo", mensaje: "Ves exactamente cuántos leads dio cada feria." },
+    { problema: "Cuello de botella humano en el stand", beneficio: "Captura automática", tipo: "Directo", mensaje: "Capta aunque todo tu equipo esté ocupado con otra persona." },
+    { problema: "Depende del comercial estrella", beneficio: "Es un sistema, no una persona", tipo: "Indirecto", mensaje: "El sistema no se va cuando se va el comercial." },
+    { problema: "Miedo a parecer anticuado", beneficio: "Imagen tecnológica", tipo: "Indirecto", mensaje: "Eres el stand del que todos preguntan." },
+    { problema: "No tiene un proceso replicable", beneficio: "Mismo sistema cada feria", tipo: "Indirecto", mensaje: "Lo que funciona en una feria funciona en todas." },
+    { problema: "No puede justificar la inversión en ferias", beneficio: "Datos por evento", tipo: "Indirecto", mensaje: "Justificas cada euro de la feria con números." },
   ],
 
   senales: [
