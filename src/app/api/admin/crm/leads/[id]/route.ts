@@ -65,7 +65,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       "linkedin_url", "instagram_url", "score", "perfil", "fuente",
       "proxima_feria", "ferias_al_anio", "unidades_estimadas",
       "asignado_a", "ultimo_contacto", "proxima_accion",
-      "fecha_proxima_accion", "notas", "motivo_perdida",
+      "fecha_proxima_accion", "notas", "motivo_perdida", "business_id",
     ];
 
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() };

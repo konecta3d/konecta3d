@@ -47,6 +47,7 @@ interface Lead {
   proxima_accion: string | null; fecha_proxima_accion: string | null;
   notas: string | null; motivo_perdida: string | null;
   fecha_entrada: string; fecha_cierre: string | null;
+  business_id: string | null;
 }
 
 interface StageRecord {
@@ -123,6 +124,51 @@ export default function LeadDetailPage() {
     if (!confirm("¿Eliminar este lead permanentemente?")) return;
     await fetch(`/api/admin/crm/leads/${id}`, { method: "DELETE", headers: await authHeaders() });
     router.push("/admin/crm/pipeline");
+  };
+
+  // Conversión a negocio
+  const [converting, setConverting] = useState(false);
+  const [convertResult, setConvertResult] = useState<{ password: string | null; publicId: string } | null>(null);
+
+  const convertirEnNegocio = async () => {
+    if (!lead) return;
+    if (!lead.email) { alert("El lead necesita un email para crear el negocio."); return; }
+    if (!confirm(`¿Crear el negocio "${lead.empresa || lead.nombre}" en la plataforma? Se generará un acceso para el cliente.`)) return;
+
+    setConverting(true);
+    try {
+      const headers = await authHeaders();
+      // 1. Crear el negocio reutilizando el endpoint existente
+      const res = await fetch("/api/admin/create-business", {
+        method: "POST", headers,
+        body: JSON.stringify({
+          name: lead.empresa || lead.nombre,
+          email: lead.email,
+          phone: lead.telefono || "",
+          sector: lead.sector || "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert("Error al crear negocio: " + (data.error || "")); setConverting(false); return; }
+
+      // 2. Vincular el negocio al lead
+      await fetch(`/api/admin/crm/leads/${id}`, {
+        method: "PUT", headers,
+        body: JSON.stringify({ business_id: data.business.id }),
+      });
+
+      // 3. Mover el lead a cliente activo
+      await fetch(`/api/admin/crm/leads/${id}/move`, {
+        method: "POST", headers,
+        body: JSON.stringify({ etapa: "cliente_activo" }),
+      });
+
+      setConvertResult({ password: data.password, publicId: data.publicId });
+      load();
+    } catch {
+      alert("Error de red al convertir.");
+    }
+    setConverting(false);
   };
 
   if (loading) {
@@ -314,6 +360,42 @@ export default function LeadDetailPage() {
             {lead.fuente && <div className="flex justify-between"><span className="text-[var(--foreground)]/40">Fuente</span><span>{lead.fuente}</span></div>}
             {lead.fecha_cierre && <div className="flex justify-between"><span className="text-[var(--foreground)]/40">Cierre</span><span>{new Date(lead.fecha_cierre).toLocaleDateString("es-ES")}</span></div>}
           </div>
+
+          {/* Conversión a negocio — solo si ganado y aún no vinculado */}
+          {(lead.etapa === "ganado" || lead.etapa === "cliente_activo" || lead.etapa === "cliente_recurrente") && (
+            <div className="rounded-xl border border-green-500/30 p-5" style={{ background: "var(--card)" }}>
+              <h2 className="text-sm font-semibold text-green-500 mb-1">Convertir en negocio</h2>
+              {lead.business_id ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--foreground)]/50">Este lead ya está vinculado a un negocio en la plataforma.</p>
+                  <Link href={`/admin/businesses/${lead.business_id}`}
+                    className="inline-block text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">
+                    Ver negocio →
+                  </Link>
+                </div>
+              ) : convertResult ? (
+                <div className="space-y-2 text-xs">
+                  <p className="text-green-500 font-medium">Negocio creado correctamente.</p>
+                  <div className="rounded-lg border border-[var(--border)] p-2.5 space-y-1 font-mono" style={{ background: "var(--background)" }}>
+                    <div className="flex justify-between"><span className="text-[var(--foreground)]/40">ID público</span><span>{convertResult.publicId}</span></div>
+                    {convertResult.password && <div className="flex justify-between"><span className="text-[var(--foreground)]/40">Contraseña</span><span>{convertResult.password}</span></div>}
+                  </div>
+                  <p className="text-[10px] text-[var(--foreground)]/40">Guarda estas credenciales y envíaselas al cliente.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--foreground)]/50">
+                    Crea automáticamente el negocio en la plataforma con los datos de este lead (empresa, email, teléfono, sector) y genera su acceso.
+                  </p>
+                  <button onClick={convertirEnNegocio} disabled={converting}
+                    className="w-full py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
+                    style={{ background: "#22c55e", color: "white" }}>
+                    {converting ? "Creando negocio…" : "Convertir en negocio"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
