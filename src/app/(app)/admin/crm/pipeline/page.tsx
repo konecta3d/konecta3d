@@ -53,22 +53,27 @@ function LeadCard({ lead, onMove }: { lead: Lead; onMove: (id: string, etapa: St
 
   return (
     <div
-      className="rounded-lg border border-[var(--border)] p-3 space-y-2"
+      className="rounded-lg border border-[var(--border)] p-2 space-y-1.5"
       style={{ background: "var(--card)" }}
     >
       <Link href={`/admin/crm/pipeline/${lead.id}`} className="block group">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-[var(--foreground)] truncate group-hover:underline">
+        <div className="flex items-start justify-between gap-1.5">
+          <div className="min-w-0 flex items-center gap-1.5">
+            {/* Semáforo como punto inicial */}
+            {time.status !== "none" && (
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: TIME_STATUS_COLOR[time.status] }}
+                title={time.days === 0 ? "Hoy" : `${time.days} días en etapa`}
+              />
+            )}
+            <p className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:underline leading-tight">
               {lead.nombre}
             </p>
-            {lead.empresa && (
-              <p className="text-xs text-[var(--foreground)]/50 truncate">{lead.empresa}</p>
-            )}
           </div>
           {perfil && (
             <span
-              className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+              className="text-[9px] font-bold px-1 py-0.5 rounded-full flex-shrink-0 leading-none"
               style={{ background: `${perfil.color}22`, color: perfil.color }}
               title={`Perfil ${lead.perfil} — ${perfil.label}`}
             >
@@ -78,52 +83,37 @@ function LeadCard({ lead, onMove }: { lead: Lead; onMove: (id: string, etapa: St
         </div>
       </Link>
 
-      {/* Semáforo de tiempo */}
-      {time.status !== "none" && (
-        <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ background: TIME_STATUS_COLOR[time.status] }}
-          />
-          <span className="text-[11px] text-[var(--foreground)]/50">
-            {time.days === 0 ? "Hoy" : `${time.days} ${time.days === 1 ? "día" : "días"} en etapa`}
-          </span>
-        </div>
+      {lead.empresa && (
+        <p className="text-[10px] text-[var(--foreground)]/50 truncate">{lead.empresa}</p>
       )}
 
-      {/* Metadatos */}
-      <div className="flex flex-wrap gap-1.5 text-[10px]">
+      {/* Metadatos compactos */}
+      <div className="flex flex-wrap gap-1 text-[9px]">
         {lead.asignado_a && (
-          <span className="px-1.5 py-0.5 rounded bg-[var(--border)]/40 text-[var(--foreground)]/60">
+          <span className="px-1 py-0.5 rounded bg-[var(--border)]/40 text-[var(--foreground)]/60 leading-none">
             {lead.asignado_a}
           </span>
         )}
         {lead.proxima_feria && (
-          <span className="px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-500">
-            Feria {new Date(lead.proxima_feria).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+          <span className="px-1 py-0.5 rounded bg-amber-400/15 text-amber-500 leading-none">
+            {new Date(lead.proxima_feria).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
           </span>
         )}
         {lead.revenue_estimado > 0 && (
-          <span className="px-1.5 py-0.5 rounded bg-green-500/15 text-green-500">
-            {lead.revenue_estimado.toLocaleString("es-ES")}€
+          <span className="px-1 py-0.5 rounded bg-green-500/15 text-green-500 leading-none">
+            {(lead.revenue_estimado / 1000).toFixed(lead.revenue_estimado >= 1000 ? 1 : 0)}
+            {lead.revenue_estimado >= 1000 ? "k" : ""}€
           </span>
         )}
       </div>
 
-      {/* Próxima acción */}
-      {lead.proxima_accion && (
-        <p className="text-[11px] text-[var(--foreground)]/60 border-t border-[var(--border)] pt-1.5">
-          → {lead.proxima_accion}
-        </p>
-      )}
-
       {/* Mover entre etapas */}
-      <div className="flex items-center justify-between gap-1 pt-1">
+      <div className="flex items-center justify-between gap-1">
         <button
           type="button"
           disabled={!prevStage}
           onClick={() => prevStage && onMove(lead.id, prevStage.key)}
-          className="flex-1 text-[10px] py-1 rounded border border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 disabled:opacity-20 transition-colors"
+          className="flex-1 text-[10px] py-0.5 rounded border border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 disabled:opacity-20 transition-colors leading-none"
           title={prevStage ? `Mover a ${prevStage.label}` : ""}
         >
           ‹
@@ -132,7 +122,7 @@ function LeadCard({ lead, onMove }: { lead: Lead; onMove: (id: string, etapa: St
           type="button"
           disabled={!nextStage}
           onClick={() => nextStage && onMove(lead.id, nextStage.key)}
-          className="flex-1 text-[10px] py-1 rounded border border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 disabled:opacity-20 transition-colors"
+          className="flex-1 text-[10px] py-0.5 rounded border border-[var(--border)] text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--border)]/20 disabled:opacity-20 transition-colors leading-none"
           title={nextStage ? `Mover a ${nextStage.label}` : ""}
         >
           ›
@@ -368,26 +358,27 @@ export default function CrmPipelinePage() {
         ))}
       </div>
 
-      {/* Kanban */}
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-3" style={{ minWidth: "min-content" }}>
+      {/* Kanban — en pantallas grandes reparte el ancho (sin scroll);
+          en pequeñas hace scroll horizontal con ancho mínimo por columna */}
+      <div className="overflow-x-auto xl:overflow-x-visible pb-4">
+        <div className="flex gap-2">
           {PIPELINE_COLUMNS.map(stageKey => {
             const stage = STAGE_BY_KEY[stageKey];
             const items = byStage(stageKey);
             return (
-              <div key={stageKey} className="flex-shrink-0 w-64">
+              <div key={stageKey} className="flex-shrink-0 w-44 xl:flex-1 xl:w-auto xl:min-w-0">
                 {/* Cabecera de columna */}
-                <div className="flex items-center justify-between mb-2 px-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: stage.color }} />
-                    <span className="text-xs font-semibold text-[var(--foreground)]/70">{stage.label}</span>
+                <div className="flex items-center justify-between mb-2 px-0.5 gap-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: stage.color }} />
+                    <span className="text-[11px] font-semibold text-[var(--foreground)]/70 truncate">{stage.label}</span>
                   </div>
-                  <span className="text-xs text-[var(--foreground)]/30">{items.length}</span>
+                  <span className="text-[11px] text-[var(--foreground)]/30 flex-shrink-0">{items.length}</span>
                 </div>
                 {/* Tarjetas */}
-                <div className="space-y-2 rounded-xl p-2 min-h-[120px]" style={{ background: "var(--background)" }}>
+                <div className="space-y-1.5 rounded-xl p-1.5 min-h-[120px]" style={{ background: "var(--background)" }}>
                   {items.length === 0 ? (
-                    <p className="text-[11px] text-[var(--foreground)]/25 text-center py-4">Sin leads</p>
+                    <p className="text-[10px] text-[var(--foreground)]/25 text-center py-4">—</p>
                   ) : (
                     items.map(lead => <LeadCard key={lead.id} lead={lead} onMove={move} />)
                   )}
