@@ -43,6 +43,12 @@ export async function POST(req: Request) {
       if (fields[field] !== undefined) coreUpdate[field] = fields[field];
     }
 
+    // Normalizar el email a minúsculas: debe coincidir con el email de Supabase
+    // Auth (que siempre es minúsculas) o las consultas por contact_email fallan.
+    if (typeof coreUpdate.contact_email === "string") {
+      coreUpdate.contact_email = coreUpdate.contact_email.trim().toLowerCase();
+    }
+
     // Construir update opcional (columnas post-migración)
     const optionalUpdate: Record<string, unknown> = {};
     for (const field of OPTIONAL_FIELDS) {

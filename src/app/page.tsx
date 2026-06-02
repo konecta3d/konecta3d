@@ -45,18 +45,19 @@ export default function BusinessLoginPage() {
 
     setLoading(true);
 
-    let email = identifier.trim();
-
-    // Resolver identificador → email
-    if (identifier.startsWith("K3D-")) {
-      const { data } = await supabase.from("businesses").select("contact_email").eq("public_id", identifier).single();
-      email = data?.contact_email || "";
-    } else if (/^\+?[\d\s-]{9,}$/.test(identifier.replace(/\s/g, ""))) {
-      const { data } = await supabase.from("businesses").select("contact_email").eq("phone", identifier.replace(/\s/g, "")).single();
-      email = data?.contact_email || "";
-    } else if (!identifier.includes("@")) {
-      const { data } = await supabase.from("businesses").select("contact_email").eq("slug", identifier.toLowerCase().replace(/\s+/g, "-")).single();
-      email = data?.contact_email || "";
+    // Resolver identificador → email server-side (la RLS bloquea la lectura
+    // sin sesión, así que no se puede consultar businesses desde el cliente aquí).
+    let email = "";
+    try {
+      const res = await fetch("/api/auth/resolve-identifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: identifier.trim() }),
+      });
+      const data = await res.json();
+      email = data.email || "";
+    } catch {
+      email = "";
     }
 
     if (!email) {

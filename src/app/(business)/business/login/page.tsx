@@ -22,38 +22,19 @@ export default function BusinessLogin() {
       return;
     }
 
-    let email = identifier.trim();
-    
-    // Verificar si es un ID de negocio (K3D-xxx)
-    if (identifier.startsWith("K3D-")) {
-      const { data } = await supabase
-        .from("businesses")
-        .select("contact_email")
-        .eq("public_id", identifier)
-        .single();
-      email = data?.contact_email || "";
-    }
-    // Verificar si es un número de teléfono
-    else if (/^\+?[\d\s-]{9,}$/.test(identifier.replace(/\s/g, ""))) {
-      const { data } = await supabase
-        .from("businesses")
-        .select("contact_email")
-        .eq("phone", identifier.replace(/\s/g, ""))
-        .single();
-      email = data?.contact_email || "";
-    }
-    // Si no tiene @, podría ser un email parcial - buscar por nombre
-    else if (!identifier.includes("@")) {
-      const { data } = await supabase
-        .from("businesses")
-        .select("contact_email")
-        .eq("slug", identifier.toLowerCase().replace(/\s+/g, "-"))
-        .single();
-      email = data?.contact_email || "";
-    }
-    // Otherwise assume it's an email
-    else {
-      email = identifier;
+    // Resolver identificador → email server-side (la RLS bloquea la lectura
+    // de businesses sin sesión activa).
+    let email = "";
+    try {
+      const res = await fetch("/api/auth/resolve-identifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: identifier.trim() }),
+      });
+      const data = await res.json();
+      email = data.email || "";
+    } catch {
+      email = "";
     }
 
     if (!email) {
