@@ -12,14 +12,17 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, email, phone, sector, password, module_vip_benefits, module_lead_magnet, module_whatsapp } = body;
+    const { name, phone, sector, password, module_vip_benefits, module_lead_magnet, module_whatsapp } = body;
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
     }
-    if (!email?.trim()) {
+    if (!body.email?.trim()) {
       return NextResponse.json({ error: "El email es obligatorio" }, { status: 400 });
     }
+    // Normalizar el email a minúsculas: Supabase Auth lo guarda en minúsculas,
+    // así que contact_email debe coincidir o las consultas por email fallan.
+    const email = body.email.trim().toLowerCase();
     // Si no se envía password, se genera uno automáticamente
     const finalPassword = password?.trim() && password.trim().length >= 6
       ? password.trim()

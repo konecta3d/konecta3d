@@ -115,11 +115,23 @@ function SelectProfileContent() {
       const paramId = searchParams.get("businessId");
       if (paramId) { setBusinessId(paramId); return; }
       const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email || "";
-      if (!userEmail) { setBusinessId(""); return; }
-      const { data: biz } = await supabase
-        .from("businesses").select("id").eq("contact_email", userEmail).single();
-      setBusinessId(biz?.id || "");
+      const user = sessionData?.session?.user;
+      if (!user) { setBusinessId(""); return; }
+
+      // Buscar por user_id — coincide con la política RLS y evita problemas
+      // de mayúsculas/minúsculas en el email.
+      const byUid = await supabase
+        .from("businesses").select("id").eq("user_id", user.id).maybeSingle();
+      let bizId = byUid.data?.id || "";
+
+      // Fallback: por email sin distinguir mayúsculas (negocios antiguos)
+      if (!bizId && user.email) {
+        const byEmail = await supabase
+          .from("businesses").select("id").ilike("contact_email", user.email).maybeSingle();
+        bizId = byEmail.data?.id || "";
+      }
+
+      setBusinessId(bizId);
     };
     load();
   }, [searchParams]);
