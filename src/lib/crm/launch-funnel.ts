@@ -40,6 +40,7 @@ export interface LaunchStage {
   objetivos: FunnelObjective[];
   mensajes: FunnelMessage[];
   documentos: FunnelDoc[];
+  tiposInsight: string[];   // categorías de info a recoger relevantes en esta etapa
   fases?: FunnelPhase[];
 }
 
@@ -47,12 +48,23 @@ export interface LaunchFunnel {
   stages: LaunchStage[];
 }
 
+// Catálogo completo de tipos de información a recoger del cliente
+export const TIPOS_INSIGHT = [
+  "Objeción", "Motivación de compra", "Señal de compra", "Sensibilidad al precio",
+  "Competencia/alternativa", "Necesidad detectada", "Deseo", "Problema/dolor",
+  "Contexto del negocio", "Urgencia/plazos", "Feedback de producto",
+  "Petición de función", "Punto de fricción", "Bug/problema técnico",
+  "Pregunta frecuente", "Caso de uso", "Resultado/logro", "Referido potencial",
+  "Riesgo de abandono", "Elogio/satisfacción",
+];
+
 export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
   stages: [
     {
       id: 1, nombre: "Presentación",
       proposito: "Primer contacto: reconectar, despertar interés y recoger datos.",
       color: "#0ea5e9",
+      tiposInsight: ["Objeción", "Contexto del negocio", "Urgencia/plazos", "Necesidad detectada", "Motivación de compra"],
       objetivos: [
         { id: "e1o1", titulo: "Abrir la conversación y reconectar", check: "El negocio responde mostrando interés" },
         { id: "e1o2", titulo: "Que entienda qué es y sus beneficios", check: "Ha visto la información o agendó una llamada" },
@@ -73,6 +85,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 2, nombre: "Onboarding",
       proposito: "Dejar la plataforma operativa, paso a paso (5 fases). Landing que capta, lista para activar.",
       color: "#38bdf8",
+      tiposInsight: ["Punto de fricción", "Pregunta frecuente", "Petición de función", "Bug/problema técnico", "Feedback de producto"],
       objetivos: [
         { id: "e2o1", titulo: "Completar las 5 fases del onboarding", check: "Las 5 fases completadas y verificadas" },
       ],
@@ -102,6 +115,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 3, nombre: "Activación",
       proposito: "Cambiar el link del llavero actual por la URL de la nueva landing.",
       color: "#2dd4bf",
+      tiposInsight: ["Bug/problema técnico", "Punto de fricción", "Feedback de producto"],
       objetivos: [
         { id: "e3o1", titulo: "Cambiar el link del llavero", check: "El link del llavero apunta a la nueva landing" },
         { id: "e3o2", titulo: "Verificar el llavero físico", check: "El llavero abre la landing correcta" },
@@ -118,6 +132,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 4, nombre: "Uso y resultados",
       proposito: "Que use la plataforma en real y vea sus KPIs. Aquí ocurre el autoconvencimiento.",
       color: "#34d399",
+      tiposInsight: ["Resultado/logro", "Feedback de producto", "Caso de uso", "Elogio/satisfacción", "Punto de fricción"],
       objetivos: [
         { id: "e4o1", titulo: "Que la use en una situación real", check: "Hay actividad / contactos captados reales" },
         { id: "e4o2", titulo: "Que vea y entienda sus resultados", check: "Ha revisado su dashboard" },
@@ -137,6 +152,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 5, nombre: "Expansión",
       proposito: "Que compre un lote de llaveros para su próxima feria. Ingreso principal.",
       color: "#a3e635",
+      tiposInsight: ["Señal de compra", "Sensibilidad al precio", "Objeción", "Urgencia/plazos"],
       objetivos: [
         { id: "e5o1", titulo: "Detectar la necesidad", check: "Sé su próxima feria y cuántos llaveros necesita" },
         { id: "e5o2", titulo: "Enviar presupuesto del lote", check: "Presupuesto enviado" },
@@ -156,6 +172,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 6, nombre: "Conversión a pago",
       proposito: "Pasar del MVP gratis a la suscripción de la plataforma.",
       color: "#facc15",
+      tiposInsight: ["Objeción", "Sensibilidad al precio", "Señal de compra", "Competencia/alternativa", "Riesgo de abandono"],
       objetivos: [
         { id: "e6o1", titulo: "Presentar la oferta", check: "Oferta enviada" },
         { id: "e6o2", titulo: "Resolver dudas y objeciones", check: "Dudas resueltas" },
@@ -174,6 +191,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       id: 7, nombre: "Fidelización",
       proposito: "Retener, dar soporte, conseguir referidos y recurrencia.",
       color: "#8b5cf6",
+      tiposInsight: ["Referido potencial", "Riesgo de abandono", "Resultado/logro", "Elogio/satisfacción", "Petición de función"],
       objetivos: [
         { id: "e7o1", titulo: "Mantener contacto y soporte", check: "Contacto periódico activo" },
         { id: "e7o2", titulo: "Conseguir referidos", check: "Al menos un referido pedido" },
