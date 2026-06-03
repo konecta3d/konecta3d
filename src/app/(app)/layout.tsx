@@ -59,6 +59,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Diseñador de recorridos", href: "/admin/crm/recorridos", category: "Estrategia" },
   { label: "Recorrido del cliente", href: "/admin/crm/recorrido-cliente", category: "Estrategia" },
   { label: "Seguimiento de clientes", href: "/admin/crm/seguimiento", category: "Estrategia" },
+  { label: "Panel de lanzamiento", href: "/admin/crm/panel-lanzamiento", category: "Estrategia" },
   { label: "Pipeline de ventas", href: "/admin/crm/pipeline", category: "CRM Comercial" },
   { label: "Agenda", href: "/admin/crm/agenda", category: "CRM Comercial" },
   { label: "Tareas", href: "/admin/crm/tareas", category: "CRM Comercial" },
