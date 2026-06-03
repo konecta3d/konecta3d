@@ -22,7 +22,23 @@ export async function GET(req: Request) {
     const { data } = await db.from("settings").select("value").eq("key", KEY).single();
     if (data?.value) {
       const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-      return NextResponse.json({ funnel: parsed });
+      // Normalizar: garantizar que cada etapa tiene todos los arrays.
+      // Protege frente a funnels guardados antes de añadir campos nuevos
+      // (p. ej. tiposInsight), que de otro modo romperían el render.
+      const stages = Array.isArray(parsed?.stages) ? parsed.stages : DEFAULT_LAUNCH_FUNNEL.stages;
+      const normalized = {
+        stages: stages.map((s: Record<string, unknown>) => {
+          const def = DEFAULT_LAUNCH_FUNNEL.stages.find(d => d.id === s.id);
+          return {
+            ...s,
+            objetivos:    Array.isArray(s.objetivos) ? s.objetivos : [],
+            mensajes:     Array.isArray(s.mensajes) ? s.mensajes : [],
+            documentos:   Array.isArray(s.documentos) ? s.documentos : [],
+            tiposInsight: Array.isArray(s.tiposInsight) ? s.tiposInsight : (def?.tiposInsight ?? []),
+          };
+        }),
+      };
+      return NextResponse.json({ funnel: normalized });
     }
     return NextResponse.json({ funnel: DEFAULT_LAUNCH_FUNNEL });
   } catch {

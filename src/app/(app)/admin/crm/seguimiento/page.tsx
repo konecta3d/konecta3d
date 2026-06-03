@@ -141,9 +141,11 @@ export default function SeguimientoPage() {
     </div>;
   }
 
-  const stage: LaunchStage | undefined = funnel.stages.find(s => s.id === stageView);
-  const stageName = (n: number) => funnel.stages.find(s => s.id === n)?.nombre || `Etapa ${n}`;
-  const objsCumplidosEtapa = stage ? stage.objetivos.filter(o => journey?.objetivos_cumplidos.includes(o.id)).length : 0;
+  const stages = Array.isArray(funnel?.stages) ? funnel.stages : [];
+  const stage: LaunchStage | undefined = stages.find(s => s.id === stageView);
+  const stageName = (n: number) => stages.find(s => s.id === n)?.nombre || `Etapa ${n}`;
+  const cumplidos = journey?.objetivos_cumplidos || [];
+  const objsCumplidosEtapa = stage ? (stage.objetivos || []).filter(o => cumplidos.includes(o.id)).length : 0;
 
   return (
     <div className="max-w-[1100px] mx-auto pb-12">
@@ -188,7 +190,7 @@ export default function SeguimientoPage() {
             {journeys.length === 0 ? (
               <p className="text-xs text-[var(--foreground)]/30 text-center py-6">Sin negocios en seguimiento.</p>
             ) : journeys.map(j => {
-              const st = funnel.stages.find(s => s.id === j.etapa_actual);
+              const st = stages.find(s => s.id === j.etapa_actual);
               return (
                 <button key={j.id} onClick={() => openJourney(j.id)}
                   className={`w-full text-left px-3 py-2.5 border-b border-[var(--border)] transition-colors ${selId === j.id ? "bg-[var(--brand-1)]/10" : "hover:bg-[var(--border)]/10"}`}>
@@ -221,7 +223,7 @@ export default function SeguimientoPage() {
 
             {/* Flujo de etapas */}
             <div className="flex items-center gap-1 overflow-x-auto pb-2">
-              {funnel.stages.map((s, i) => (
+              {stages.map((s, i) => (
                 <div key={s.id} className="flex items-center flex-shrink-0">
                   <button onClick={() => setStageView(s.id)}
                     className="flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors"
@@ -233,7 +235,7 @@ export default function SeguimientoPage() {
                     <span className="text-[10px] font-semibold whitespace-nowrap">{s.nombre}</span>
                     {journey.etapa_actual === s.id && <span className="text-[8px] text-[var(--foreground)]/40">●</span>}
                   </button>
-                  {i < funnel.stages.length - 1 && <span className="text-[var(--foreground)]/20 mx-0.5 text-xs">→</span>}
+                  {i < stages.length - 1 && <span className="text-[var(--foreground)]/20 mx-0.5 text-xs">→</span>}
                 </div>
               ))}
             </div>
@@ -252,11 +254,11 @@ export default function SeguimientoPage() {
                 <div className="rounded-xl border border-[var(--border)] p-4" style={{ background: "var(--card)" }}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-bold">Objetivos</h3>
-                    <span className="text-xs text-[var(--foreground)]/40">{objsCumplidosEtapa}/{stage.objetivos.length} cumplidos</span>
+                    <span className="text-xs text-[var(--foreground)]/40">{objsCumplidosEtapa}/{(stage.objetivos || []).length} cumplidos</span>
                   </div>
                   <div className="space-y-1.5">
-                    {stage.objetivos.map(o => {
-                      const done = journey.objetivos_cumplidos.includes(o.id);
+                    {(stage.objetivos || []).map(o => {
+                      const done = (journey.objetivos_cumplidos || []).includes(o.id);
                       return (
                         <button key={o.id} onClick={() => toggleObjetivo(o.id)}
                           className="w-full flex items-start gap-2.5 text-left p-2 rounded-lg hover:bg-[var(--border)]/10 transition-colors">
@@ -274,11 +276,11 @@ export default function SeguimientoPage() {
                 </div>
 
                 {/* Mensajes (copiar) */}
-                {stage.mensajes.length > 0 && (
+                {(stage.mensajes || []).length > 0 && (
                   <div className="rounded-xl border border-[var(--border)] p-4" style={{ background: "var(--card)" }}>
                     <h3 className="text-sm font-bold mb-2">Mensajes de esta etapa</h3>
                     <div className="space-y-1.5">
-                      {stage.mensajes.map(m => (
+                      {(stage.mensajes || []).map(m => (
                         <div key={m.id} className="flex items-center justify-between gap-2 rounded-lg border border-[var(--border)] px-3 py-2" style={{ background: "var(--background)" }}>
                           <span className="text-xs text-[var(--foreground)]/70 truncate">{m.titulo}</span>
                           <button onClick={() => copy(m.contenido)} className="text-[11px] px-2 py-1 rounded border border-[var(--brand-1)]/40 text-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors flex-shrink-0">Copiar</button>
@@ -295,7 +297,7 @@ export default function SeguimientoPage() {
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     <select value={insTipo} onChange={e => setInsTipo(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm">
                       <option value="">Tipo…</option>
-                      {stage.tiposInsight.map(t => <option key={t} value={t}>{t}</option>)}
+                      {(stage.tiposInsight || []).map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                     <input value={insContenido} onChange={e => setInsContenido(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && addInsight()}
