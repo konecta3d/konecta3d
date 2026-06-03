@@ -12,9 +12,11 @@ async function authHeaders(): Promise<HeadersInit> {
 
 interface Journey {
   id: string; nombre: string; etapa_actual: number;
+  business_id: string | null;
   objetivos_cumplidos: string[];
   siguiente_accion: string | null; fecha_proxima_accion: string | null; notas: string | null;
 }
+interface Business { id: string; name: string; }
 interface Insight {
   id: string; etapa_id: number | null; tipo: string; contenido: string | null; fecha: string;
 }
@@ -28,6 +30,8 @@ export default function SeguimientoPage() {
   const [stageView, setStageView] = useState(1);
   const [loading, setLoading] = useState(true);
   const [nuevoNombre, setNuevoNombre] = useState("");
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selBizId, setSelBizId] = useState("");
 
   // Form de insight
   const [insTipo, setInsTipo] = useState("");
@@ -42,9 +46,15 @@ export default function SeguimientoPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [fRes] = await Promise.all([fetch("/api/admin/crm/launch-funnel", { headers: await authHeaders() })]);
+        const headers = await authHeaders();
+        const [fRes, bRes] = await Promise.all([
+          fetch("/api/admin/crm/launch-funnel", { headers }),
+          fetch("/api/admin/businesses", { headers }),
+        ]);
         const fJson = await fRes.json();
         if (fJson.funnel) setFunnel(fJson.funnel);
+        const bJson = await bRes.json();
+        if (bJson.businesses) setBusinesses(bJson.businesses.map((b: { id: string; name: string }) => ({ id: b.id, name: b.name })));
         await loadJourneys();
       } catch { /* silencioso */ }
       setLoading(false);
@@ -67,6 +77,20 @@ export default function SeguimientoPage() {
     const res = await fetch("/api/admin/crm/journey", { method: "POST", headers: await authHeaders(), body: JSON.stringify({ nombre: nuevoNombre.trim() }) });
     const json = await res.json();
     setNuevoNombre("");
+    await loadJourneys();
+    if (json.journey) openJourney(json.journey.id);
+  };
+
+  const addFromBusiness = async () => {
+    if (!selBizId) return;
+    const biz = businesses.find(b => b.id === selBizId);
+    if (!biz) return;
+    const res = await fetch("/api/admin/crm/journey", {
+      method: "POST", headers: await authHeaders(),
+      body: JSON.stringify({ nombre: biz.name, business_id: biz.id }),
+    });
+    const json = await res.json();
+    setSelBizId("");
     await loadJourneys();
     if (json.journey) openJourney(json.journey.id);
   };
@@ -135,13 +159,29 @@ export default function SeguimientoPage() {
 
         {/* Lista de negocios */}
         <div className="rounded-xl border border-[var(--border)] overflow-hidden lg:sticky lg:top-6" style={{ background: "var(--card)" }}>
-          <div className="p-3 border-b border-[var(--border)]">
+          <div className="p-3 border-b border-[var(--border)] space-y-2">
+            {/* Añadir un negocio existente de la plataforma */}
+            {(() => {
+              const enSeguimiento = new Set(journeys.map(j => j.business_id).filter(Boolean));
+              const disponibles = businesses.filter(b => !enSeguimiento.has(b.id));
+              return (
+                <div className="flex gap-1.5">
+                  <select value={selBizId} onChange={e => setSelBizId(e.target.value)}
+                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm">
+                    <option value="">Añadir un negocio…</option>
+                    {disponibles.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                  <button onClick={addFromBusiness} disabled={!selBizId} className="px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-40" style={{ background: "var(--brand-1)", color: "white" }}>+</button>
+                </div>
+              );
+            })()}
+            {/* O añadir un prospecto suelto que aún no es negocio */}
             <div className="flex gap-1.5">
               <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addJourney()}
-                placeholder="Nombre del negocio…"
+                placeholder="O un prospecto nuevo…"
                 className="flex-1 px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm" />
-              <button onClick={addJourney} className="px-3 py-1.5 rounded-lg text-sm font-semibold" style={{ background: "var(--brand-1)", color: "white" }}>+</button>
+              <button onClick={addJourney} className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-[var(--border)] text-[var(--foreground)]/60" title="Añadir prospecto manual">+</button>
             </div>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
