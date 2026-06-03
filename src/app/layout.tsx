@@ -9,8 +9,40 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Konecta3D Platform",
-  description: "Herramientas de fidelización post-compra",
+  metadataBase: new URL("https://app.konecta3d.com"),
+  title: {
+    default: "Konecta3D — Presencia digital y captación de leads para negocios locales",
+    template: "%s | Konecta3D",
+  },
+  description:
+    "Konecta3D convierte cada contacto en un cliente: presencia digital, captación de leads y fidelización para negocios locales, activado con un llavero NFC.",
+  keywords: [
+    "Konecta3D",
+    "llavero NFC",
+    "captación de leads",
+    "presencia digital",
+    "negocios locales",
+    "marketing para ferias",
+    "fidelización de clientes",
+  ],
+  applicationName: "Konecta3D",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://app.konecta3d.com",
+    siteName: "Konecta3D",
+    title: "Konecta3D — Presencia digital y captación de leads",
+    description:
+      "Convierte cada contacto en un cliente. Presencia digital, captación de leads y fidelización para negocios locales, activado con un llavero NFC.",
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-icon.ico",

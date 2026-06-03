@@ -38,7 +38,9 @@ export async function middleware(req: NextRequest) {
   // La ruta de login del negocio no se protege
   if (pathname === "/business/login") return NextResponse.next();
 
-  const res = NextResponse.next();
+  // Respuesta mutable: cuando Supabase refresca el token, reescribe las cookies
+  // aquí para que la sesión se mantenga viva entre pestañas y recargas.
+  let res = NextResponse.next({ request: req });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,18 +51,22 @@ export async function middleware(req: NextRequest) {
           return req.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            req.cookies.set(name, value);
-            res.cookies.set(name, value, options);
-          });
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          res = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options)
+          );
         },
       },
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  // getUser() revalida el token contra Supabase y, si hace falta, lo refresca
+  // y reescribe las cookies (vía setAll). getSession() no hace esto en servidor,
+  // por eso una pestaña nueva podía acabar pidiendo login de nuevo.
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     // Si viene de /business/*, redirigir a login de negocio
     if (pathname.startsWith("/business")) {
       return NextResponse.redirect(new URL("/business/login", req.url));
