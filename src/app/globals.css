@@ -254,8 +254,8 @@ input[type="range"]::-moz-range-thumb {
 :not(.dark) .bg-\[var\(--brand-1\)\].text-white,
 :not(.dark) .bg-\[var\(--brand-1\)\] .text-white,
 :not(.dark) .from-\[var\(--brand-1\)\] .text-white,
-:not(.dark) .from-\[#0a323c\] .text-white,
-:not(.dark) .from-\[#001e3c\] .text-white {
+:not(.dark) .from-\[\#0a323c\] .text-white,
+:not(.dark) .from-\[\#001e3c\] .text-white {
   color: #ffffff;
 }
 /* Inline style con var(--brand-1) en el fondo → preservar texto blanco */

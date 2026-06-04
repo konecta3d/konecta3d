@@ -44,8 +44,12 @@ export const metadata: Metadata = {
       "Convierte cada contacto en un cliente. Presencia digital, captación de leads y fidelización para negocios locales, activado con un llavero NFC.",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
     apple: "/apple-icon.ico",
+    shortcut: "/favicon.ico",
   },
 };
 
