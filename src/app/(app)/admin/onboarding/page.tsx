@@ -49,7 +49,7 @@ type Business = {
 const DEFAULT_TEMPLATE: OnboardingTemplate = {
   header_subtitle: "Tu presencia digital está lista. Sigue los 3 pasos para activarla.",
   notice_text: "Guarda bien estos datos. No compartas este documento con terceros.",
-  platform_url: "konecta3d.vercel.app",
+  platform_url: "app.konecta3d.com",
   hero: { ...DEFAULT_HERO },
   show_features: true,
   steps: [

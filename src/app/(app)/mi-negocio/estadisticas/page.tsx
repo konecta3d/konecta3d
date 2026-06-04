@@ -220,7 +220,8 @@ export default function EstadisticasPage() {
       let cfg: Record<string, string> = {};
       if (landingRow?.config) {
         const raw = landingRow.config;
-        cfg = raw.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"] || {}) : raw;
+        const hasFlat = raw && ("bgColor" in raw || "showCta1" in raw || "ctaBg" in raw);
+        cfg = hasFlat ? raw : (raw.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"] || {}) : raw);
       }
 
       const ctaClicks: CtaClick[] = [
