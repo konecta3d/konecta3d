@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { renderLandingHtml } from "@/lib/landing/render";
+import { DEFAULT_THEME } from "@/lib/landing/blocks";
 
 function adminClient() {
   return createClient(
@@ -22,18 +24,34 @@ export async function GET(
     const db = adminClient();
     const { data } = await db
       .from("landing_pages")
-      .select("html, published")
+      .select("name, html, blocks, theme, mode, published")
       .eq("slug", slug)
       .single();
 
-    if (!data || !data.published || !data.html) {
+    if (!data || !data.published) {
       return new Response(notFoundHtml(), {
         status: 404,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
 
-    return new Response(data.html, {
+    // Modo visual → renderizar desde bloques + tema. Modo code → HTML a mano.
+    let out = "";
+    if (data.mode === "visual" && Array.isArray(data.blocks) && data.blocks.length > 0) {
+      const theme = { ...DEFAULT_THEME, ...(data.theme || {}) };
+      out = renderLandingHtml(theme, data.blocks, data.name || "Konecta3D");
+    } else if (typeof data.html === "string" && data.html.trim()) {
+      out = data.html;
+    }
+
+    if (!out) {
+      return new Response(notFoundHtml(), {
+        status: 404,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    }
+
+    return new Response(out, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",

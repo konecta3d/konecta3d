@@ -1,0 +1,138 @@
+// ─── Modelo de datos del editor visual de landings ───────────────────────────
+// Una landing en modo "visual" = un tema (theme) + una lista de bloques.
+// El mismo render (render.ts) genera el HTML para la vista previa y para la
+// página pública /p/[slug] → lo que ves es lo que se publica.
+
+export type LandingFont = "Inter" | "Outfit" | "Poppins" | "Montserrat";
+
+export interface LandingTheme {
+  bgType: "gradient" | "solid";
+  bg1: string;        // color de fondo (o inicio del degradado)
+  bg2: string;        // fin del degradado
+  bgAngle: number;    // ángulo del degradado
+  brand: string;      // color de marca / botones (dorado)
+  brandText: string;  // color del texto sobre botones de marca
+  text: string;       // color de texto principal
+  muted: string;      // color de texto secundario
+  font: LandingFont;
+}
+
+export type BlockAlign = "left" | "center" | "right";
+export type BlockPad = "none" | "sm" | "md" | "lg" | "xl";
+export type BlockBg = "none" | "card" | "brandSoft";
+
+export interface BaseBlock {
+  id: string;
+  type: string;
+  align?: BlockAlign;
+  padY?: BlockPad;
+  bg?: BlockBg;
+}
+
+export interface HeadingBlock extends BaseBlock {
+  type: "heading";
+  text: string;
+  level: 1 | 2 | 3;
+  color?: string;
+  accent?: boolean; // pinta la 2ª línea con el color de marca
+}
+export interface ParagraphBlock extends BaseBlock {
+  type: "paragraph";
+  text: string;
+  size?: "sm" | "md" | "lg";
+  color?: string;
+}
+export interface BulletsBlock extends BaseBlock {
+  type: "bullets";
+  items: string[];
+  color?: string;
+}
+export interface ButtonBlock extends BaseBlock {
+  type: "button";
+  label: string;
+  linkType: "url" | "whatsapp" | "tel" | "email" | "anchor";
+  value: string;       // URL, número, email o id de ancla
+  waMessage?: string;  // mensaje predefinido (solo whatsapp)
+  style: "gold" | "ghost";
+  size?: "md" | "lg";
+  newTab?: boolean;
+}
+export interface ImageBlock extends BaseBlock {
+  type: "image";
+  src: string;
+  alt?: string;
+  width?: number;      // px (0/undefined = auto)
+  rounded?: boolean;
+  href?: string;
+}
+export interface SpacerBlock extends BaseBlock {
+  type: "spacer";
+  height: number;      // px
+}
+
+export type LandingBlock =
+  | HeadingBlock | ParagraphBlock | BulletsBlock
+  | ButtonBlock | ImageBlock | SpacerBlock;
+
+// ─── Valores por defecto ──────────────────────────────────────────────────────
+
+export const DEFAULT_THEME: LandingTheme = {
+  bgType: "gradient",
+  bg1: "#07201e",
+  bg2: "#0a3a36",
+  bgAngle: 160,
+  brand: "#C5A059",
+  brandText: "#0a2422",
+  text: "#F4F1EA",
+  muted: "#9fb0ac",
+  font: "Inter",
+};
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/** Bloques de arranque para una landing nueva (se ve bien al instante). */
+export function starterBlocks(): LandingBlock[] {
+  return [
+    { id: uid(), type: "heading", level: 1, align: "center", padY: "xl", bg: "none",
+      text: "Cada feria te cuesta miles.\n¿Cuántos clientes se van sin dejar rastro?", accent: true },
+    { id: uid(), type: "paragraph", align: "center", padY: "none", size: "lg",
+      text: "Konecta3D captura los contactos que hoy pierdes en cada evento: un llavero con tu marca que tus visitantes tocan con el móvil y quedan guardados en tu plataforma." },
+    { id: uid(), type: "button", align: "center", padY: "md",
+      label: "Quiero verlo para mi negocio", linkType: "whatsapp", value: "34623759451",
+      waMessage: "Hola, quiero info de Konecta3D", style: "gold", size: "lg" },
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "card",
+      text: "Un sistema, no una herramienta más" },
+    { id: uid(), type: "bullets", align: "left", padY: "md",
+      items: [
+        "El lunes, con los leads ya listos",
+        "El stand más avanzado del evento",
+        "Justificas cada euro con números",
+        "Tu equipo cierra más y llama menos en frío",
+      ] },
+    { id: uid(), type: "button", align: "center", padY: "lg",
+      label: "Hablar con Konecta3D", linkType: "whatsapp", value: "34623759451",
+      waMessage: "Hola, quiero info de Konecta3D para mi negocio", style: "gold", size: "lg" },
+  ];
+}
+
+/** Crea un bloque nuevo del tipo dado con valores sensatos. */
+export function newBlock(type: LandingBlock["type"]): LandingBlock {
+  const base = { id: uid(), align: "center" as BlockAlign, padY: "md" as BlockPad, bg: "none" as BlockBg };
+  switch (type) {
+    case "heading":   return { ...base, type, text: "Nuevo titular", level: 2 };
+    case "paragraph": return { ...base, type, text: "Escribe aquí tu texto.", size: "md" };
+    case "bullets":   return { ...base, type, align: "left", items: ["Primer punto", "Segundo punto"] };
+    case "button":    return { ...base, type, label: "Botón", linkType: "whatsapp", value: "34623759451", waMessage: "Hola", style: "gold", size: "md" };
+    case "image":     return { ...base, type, src: "", alt: "", rounded: true };
+    case "spacer":    return { ...base, type, height: 40, padY: "none" };
+  }
+}
+
+export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
+  heading: "Titular",
+  paragraph: "Párrafo",
+  bullets: "Lista con viñetas",
+  button: "Botón / CTA",
+  image: "Imagen",
+  spacer: "Espacio",
+};

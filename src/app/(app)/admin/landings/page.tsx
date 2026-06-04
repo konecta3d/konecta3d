@@ -3,39 +3,65 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
+import { renderLandingHtml } from "@/lib/landing/render";
+import {
+  LandingBlock, LandingTheme, DEFAULT_THEME, newBlock, BLOCK_LABELS,
+} from "@/lib/landing/blocks";
 
 async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
-  return {
-    Authorization: `Bearer ${data.session?.access_token || ""}`,
-    "Content-Type": "application/json",
-  };
+  return { Authorization: `Bearer ${data.session?.access_token || ""}`, "Content-Type": "application/json" };
 }
 
-interface LandingRow {
-  id: string;
-  slug: string;
-  name: string;
-  published: boolean;
-  updated_at: string;
-}
-
+interface LandingRow { id: string; slug: string; name: string; published: boolean; updated_at: string; }
 interface LandingFull extends LandingRow {
+  mode: "visual" | "code";
   html: string;
+  blocks: LandingBlock[] | null;
+  theme: LandingTheme | null;
+}
+
+// ─── Helpers de formulario ────────────────────────────────────────────────────
+const Lbl = ({ children }: { children: React.ReactNode }) =>
+  <label className="block text-[11px] uppercase tracking-wide text-[var(--foreground)]/50 mb-1">{children}</label>;
+const inputCls = "w-full rounded-lg border border-[var(--border)] bg-transparent px-2.5 py-1.5 text-sm";
+
+function Seg<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { v: T; l: string }[] }) {
+  return (
+    <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
+      {options.map((o) => (
+        <button key={o.v} type="button" onClick={() => onChange(o.v)}
+          className={`flex-1 px-2 py-1.5 text-xs ${value === o.v ? "bg-[var(--brand-1)] text-white" : "hover:bg-[var(--border)]/20"}`}>{o.l}</button>
+      ))}
+    </div>
+  );
 }
 
 export default function LandingsAdminPage() {
   const [list, setList] = useState<LandingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<LandingFull | null>(null);
+  const [selId, setSelId] = useState<string | null>(null);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [origin, setOrigin] = useState("");
+  const [previewHtml, setPreviewHtml] = useState("");
 
+  useEffect(() => { setOrigin(window.location.origin); load(); }, []);
+
+  // Vista previa en vivo (con pequeño debounce)
   useEffect(() => {
-    setOrigin(window.location.origin);
-    load();
-  }, []);
+    if (!editing) return;
+    const id = setTimeout(() => {
+      if (editing.mode === "visual") {
+        setPreviewHtml(renderLandingHtml(editing.theme || DEFAULT_THEME, editing.blocks || [], editing.name));
+      } else {
+        setPreviewHtml(editing.html || "");
+      }
+    }, 250);
+    return () => clearTimeout(id);
+  }, [editing]);
 
   async function load() {
     setLoading(true);
@@ -43,7 +69,7 @@ export default function LandingsAdminPage() {
       const res = await fetch("/api/admin/landings", { headers: await authHeaders() });
       const json = await res.json();
       if (json.landings) setList(json.landings);
-    } catch { /* silencioso */ }
+    } catch { /* */ }
     setLoading(false);
   }
 
@@ -53,138 +79,231 @@ export default function LandingsAdminPage() {
     setSaving(true);
     try {
       const res = await fetch("/api/admin/landings", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: JSON.stringify({ name: name.trim(), html: DEFAULT_LANDING_HTML, published: true }),
+        method: "POST", headers: await authHeaders(),
+        body: JSON.stringify({ name: name.trim(), mode: "visual" }),
       });
       const json = await res.json();
-      if (json.error) { setMsg(json.error); }
+      if (json.error) setMsg(json.error);
       else { await load(); openEditor(json.landing.id); }
     } catch { setMsg("No se pudo crear"); }
     setSaving(false);
   }
 
   async function openEditor(id: string) {
-    setMsg(null);
+    setMsg(null); setSelId(null);
     try {
       const res = await fetch(`/api/admin/landings/${id}`, { headers: await authHeaders() });
       const json = await res.json();
-      if (json.landing) setEditing(json.landing);
-      else setMsg(json.error || "No se pudo abrir");
+      if (json.landing) {
+        const l = json.landing as LandingFull;
+        setEditing({
+          ...l,
+          mode: l.mode === "code" ? "code" : "visual",
+          blocks: Array.isArray(l.blocks) ? l.blocks : [],
+          theme: { ...DEFAULT_THEME, ...(l.theme || {}) },
+          html: l.html || "",
+        });
+      } else setMsg(json.error || "No se pudo abrir");
     } catch { setMsg("No se pudo abrir"); }
   }
 
   async function save() {
     if (!editing) return;
-    setSaving(true);
-    setMsg(null);
+    setSaving(true); setMsg(null);
     try {
       const res = await fetch(`/api/admin/landings/${editing.id}`, {
-        method: "PUT",
-        headers: await authHeaders(),
+        method: "PUT", headers: await authHeaders(),
         body: JSON.stringify({
-          name: editing.name,
-          slug: editing.slug,
-          html: editing.html,
-          published: editing.published,
+          name: editing.name, slug: editing.slug, published: editing.published,
+          mode: editing.mode, html: editing.html, blocks: editing.blocks, theme: editing.theme,
         }),
       });
       const json = await res.json();
-      if (json.error) { setMsg(json.error); }
+      if (json.error) setMsg(json.error);
       else { setMsg("Guardado"); await load(); if (json.landing) setEditing({ ...editing, slug: json.landing.slug }); }
     } catch { setMsg("No se pudo guardar"); }
     setSaving(false);
   }
 
   async function remove(id: string, name: string) {
-    if (!confirm(`¿Eliminar la landing "${name}"? Esta acción no se puede deshacer.`)) return;
-    try {
-      await fetch(`/api/admin/landings/${id}`, { method: "DELETE", headers: await authHeaders() });
-      await load();
-    } catch { setMsg("No se pudo eliminar"); }
+    if (!confirm(`¿Eliminar la landing "${name}"?`)) return;
+    try { await fetch(`/api/admin/landings/${id}`, { method: "DELETE", headers: await authHeaders() }); await load(); }
+    catch { setMsg("No se pudo eliminar"); }
   }
 
   function copyLink(slug: string) {
     navigator.clipboard.writeText(`${origin}/p/${slug}`);
-    setMsg(`Link copiado: ${origin}/p/${slug}`);
-    setTimeout(() => setMsg(null), 2500);
+    setMsg(`Link copiado: ${origin}/p/${slug}`); setTimeout(() => setMsg(null), 2500);
   }
 
-  // ── Editor ──────────────────────────────────────────────────────────────────
+  // ── Operaciones de bloques ──────────────────────────────────────────────────
+  function setBlocks(blocks: LandingBlock[]) { if (editing) setEditing({ ...editing, blocks }); }
+  function updateBlock(id: string, patch: Partial<LandingBlock>) {
+    if (!editing?.blocks) return;
+    setBlocks(editing.blocks.map((b) => (b.id === id ? { ...b, ...patch } as LandingBlock : b)));
+  }
+  function addBlock(type: LandingBlock["type"]) {
+    if (!editing) return;
+    const b = newBlock(type);
+    setBlocks([...(editing.blocks || []), b]); setSelId(b.id);
+  }
+  function moveBlock(idx: number, dir: -1 | 1) {
+    if (!editing?.blocks) return;
+    const arr = [...editing.blocks]; const j = idx + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[idx], arr[j]] = [arr[j], arr[idx]]; setBlocks(arr);
+  }
+  function deleteBlock(id: string) {
+    if (!editing?.blocks) return;
+    setBlocks(editing.blocks.filter((b) => b.id !== id));
+    if (selId === id) setSelId(null);
+  }
+
+  // ── EDITOR ──────────────────────────────────────────────────────────────────
   if (editing) {
     const publicUrl = `${origin}/p/${editing.slug}`;
+    const theme = editing.theme || DEFAULT_THEME;
+    const sel = editing.blocks?.find((b) => b.id === selId) || null;
+
     return (
-      <div className="max-w-[1000px] mx-auto pb-12">
-        <button onClick={() => setEditing(null)} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] mb-4">← Volver a la lista</button>
-        <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-          <h1 className="text-xl font-bold">Editar landing</h1>
-          <div className="flex items-center gap-2">
-            <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver publicada ↗</a>
+      <div className="max-w-[1300px] mx-auto pb-12">
+        {/* Barra superior */}
+        <button onClick={() => setEditing(null)} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] mb-3">← Volver a la lista</button>
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+            className="text-lg font-bold bg-transparent border-b border-transparent hover:border-[var(--border)] focus:border-[var(--brand-1)] outline-none px-1" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <Seg value={editing.mode} onChange={(v) => setEditing({ ...editing, mode: v })}
+              options={[{ v: "visual", l: "Visual" }, { v: "code", l: "Código" }]} />
+            <Seg value={device} onChange={setDevice} options={[{ v: "desktop", l: "Escritorio" }, { v: "mobile", l: "Móvil" }]} />
+            <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver ↗</a>
             <button onClick={save} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{saving ? "Guardando…" : "Guardar"}</button>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-3 mb-4">
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--foreground)]/50">Nombre</label>
-            <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" />
+        {/* slug + publicada */}
+        <div className="flex items-center gap-4 flex-wrap mb-4 text-sm">
+          <div className="flex items-center gap-1">
+            <span className="text-[var(--foreground)]/40">{origin}/p/</span>
+            <input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
+              className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1" />
           </div>
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--foreground)]/50">Enlace (slug)</label>
-            <div className="mt-1 flex items-center gap-1">
-              <span className="text-sm text-[var(--foreground)]/40 whitespace-nowrap">{origin}/p/</span>
-              <input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
-                className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2" />
+          <label className="flex items-center gap-2"><input type="checkbox" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} />Publicada</label>
+          <button onClick={() => copyLink(editing.slug)} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Copiar link</button>
+          {msg && <span className="text-[var(--brand-1)]">{msg}</span>}
+        </div>
+
+        <div className="grid lg:grid-cols-[380px_1fr] gap-5">
+          {/* Panel izquierdo */}
+          <div className="space-y-4">
+            {editing.mode === "code" ? (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Lbl>Código HTML</Lbl>
+                  <button onClick={() => { if (confirm("¿Reemplazar por la plantilla de ejemplo?")) setEditing({ ...editing, html: DEFAULT_LANDING_HTML }); }}
+                    className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Cargar plantilla</button>
+                </div>
+                <textarea value={editing.html} onChange={(e) => setEditing({ ...editing, html: e.target.value })} spellCheck={false}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-xs" style={{ minHeight: "60vh" }} />
+              </div>
+            ) : (
+              <>
+                {/* Tema */}
+                <details className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
+                  <summary className="cursor-pointer text-sm font-semibold">Tema de la página</summary>
+                  <div className="mt-3 space-y-3">
+                    <div><Lbl>Fondo</Lbl>
+                      <Seg value={theme.bgType} onChange={(v) => setEditing({ ...editing, theme: { ...theme, bgType: v } })}
+                        options={[{ v: "gradient", l: "Degradado" }, { v: "solid", l: "Sólido" }]} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div><Lbl>Color 1</Lbl><input type="color" value={theme.bg1} onChange={(e) => setEditing({ ...editing, theme: { ...theme, bg1: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>
+                      {theme.bgType === "gradient" && <div><Lbl>Color 2</Lbl><input type="color" value={theme.bg2} onChange={(e) => setEditing({ ...editing, theme: { ...theme, bg2: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div><Lbl>Marca</Lbl><input type="color" value={theme.brand} onChange={(e) => setEditing({ ...editing, theme: { ...theme, brand: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>
+                      <div><Lbl>Texto</Lbl><input type="color" value={theme.text} onChange={(e) => setEditing({ ...editing, theme: { ...theme, text: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>
+                      <div><Lbl>Suave</Lbl><input type="color" value={theme.muted} onChange={(e) => setEditing({ ...editing, theme: { ...theme, muted: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>
+                    </div>
+                    <div><Lbl>Fuente</Lbl>
+                      <select value={theme.font} onChange={(e) => setEditing({ ...editing, theme: { ...theme, font: e.target.value as LandingTheme["font"] } })} className={inputCls}>
+                        <option>Inter</option><option>Outfit</option><option>Poppins</option><option>Montserrat</option>
+                      </select>
+                    </div>
+                  </div>
+                </details>
+
+                {/* Añadir bloque */}
+                <div className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
+                  <Lbl>Añadir bloque</Lbl>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
+                      <button key={t} onClick={() => addBlock(t)} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--brand-1)] hover:text-white transition-colors">+ {BLOCK_LABELS[t]}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Lista de bloques */}
+                <div className="space-y-1.5">
+                  {(editing.blocks || []).length === 0 && <p className="text-xs text-[var(--foreground)]/40 px-1">Sin bloques. Añade el primero arriba.</p>}
+                  {(editing.blocks || []).map((b, i) => (
+                    <div key={b.id} className={`rounded-lg border px-3 py-2 flex items-center justify-between gap-2 cursor-pointer ${selId === b.id ? "border-[var(--brand-1)]" : "border-[var(--border)]"}`}
+                      style={{ background: "var(--card)" }} onClick={() => setSelId(selId === b.id ? null : b.id)}>
+                      <span className="text-sm truncate">{BLOCK_LABELS[b.type]}{b.type === "heading" || b.type === "paragraph" ? <span className="text-[var(--foreground)]/40"> · {String((b as { text?: string }).text || "").slice(0, 24)}</span> : null}</span>
+                      <span className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => moveBlock(i, -1)} className="px-1.5 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↑</button>
+                        <button onClick={() => moveBlock(i, 1)} className="px-1.5 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↓</button>
+                        <button onClick={() => deleteBlock(b.id)} className="px-1.5 text-red-500/70 hover:text-red-500">✕</button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Controles del bloque seleccionado */}
+                {sel && (
+                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3 space-y-3" style={{ background: "var(--card)" }}>
+                    <p className="text-sm font-semibold">Editar: {BLOCK_LABELS[sel.type]}</p>
+                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Vista previa */}
+          <div className="lg:sticky lg:top-4 h-fit">
+            <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "78vh" }}>
+              <div className="flex items-center justify-center h-full p-2">
+                <iframe title="preview" srcDoc={previewHtml}
+                  className="bg-white rounded-lg shadow-2xl transition-all"
+                  style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+              </div>
             </div>
+            <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa en vivo — lo que ves es lo que se publica.</p>
           </div>
         </div>
-
-        <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} />
-            Publicada (visible en el link)
-          </label>
-          <div className="flex items-center gap-2">
-            <button onClick={() => copyLink(editing.slug)} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Copiar link</button>
-            <button onClick={() => { if (confirm("¿Reemplazar el HTML actual por la plantilla de ejemplo? Perderás los cambios no guardados.")) setEditing({ ...editing, html: DEFAULT_LANDING_HTML }); }}
-              className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Cargar plantilla</button>
-          </div>
-        </div>
-
-        <label className="text-xs uppercase tracking-wide text-[var(--foreground)]/50">Código HTML</label>
-        <textarea value={editing.html} onChange={(e) => setEditing({ ...editing, html: e.target.value })}
-          spellCheck={false}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-xs leading-relaxed"
-          style={{ minHeight: "55vh" }} />
-
-        {msg && <div className="mt-3 text-sm text-[var(--brand-1)]">{msg}</div>}
-        <p className="mt-2 text-xs text-[var(--foreground)]/40">Pega aquí cualquier HTML autónomo. Se sirve tal cual en el link público. Recuerda editar el número de WhatsApp y sustituir los logos del carrusel.</p>
       </div>
     );
   }
 
-  // ── Lista ───────────────────────────────────────────────────────────────────
+  // ── LISTA ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-[1000px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-bold">Landings de presentación</h1>
-          <p className="text-sm text-[var(--foreground)]/50 mt-0.5">Crea páginas con código, genera un link y compártelo con los negocios.</p>
+          <p className="text-sm text-[var(--foreground)]/50 mt-0.5">Crea páginas visuales, genera un link y compártelo con los negocios.</p>
         </div>
         <button onClick={createNew} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>+ Nueva landing</button>
       </div>
-
       {msg && <div className="my-3 text-sm text-[var(--brand-1)]">{msg}</div>}
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="animate-spin rounded-full h-9 w-9 border-b-2" style={{ borderColor: "var(--brand-1)" }} />
-        </div>
+        <div className="flex items-center justify-center min-h-[40vh]"><div className="animate-spin rounded-full h-9 w-9 border-b-2" style={{ borderColor: "var(--brand-1)" }} /></div>
       ) : list.length === 0 ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-[var(--border)] mt-4">
           <p className="text-sm text-[var(--foreground)]/40">Aún no hay landings.</p>
-          <button onClick={createNew} className="text-sm text-[var(--brand-1)] hover:underline mt-1">Crear la primera (con plantilla) →</button>
+          <button onClick={createNew} className="text-sm text-[var(--brand-1)] hover:underline mt-1">Crear la primera →</button>
         </div>
       ) : (
         <div className="space-y-2.5 mt-4">
@@ -209,4 +328,91 @@ export default function LandingsAdminPage() {
       )}
     </div>
   );
+}
+
+// ─── Controles por tipo de bloque ─────────────────────────────────────────────
+function BlockControls({ block, update }: { block: LandingBlock; update: (patch: Partial<LandingBlock>) => void }) {
+  const common = (
+    <div className="grid grid-cols-3 gap-2">
+      <div><Lbl>Alineado</Lbl><Seg value={block.align || "left"} onChange={(v) => update({ align: v })} options={[{ v: "left", l: "Izq" }, { v: "center", l: "Centro" }, { v: "right", l: "Der" }]} /></div>
+      <div><Lbl>Espaciado</Lbl>
+        <select value={block.padY || "md"} onChange={(e) => update({ padY: e.target.value as LandingBlock["padY"] })} className={inputCls}>
+          <option value="none">Ninguno</option><option value="sm">S</option><option value="md">M</option><option value="lg">L</option><option value="xl">XL</option>
+        </select>
+      </div>
+      <div><Lbl>Fondo</Lbl>
+        <select value={block.bg || "none"} onChange={(e) => update({ bg: e.target.value as LandingBlock["bg"] })} className={inputCls}>
+          <option value="none">Sin fondo</option><option value="card">Tarjeta</option><option value="brandSoft">Marca suave</option>
+        </select>
+      </div>
+    </div>
+  );
+
+  if (block.type === "heading") {
+    return <div className="space-y-3">
+      <div><Lbl>Texto (Enter = salto de línea)</Lbl><textarea value={block.text} onChange={(e) => update({ text: e.target.value })} className={inputCls} rows={3} /></div>
+      <div className="grid grid-cols-2 gap-2">
+        <div><Lbl>Tamaño</Lbl><Seg value={String(block.level)} onChange={(v) => update({ level: Number(v) as 1 | 2 | 3 })} options={[{ v: "1", l: "Grande" }, { v: "2", l: "Medio" }, { v: "3", l: "Pequeño" }]} /></div>
+        <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={!!block.accent} onChange={(e) => update({ accent: e.target.checked })} />Última línea en dorado</label>
+      </div>
+      {common}
+    </div>;
+  }
+  if (block.type === "paragraph") {
+    return <div className="space-y-3">
+      <div><Lbl>Texto</Lbl><textarea value={block.text} onChange={(e) => update({ text: e.target.value })} className={inputCls} rows={4} /></div>
+      <div><Lbl>Tamaño</Lbl><Seg value={block.size || "md"} onChange={(v) => update({ size: v })} options={[{ v: "sm", l: "S" }, { v: "md", l: "M" }, { v: "lg", l: "L" }]} /></div>
+      {common}
+    </div>;
+  }
+  if (block.type === "bullets") {
+    return <div className="space-y-3">
+      <Lbl>Puntos</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="flex gap-1">
+          <input value={it} onChange={(e) => { const items = [...block.items]; items[i] = e.target.value; update({ items }); }} className={inputCls} />
+          <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, "Nuevo punto"] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir punto</button>
+      {common}
+    </div>;
+  }
+  if (block.type === "button") {
+    return <div className="space-y-3">
+      <div><Lbl>Texto del botón</Lbl><input value={block.label} onChange={(e) => update({ label: e.target.value })} className={inputCls} /></div>
+      <div><Lbl>Acción</Lbl>
+        <select value={block.linkType} onChange={(e) => update({ linkType: e.target.value as typeof block.linkType })} className={inputCls}>
+          <option value="whatsapp">WhatsApp</option><option value="url">Abrir URL</option><option value="tel">Llamar</option><option value="email">Email</option><option value="anchor">Ir a sección</option>
+        </select>
+      </div>
+      <div><Lbl>{block.linkType === "whatsapp" ? "Número (con prefijo, sin +)" : block.linkType === "tel" ? "Teléfono" : block.linkType === "email" ? "Email" : block.linkType === "anchor" ? "ID de sección" : "URL"}</Lbl>
+        <input value={block.value} onChange={(e) => update({ value: e.target.value })} className={inputCls} placeholder={block.linkType === "whatsapp" ? "34600000000" : block.linkType === "url" ? "https://..." : ""} />
+      </div>
+      {block.linkType === "whatsapp" && <div><Lbl>Mensaje predefinido</Lbl><input value={block.waMessage || ""} onChange={(e) => update({ waMessage: e.target.value })} className={inputCls} /></div>}
+      <div className="grid grid-cols-2 gap-2">
+        <div><Lbl>Estilo</Lbl><Seg value={block.style} onChange={(v) => update({ style: v })} options={[{ v: "gold", l: "Marca" }, { v: "ghost", l: "Contorno" }]} /></div>
+        <div><Lbl>Tamaño</Lbl><Seg value={block.size || "md"} onChange={(v) => update({ size: v })} options={[{ v: "md", l: "Normal" }, { v: "lg", l: "Grande" }]} /></div>
+      </div>
+      {block.linkType === "url" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!block.newTab} onChange={(e) => update({ newTab: e.target.checked })} />Abrir en pestaña nueva</label>}
+      {common}
+    </div>;
+  }
+  if (block.type === "image") {
+    return <div className="space-y-3">
+      <div><Lbl>URL de la imagen</Lbl><input value={block.src} onChange={(e) => update({ src: e.target.value })} className={inputCls} placeholder="https://..." /></div>
+      <div><Lbl>Texto alternativo</Lbl><input value={block.alt || ""} onChange={(e) => update({ alt: e.target.value })} className={inputCls} /></div>
+      <div className="grid grid-cols-2 gap-2">
+        <div><Lbl>Ancho (px, vacío=auto)</Lbl><input type="number" value={block.width || ""} onChange={(e) => update({ width: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+        <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={!!block.rounded} onChange={(e) => update({ rounded: e.target.checked })} />Esquinas redondeadas</label>
+      </div>
+      {common}
+    </div>;
+  }
+  if (block.type === "spacer") {
+    return <div className="space-y-3">
+      <div><Lbl>Altura (px)</Lbl><input type="number" value={block.height} onChange={(e) => update({ height: Number(e.target.value) })} className={inputCls} /></div>
+    </div>;
+  }
+  return null;
 }

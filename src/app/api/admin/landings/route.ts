@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { verifyAdminSession } from "@/lib/auth-helpers";
+import { starterBlocks, DEFAULT_THEME } from "@/lib/landing/blocks";
 
 function adminClient() {
   return createClient(
@@ -60,12 +61,17 @@ export async function POST(req: Request) {
       slug = `${base}-${i}`;
     }
 
+    // Por defecto, una landing nueva es "visual" con bloques de arranque.
+    const mode = body.mode === "code" ? "code" : "visual";
     const { data, error } = await db
       .from("landing_pages")
       .insert({
         name,
         slug,
+        mode,
         html: typeof body.html === "string" ? body.html : "",
+        blocks: mode === "visual" ? (Array.isArray(body.blocks) ? body.blocks : starterBlocks()) : null,
+        theme: mode === "visual" ? (body.theme || DEFAULT_THEME) : null,
         published: body.published !== false,
       })
       .select("id, slug, name, published, created_at, updated_at")

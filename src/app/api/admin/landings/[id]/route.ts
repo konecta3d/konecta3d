@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const db = adminClient();
     const { data, error } = await db
       .from("landing_pages")
-      .select("id, slug, name, html, published, created_at, updated_at")
+      .select("id, slug, name, html, blocks, theme, mode, published, created_at, updated_at")
       .eq("id", id)
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -42,6 +42,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (typeof body.name === "string") patch.name = body.name.trim();
     if (typeof body.html === "string") patch.html = body.html;
     if (typeof body.published === "boolean") patch.published = body.published;
+    if (body.mode === "visual" || body.mode === "code") patch.mode = body.mode;
+    if (Array.isArray(body.blocks)) patch.blocks = body.blocks;
+    if (body.theme && typeof body.theme === "object") patch.theme = body.theme;
 
     const db = adminClient();
 
