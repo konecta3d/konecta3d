@@ -21,12 +21,31 @@ export type BlockAlign = "left" | "center" | "right";
 export type BlockPad = "none" | "sm" | "md" | "lg" | "xl";
 export type BlockBg = "none" | "card" | "brandSoft";
 
+/** Estilo avanzado opcional por bloque. Sobrescribe el tema global. */
+export interface BlockStyle {
+  fontFamily?: LandingFont;
+  fontSize?: number;     // px (texto principal del bloque)
+  fontWeight?: number;   // 400–900
+  color?: string;        // color de texto
+  bgColor?: string;      // fondo de la banda
+  bgImage?: string;      // imagen de fondo de la banda (url)
+  padT?: number;         // padding superior px (sobrescribe padY)
+  padB?: number;         // padding inferior px
+  padX?: number;         // padding lateral px
+  maxWidth?: number;     // ancho máx. del contenido px
+  radius?: number;       // redondeo del contenido px
+  borderColor?: string;
+  borderWidth?: number;  // px
+  shadow?: boolean;
+}
+
 export interface BaseBlock {
   id: string;
   type: string;
   align?: BlockAlign;
   padY?: BlockPad;
   bg?: BlockBg;
+  s?: BlockStyle;        // estilo avanzado (opcional)
 }
 
 export interface HeadingBlock extends BaseBlock {
@@ -69,10 +88,43 @@ export interface SpacerBlock extends BaseBlock {
   type: "spacer";
   height: number;      // px
 }
+export interface LogosBlock extends BaseBlock {
+  type: "logos";
+  title?: string;
+  items: { src: string; alt?: string }[];
+}
+export interface StepsBlock extends BaseBlock {
+  type: "steps";
+  items: { title: string; text: string }[];
+}
+export interface CardsBlock extends BaseBlock {
+  type: "cards";
+  columns: 2 | 3;
+  items: { icon?: string; title: string; text: string }[];
+}
+export interface FaqBlock extends BaseBlock {
+  type: "faq";
+  items: { q: string; a: string }[];
+}
+export interface CountdownBlock extends BaseBlock {
+  type: "countdown";
+  target: string;   // fecha/hora ISO (datetime-local)
+  label?: string;
+}
+export interface VideoBlock extends BaseBlock {
+  type: "video";
+  url: string;      // YouTube, Vimeo o MP4
+}
+export interface SocialsBlock extends BaseBlock {
+  type: "socials";
+  items: { network: string; url: string }[];
+}
 
 export type LandingBlock =
   | HeadingBlock | ParagraphBlock | BulletsBlock
-  | ButtonBlock | ImageBlock | SpacerBlock;
+  | ButtonBlock | ImageBlock | SpacerBlock
+  | LogosBlock | StepsBlock | CardsBlock | FaqBlock
+  | CountdownBlock | VideoBlock | SocialsBlock;
 
 // ─── Valores por defecto ──────────────────────────────────────────────────────
 
@@ -125,6 +177,13 @@ export function newBlock(type: LandingBlock["type"]): LandingBlock {
     case "button":    return { ...base, type, label: "Botón", linkType: "whatsapp", value: "34623759451", waMessage: "Hola", style: "gold", size: "md" };
     case "image":     return { ...base, type, src: "", alt: "", rounded: true };
     case "spacer":    return { ...base, type, height: 40, padY: "none" };
+    case "logos":     return { ...base, type, padY: "lg", title: "Negocios que ya tienen su llavero", items: [{ src: "", alt: "Cliente 1" }, { src: "", alt: "Cliente 2" }, { src: "", alt: "Cliente 3" }] };
+    case "steps":     return { ...base, type, padY: "lg", items: [{ title: "Toca el llavero", text: "Acerca el móvil y se abre tu página." }, { title: "Queda capturado", text: "Su contacto entra en tu plataforma." }, { title: "Tu marca se queda", text: "Sigues presente cada día." }] };
+    case "cards":     return { ...base, type, padY: "lg", columns: 2, items: [{ icon: "🌅", title: "El lunes, con los leads listos", text: "Sin haber hecho nada diferente." }, { icon: "📊", title: "Justificas cada euro", text: "Sabes qué feria fue rentable." }] };
+    case "faq":       return { ...base, type, padY: "lg", items: [{ q: "¿Es caro?", a: "Es una fracción de lo que ya inviertes en el stand." }, { q: "¿Necesito saber de tecnología?", a: "No. Te lo dejamos configurado." }] };
+    case "countdown": return { ...base, type, padY: "lg", target: "", label: "Tu próxima feria se acerca" };
+    case "video":     return { ...base, type, padY: "lg", url: "" };
+    case "socials":   return { ...base, type, padY: "md", items: [{ network: "instagram", url: "" }, { network: "whatsapp", url: "" }] };
   }
 }
 
@@ -135,4 +194,11 @@ export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   button: "Botón / CTA",
   image: "Imagen",
   spacer: "Espacio",
+  logos: "Carrusel de logos",
+  steps: "Pasos",
+  cards: "Tarjetas",
+  faq: "Preguntas (FAQ)",
+  countdown: "Cuenta atrás",
+  video: "Vídeo",
+  socials: "Redes sociales",
 };

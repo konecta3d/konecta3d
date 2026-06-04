@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
 import { renderLandingHtml } from "@/lib/landing/render";
 import {
-  LandingBlock, LandingTheme, DEFAULT_THEME, newBlock, BLOCK_LABELS,
+  LandingBlock, LandingTheme, BlockStyle, DEFAULT_THEME, newBlock, BLOCK_LABELS,
 } from "@/lib/landing/blocks";
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -332,6 +332,12 @@ export default function LandingsAdminPage() {
 
 // ─── Controles por tipo de bloque ─────────────────────────────────────────────
 function BlockControls({ block, update }: { block: LandingBlock; update: (patch: Partial<LandingBlock>) => void }) {
+  const us = (patch: Partial<BlockStyle>) => update({ s: { ...(block.s || {}), ...patch } } as Partial<LandingBlock>);
+
+  if (block.type === "spacer") {
+    return <div className="space-y-3"><div><Lbl>Altura (px)</Lbl><input type="number" value={block.height} onChange={(e) => update({ height: Number(e.target.value) })} className={inputCls} /></div></div>;
+  }
+
   const common = (
     <div className="grid grid-cols-3 gap-2">
       <div><Lbl>Alineado</Lbl><Seg value={block.align || "left"} onChange={(v) => update({ align: v })} options={[{ v: "left", l: "Izq" }, { v: "center", l: "Centro" }, { v: "right", l: "Der" }]} /></div>
@@ -348,25 +354,58 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
     </div>
   );
 
+  const adv = (
+    <details className="rounded-lg border border-[var(--border)] p-2.5">
+      <summary className="cursor-pointer text-xs font-semibold text-[var(--foreground)]/70">Estilo avanzado</summary>
+      <div className="mt-2 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <div><Lbl>Fuente</Lbl>
+            <select value={block.s?.fontFamily || ""} onChange={(e) => us({ fontFamily: (e.target.value || undefined) as BlockStyle["fontFamily"] })} className={inputCls}>
+              <option value="">Por defecto</option><option>Inter</option><option>Outfit</option><option>Poppins</option><option>Montserrat</option>
+            </select></div>
+          <div><Lbl>Grosor</Lbl>
+            <select value={block.s?.fontWeight || ""} onChange={(e) => us({ fontWeight: e.target.value ? Number(e.target.value) : undefined })} className={inputCls}>
+              <option value="">Auto</option><option value="400">Normal</option><option value="600">Semi</option><option value="700">Bold</option><option value="900">Black</option>
+            </select></div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div><Lbl>Tamaño px</Lbl><input type="number" value={block.s?.fontSize || ""} onChange={(e) => us({ fontSize: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+          <div><Lbl>Ancho máx</Lbl><input type="number" value={block.s?.maxWidth || ""} onChange={(e) => us({ maxWidth: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+          <div><Lbl>Redondeo</Lbl><input type="number" value={block.s?.radius || ""} onChange={(e) => us({ radius: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div><Lbl>Color texto</Lbl><input value={block.s?.color || ""} placeholder="#ffffff" onChange={(e) => us({ color: e.target.value || undefined })} className={inputCls} /></div>
+          <div><Lbl>Color fondo</Lbl><input value={block.s?.bgColor || ""} placeholder="#0a2422" onChange={(e) => us({ bgColor: e.target.value || undefined })} className={inputCls} /></div>
+          <div><Lbl>Borde px</Lbl><input type="number" value={block.s?.borderWidth || ""} onChange={(e) => us({ borderWidth: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+        </div>
+        <div><Lbl>Imagen de fondo (URL)</Lbl><input value={block.s?.bgImage || ""} placeholder="https://..." onChange={(e) => us({ bgImage: e.target.value || undefined })} className={inputCls} /></div>
+        <div className="grid grid-cols-3 gap-2">
+          <div><Lbl>Pad. arriba</Lbl><input type="number" value={block.s?.padT ?? ""} onChange={(e) => us({ padT: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+          <div><Lbl>Pad. abajo</Lbl><input type="number" value={block.s?.padB ?? ""} onChange={(e) => us({ padB: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+          <div><Lbl>Pad. lados</Lbl><input type="number" value={block.s?.padX ?? ""} onChange={(e) => us({ padX: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
+        </div>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!block.s?.shadow} onChange={(e) => us({ shadow: e.target.checked || undefined })} />Sombra</label>
+      </div>
+    </details>
+  );
+
+  let specific: React.ReactNode = null;
+
   if (block.type === "heading") {
-    return <div className="space-y-3">
+    specific = <>
       <div><Lbl>Texto (Enter = salto de línea)</Lbl><textarea value={block.text} onChange={(e) => update({ text: e.target.value })} className={inputCls} rows={3} /></div>
       <div className="grid grid-cols-2 gap-2">
         <div><Lbl>Tamaño</Lbl><Seg value={String(block.level)} onChange={(v) => update({ level: Number(v) as 1 | 2 | 3 })} options={[{ v: "1", l: "Grande" }, { v: "2", l: "Medio" }, { v: "3", l: "Pequeño" }]} /></div>
         <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={!!block.accent} onChange={(e) => update({ accent: e.target.checked })} />Última línea en dorado</label>
       </div>
-      {common}
-    </div>;
-  }
-  if (block.type === "paragraph") {
-    return <div className="space-y-3">
+    </>;
+  } else if (block.type === "paragraph") {
+    specific = <>
       <div><Lbl>Texto</Lbl><textarea value={block.text} onChange={(e) => update({ text: e.target.value })} className={inputCls} rows={4} /></div>
       <div><Lbl>Tamaño</Lbl><Seg value={block.size || "md"} onChange={(v) => update({ size: v })} options={[{ v: "sm", l: "S" }, { v: "md", l: "M" }, { v: "lg", l: "L" }]} /></div>
-      {common}
-    </div>;
-  }
-  if (block.type === "bullets") {
-    return <div className="space-y-3">
+    </>;
+  } else if (block.type === "bullets") {
+    specific = <>
       <Lbl>Puntos</Lbl>
       {block.items.map((it, i) => (
         <div key={i} className="flex gap-1">
@@ -375,11 +414,9 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
         </div>
       ))}
       <button onClick={() => update({ items: [...block.items, "Nuevo punto"] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir punto</button>
-      {common}
-    </div>;
-  }
-  if (block.type === "button") {
-    return <div className="space-y-3">
+    </>;
+  } else if (block.type === "button") {
+    specific = <>
       <div><Lbl>Texto del botón</Lbl><input value={block.label} onChange={(e) => update({ label: e.target.value })} className={inputCls} /></div>
       <div><Lbl>Acción</Lbl>
         <select value={block.linkType} onChange={(e) => update({ linkType: e.target.value as typeof block.linkType })} className={inputCls}>
@@ -395,24 +432,95 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
         <div><Lbl>Tamaño</Lbl><Seg value={block.size || "md"} onChange={(v) => update({ size: v })} options={[{ v: "md", l: "Normal" }, { v: "lg", l: "Grande" }]} /></div>
       </div>
       {block.linkType === "url" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!block.newTab} onChange={(e) => update({ newTab: e.target.checked })} />Abrir en pestaña nueva</label>}
-      {common}
-    </div>;
-  }
-  if (block.type === "image") {
-    return <div className="space-y-3">
+    </>;
+  } else if (block.type === "image") {
+    specific = <>
       <div><Lbl>URL de la imagen</Lbl><input value={block.src} onChange={(e) => update({ src: e.target.value })} className={inputCls} placeholder="https://..." /></div>
       <div><Lbl>Texto alternativo</Lbl><input value={block.alt || ""} onChange={(e) => update({ alt: e.target.value })} className={inputCls} /></div>
       <div className="grid grid-cols-2 gap-2">
         <div><Lbl>Ancho (px, vacío=auto)</Lbl><input type="number" value={block.width || ""} onChange={(e) => update({ width: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
         <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={!!block.rounded} onChange={(e) => update({ rounded: e.target.checked })} />Esquinas redondeadas</label>
       </div>
-      {common}
-    </div>;
+    </>;
+  } else if (block.type === "logos") {
+    specific = <>
+      <div><Lbl>Título (opcional)</Lbl><input value={block.title || ""} onChange={(e) => update({ title: e.target.value })} className={inputCls} /></div>
+      <Lbl>Logos (URL de imagen + nombre)</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="flex gap-1">
+          <input value={it.src} placeholder="URL del logo" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], src: e.target.value }; update({ items }); }} className={inputCls} />
+          <input value={it.alt || ""} placeholder="Nombre" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], alt: e.target.value }; update({ items }); }} className={`${inputCls} max-w-[110px]`} />
+          <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, { src: "", alt: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir logo</button>
+    </>;
+  } else if (block.type === "steps") {
+    specific = <>
+      <Lbl>Pasos</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="rounded-lg border border-[var(--border)] p-2 space-y-1">
+          <div className="flex gap-1">
+            <input value={it.title} placeholder="Título" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], title: e.target.value }; update({ items }); }} className={inputCls} />
+            <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+          </div>
+          <textarea value={it.text} placeholder="Descripción" rows={2} onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], text: e.target.value }; update({ items }); }} className={inputCls} />
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, { title: "Nuevo paso", text: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir paso</button>
+    </>;
+  } else if (block.type === "cards") {
+    specific = <>
+      <div><Lbl>Columnas</Lbl><Seg value={String(block.columns)} onChange={(v) => update({ columns: Number(v) as 2 | 3 })} options={[{ v: "2", l: "2" }, { v: "3", l: "3" }]} /></div>
+      <Lbl>Tarjetas</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="rounded-lg border border-[var(--border)] p-2 space-y-1">
+          <div className="flex gap-1">
+            <input value={it.icon || ""} placeholder="🌟" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], icon: e.target.value }; update({ items }); }} className={`${inputCls} max-w-[60px]`} />
+            <input value={it.title} placeholder="Título" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], title: e.target.value }; update({ items }); }} className={inputCls} />
+            <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+          </div>
+          <textarea value={it.text} placeholder="Texto" rows={2} onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], text: e.target.value }; update({ items }); }} className={inputCls} />
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, { icon: "", title: "Nueva tarjeta", text: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir tarjeta</button>
+    </>;
+  } else if (block.type === "faq") {
+    specific = <>
+      <Lbl>Preguntas</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="rounded-lg border border-[var(--border)] p-2 space-y-1">
+          <div className="flex gap-1">
+            <input value={it.q} placeholder="Pregunta" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], q: e.target.value }; update({ items }); }} className={inputCls} />
+            <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+          </div>
+          <textarea value={it.a} placeholder="Respuesta" rows={2} onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], a: e.target.value }; update({ items }); }} className={inputCls} />
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, { q: "Nueva pregunta", a: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir pregunta</button>
+    </>;
+  } else if (block.type === "countdown") {
+    specific = <>
+      <div><Lbl>Fecha y hora objetivo</Lbl><input type="datetime-local" value={block.target} onChange={(e) => update({ target: e.target.value })} className={inputCls} /></div>
+      <div><Lbl>Texto (opcional)</Lbl><input value={block.label || ""} onChange={(e) => update({ label: e.target.value })} className={inputCls} /></div>
+    </>;
+  } else if (block.type === "video") {
+    specific = <div><Lbl>URL del vídeo (YouTube, Vimeo o MP4)</Lbl><input value={block.url} onChange={(e) => update({ url: e.target.value })} className={inputCls} placeholder="https://youtube.com/watch?v=..." /></div>;
+  } else if (block.type === "socials") {
+    specific = <>
+      <Lbl>Redes</Lbl>
+      {block.items.map((it, i) => (
+        <div key={i} className="flex gap-1">
+          <select value={it.network} onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], network: e.target.value }; update({ items }); }} className={`${inputCls} max-w-[120px]`}>
+            <option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="whatsapp">WhatsApp</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option><option value="web">Web</option><option value="email">Email</option>
+          </select>
+          <input value={it.url} placeholder="URL" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], url: e.target.value }; update({ items }); }} className={inputCls} />
+          <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+        </div>
+      ))}
+      <button onClick={() => update({ items: [...block.items, { network: "web", url: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir red</button>
+    </>;
   }
-  if (block.type === "spacer") {
-    return <div className="space-y-3">
-      <div><Lbl>Altura (px)</Lbl><input type="number" value={block.height} onChange={(e) => update({ height: Number(e.target.value) })} className={inputCls} /></div>
-    </div>;
-  }
-  return null;
+
+  return <div className="space-y-3">{specific}{common}{adv}</div>;
 }
