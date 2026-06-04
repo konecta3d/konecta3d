@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
 import { renderLandingHtml } from "@/lib/landing/render";
 import {
-  LandingBlock, LandingTheme, BlockStyle, DEFAULT_THEME, newBlock, BLOCK_LABELS,
+  LandingBlock, LandingTheme, BlockStyle, RowBlock,
+  DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
 } from "@/lib/landing/blocks";
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -385,6 +386,10 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
           <div><Lbl>Pad. lados</Lbl><input type="number" value={block.s?.padX ?? ""} onChange={(e) => us({ padX: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
         </div>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!block.s?.shadow} onChange={(e) => us({ shadow: e.target.checked || undefined })} />Sombra</label>
+        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[var(--border)]">
+          <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={!!block.s?.hideMobile} onChange={(e) => us({ hideMobile: e.target.checked || undefined })} />Ocultar en móvil</label>
+          <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={!!block.s?.hideDesktop} onChange={(e) => us({ hideDesktop: e.target.checked || undefined })} />Ocultar en escritorio</label>
+        </div>
       </div>
     </details>
   );
@@ -520,7 +525,93 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
       ))}
       <button onClick={() => update({ items: [...block.items, { network: "web", url: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir red</button>
     </>;
+  } else if (block.type === "row") {
+    specific = <RowControls block={block} update={update} />;
   }
 
   return <div className="space-y-3">{specific}{common}{adv}</div>;
+}
+
+// ─── Controles de Fila / Columnas (bloques anidados) ──────────────────────────
+function RowControls({ block, update }: { block: RowBlock; update: (patch: Partial<LandingBlock>) => void }) {
+  const [sel, setSel] = useState<{ col: number; idx: number } | null>(null);
+  const setColumns = (columns: LandingBlock[][]) => update({ columns } as Partial<LandingBlock>);
+
+  function setRatio(ratio: string) {
+    const parts = ratio.split("-").length;
+    const cols = [...(block.columns || [])];
+    if (parts > cols.length) { while (cols.length < parts) cols.push([]); }
+    else if (parts < cols.length) {
+      const extra = cols.slice(parts).flat();
+      cols.length = parts;
+      cols[parts - 1] = [...cols[parts - 1], ...extra];
+    }
+    update({ ratio, columns: cols } as Partial<LandingBlock>);
+  }
+  function addChild(col: number, type: LandingBlock["type"]) {
+    const cols = block.columns.map((c, i) => (i === col ? [...c, newBlock(type)] : c));
+    setColumns(cols); setSel({ col, idx: cols[col].length - 1 });
+  }
+  function updateChild(col: number, idx: number, patch: Partial<LandingBlock>) {
+    setColumns(block.columns.map((c, i) => (i === col ? c.map((b, j) => (j === idx ? { ...b, ...patch } as LandingBlock : b)) : c)));
+  }
+  function moveChild(col: number, idx: number, dir: -1 | 1) {
+    const arr = [...block.columns[col]]; const j = idx + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    setColumns(block.columns.map((c, i) => (i === col ? arr : c))); setSel({ col, idx: j });
+  }
+  function deleteChild(col: number, idx: number) {
+    setColumns(block.columns.map((c, i) => (i === col ? c.filter((_, j) => j !== idx) : c))); setSel(null);
+  }
+
+  return <div className="space-y-3">
+    <div className="grid grid-cols-2 gap-2">
+      <div><Lbl>Columnas</Lbl>
+        <select value={block.ratio} onChange={(e) => setRatio(e.target.value)} className={inputCls}>
+          <option value="1-1">2 · iguales</option>
+          <option value="1-2">2 · 1/3 + 2/3</option>
+          <option value="2-1">2 · 2/3 + 1/3</option>
+          <option value="1-1-1">3 · iguales</option>
+          <option value="1-1-1-1">4 · iguales</option>
+        </select>
+      </div>
+      <div><Lbl>Separación px</Lbl><input type="number" value={block.gap ?? 24} onChange={(e) => update({ gap: Number(e.target.value) } as Partial<LandingBlock>)} className={inputCls} /></div>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      <div><Lbl>Alineado vertical</Lbl><Seg value={block.vAlign || "center"} onChange={(v) => update({ vAlign: v } as Partial<LandingBlock>)} options={[{ v: "top", l: "Arriba" }, { v: "center", l: "Centro" }, { v: "bottom", l: "Abajo" }]} /></div>
+      <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={block.stackMobile !== false} onChange={(e) => update({ stackMobile: e.target.checked } as Partial<LandingBlock>)} />Apilar en móvil</label>
+    </div>
+
+    {block.columns.map((col, ci) => (
+      <div key={ci} className="rounded-lg border border-[var(--border)] p-2.5 space-y-2">
+        <span className="text-xs font-semibold text-[var(--foreground)]/70">Columna {ci + 1}</span>
+        <div className="flex flex-wrap gap-1">
+          {CHILD_BLOCK_TYPES.map((t) => (
+            <button key={t} onClick={() => addChild(ci, t)} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--brand-1)] hover:text-white transition-colors">+ {BLOCK_LABELS[t]}</button>
+          ))}
+        </div>
+        {col.length === 0 && <p className="text-[11px] text-[var(--foreground)]/40">Columna vacía.</p>}
+        {col.map((cb, bi) => (
+          <div key={cb.id}>
+            <div className={`rounded border px-2 py-1.5 flex items-center justify-between gap-2 cursor-pointer ${sel?.col === ci && sel?.idx === bi ? "border-[var(--brand-1)]" : "border-[var(--border)]"}`}
+              style={{ background: "var(--background)" }}
+              onClick={() => setSel(sel?.col === ci && sel?.idx === bi ? null : { col: ci, idx: bi })}>
+              <span className="text-xs truncate">{BLOCK_LABELS[cb.type]}</span>
+              <span className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => moveChild(ci, bi, -1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↑</button>
+                <button onClick={() => moveChild(ci, bi, 1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↓</button>
+                <button onClick={() => deleteChild(ci, bi)} className="px-1 text-red-500/70 hover:text-red-500">✕</button>
+              </span>
+            </div>
+            {sel?.col === ci && sel?.idx === bi && (
+              <div className="mt-2 pl-2 border-l-2 border-[var(--brand-1)]/30">
+                <BlockControls block={cb} update={(patch) => updateChild(ci, bi, patch)} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>;
 }

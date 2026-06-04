@@ -5,7 +5,7 @@
 import {
   LandingTheme, LandingBlock, BlockStyle, ButtonBlock,
   HeadingBlock, ParagraphBlock, BulletsBlock, ImageBlock, SpacerBlock,
-  LogosBlock, StepsBlock, CardsBlock, FaqBlock, CountdownBlock, VideoBlock, SocialsBlock,
+  LogosBlock, StepsBlock, CardsBlock, FaqBlock, CountdownBlock, VideoBlock, SocialsBlock, RowBlock,
 } from "./blocks";
 
 const esc = (s: unknown) =>
@@ -151,12 +151,23 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
       ).join("");
       return `<div style="display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center">${links}</div>`;
     }
+    case "row": {
+      const r = b as RowBlock;
+      const fr = (r.ratio || "1-1").split("-").map((n) => Number(n) || 1);
+      const cols = (r.columns || []).map((col, i) => {
+        const childHtml = (col || []).map((c) => renderBlock(c, t, true)).join("");
+        return `<div style="flex:${fr[i] || 1} 1 0;min-width:0">${childHtml || ""}</div>`;
+      }).join("");
+      const valign = r.vAlign === "center" ? "center" : r.vAlign === "bottom" ? "flex-end" : "flex-start";
+      const stack = r.stackMobile !== false ? "row-stack" : "";
+      return `<div class="${stack}" style="display:flex;gap:${r.gap ?? 24}px;align-items:${valign}">${cols}</div>`;
+    }
     case "spacer":
       return "";
   }
 }
 
-function renderBlock(b: LandingBlock, t: LandingTheme): string {
+function renderBlock(b: LandingBlock, t: LandingTheme, nested = false): string {
   if (b.type === "spacer") {
     const sp = b as SpacerBlock;
     return `<div style="height:${Math.max(0, sp.height || 0)}px"></div>`;
@@ -167,7 +178,9 @@ function renderBlock(b: LandingBlock, t: LandingTheme): string {
   const padY = PAD[b.padY || "md"];
   const padT = s.padT ?? padY;
   const padB = s.padB ?? padY;
-  const padX = s.padX ?? 24;
+  // Dentro de una columna no se aplica padding lateral de página (lo da la fila).
+  const padX = s.padX ?? (nested ? 0 : 24);
+  const hideCls = [s.hideMobile ? "hide-mobile" : "", s.hideDesktop ? "hide-desktop" : ""].filter(Boolean).join(" ");
 
   // Fondo de la banda
   let bandBg = "";
@@ -185,7 +198,7 @@ function renderBlock(b: LandingBlock, t: LandingTheme): string {
   if (s.shadow) innerExtra.push("box-shadow:0 20px 60px rgba(0,0,0,0.35)");
   if ((s.radius || s.borderWidth || s.shadow) && !s.padX) innerExtra.push("padding:28px");
 
-  return `<section data-reveal style="padding:${padT}px ${padX}px ${padB}px;${bandBg}">
+  return `<section data-reveal class="${hideCls}" style="padding:${padT}px ${padX}px ${padB}px;${bandBg}">
     <div style="${innerExtra.join(";")}">${innerHtml(b, t)}</div>
   </section>`;
 }
@@ -260,6 +273,8 @@ export function renderLandingHtml(theme: LandingTheme, blocks: LandingBlock[], t
   [data-reveal]{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
   [data-reveal].in{opacity:1;transform:none}
   @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none}.mqt{animation:none}}
+  @media(max-width:760px){.row-stack{flex-direction:column!important}.hide-mobile{display:none!important}}
+  @media(min-width:761px){.hide-desktop{display:none!important}}
 </style>
 </head><body>
 ${body}

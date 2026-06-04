@@ -37,6 +37,8 @@ export interface BlockStyle {
   borderColor?: string;
   borderWidth?: number;  // px
   shadow?: boolean;
+  hideMobile?: boolean;  // ocultar en móvil
+  hideDesktop?: boolean; // ocultar en escritorio
 }
 
 export interface BaseBlock {
@@ -119,12 +121,20 @@ export interface SocialsBlock extends BaseBlock {
   type: "socials";
   items: { network: string; url: string }[];
 }
+export interface RowBlock extends BaseBlock {
+  type: "row";
+  ratio: string;          // proporción de columnas: "1-1", "1-2", "2-1", "1-1-1", "1-1-1-1"
+  gap?: number;           // separación entre columnas (px)
+  vAlign?: "top" | "center" | "bottom";
+  stackMobile?: boolean;  // apilar en móvil (por defecto true)
+  columns: LandingBlock[][];
+}
 
 export type LandingBlock =
   | HeadingBlock | ParagraphBlock | BulletsBlock
   | ButtonBlock | ImageBlock | SpacerBlock
   | LogosBlock | StepsBlock | CardsBlock | FaqBlock
-  | CountdownBlock | VideoBlock | SocialsBlock;
+  | CountdownBlock | VideoBlock | SocialsBlock | RowBlock;
 
 // ─── Valores por defecto ──────────────────────────────────────────────────────
 
@@ -184,8 +194,13 @@ export function newBlock(type: LandingBlock["type"]): LandingBlock {
     case "countdown": return { ...base, type, padY: "lg", target: "", label: "Tu próxima feria se acerca" };
     case "video":     return { ...base, type, padY: "lg", url: "" };
     case "socials":   return { ...base, type, padY: "md", items: [{ network: "instagram", url: "" }, { network: "whatsapp", url: "" }] };
+    case "row":       return { ...base, type, align: "left", padY: "md", ratio: "1-1", gap: 24, vAlign: "center", stackMobile: true, columns: [[], []] };
   }
 }
+
+/** Tipos de bloque que se pueden meter dentro de una columna (sin filas anidadas). */
+export const CHILD_BLOCK_TYPES: LandingBlock["type"][] =
+  (["heading", "paragraph", "bullets", "button", "image", "spacer", "logos", "steps", "cards", "faq", "countdown", "video", "socials"] as LandingBlock["type"][]);
 
 export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   heading: "Titular",
@@ -201,4 +216,5 @@ export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   countdown: "Cuenta atrás",
   video: "Vídeo",
   socials: "Redes sociales",
+  row: "Fila / Columnas",
 };
