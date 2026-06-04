@@ -48,12 +48,10 @@ export default async function LandingPage({ params }: { params: Promise<{ slug: 
     .eq("active", true)
     .limit(1);
 
-  // Extraer la versión correcta (publicada)
-  let resolvedConfig = landingConfig?.config || {};
-  if (resolvedConfig.versions) {
-    const published = resolvedConfig.published || "A";
-    resolvedConfig = resolvedConfig.versions[published] || resolvedConfig.versions["A"] || {};
-  }
+  // Use flat config directly if it has landing fields; only fall back to legacy versions.
+  const raw = landingConfig?.config || {};
+  const hasFlat = raw && typeof raw === "object" && ("bgColor" in raw || "showCta1" in raw || "ctaBg" in raw);
+  let resolvedConfig = hasFlat ? raw : (raw.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"] || {}) : raw);
 
   const config = {
     ...defaultLandingConfig,

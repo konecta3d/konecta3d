@@ -43,6 +43,13 @@ export async function POST(req: Request) {
       await supabaseAdmin.from("businesses").update({ slug }).eq("id", businessId);
     }
 
+    // Strip legacy versioning keys — editor always works with flat config.
+    // Without this, stale config.versions.A overrides the flat fields in the public page.
+    if (config && typeof config === "object") {
+      const { versions: _v, published: _p, ...flatConfig } = config as Record<string, unknown>;
+      config = flatConfig;
+    }
+
     const { error } = await supabaseAdmin.from("landing_configs").upsert({
       business_id: businessId,
       config,

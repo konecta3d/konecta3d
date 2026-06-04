@@ -39,7 +39,10 @@ export default async function PublicLanding({ params, searchParams }: { params: 
   }
 
   const raw = configRow.config;
-  const resolvedConfig = raw?.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"]) : raw;
+  // If the config has top-level landing fields (post-migration), use it directly.
+  // Only fall back to legacy versions structure when there are no flat fields.
+  const hasFlat = raw && typeof raw === "object" && ("bgColor" in raw || "showCta1" in raw || "ctaBg" in raw);
+  const resolvedConfig = hasFlat ? raw : (raw?.versions ? (raw.versions[raw.published || "A"] || raw.versions["A"]) : raw);
 
   // Garantizar defaults completos + businessName y businessId.
   // Sin defaultLandingConfig los valores opcionales ausentes en la DB quedarían

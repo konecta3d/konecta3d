@@ -259,10 +259,10 @@ export default function PerfilPage() {
             <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--background)]">
               <div>
                 <div className="font-medium text-sm">Landing pública</div>
-                <div className="text-xs text-white mt-0.5">konecta3d.vercel.app/l/{slug}/NFC</div>
+                <div className="text-xs text-white mt-0.5">app.konecta3d.com/l/{slug}</div>
               </div>
               <a
-                href={`/l/${slug}/NFC`}
+                href={`/l/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs hover:bg-white/5 transition-colors whitespace-nowrap"
