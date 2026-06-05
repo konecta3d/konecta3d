@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership } from "@/lib/auth-helpers";
 import type { LandingConfig } from "@/lib/landingTypes";
+import { claudeChat, extractJson } from "@/lib/anthropic";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -173,40 +174,33 @@ Devuelve SIEMPRE un JSON con esta forma exacta:
 { "message": "texto en español (máx 4 líneas)", "changes": { /* Partial<LandingConfig> o null */ } }
 Si no propones cambios en este turno, "changes" debe ser null.`;
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
+    }
+
+    let rawContent: string;
+    try {
+      rawContent = await claudeChat({
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           ...messages.map((m) => ({ role: m.role, content: m.content })),
           { role: "user", content: userMessage },
         ],
-      }),
-    });
-
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
-      console.error("openai error:", openaiRes.status, errText);
+        maxTokens: 1024,
+      });
+    } catch (err) {
+      console.error("anthropic error:", err);
       return NextResponse.json({ error: "openai_error" }, { status: 502 });
     }
-
-    const openaiData = await openaiRes.json();
-    const rawContent = openaiData?.choices?.[0]?.message?.content;
     if (!rawContent) {
       return NextResponse.json({ error: "openai_empty_response" }, { status: 502 });
     }
 
     let parsed: { message?: string; changes?: Partial<LandingConfig> | null };
     try {
-      parsed = JSON.parse(rawContent);
+      parsed = extractJson(rawContent) as { message?: string; changes?: Partial<LandingConfig> | null };
     } catch (parseErr) {
-      console.error("openai parse error:", parseErr, rawContent);
+      console.error("anthropic parse error:", parseErr, rawContent);
       return NextResponse.json({ error: "openai_invalid_json" }, { status: 502 });
     }
 

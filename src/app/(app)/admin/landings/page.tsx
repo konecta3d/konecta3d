@@ -54,6 +54,9 @@ export default function LandingsAdminPage() {
   const [siteEditing, setSiteEditing] = useState<SiteConfig | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiForm, setAiForm] = useState({ objective: "", audience: "", mentor: "ambos", notes: "" });
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
 
@@ -195,6 +198,24 @@ export default function LandingsAdminPage() {
     setImportOpen(false); setImportText(""); setSelId(null);
     setMsg(`Importados ${imported.length} bloques. Revísalos y ajusta lo necesario.`);
   }
+  async function runAi() {
+    if (!editing) return;
+    if (!aiForm.objective.trim()) { setMsg("Escribe el objetivo de la landing."); return; }
+    setAiBusy(true); setMsg(null);
+    try {
+      const res = await fetch("/api/admin/landings/ai", {
+        method: "POST", headers: await authHeaders(), body: JSON.stringify(aiForm),
+      });
+      const json = await res.json();
+      if (json.error) { setMsg(json.error); }
+      else if (Array.isArray(json.blocks) && json.blocks.length > 0) {
+        setEditing({ ...editing, mode: "visual", blocks: json.blocks });
+        setSelId(null); setAiOpen(false);
+        setMsg(`Landing generada con IA (${json.blocks.length} bloques). Revísala y ajústala.`);
+      } else setMsg("No se generó contenido. Reformula el objetivo.");
+    } catch { setMsg("No se pudo generar (¿está la clave de Anthropic configurada en Vercel?)."); }
+    setAiBusy(false);
+  }
 
   // ── EDITOR DEL SITIO (cabecera/pie) ─────────────────────────────────────────
   if (siteEditing) {
@@ -224,6 +245,35 @@ export default function LandingsAdminPage() {
             </div>
           </div>
         )}
+        {/* Modal: generar con IA */}
+        {aiOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => !aiBusy && setAiOpen(false)}>
+            <div className="w-full max-w-lg rounded-xl border border-[var(--border)] p-4" style={{ background: "var(--card)" }} onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-bold mb-1">Generar landing con IA</h3>
+              <p className="text-xs text-[var(--foreground)]/50 mb-3">Describe el objetivo y la IA genera la landing completa en bloques (usa tu cliente ideal, el producto y el fundamento de copy). Reemplaza el contenido actual.</p>
+              <div className="space-y-3">
+                <div><Lbl>Objetivo de la landing *</Lbl><textarea value={aiForm.objective} onChange={(e) => setAiForm({ ...aiForm, objective: e.target.value })} rows={3} className={inputCls} placeholder="Ej: convencer a clínicas dentales de probar gratis el sistema antes de su próxima feria" /></div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Lbl>Público (opcional)</Lbl><input value={aiForm.audience} onChange={(e) => setAiForm({ ...aiForm, audience: e.target.value })} className={inputCls} placeholder="dentistas, abogados…" /></div>
+                  <div><Lbl>Mentor / estilo</Lbl>
+                    <select value={aiForm.mentor} onChange={(e) => setAiForm({ ...aiForm, mentor: e.target.value })} className={inputCls}>
+                      <option value="ambos">Hormozi + Isra Bravo</option>
+                      <option value="hormozi">Alex Hormozi</option>
+                      <option value="isra-bravo">Isra Bravo</option>
+                      <option value="ninguno">Sin mentor</option>
+                    </select>
+                  </div>
+                </div>
+                <div><Lbl>Notas (opcional)</Lbl><textarea value={aiForm.notes} onChange={(e) => setAiForm({ ...aiForm, notes: e.target.value })} rows={2} className={inputCls} placeholder="tono, ángulo concreto, algo a destacar…" /></div>
+              </div>
+              <div className="flex items-center justify-end gap-2 mt-3">
+                <button onClick={() => setAiOpen(false)} disabled={aiBusy} className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 disabled:opacity-50">Cancelar</button>
+                <button onClick={runAi} disabled={aiBusy} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{aiBusy ? "Generando… (puede tardar ~30s)" : "Generar landing"}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Barra superior */}
         <button onClick={() => setEditing(null)} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] mb-3">← Volver a la lista</button>
         <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
@@ -295,9 +345,12 @@ export default function LandingsAdminPage() {
 
                 {/* Añadir bloque */}
                 <div className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
                     <Lbl>Añadir bloque</Lbl>
-                    <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar desde código</button>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setAiOpen(true)} className="text-[11px] px-2 py-1 rounded font-semibold text-black" style={{ background: "var(--brand-4)" }}>✦ Generar con IA</button>
+                      <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar código</button>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
+import { claudeChat, extractJson } from "@/lib/anthropic";
 
 export type WizardChanges = {
   objective?: "volvieron" | "conversion" | "referidos" | "captar" | "reactivar" | "educar" | "temporada" | "lanzamiento";
@@ -33,8 +34,8 @@ interface ChatRequest {
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("[lead-magnet/chat] OPENAI_API_KEY no configurada");
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error("[lead-magnet/chat] ANTHROPIC_API_KEY no configurada");
       return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
     }
 
@@ -323,38 +324,31 @@ El "message" debe:
 - Ser directo, sin relleno ni frases vacías.
 - Cerrar con la acción siguiente ("Pulsa Aplicar para aplicar los cambios").`;
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
+    }
+
+    let rawContent: string;
+    try {
+      rawContent = await claudeChat({
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           ...messages.map((m) => ({ role: m.role, content: m.content })),
           { role: "user", content: userMessage },
         ],
-      }),
-    });
-
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
-      console.error("[lead-magnet/chat] openai error:", openaiRes.status, errText);
+        maxTokens: 1500,
+      });
+    } catch (err) {
+      console.error("[lead-magnet/chat] anthropic error:", err);
       return NextResponse.json({ error: "openai_error" }, { status: 502 });
     }
-
-    const openaiData = await openaiRes.json();
-    const rawContent = openaiData?.choices?.[0]?.message?.content;
     if (!rawContent) {
       return NextResponse.json({ error: "openai_empty_response" }, { status: 502 });
     }
 
     let parsed: { message?: string; changes?: WizardChanges | null };
     try {
-      parsed = JSON.parse(rawContent);
+      parsed = extractJson(rawContent) as { message?: string; changes?: WizardChanges | null };
     } catch (parseErr) {
       console.error("[lead-magnet/chat] parse error:", parseErr, rawContent);
       return NextResponse.json({ error: "openai_invalid_json" }, { status: 502 });

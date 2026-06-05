@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
+import { claudeChat, extractJson } from "@/lib/anthropic";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -317,7 +318,7 @@ async function loadBusinessContext(
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
     }
 
@@ -339,39 +340,27 @@ export async function POST(req: Request) {
     const { global: globalCtx, campaign: campaignCtx } = await loadBusinessContext(businessId);
     const systemPrompt = buildSystemPrompt(section, globalCtx, campaignCtx || undefined);
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        temperature: 0.7,
+    let rawContent: string;
+    try {
+      rawContent = await claudeChat({
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           ...(messages ?? []).slice(-8).map((m) => ({ role: m.role, content: m.content })),
           { role: "user", content: userMessage },
         ],
-      }),
-    });
-
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
-      console.error("[captacion/ai/chat] openai error:", openaiRes.status, errText);
+        maxTokens: 1500,
+      });
+    } catch (err) {
+      console.error("[captacion/ai/chat] anthropic error:", err);
       return NextResponse.json({ error: "openai_error" }, { status: 502 });
     }
-
-    const openaiData = await openaiRes.json();
-    const rawContent = openaiData?.choices?.[0]?.message?.content;
     if (!rawContent) {
       return NextResponse.json({ error: "empty_response" }, { status: 502 });
     }
 
     let parsed: { message?: string; suggestion?: Record<string, unknown> | null };
     try {
-      parsed = JSON.parse(rawContent);
+      parsed = extractJson(rawContent) as { message?: string; suggestion?: Record<string, unknown> | null };
     } catch {
       // Si no es JSON válido, devolver como mensaje plano
       return NextResponse.json({ message: rawContent, suggestion: null });
