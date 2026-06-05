@@ -5,7 +5,7 @@
 import {
   LandingTheme, LandingBlock, BlockStyle, ButtonBlock,
   HeadingBlock, ParagraphBlock, BulletsBlock, ImageBlock, SpacerBlock,
-  LogosBlock, StepsBlock, CardsBlock, FaqBlock, CountdownBlock, VideoBlock, SocialsBlock, RowBlock,
+  LogosBlock, StepsBlock, CardsBlock, FaqBlock, CountdownBlock, VideoBlock, SocialsBlock, RowBlock, HtmlBlock,
 } from "./blocks";
 import { SiteConfig, NavLink } from "./site";
 
@@ -163,6 +163,8 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
       const stack = r.stackMobile !== false ? "row-stack" : "";
       return `<div class="${stack}" style="display:flex;gap:${r.gap ?? 24}px;align-items:${valign}">${cols}</div>`;
     }
+    case "html":
+      return (b as HtmlBlock).html || "";
     case "spacer":
       return "";
   }

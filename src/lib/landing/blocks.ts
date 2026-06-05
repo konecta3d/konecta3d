@@ -130,12 +130,16 @@ export interface RowBlock extends BaseBlock {
   stackMobile?: boolean;  // apilar en móvil (por defecto true)
   columns: LandingBlock[][];
 }
+export interface HtmlBlock extends BaseBlock {
+  type: "html";
+  html: string;           // código HTML a medida, se renderiza tal cual
+}
 
 export type LandingBlock =
   | HeadingBlock | ParagraphBlock | BulletsBlock
   | ButtonBlock | ImageBlock | SpacerBlock
   | LogosBlock | StepsBlock | CardsBlock | FaqBlock
-  | CountdownBlock | VideoBlock | SocialsBlock | RowBlock;
+  | CountdownBlock | VideoBlock | SocialsBlock | RowBlock | HtmlBlock;
 
 // ─── Valores por defecto ──────────────────────────────────────────────────────
 
@@ -196,12 +200,13 @@ export function newBlock(type: LandingBlock["type"]): LandingBlock {
     case "video":     return { ...base, type, padY: "lg", url: "" };
     case "socials":   return { ...base, type, padY: "md", items: [{ network: "instagram", url: "" }, { network: "whatsapp", url: "" }] };
     case "row":       return { ...base, type, align: "left", padY: "md", ratio: "1-1", gap: 24, vAlign: "center", stackMobile: true, columns: [[], []] };
+    case "html":      return { ...base, type, padY: "md", html: "<!-- Pega aquí tu código HTML -->" };
   }
 }
 
 /** Tipos de bloque que se pueden meter dentro de una columna (sin filas anidadas). */
 export const CHILD_BLOCK_TYPES: LandingBlock["type"][] =
-  (["heading", "paragraph", "bullets", "button", "image", "spacer", "logos", "steps", "cards", "faq", "countdown", "video", "socials"] as LandingBlock["type"][]);
+  (["heading", "paragraph", "bullets", "button", "image", "spacer", "logos", "steps", "cards", "faq", "countdown", "video", "socials", "html"] as LandingBlock["type"][]);
 
 export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   heading: "Titular",
@@ -218,4 +223,5 @@ export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   video: "Vídeo",
   socials: "Redes sociales",
   row: "Fila / Columnas",
+  html: "HTML / Código",
 };

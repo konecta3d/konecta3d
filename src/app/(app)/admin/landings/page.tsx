@@ -9,6 +9,7 @@ import {
   DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
 } from "@/lib/landing/blocks";
 import { SiteConfig, SiteHeader, SiteFooter, NavLink, DEFAULT_SITE } from "@/lib/landing/site";
+import { importHtmlToBlocks } from "@/lib/landing/import";
 
 async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
@@ -51,6 +52,8 @@ export default function LandingsAdminPage() {
   const [previewHtml, setPreviewHtml] = useState("");
   const [site, setSite] = useState<SiteConfig>(DEFAULT_SITE);
   const [siteEditing, setSiteEditing] = useState<SiteConfig | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
 
@@ -183,6 +186,15 @@ export default function LandingsAdminPage() {
     setBlocks(editing.blocks.filter((b) => b.id !== id));
     if (selId === id) setSelId(null);
   }
+  function runImport(mode: "replace" | "append") {
+    if (!editing) return;
+    const imported = importHtmlToBlocks(importText);
+    if (imported.length === 0) { setMsg("No se reconoció contenido en el código pegado."); return; }
+    const base = mode === "replace" ? [] : (editing.blocks || []);
+    setEditing({ ...editing, blocks: [...base, ...imported] });
+    setImportOpen(false); setImportText(""); setSelId(null);
+    setMsg(`Importados ${imported.length} bloques. Revísalos y ajusta lo necesario.`);
+  }
 
   // ── EDITOR DEL SITIO (cabecera/pie) ─────────────────────────────────────────
   if (siteEditing) {
@@ -197,6 +209,21 @@ export default function LandingsAdminPage() {
 
     return (
       <div className="max-w-[1300px] mx-auto pb-12">
+        {/* Modal: importar desde código */}
+        {importOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setImportOpen(false)}>
+            <div className="w-full max-w-2xl rounded-xl border border-[var(--border)] p-4" style={{ background: "var(--card)" }} onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-bold mb-1">Importar desde código</h3>
+              <p className="text-xs text-[var(--foreground)]/50 mb-3">Pega HTML. Lo reconocible (titulares, textos, listas, botones, imágenes) se convierte en bloques editables; el resto se guarda en bloques HTML. La maquetación compleja no se conserva: se extrae el contenido.</p>
+              <textarea value={importText} onChange={(e) => setImportText(e.target.value)} spellCheck={false} placeholder="<h1>...</h1>" className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-xs" style={{ minHeight: "38vh" }} />
+              <div className="flex items-center justify-end gap-2 mt-3">
+                <button onClick={() => setImportOpen(false)} className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Cancelar</button>
+                <button onClick={() => runImport("append")} className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Añadir al final</button>
+                <button onClick={() => runImport("replace")} className="text-sm px-4 py-2 rounded-lg font-semibold text-black" style={{ background: "var(--brand-4)" }}>Reemplazar todo</button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Barra superior */}
         <button onClick={() => setEditing(null)} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] mb-3">← Volver a la lista</button>
         <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
@@ -268,7 +295,10 @@ export default function LandingsAdminPage() {
 
                 {/* Añadir bloque */}
                 <div className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
-                  <Lbl>Añadir bloque</Lbl>
+                  <div className="flex items-center justify-between mb-1">
+                    <Lbl>Añadir bloque</Lbl>
+                    <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar desde código</button>
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
                       <button key={t} onClick={() => addBlock(t)} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--brand-1)] hover:text-white transition-colors">+ {BLOCK_LABELS[t]}</button>
@@ -560,6 +590,8 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
       ))}
       <button onClick={() => update({ items: [...block.items, { network: "web", url: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir red</button>
     </>;
+  } else if (block.type === "html") {
+    specific = <div><Lbl>Código HTML</Lbl><textarea value={block.html} onChange={(e) => update({ html: e.target.value })} spellCheck={false} className={`${inputCls} font-mono text-xs`} rows={8} /></div>;
   } else if (block.type === "row") {
     specific = <RowControls block={block} update={update} />;
   }
