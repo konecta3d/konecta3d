@@ -310,7 +310,10 @@ export function renderLandingHtml(theme: LandingTheme, blocks: LandingBlock[], t
   const showChrome = !t.noChrome && !!site;
   const header = showChrome && site!.header?.enabled ? renderHeader(site!, t) : "";
   const footer = showChrome && site!.footer?.enabled ? renderFooter(site!, t) : "";
-  const body = header + `<span id="top"></span>` + (blocks || []).map((b) => renderBlock(b, t)).join("\n") + footer;
+  const blocksHtml = (blocks || []).map((b) => renderBlock(b, t)).join("\n");
+  // El contenido va en un <main> que crece para empujar el pie al fondo
+  // (sticky footer), aunque haya poco contenido.
+  const body = `${header}<main style="flex:1 0 auto"><span id="top"></span>${blocksHtml}</main>${footer}`;
   const fontParam = t.font.replace(/ /g, "+");
 
   return `<!DOCTYPE html>
@@ -325,7 +328,8 @@ export function renderLandingHtml(theme: LandingTheme, blocks: LandingBlock[], t
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{font-family:'${t.font}',-apple-system,BlinkMacSystemFont,sans-serif;background:${bg};
-    background-attachment:fixed;color:${t.text};min-height:100vh;-webkit-font-smoothing:antialiased}
+    background-attachment:fixed;color:${t.text};min-height:100vh;-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column}
   a{color:inherit}
   details summary::-webkit-details-marker{display:none}
   .mq{overflow:hidden;-webkit-mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent)}
