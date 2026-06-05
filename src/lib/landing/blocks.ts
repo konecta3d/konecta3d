@@ -157,27 +157,74 @@ export const DEFAULT_THEME: LandingTheme = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-/** Bloques de arranque para una landing nueva (se ve bien al instante). */
+/** Landing completa de arranque (modo visual) — estructura 3 P. Editable bloque a bloque. */
 export function starterBlocks(): LandingBlock[] {
+  const wa = "34623759451";
   return [
-    { id: uid(), type: "heading", level: 1, align: "center", padY: "xl", bg: "none",
+    // ── Hero ──
+    { id: uid(), type: "heading", level: 1, align: "center", padY: "xl",
       text: "Cada feria te cuesta miles.\n¿Cuántos clientes se van sin dejar rastro?", accent: true },
     { id: uid(), type: "paragraph", align: "center", padY: "none", size: "lg",
-      text: "Konecta3D captura los contactos que hoy pierdes en cada evento: un llavero con tu marca que tus visitantes tocan con el móvil y quedan guardados en tu plataforma." },
+      text: "Konecta3D captura los contactos que hoy pierdes en cada evento: un llavero con tu marca que tus visitantes tocan con el móvil y quedan guardados en tu plataforma. Tú llegas el lunes con los leads listos." },
     { id: uid(), type: "button", align: "center", padY: "md",
-      label: "Quiero verlo para mi negocio", linkType: "whatsapp", value: "34623759451",
+      label: "Quiero verlo para mi negocio", linkType: "whatsapp", value: wa,
       waMessage: "Hola, quiero info de Konecta3D", style: "gold", size: "lg" },
-    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "card",
-      text: "Un sistema, no una herramienta más" },
-    { id: uid(), type: "bullets", align: "left", padY: "md",
-      items: [
-        "El lunes, con los leads ya listos",
-        "El stand más avanzado del evento",
-        "Justificas cada euro con números",
-        "Tu equipo cierra más y llama menos en frío",
-      ] },
-    { id: uid(), type: "button", align: "center", padY: "lg",
-      label: "Hablar con Konecta3D", linkType: "whatsapp", value: "34623759451",
+
+    // ── Problema ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg",
+      text: "Inviertes en presencia, pero no en permanencia" },
+    { id: uid(), type: "cards", align: "center", padY: "md", columns: 3, items: [
+      { icon: "📇", title: "Vuelves con tarjetas", text: "Un puñado de papeles que no sabes si servirán. La mayoría de interesados pasó y se fue sin rastro." },
+      { icon: "⏳", title: "El interés se enfría", text: "Cuando por fin haces el seguimiento, ya pasaron días y el momento se perdió." },
+      { icon: "❓", title: "No sabes qué funcionó", text: "Sin números por feria, inviertes igual en todas sin saber cuál te trajo clientes." },
+    ] },
+
+    // ── Posibilidad ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "brandSoft",
+      text: "Llegas el lunes con la lista ya hecha" },
+    { id: uid(), type: "paragraph", align: "center", padY: "none", size: "lg",
+      text: "Sabes quién pasó por tu stand y qué le interesó. Tu equipo escribe a gente que ya mostró interés, no llama en frío. Y al cerrar la feria, ves en números cuántos leads te dio." },
+
+    // ── Puente / Cómo funciona ──
+    { id: uid(), type: "heading", level: 3, align: "center", padY: "lg", text: "Cómo funciona" },
+    { id: uid(), type: "steps", align: "center", padY: "none", items: [
+      { title: "Tu visitante toca el llavero", text: "Acerca el móvil y se abre tu página. Sin apps, sin fricción." },
+      { title: "Queda capturado al instante", text: "Su contacto y lo que le interesó entran en tu plataforma, aunque tu equipo esté ocupado." },
+      { title: "Tu marca se queda con él", text: "El llavero se lo lleva a casa y lo usa a diario. Sigues presente cuando ya olvidó los demás stands." },
+    ] },
+
+    // ── Beneficios ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "Un sistema, no una herramienta más" },
+    { id: uid(), type: "cards", align: "center", padY: "none", columns: 2, items: [
+      { icon: "🌅", title: "El lunes, con los leads listos", text: "Sin haber hecho nada diferente en la feria." },
+      { icon: "✨", title: "El stand más avanzado del evento", text: "Dejas de dar tarjetas. Eres del que todos preguntan." },
+      { icon: "📊", title: "Justificas cada euro", text: "Sabes qué feria fue rentable y dónde repetir." },
+      { icon: "🤝", title: "Tu equipo cierra más", text: "Menos llamadas en frío; hablan con gente interesada." },
+    ] },
+
+    // ── Logos ──
+    { id: uid(), type: "logos", align: "center", padY: "lg", title: "Negocios que ya tienen su llavero Konecta3D",
+      items: [{ src: "", alt: "Cliente 1" }, { src: "", alt: "Cliente 2" }, { src: "", alt: "Cliente 3" }] },
+
+    // ── Urgencia ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "card", text: "Tu próxima feria es una fecha límite real" },
+    { id: uid(), type: "paragraph", align: "center", padY: "none",
+      text: "Fabricar tus llaveros y dejar tu plataforma lista lleva tiempo. Si empiezas hoy, llegas con el sistema montado y probado." },
+    { id: uid(), type: "countdown", align: "center", padY: "md", target: "", label: "Cuenta atrás para tu evento" },
+
+    // ── FAQ ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "Antes de que preguntes" },
+    { id: uid(), type: "faq", align: "center", padY: "none", items: [
+      { q: "¿Es caro?", a: "Es una fracción de lo que ya inviertes en el stand. Lo recuperas con un solo cliente nuevo." },
+      { q: "¿Necesito saber de tecnología?", a: "No. Te lo dejamos configurado y tú lo gestionas desde un panel sencillo." },
+      { q: "Ya tengo un CRM, ¿esto lo reemplaza?", a: "No lo reemplaza: lo alimenta. Captura el contacto justo donde hoy lo pierdes." },
+      { q: "¿Y si no funciona?", a: "Lo pruebas gratis un mes y lo ves con tus datos antes de pagar nada." },
+    ] },
+
+    // ── CTA final ──
+    { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "brandSoft", text: "Que esta feria no sea otra que se te escapa" },
+    { id: uid(), type: "button", align: "center", padY: "md",
+      label: "Hablar con Konecta3D", linkType: "whatsapp", value: wa,
       waMessage: "Hola, quiero info de Konecta3D para mi negocio", style: "gold", size: "lg" },
   ];
 }
