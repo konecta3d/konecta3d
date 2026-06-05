@@ -15,6 +15,7 @@ export interface LandingTheme {
   text: string;       // color de texto principal
   muted: string;      // color de texto secundario
   font: LandingFont;
+  noChrome?: boolean; // si true, esta página NO muestra la cabecera/pie del sitio
 }
 
 export type BlockAlign = "left" | "center" | "right";

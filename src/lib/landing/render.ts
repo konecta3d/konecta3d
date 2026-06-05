@@ -7,6 +7,7 @@ import {
   HeadingBlock, ParagraphBlock, BulletsBlock, ImageBlock, SpacerBlock,
   LogosBlock, StepsBlock, CardsBlock, FaqBlock, CountdownBlock, VideoBlock, SocialsBlock, RowBlock,
 } from "./blocks";
+import { SiteConfig, NavLink } from "./site";
 
 const esc = (s: unknown) =>
   String(s ?? "")
@@ -225,6 +226,62 @@ const SOCIAL_SVG: Record<string, string> = {
   email: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>`,
 };
 
+// ─── Cabecera / pie del sitio ─────────────────────────────────────────────────
+
+function navHref(l: NavLink): { href: string; target: string } {
+  if (l.type === "page") return { href: `/p/${(l.value || "").replace(/^\//, "")}`, target: "_self" };
+  if (l.type === "anchor") return { href: `#${(l.value || "").replace(/^#/, "")}`, target: "_self" };
+  return { href: l.value || "#", target: "_blank" };
+}
+
+function renderHeader(site: SiteConfig, t: LandingTheme): string {
+  const h = site.header;
+  const logo = h.logoType === "image" && h.logoImg
+    ? `<img src="${esc(h.logoImg)}" alt="${esc(h.logoText)}" style="height:${h.logoHeight || 32}px;display:block"/>`
+    : `<span style="font-weight:800;font-size:18px;color:${t.text}">${esc(h.logoText || "")}</span>`;
+
+  const links = (h.links || []).map((l) => {
+    const { href, target } = navHref(l);
+    return `<a href="${esc(href)}" target="${target}" style="font-size:14px;color:${hexA(t.text, 0.8)};text-decoration:none">${esc(l.label)}</a>`;
+  }).join("");
+
+  let cta = "";
+  if (h.ctaType !== "none" && h.ctaLabel) {
+    let href = "#", target = "_self";
+    if (h.ctaType === "whatsapp") { href = `https://wa.me/${(h.ctaValue || "").replace(/[^0-9]/g, "")}${h.ctaMessage ? `?text=${encodeURIComponent(h.ctaMessage)}` : ""}`; target = "_blank"; }
+    else if (h.ctaType === "url") { href = h.ctaValue || "#"; target = "_blank"; }
+    else if (h.ctaType === "page") { href = `/p/${(h.ctaValue || "").replace(/^\//, "")}`; }
+    else if (h.ctaType === "anchor") { href = `#${(h.ctaValue || "").replace(/^#/, "")}`; }
+    cta = `<a href="${esc(href)}" target="${target}" style="display:inline-flex;align-items:center;font-weight:700;font-size:14px;border-radius:999px;padding:9px 18px;text-decoration:none;background:linear-gradient(135deg,${lighten(t.brand)},${t.brand});color:${t.brandText}">${esc(h.ctaLabel)}</a>`;
+  }
+
+  return `<header style="${h.sticky ? "position:sticky;top:0;" : ""}z-index:50;backdrop-filter:blur(10px);background:${hexA(t.bg1, 0.72)};border-bottom:1px solid ${hexA(t.text, 0.1)}">
+    <div style="max-width:1120px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <a href="#top" style="display:flex;align-items:center;gap:10px;text-decoration:none">${logo}</a>
+      <nav style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">${links}${cta}</nav>
+    </div>
+  </header>`;
+}
+
+function renderFooter(site: SiteConfig, t: LandingTheme): string {
+  const f = site.footer;
+  const links = (f.links || []).map((l) => {
+    const { href, target } = navHref(l);
+    return `<a href="${esc(href)}" target="${target}" style="font-size:14px;color:${hexA(t.text, 0.65)};text-decoration:none;margin:0 10px">${esc(l.label)}</a>`;
+  }).join("");
+  const socials = (f.socials || []).filter((s) => s.url).map((s) =>
+    `<a href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(s.network)}" style="width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${hexA(t.text, 0.08)};border:1px solid ${hexA(t.text, 0.14)};color:${t.text}">${SOCIAL_SVG[s.network] || SOCIAL_SVG.web}</a>`
+  ).join("");
+
+  return `<footer style="border-top:1px solid ${hexA(t.text, 0.1)};padding:40px 24px;text-align:center">
+    <div style="max-width:1000px;margin:0 auto">
+      ${links ? `<div style="margin-bottom:16px">${links}</div>` : ""}
+      ${socials ? `<div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px">${socials}</div>` : ""}
+      <p style="font-size:13px;color:${hexA(t.text, 0.5)};margin:0">${esc(f.text)}</p>
+    </div>
+  </footer>`;
+}
+
 function hexA(hex: string, a: number): string {
   const c = hex.replace("#", "");
   const f = c.length === 3 ? c.split("").map((x) => x + x).join("") : c;
@@ -242,13 +299,16 @@ function lighten(hex: string): string {
 }
 
 /** Genera el documento HTML completo y autónomo de la landing. */
-export function renderLandingHtml(theme: LandingTheme, blocks: LandingBlock[], title = "Konecta3D"): string {
+export function renderLandingHtml(theme: LandingTheme, blocks: LandingBlock[], title = "Konecta3D", site?: SiteConfig | null): string {
   const t = { ...theme };
   const bg = t.bgType === "solid"
     ? t.bg1
     : `linear-gradient(${t.bgAngle}deg, ${t.bg1} 0%, ${t.bg2} 55%, ${t.bg1} 100%)`;
 
-  const body = (blocks || []).map((b) => renderBlock(b, t)).join("\n");
+  const showChrome = !t.noChrome && !!site;
+  const header = showChrome && site!.header?.enabled ? renderHeader(site!, t) : "";
+  const footer = showChrome && site!.footer?.enabled ? renderFooter(site!, t) : "";
+  const body = header + `<span id="top"></span>` + (blocks || []).map((b) => renderBlock(b, t)).join("\n") + footer;
   const fontParam = t.font.replace(/ /g, "+");
 
   return `<!DOCTYPE html>

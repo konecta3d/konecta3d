@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { renderLandingHtml } from "@/lib/landing/render";
 import { DEFAULT_THEME } from "@/lib/landing/blocks";
+import { DEFAULT_SITE } from "@/lib/landing/site";
 
 function adminClient() {
   return createClient(
@@ -39,7 +40,13 @@ export async function GET(
     let out = "";
     if (data.mode === "visual" && Array.isArray(data.blocks) && data.blocks.length > 0) {
       const theme = { ...DEFAULT_THEME, ...(data.theme || {}) };
-      out = renderLandingHtml(theme, data.blocks, data.name || "Konecta3D");
+      // Config compartida del sitio (cabecera/pie/menú)
+      let site = DEFAULT_SITE;
+      try {
+        const { data: s } = await db.from("settings").select("value").eq("key", "landing_site_config").single();
+        if (s?.value) site = { ...DEFAULT_SITE, ...(typeof s.value === "string" ? JSON.parse(s.value) : s.value) };
+      } catch { /* usa DEFAULT_SITE */ }
+      out = renderLandingHtml(theme, data.blocks, data.name || "Konecta3D", site);
     } else if (typeof data.html === "string" && data.html.trim()) {
       out = data.html;
     }

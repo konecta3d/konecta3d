@@ -8,6 +8,7 @@ import {
   LandingBlock, LandingTheme, BlockStyle, RowBlock,
   DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
 } from "@/lib/landing/blocks";
+import { SiteConfig, SiteHeader, SiteFooter, NavLink, DEFAULT_SITE } from "@/lib/landing/site";
 
 async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
@@ -48,21 +49,44 @@ export default function LandingsAdminPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [origin, setOrigin] = useState("");
   const [previewHtml, setPreviewHtml] = useState("");
+  const [site, setSite] = useState<SiteConfig>(DEFAULT_SITE);
+  const [siteEditing, setSiteEditing] = useState<SiteConfig | null>(null);
 
-  useEffect(() => { setOrigin(window.location.origin); load(); }, []);
+  useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
+
+  async function loadSite() {
+    try {
+      const res = await fetch("/api/admin/landings/site", { headers: await authHeaders() });
+      const json = await res.json();
+      if (json.site) setSite({ ...DEFAULT_SITE, ...json.site });
+    } catch { /* */ }
+  }
+
+  async function saveSite(cfg: SiteConfig) {
+    setSaving(true); setMsg(null);
+    try {
+      const res = await fetch("/api/admin/landings/site", {
+        method: "PUT", headers: await authHeaders(), body: JSON.stringify({ site: cfg }),
+      });
+      const json = await res.json();
+      if (json.error) setMsg(json.error);
+      else { setSite(cfg); setSiteEditing(null); setMsg("Cabecera y pie guardados"); }
+    } catch { setMsg("No se pudo guardar el sitio"); }
+    setSaving(false);
+  }
 
   // Vista previa en vivo (con pequeño debounce)
   useEffect(() => {
     if (!editing) return;
     const id = setTimeout(() => {
       if (editing.mode === "visual") {
-        setPreviewHtml(renderLandingHtml(editing.theme || DEFAULT_THEME, editing.blocks || [], editing.name));
+        setPreviewHtml(renderLandingHtml(editing.theme || DEFAULT_THEME, editing.blocks || [], editing.name, site));
       } else {
         setPreviewHtml(editing.html || "");
       }
     }, 250);
     return () => clearTimeout(id);
-  }, [editing]);
+  }, [editing, site]);
 
   async function load() {
     setLoading(true);
@@ -160,6 +184,11 @@ export default function LandingsAdminPage() {
     if (selId === id) setSelId(null);
   }
 
+  // ── EDITOR DEL SITIO (cabecera/pie) ─────────────────────────────────────────
+  if (siteEditing) {
+    return <SiteEditor initial={siteEditing} pages={list} saving={saving} onSave={saveSite} onCancel={() => setSiteEditing(null)} />;
+  }
+
   // ── EDITOR ──────────────────────────────────────────────────────────────────
   if (editing) {
     const publicUrl = `${origin}/p/${editing.slug}`;
@@ -190,6 +219,9 @@ export default function LandingsAdminPage() {
               className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1" />
           </div>
           <label className="flex items-center gap-2"><input type="checkbox" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} />Publicada</label>
+          {editing.mode === "visual" && (
+            <label className="flex items-center gap-2"><input type="checkbox" checked={!(editing.theme?.noChrome)} onChange={(e) => setEditing({ ...editing, theme: { ...(editing.theme || DEFAULT_THEME), noChrome: !e.target.checked } })} />Cabecera y pie</label>
+          )}
           <button onClick={() => copyLink(editing.slug)} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Copiar link</button>
           {msg && <span className="text-[var(--brand-1)]">{msg}</span>}
         </div>
@@ -295,7 +327,10 @@ export default function LandingsAdminPage() {
           <h1 className="text-xl font-bold">Landings de presentación</h1>
           <p className="text-sm text-[var(--foreground)]/50 mt-0.5">Crea páginas visuales, genera un link y compártelo con los negocios.</p>
         </div>
-        <button onClick={createNew} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>+ Nueva landing</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setSiteEditing({ ...DEFAULT_SITE, ...site })} className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Cabecera y pie del sitio</button>
+          <button onClick={createNew} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>+ Nueva landing</button>
+        </div>
       </div>
       {msg && <div className="my-3 text-sm text-[var(--brand-1)]">{msg}</div>}
 
@@ -614,4 +649,130 @@ function RowControls({ block, update }: { block: RowBlock; update: (patch: Parti
       </div>
     ))}
   </div>;
+}
+
+// ─── Editor de enlaces de navegación ──────────────────────────────────────────
+function LinkList({ links, pages, onChange }: { links: NavLink[]; pages: LandingRow[]; onChange: (l: NavLink[]) => void }) {
+  return (
+    <div className="space-y-1.5">
+      {links.map((l, i) => (
+        <div key={i} className="flex gap-1 items-center">
+          <input value={l.label} placeholder="Texto" onChange={(e) => { const a = [...links]; a[i] = { ...a[i], label: e.target.value }; onChange(a); }} className={`${inputCls} max-w-[100px]`} />
+          <select value={l.type} onChange={(e) => { const a = [...links]; a[i] = { ...a[i], type: e.target.value as NavLink["type"], value: "" }; onChange(a); }} className={`${inputCls} max-w-[88px]`}>
+            <option value="page">Página</option><option value="anchor">Sección</option><option value="url">URL</option>
+          </select>
+          {l.type === "page" ? (
+            <select value={l.value} onChange={(e) => { const a = [...links]; a[i] = { ...a[i], value: e.target.value }; onChange(a); }} className={inputCls}>
+              <option value="">— elige página —</option>
+              {pages.map((p) => <option key={p.id} value={p.slug}>{p.name}</option>)}
+            </select>
+          ) : (
+            <input value={l.value} placeholder={l.type === "anchor" ? "id de sección" : "https://..."} onChange={(e) => { const a = [...links]; a[i] = { ...a[i], value: e.target.value }; onChange(a); }} className={inputCls} />
+          )}
+          <button onClick={() => onChange(links.filter((_, j) => j !== i))} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+        </div>
+      ))}
+      <button onClick={() => onChange([...links, { label: "Enlace", type: "page", value: "" }])} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir enlace</button>
+    </div>
+  );
+}
+
+// ─── Editor del sitio (cabecera / pie / menú) ─────────────────────────────────
+function SiteEditor({ initial, pages, saving, onSave, onCancel }: {
+  initial: SiteConfig; pages: LandingRow[]; saving: boolean;
+  onSave: (c: SiteConfig) => void; onCancel: () => void;
+}) {
+  const [cfg, setCfg] = useState<SiteConfig>(initial);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [preview, setPreview] = useState("");
+  const h = cfg.header, f = cfg.footer;
+  const setHeader = (patch: Partial<SiteHeader>) => setCfg({ ...cfg, header: { ...cfg.header, ...patch } });
+  const setFooter = (patch: Partial<SiteFooter>) => setCfg({ ...cfg, footer: { ...cfg.footer, ...patch } });
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const sample: LandingBlock[] = [
+        { id: "s1", type: "heading", level: 1, align: "center", padY: "xl", text: "Vista previa del sitio" },
+        { id: "s2", type: "paragraph", align: "center", padY: "md", size: "lg", text: "Así se ven tu cabecera y tu pie en todas las páginas." },
+        { id: "s3", type: "heading", level: 2, align: "center", padY: "lg", bg: "card", text: "Contacto" },
+      ];
+      setPreview(renderLandingHtml(DEFAULT_THEME, sample, "Vista previa", cfg));
+    }, 200);
+    return () => clearTimeout(id);
+  }, [cfg]);
+
+  return (
+    <div className="max-w-[1300px] mx-auto pb-12">
+      <button onClick={onCancel} className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] mb-3">← Volver a la lista</button>
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <h1 className="text-lg font-bold">Cabecera y pie del sitio</h1>
+        <div className="flex items-center gap-2">
+          <Seg value={device} onChange={setDevice} options={[{ v: "desktop", l: "Escritorio" }, { v: "mobile", l: "Móvil" }]} />
+          <button onClick={() => onSave(cfg)} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{saving ? "Guardando…" : "Guardar"}</button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[400px_1fr] gap-5">
+        <div className="space-y-4">
+          {/* CABECERA */}
+          <div className="rounded-xl border border-[var(--border)] p-3 space-y-3" style={{ background: "var(--card)" }}>
+            <label className="flex items-center gap-2 font-semibold text-sm"><input type="checkbox" checked={h.enabled} onChange={(e) => setHeader({ enabled: e.target.checked })} />Mostrar cabecera</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Lbl>Logo</Lbl><Seg value={h.logoType} onChange={(v) => setHeader({ logoType: v })} options={[{ v: "text", l: "Texto" }, { v: "image", l: "Imagen" }]} /></div>
+              <label className="flex items-center gap-2 text-sm mt-5"><input type="checkbox" checked={h.sticky} onChange={(e) => setHeader({ sticky: e.target.checked })} />Fija al scroll</label>
+            </div>
+            {h.logoType === "text"
+              ? <div><Lbl>Texto del logo</Lbl><input value={h.logoText} onChange={(e) => setHeader({ logoText: e.target.value })} className={inputCls} /></div>
+              : <div className="grid grid-cols-[1fr_80px] gap-2">
+                  <div><Lbl>URL del logo</Lbl><input value={h.logoImg} onChange={(e) => setHeader({ logoImg: e.target.value })} className={inputCls} /></div>
+                  <div><Lbl>Alto px</Lbl><input type="number" value={h.logoHeight} onChange={(e) => setHeader({ logoHeight: Number(e.target.value) })} className={inputCls} /></div>
+                </div>}
+            <div><Lbl>Menú</Lbl><LinkList links={h.links} pages={pages} onChange={(links) => setHeader({ links })} /></div>
+            <div className="border-t border-[var(--border)] pt-2 space-y-2">
+              <Lbl>Botón (CTA)</Lbl>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={h.ctaType} onChange={(e) => setHeader({ ctaType: e.target.value as SiteHeader["ctaType"] })} className={inputCls}>
+                  <option value="none">Sin botón</option><option value="whatsapp">WhatsApp</option><option value="url">URL</option><option value="page">Página</option><option value="anchor">Sección</option>
+                </select>
+                <input value={h.ctaLabel} placeholder="Texto del botón" onChange={(e) => setHeader({ ctaLabel: e.target.value })} className={inputCls} />
+              </div>
+              {h.ctaType !== "none" && (h.ctaType === "page"
+                ? <select value={h.ctaValue} onChange={(e) => setHeader({ ctaValue: e.target.value })} className={inputCls}><option value="">— elige página —</option>{pages.map((p) => <option key={p.id} value={p.slug}>{p.name}</option>)}</select>
+                : <input value={h.ctaValue} placeholder={h.ctaType === "whatsapp" ? "34600000000" : h.ctaType === "anchor" ? "id de sección" : "https://..."} onChange={(e) => setHeader({ ctaValue: e.target.value })} className={inputCls} />)}
+              {h.ctaType === "whatsapp" && <input value={h.ctaMessage || ""} placeholder="Mensaje predefinido" onChange={(e) => setHeader({ ctaMessage: e.target.value })} className={inputCls} />}
+            </div>
+          </div>
+
+          {/* PIE */}
+          <div className="rounded-xl border border-[var(--border)] p-3 space-y-3" style={{ background: "var(--card)" }}>
+            <label className="flex items-center gap-2 font-semibold text-sm"><input type="checkbox" checked={f.enabled} onChange={(e) => setFooter({ enabled: e.target.checked })} />Mostrar pie</label>
+            <div><Lbl>Texto</Lbl><input value={f.text} onChange={(e) => setFooter({ text: e.target.value })} className={inputCls} /></div>
+            <div><Lbl>Enlaces</Lbl><LinkList links={f.links} pages={pages} onChange={(links) => setFooter({ links })} /></div>
+            <div><Lbl>Redes</Lbl>
+              {f.socials.map((sc, i) => (
+                <div key={i} className="flex gap-1 mb-1">
+                  <select value={sc.network} onChange={(e) => { const a = [...f.socials]; a[i] = { ...a[i], network: e.target.value }; setFooter({ socials: a }); }} className={`${inputCls} max-w-[110px]`}>
+                    <option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="whatsapp">WhatsApp</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option><option value="web">Web</option><option value="email">Email</option>
+                  </select>
+                  <input value={sc.url} placeholder="URL" onChange={(e) => { const a = [...f.socials]; a[i] = { ...a[i], url: e.target.value }; setFooter({ socials: a }); }} className={inputCls} />
+                  <button onClick={() => setFooter({ socials: f.socials.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+                </div>
+              ))}
+              <button onClick={() => setFooter({ socials: [...f.socials, { network: "web", url: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir red</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview */}
+        <div className="lg:sticky lg:top-4 h-fit">
+          <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "78vh" }}>
+            <div className="flex items-center justify-center h-full p-2">
+              <iframe title="preview-site" srcDoc={preview} className="bg-white rounded-lg shadow-2xl" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+            </div>
+          </div>
+          <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">La cabecera y el pie se aplican a las páginas que tengan activada la opción “Cabecera y pie”.</p>
+        </div>
+      </div>
+    </div>
+  );
 }
