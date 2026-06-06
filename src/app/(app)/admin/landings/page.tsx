@@ -40,6 +40,57 @@ function Seg<T extends string>({ value, onChange, options }: { value: T; onChang
   );
 }
 
+// Selector de archivo (sube a Supabase Storage vía /api/admin/upload y guarda la URL)
+function ImagePicker({ value, onChange, kind, label }: { value?: string; onChange: (url: string) => void; kind?: string; label?: string }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (ref.current) ref.current.value = "";
+    if (!file) return;
+    setBusy(true); setErr(null);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const fd = new FormData(); fd.append("file", file); fd.append("kind", kind || "landing");
+      const res = await fetch("/api/admin/upload", { method: "POST", headers: { Authorization: `Bearer ${data.session?.access_token || ""}` }, body: fd });
+      const json = await res.json();
+      if (json.url) onChange(json.url); else setErr(json.error || "Error al subir");
+    } catch { setErr("Error al subir"); }
+    setBusy(false);
+  }
+  return (
+    <div>
+      {label && <Lbl>{label}</Lbl>}
+      <div className="flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {value
+          ? <img src={value} alt="" className="h-10 w-10 object-contain rounded border border-[var(--border)] bg-[var(--background)] flex-shrink-0" />
+          : <div className="h-10 w-10 rounded border border-dashed border-[var(--border)] flex items-center justify-center text-[10px] text-[var(--foreground)]/30 flex-shrink-0">img</div>}
+        <button type="button" onClick={() => ref.current?.click()} disabled={busy} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 disabled:opacity-50">{busy ? "Subiendo…" : value ? "Cambiar" : "Seleccionar archivo"}</button>
+        {value && <button type="button" onClick={() => onChange("")} className="text-xs px-2 py-1.5 text-red-500/70 hover:text-red-500">Quitar</button>}
+        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={pick} />
+      </div>
+      {err && <p className="text-[11px] text-red-500 mt-1">{err}</p>}
+    </div>
+  );
+}
+
+// Selector de color opcional (vacío = usa el color del tema)
+function ColorField({ label, value, onChange, fallback = "#ffffff" }: { label: string; value?: string; onChange: (v: string | undefined) => void; fallback?: string }) {
+  return (
+    <div>
+      <Lbl>{label}</Lbl>
+      <div className="flex items-center gap-1.5">
+        <input type="color" value={value || fallback} onChange={(e) => onChange(e.target.value)} className="h-9 w-12 rounded-lg border border-[var(--border)] bg-transparent flex-shrink-0" />
+        {value
+          ? <button type="button" onClick={() => onChange(undefined)} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Tema</button>
+          : <span className="text-[11px] text-[var(--foreground)]/40">Color del tema</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function LandingsAdminPage() {
   const [list, setList] = useState<LandingRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +110,7 @@ export default function LandingsAdminPage() {
   const [aiForm, setAiForm] = useState({ objective: "", audience: "", mentor: "ambos", notes: "" });
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(true);
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
@@ -195,6 +247,7 @@ export default function LandingsAdminPage() {
   /** Selecciona un bloque y desplaza la vista previa hasta esa sección. */
   function selectBlock(id: string) {
     setSelId(id);
+    setThemeOpen(false);
     setTimeout(() => {
       try {
         const doc = previewRef.current?.contentDocument;
@@ -381,7 +434,7 @@ export default function LandingsAdminPage() {
                 </div>
                 <div className="rounded-xl border border-[var(--border)]" style={{ background: "var(--card)" }}>
                   <div className="px-3 py-2 border-b border-[var(--border)]"><Lbl>Bloques ({(editing.blocks || []).length})</Lbl></div>
-                  <div className="overflow-y-auto p-2 space-y-1" style={{ maxHeight: "58vh" }}>
+                  <div className="overflow-y-auto p-2 space-y-1" style={{ maxHeight: "29vh" }}>
                     {(editing.blocks || []).length === 0 && <p className="text-xs text-[var(--foreground)]/40 px-1 py-2">Sin bloques. Añádelos arriba o genera con IA.</p>}
                     {(editing.blocks || []).map((b, i) => (
                       <div key={b.id} onClick={() => selectBlock(b.id)}
@@ -398,6 +451,12 @@ export default function LandingsAdminPage() {
                     ))}
                   </div>
                 </div>
+                {sel && (
+                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3" style={{ background: "var(--card)" }}>
+                    <p className="text-sm font-semibold mb-2 truncate">Contenido · {BLOCK_LABELS[sel.type]}</p>
+                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} section="content" />
+                  </div>
+                )}
               </aside>
             )}
 
@@ -411,20 +470,21 @@ export default function LandingsAdminPage() {
               <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa — clic en un bloque (izquierda) para ir a su sección.</p>
             </div>
 
-            {/* DERECHA — Inspector */}
+            {/* DERECHA — Estilo del bloque + Tema (desplegable) */}
             {!rightCollapsed && (
-              <aside className="lg:sticky lg:top-4 h-fit rounded-xl border border-[var(--border)] p-3 overflow-y-auto min-w-0" style={{ background: "var(--card)", maxHeight: "84vh" }}>
-                {sel ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">Editar: {BLOCK_LABELS[sel.type]}</p>
-                      <button onClick={() => setSelId(null)} className="text-[11px] text-[var(--foreground)]/50 hover:text-[var(--foreground)] flex-shrink-0">Tema ↗</button>
+              <aside className="lg:sticky lg:top-4 h-fit space-y-3 min-w-0">
+                {sel && (
+                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3 overflow-y-auto" style={{ background: "var(--card)", maxHeight: "60vh" }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold truncate">Estilo · {BLOCK_LABELS[sel.type]}</p>
+                      <button onClick={() => { setSelId(null); setThemeOpen(true); }} className="text-[11px] text-[var(--foreground)]/50 hover:text-[var(--foreground)] flex-shrink-0">Cerrar</button>
                     </div>
-                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} />
+                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} section="style" />
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold">Tema de la página</p>
+                )}
+                <details className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }} open={themeOpen} onToggle={(e) => setThemeOpen((e.currentTarget as HTMLDetailsElement).open)}>
+                  <summary className="cursor-pointer text-sm font-semibold">Tema de la página</summary>
+                  <div className="mt-3 space-y-3">
                     <div><Lbl>Fondo</Lbl>
                       <Seg value={theme.bgType} onChange={(v) => setEditing({ ...editing, theme: { ...theme, bgType: v } })} options={[{ v: "gradient", l: "Degradado" }, { v: "solid", l: "Sólido" }]} />
                     </div>
@@ -445,9 +505,8 @@ export default function LandingsAdminPage() {
                     <div className="pt-2 border-t border-[var(--border)]">
                       <button onClick={() => setSiteEditing({ ...DEFAULT_SITE, ...site })} className="text-xs text-[var(--brand-1)] hover:underline">Editar cabecera y pie del sitio →</button>
                     </div>
-                    <p className="text-[11px] text-[var(--foreground)]/40">Selecciona un bloque en la izquierda para editar su contenido aquí.</p>
                   </div>
-                )}
+                </details>
               </aside>
             )}
           </div>
@@ -504,10 +563,11 @@ export default function LandingsAdminPage() {
 }
 
 // ─── Controles por tipo de bloque ─────────────────────────────────────────────
-function BlockControls({ block, update }: { block: LandingBlock; update: (patch: Partial<LandingBlock>) => void }) {
+function BlockControls({ block, update, section = "all" }: { block: LandingBlock; update: (patch: Partial<LandingBlock>) => void; section?: "content" | "style" | "all" }) {
   const us = (patch: Partial<BlockStyle>) => update({ s: { ...(block.s || {}), ...patch } } as Partial<LandingBlock>);
 
   if (block.type === "spacer") {
+    if (section === "style") return <p className="text-xs text-[var(--foreground)]/40">El espacio no tiene opciones de estilo.</p>;
     return <div className="space-y-3"><div><Lbl>Altura (px)</Lbl><input type="number" value={block.height} onChange={(e) => update({ height: Number(e.target.value) })} className={inputCls} /></div></div>;
   }
 
@@ -546,12 +606,11 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
           <div><Lbl>Ancho máx</Lbl><input type="number" value={block.s?.maxWidth || ""} onChange={(e) => us({ maxWidth: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
           <div><Lbl>Redondeo</Lbl><input type="number" value={block.s?.radius || ""} onChange={(e) => us({ radius: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div><Lbl>Color texto</Lbl><input value={block.s?.color || ""} placeholder="#ffffff" onChange={(e) => us({ color: e.target.value || undefined })} className={inputCls} /></div>
-          <div><Lbl>Color fondo</Lbl><input value={block.s?.bgColor || ""} placeholder="#0a2422" onChange={(e) => us({ bgColor: e.target.value || undefined })} className={inputCls} /></div>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorField label="Color de fondo" value={block.s?.bgColor} onChange={(v) => us({ bgColor: v })} fallback="#0a2422" />
           <div><Lbl>Borde px</Lbl><input type="number" value={block.s?.borderWidth || ""} onChange={(e) => us({ borderWidth: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
         </div>
-        <div><Lbl>Imagen de fondo (URL)</Lbl><input value={block.s?.bgImage || ""} placeholder="https://..." onChange={(e) => us({ bgImage: e.target.value || undefined })} className={inputCls} /></div>
+        <ImagePicker label="Imagen de fondo" value={block.s?.bgImage} onChange={(url) => us({ bgImage: url || undefined })} kind="landing-bg" />
         <div className="grid grid-cols-3 gap-2">
           <div><Lbl>Pad. arriba</Lbl><input type="number" value={block.s?.padT ?? ""} onChange={(e) => us({ padT: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
           <div><Lbl>Pad. abajo</Lbl><input type="number" value={block.s?.padB ?? ""} onChange={(e) => us({ padB: e.target.value !== "" ? Number(e.target.value) : undefined })} className={inputCls} /></div>
@@ -612,7 +671,7 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
     </>;
   } else if (block.type === "image") {
     specific = <>
-      <div><Lbl>URL de la imagen</Lbl><input value={block.src} onChange={(e) => update({ src: e.target.value })} className={inputCls} placeholder="https://..." /></div>
+      <ImagePicker label="Imagen" value={block.src} onChange={(url) => update({ src: url })} kind="landing-img" />
       <div><Lbl>Texto alternativo</Lbl><input value={block.alt || ""} onChange={(e) => update({ alt: e.target.value })} className={inputCls} /></div>
       <div className="grid grid-cols-2 gap-2">
         <div><Lbl>Ancho (px, vacío=auto)</Lbl><input type="number" value={block.width || ""} onChange={(e) => update({ width: e.target.value ? Number(e.target.value) : undefined })} className={inputCls} /></div>
@@ -622,12 +681,14 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
   } else if (block.type === "logos") {
     specific = <>
       <div><Lbl>Título (opcional)</Lbl><input value={block.title || ""} onChange={(e) => update({ title: e.target.value })} className={inputCls} /></div>
-      <Lbl>Logos (URL de imagen + nombre)</Lbl>
+      <Lbl>Logos</Lbl>
       {block.items.map((it, i) => (
-        <div key={i} className="flex gap-1">
-          <input value={it.src} placeholder="URL del logo" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], src: e.target.value }; update({ items }); }} className={inputCls} />
-          <input value={it.alt || ""} placeholder="Nombre" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], alt: e.target.value }; update({ items }); }} className={`${inputCls} max-w-[110px]`} />
-          <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+        <div key={i} className="rounded-lg border border-[var(--border)] p-2 space-y-1">
+          <ImagePicker value={it.src} onChange={(url) => { const items = [...block.items]; items[i] = { ...items[i], src: url }; update({ items }); }} kind="landing-logo" />
+          <div className="flex gap-1">
+            <input value={it.alt || ""} placeholder="Nombre del negocio" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], alt: e.target.value }; update({ items }); }} className={inputCls} />
+            <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
+          </div>
         </div>
       ))}
       <button onClick={() => update({ items: [...block.items, { src: "", alt: "" }] })} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">+ Añadir logo</button>
@@ -703,7 +764,10 @@ function BlockControls({ block, update }: { block: LandingBlock; update: (patch:
     specific = <RowControls block={block} update={update} />;
   }
 
-  return <div className="space-y-3">{specific}{common}{adv}</div>;
+  const colorField = <ColorField label="Color del texto" value={block.s?.color} onChange={(v) => us({ color: v })} fallback="#ffffff" />;
+  if (section === "content") return <div className="space-y-3">{specific}</div>;
+  if (section === "style") return <div className="space-y-3">{colorField}{common}{adv}</div>;
+  return <div className="space-y-3">{specific}{colorField}{common}{adv}</div>;
 }
 
 // ─── Controles de Fila / Columnas (bloques anidados) ──────────────────────────
@@ -862,8 +926,8 @@ function SiteEditor({ initial, pages, saving, onSave, onCancel }: {
             </div>
             {h.logoType === "text"
               ? <div><Lbl>Texto del logo</Lbl><input value={h.logoText} onChange={(e) => setHeader({ logoText: e.target.value })} className={inputCls} /></div>
-              : <div className="grid grid-cols-[1fr_80px] gap-2">
-                  <div><Lbl>URL del logo</Lbl><input value={h.logoImg} onChange={(e) => setHeader({ logoImg: e.target.value })} className={inputCls} /></div>
+              : <div className="space-y-2">
+                  <ImagePicker label="Logo (imagen)" value={h.logoImg} onChange={(url) => setHeader({ logoImg: url })} kind="site-logo" />
                   <div><Lbl>Alto px</Lbl><input type="number" value={h.logoHeight} onChange={(e) => setHeader({ logoHeight: Number(e.target.value) })} className={inputCls} /></div>
                 </div>}
             <div><Lbl>Menú</Lbl><LinkList links={h.links} pages={pages} onChange={(links) => setHeader({ links })} /></div>
