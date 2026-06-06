@@ -354,7 +354,7 @@ export default function LandingsAdminPage() {
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
-                      <button key={t} onClick={() => addBlock(t)} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--brand-1)] hover:text-white transition-colors">+ {BLOCK_LABELS[t]}</button>
+                      <button key={t} onClick={() => addBlock(t)} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:border-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">+ {BLOCK_LABELS[t]}</button>
                     ))}
                   </div>
                 </div>
@@ -708,7 +708,7 @@ function RowControls({ block, update }: { block: RowBlock; update: (patch: Parti
         <span className="text-xs font-semibold text-[var(--foreground)]/70">Columna {ci + 1}</span>
         <div className="flex flex-wrap gap-1">
           {CHILD_BLOCK_TYPES.map((t) => (
-            <button key={t} onClick={() => addChild(ci, t)} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--brand-1)] hover:text-white transition-colors">+ {BLOCK_LABELS[t]}</button>
+            <button key={t} onClick={() => addChild(ci, t)} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:border-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">+ {BLOCK_LABELS[t]}</button>
           ))}
         </div>
         {col.length === 0 && <p className="text-[11px] text-[var(--foreground)]/40">Columna vacía.</p>}
