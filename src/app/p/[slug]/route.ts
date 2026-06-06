@@ -62,8 +62,8 @@ export async function GET(
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        // Cache breve en el edge; permite actualizar el contenido sin esperar.
-        "cache-control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+        // Cache muy breve en el edge para que los cambios se vean casi al instante.
+        "cache-control": "public, max-age=0, s-maxage=10, stale-while-revalidate=30",
       },
     });
   } catch {

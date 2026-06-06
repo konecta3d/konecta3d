@@ -283,7 +283,7 @@ export default function LandingsAdminPage() {
             <Seg value={editing.mode} onChange={(v) => setEditing({ ...editing, mode: v })}
               options={[{ v: "visual", l: "Visual" }, { v: "code", l: "Código" }]} />
             <Seg value={device} onChange={setDevice} options={[{ v: "desktop", l: "Escritorio" }, { v: "mobile", l: "Móvil" }]} />
-            <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver ↗</a>
+            <a href={`${publicUrl}?v=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver ↗</a>
             <button onClick={save} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{saving ? "Guardando…" : "Guardar"}</button>
           </div>
         </div>
@@ -437,7 +437,7 @@ export default function LandingsAdminPage() {
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button onClick={() => copyLink(l.slug)} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Copiar link</button>
-                <a href={`${origin}/p/${l.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Abrir ↗</a>
+                <a href={`${origin}/p/${l.slug}?v=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Abrir ↗</a>
                 <button onClick={() => openEditor(l.id)} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Editar</button>
                 <button onClick={() => remove(l.id, l.name)} className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10">Eliminar</button>
               </div>
