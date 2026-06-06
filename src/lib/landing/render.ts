@@ -173,7 +173,7 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
 function renderBlock(b: LandingBlock, t: LandingTheme, nested = false): string {
   if (b.type === "spacer") {
     const sp = b as SpacerBlock;
-    return `<div style="height:${Math.max(0, sp.height || 0)}px"></div>`;
+    return `<div data-bid="${b.id}" style="height:${Math.max(0, sp.height || 0)}px"></div>`;
   }
 
   const s: BlockStyle = b.s || {};
@@ -201,7 +201,7 @@ function renderBlock(b: LandingBlock, t: LandingTheme, nested = false): string {
   if (s.shadow) innerExtra.push("box-shadow:0 20px 60px rgba(0,0,0,0.35)");
   if ((s.radius || s.borderWidth || s.shadow) && !s.padX) innerExtra.push("padding:28px");
 
-  return `<section data-reveal class="${hideCls}" style="padding:${padT}px ${padX}px ${padB}px;${bandBg}">
+  return `<section data-reveal data-bid="${b.id}" class="${hideCls}" style="padding:${padT}px ${padX}px ${padB}px;${bandBg}">
     <div style="${innerExtra.join(";")}">${innerHtml(b, t)}</div>
   </section>`;
 }

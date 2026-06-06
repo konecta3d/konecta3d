@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
 import { renderLandingHtml } from "@/lib/landing/render";
@@ -57,6 +57,9 @@ export default function LandingsAdminPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiForm, setAiForm] = useState({ objective: "", audience: "", mentor: "ambos", notes: "" });
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const previewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
 
@@ -176,7 +179,35 @@ export default function LandingsAdminPage() {
   function addBlock(type: LandingBlock["type"]) {
     if (!editing) return;
     const b = newBlock(type);
-    setBlocks([...(editing.blocks || []), b]); setSelId(b.id);
+    const arr = [...(editing.blocks || [])];
+    const idx = selId ? arr.findIndex((x) => x.id === selId) : -1;
+    if (idx >= 0) arr.splice(idx + 1, 0, b); else arr.push(b);
+    setBlocks(arr); setSelId(b.id);
+  }
+  function duplicateBlock(id: string) {
+    if (!editing?.blocks) return;
+    const arr = [...editing.blocks];
+    const idx = arr.findIndex((x) => x.id === id);
+    if (idx < 0) return;
+    const copy = { ...JSON.parse(JSON.stringify(arr[idx])), id: Math.random().toString(36).slice(2, 10) };
+    arr.splice(idx + 1, 0, copy); setBlocks(arr); setSelId(copy.id);
+  }
+  /** Selecciona un bloque y desplaza la vista previa hasta esa sección. */
+  function selectBlock(id: string) {
+    setSelId(id);
+    setTimeout(() => {
+      try {
+        const doc = previewRef.current?.contentDocument;
+        const el = doc?.querySelector(`[data-bid="${id}"]`) as HTMLElement | null;
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.style.transition = "outline .2s";
+          el.style.outline = "3px solid #ffb400";
+          el.style.outlineOffset = "-3px";
+          setTimeout(() => { el.style.outline = "none"; }, 1400);
+        }
+      } catch { /* iframe no accesible */ }
+    }, 40);
   }
   function moveBlock(idx: number, dir: -1 | 1) {
     if (!editing?.blocks) return;
@@ -229,7 +260,7 @@ export default function LandingsAdminPage() {
     const sel = editing.blocks?.find((b) => b.id === selId) || null;
 
     return (
-      <div className="max-w-[1300px] mx-auto pb-12">
+      <div className="max-w-[1600px] mx-auto pb-12">
         {/* Modal: importar desde código */}
         {importOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setImportOpen(false)}>
@@ -283,6 +314,12 @@ export default function LandingsAdminPage() {
             <Seg value={editing.mode} onChange={(v) => setEditing({ ...editing, mode: v })}
               options={[{ v: "visual", l: "Visual" }, { v: "code", l: "Código" }]} />
             <Seg value={device} onChange={setDevice} options={[{ v: "desktop", l: "Escritorio" }, { v: "mobile", l: "Móvil" }]} />
+            {editing.mode === "visual" && (
+              <>
+                <button onClick={() => setLeftCollapsed((v) => !v)} title="Mostrar/ocultar estructura" className={`text-sm px-2.5 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 ${leftCollapsed ? "opacity-50" : ""}`}>☰</button>
+                <button onClick={() => setRightCollapsed((v) => !v)} title="Mostrar/ocultar panel de edición" className={`text-sm px-2.5 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 ${rightCollapsed ? "opacity-50" : ""}`}>⚙</button>
+              </>
+            )}
             <a href={`${publicUrl}?v=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver ↗</a>
             <button onClick={save} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{saving ? "Guardando…" : "Guardar"}</button>
           </div>
@@ -303,28 +340,93 @@ export default function LandingsAdminPage() {
           {msg && <span className="text-[var(--brand-1)]">{msg}</span>}
         </div>
 
-        <div className="grid lg:grid-cols-[380px_1fr] gap-5">
-          {/* Panel izquierdo */}
-          <div className="space-y-4">
-            {editing.mode === "code" ? (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <Lbl>Código HTML</Lbl>
-                  <button onClick={() => { if (confirm("¿Reemplazar por la plantilla de ejemplo?")) setEditing({ ...editing, html: DEFAULT_LANDING_HTML }); }}
-                    className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Cargar plantilla</button>
-                </div>
-                <textarea value={editing.html} onChange={(e) => setEditing({ ...editing, html: e.target.value })} spellCheck={false}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-xs" style={{ minHeight: "60vh" }} />
+        {editing.mode === "code" ? (
+          <div className="grid lg:grid-cols-[1fr_1fr] gap-5">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Lbl>Código HTML</Lbl>
+                <button onClick={() => { if (confirm("¿Reemplazar por la plantilla de ejemplo?")) setEditing({ ...editing, html: DEFAULT_LANDING_HTML }); }}
+                  className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Cargar plantilla</button>
               </div>
-            ) : (
-              <>
-                {/* Tema */}
-                <details className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
-                  <summary className="cursor-pointer text-sm font-semibold">Tema de la página</summary>
-                  <div className="mt-3 space-y-3">
+              <textarea value={editing.html} onChange={(e) => setEditing({ ...editing, html: e.target.value })} spellCheck={false}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-xs" style={{ minHeight: "82vh" }} />
+            </div>
+            <div className="lg:sticky lg:top-4 h-fit">
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
+                <div className="flex items-center justify-center h-full p-2">
+                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="lg:grid gap-4 space-y-4 lg:space-y-0" style={{ gridTemplateColumns: [!leftCollapsed ? "300px" : null, "1fr", !rightCollapsed ? "360px" : null].filter(Boolean).join(" ") }}>
+            {/* IZQUIERDA — Estructura */}
+            {!leftCollapsed && (
+              <aside className="space-y-3 min-w-0">
+                <div className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
+                  <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
+                    <Lbl>Añadir bloque</Lbl>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setAiOpen(true)} className="text-[11px] px-2 py-1 rounded font-semibold text-black" style={{ background: "var(--brand-4)" }}>✦ IA</button>
+                      <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar</button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-[var(--foreground)]/40 mb-1.5">Se inserta tras el bloque seleccionado.</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
+                      <button key={t} onClick={() => addBlock(t)} className="text-[11px] px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">+ {BLOCK_LABELS[t]}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[var(--border)]" style={{ background: "var(--card)" }}>
+                  <div className="px-3 py-2 border-b border-[var(--border)]"><Lbl>Bloques ({(editing.blocks || []).length})</Lbl></div>
+                  <div className="overflow-y-auto p-2 space-y-1" style={{ maxHeight: "58vh" }}>
+                    {(editing.blocks || []).length === 0 && <p className="text-xs text-[var(--foreground)]/40 px-1 py-2">Sin bloques. Añádelos arriba o genera con IA.</p>}
+                    {(editing.blocks || []).map((b, i) => (
+                      <div key={b.id} onClick={() => selectBlock(b.id)}
+                        className={`rounded-lg border px-2.5 py-2 flex items-center justify-between gap-1 cursor-pointer ${selId === b.id ? "border-[var(--brand-1)]" : "border-[var(--border)]"}`}
+                        style={{ background: "var(--background)" }}>
+                        <span className="text-xs truncate">{BLOCK_LABELS[b.type]}{b.type === "heading" || b.type === "paragraph" ? <span className="text-[var(--foreground)]/40"> · {String((b as { text?: string }).text || "").slice(0, 16)}</span> : null}</span>
+                        <span className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => moveBlock(i, -1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↑</button>
+                          <button onClick={() => moveBlock(i, 1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↓</button>
+                          <button onClick={() => duplicateBlock(b.id)} title="Duplicar" className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">⧉</button>
+                          <button onClick={() => deleteBlock(b.id)} className="px-1 text-red-500/70 hover:text-red-500">✕</button>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            )}
+
+            {/* CENTRO — Vista previa */}
+            <div className="lg:sticky lg:top-4 h-fit min-w-0">
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
+                <div className="flex items-center justify-center h-full p-2">
+                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                </div>
+              </div>
+              <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa — clic en un bloque (izquierda) para ir a su sección.</p>
+            </div>
+
+            {/* DERECHA — Inspector */}
+            {!rightCollapsed && (
+              <aside className="lg:sticky lg:top-4 h-fit rounded-xl border border-[var(--border)] p-3 overflow-y-auto min-w-0" style={{ background: "var(--card)", maxHeight: "84vh" }}>
+                {sel ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">Editar: {BLOCK_LABELS[sel.type]}</p>
+                      <button onClick={() => setSelId(null)} className="text-[11px] text-[var(--foreground)]/50 hover:text-[var(--foreground)] flex-shrink-0">Tema ↗</button>
+                    </div>
+                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold">Tema de la página</p>
                     <div><Lbl>Fondo</Lbl>
-                      <Seg value={theme.bgType} onChange={(v) => setEditing({ ...editing, theme: { ...theme, bgType: v } })}
-                        options={[{ v: "gradient", l: "Degradado" }, { v: "solid", l: "Sólido" }]} />
+                      <Seg value={theme.bgType} onChange={(v) => setEditing({ ...editing, theme: { ...theme, bgType: v } })} options={[{ v: "gradient", l: "Degradado" }, { v: "solid", l: "Sólido" }]} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div><Lbl>Color 1</Lbl><input type="color" value={theme.bg1} onChange={(e) => setEditing({ ...editing, theme: { ...theme, bg1: e.target.value } })} className="w-full h-9 rounded-lg border border-[var(--border)] bg-transparent" /></div>
@@ -340,64 +442,16 @@ export default function LandingsAdminPage() {
                         <option>Inter</option><option>Outfit</option><option>Poppins</option><option>Montserrat</option>
                       </select>
                     </div>
-                  </div>
-                </details>
-
-                {/* Añadir bloque */}
-                <div className="rounded-xl border border-[var(--border)] p-3" style={{ background: "var(--card)" }}>
-                  <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
-                    <Lbl>Añadir bloque</Lbl>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => setAiOpen(true)} className="text-[11px] px-2 py-1 rounded font-semibold text-black" style={{ background: "var(--brand-4)" }}>✦ Generar con IA</button>
-                      <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar código</button>
+                    <div className="pt-2 border-t border-[var(--border)]">
+                      <button onClick={() => setSiteEditing({ ...DEFAULT_SITE, ...site })} className="text-xs text-[var(--brand-1)] hover:underline">Editar cabecera y pie del sitio →</button>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
-                      <button key={t} onClick={() => addBlock(t)} className="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:border-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">+ {BLOCK_LABELS[t]}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Lista de bloques */}
-                <div className="space-y-1.5">
-                  {(editing.blocks || []).length === 0 && <p className="text-xs text-[var(--foreground)]/40 px-1">Sin bloques. Añade el primero arriba.</p>}
-                  {(editing.blocks || []).map((b, i) => (
-                    <div key={b.id} className={`rounded-lg border px-3 py-2 flex items-center justify-between gap-2 cursor-pointer ${selId === b.id ? "border-[var(--brand-1)]" : "border-[var(--border)]"}`}
-                      style={{ background: "var(--card)" }} onClick={() => setSelId(selId === b.id ? null : b.id)}>
-                      <span className="text-sm truncate">{BLOCK_LABELS[b.type]}{b.type === "heading" || b.type === "paragraph" ? <span className="text-[var(--foreground)]/40"> · {String((b as { text?: string }).text || "").slice(0, 24)}</span> : null}</span>
-                      <span className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => moveBlock(i, -1)} className="px-1.5 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↑</button>
-                        <button onClick={() => moveBlock(i, 1)} className="px-1.5 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↓</button>
-                        <button onClick={() => deleteBlock(b.id)} className="px-1.5 text-red-500/70 hover:text-red-500">✕</button>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Controles del bloque seleccionado */}
-                {sel && (
-                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3 space-y-3" style={{ background: "var(--card)" }}>
-                    <p className="text-sm font-semibold">Editar: {BLOCK_LABELS[sel.type]}</p>
-                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} />
+                    <p className="text-[11px] text-[var(--foreground)]/40">Selecciona un bloque en la izquierda para editar su contenido aquí.</p>
                   </div>
                 )}
-              </>
+              </aside>
             )}
           </div>
-
-          {/* Vista previa */}
-          <div className="lg:sticky lg:top-4 h-fit">
-            <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "78vh" }}>
-              <div className="flex items-center justify-center h-full p-2">
-                <iframe title="preview" srcDoc={previewHtml}
-                  className="bg-white rounded-lg shadow-2xl transition-all"
-                  style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
-              </div>
-            </div>
-            <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa en vivo — lo que ves es lo que se publica.</p>
-          </div>
-        </div>
+        )}
       </div>
     );
   }
