@@ -70,6 +70,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Onboarding", href: "/admin/onboarding", category: "Contenido" },
   { label: "Página de acceso", href: "/admin/login-page", category: "Contenido" },
   { label: "Landings de presentación", href: "/admin/landings", category: "Contenido" },
+  { label: "Voz y copy (IA)", href: "/admin/landings/voz", category: "Contenido" },
   { label: "Ayuda contextual", href: "/admin/ayuda-contenido", category: "Contenido" },
 ];
 

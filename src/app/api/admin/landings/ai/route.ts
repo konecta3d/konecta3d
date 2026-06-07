@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 import { newBlock, LandingBlock } from "@/lib/landing/blocks";
 import { DEFAULT_CLIENT_PROFILE } from "@/lib/crm/client-profile";
-import { PRODUCT_CONTEXT, COPY_FOUNDATION, MENTORS, AI_BLOCK_SPEC } from "@/lib/landing/ai-context";
+import { COPY_FOUNDATION, MENTORS, AI_BLOCK_SPEC } from "@/lib/landing/ai-context";
+import { DEFAULT_AI_BRAIN, brainToPrompt } from "@/lib/landing/ai-brain";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -85,13 +86,18 @@ export async function POST(req: Request) {
     const notes = str(body.notes).trim();
     if (!objective) return NextResponse.json({ error: "El objetivo es obligatorio" }, { status: 400 });
 
-    // Perfil de cliente ideal (guardado o por defecto)
+    // Perfil de cliente ideal + cerebro de voz (guardados o por defecto)
     let profile = DEFAULT_CLIENT_PROFILE;
+    let brain = DEFAULT_AI_BRAIN;
     try {
       const db = adminClient();
-      const { data } = await db.from("settings").select("value").eq("key", "crm_client_profile").single();
-      if (data?.value) profile = { ...DEFAULT_CLIENT_PROFILE, ...(typeof data.value === "string" ? JSON.parse(data.value) : data.value) };
-    } catch { /* usa el perfil por defecto */ }
+      const [{ data: pData }, { data: bData }] = await Promise.all([
+        db.from("settings").select("value").eq("key", "crm_client_profile").single(),
+        db.from("settings").select("value").eq("key", "landing_ai_brain").single(),
+      ]);
+      if (pData?.value) profile = { ...DEFAULT_CLIENT_PROFILE, ...(typeof pData.value === "string" ? JSON.parse(pData.value) : pData.value) };
+      if (bData?.value) brain = { ...DEFAULT_AI_BRAIN, ...(typeof bData.value === "string" ? JSON.parse(bData.value) : bData.value) };
+    } catch { /* usa los valores por defecto */ }
 
     // Mentores seleccionados
     const mentorBlocks: string[] = [];
@@ -107,7 +113,7 @@ Objeciones: ${profile.objeciones.map((o) => o.objecion).join(" · ")}`;
     const system = [
       "Eres un copywriter de conversión experto que diseña landing pages para Konecta3D.",
       mentorBlocks.length ? "Escribe aplicando estas formas de pensar:\n\n" + mentorBlocks.join("\n\n") : "",
-      PRODUCT_CONTEXT,
+      brainToPrompt(brain),
       COPY_FOUNDATION,
       profileText,
       AI_BLOCK_SPEC,
