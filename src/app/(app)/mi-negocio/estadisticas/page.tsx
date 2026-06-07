@@ -132,14 +132,20 @@ export default function EstadisticasPage() {
     const load = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const userEmail = sessionData.session?.user?.email || "";
-      if (!userEmail) { setLoading(false); return; }
+      const userId = sessionData.session?.user?.id || "";
+      if (!userEmail && !userId) { setLoading(false); return; }
 
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("contact_email", userEmail)
-        .single();
-      const bid = biz?.id || "";
+      // Resolver el negocio por user_id (coincide con la RLS) y, si no, por
+      // email sin distinguir mayúsculas — evita estadísticas vacías por desajuste.
+      let bid = "";
+      if (userId) {
+        const byUid = await supabase.from("businesses").select("id").eq("user_id", userId).maybeSingle();
+        bid = byUid.data?.id || "";
+      }
+      if (!bid && userEmail) {
+        const byEmail = await supabase.from("businesses").select("id").ilike("contact_email", userEmail).maybeSingle();
+        bid = byEmail.data?.id || "";
+      }
       if (!bid) { setLoading(false); return; }
 
       // ── Rangos de fechas ────────────────────────────────────────────────────
