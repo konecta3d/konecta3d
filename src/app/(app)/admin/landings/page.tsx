@@ -29,6 +29,15 @@ const Lbl = ({ children }: { children: React.ReactNode }) =>
   <label className="block text-[11px] uppercase tracking-wide text-[var(--foreground)]/50 mb-1">{children}</label>;
 const inputCls = "w-full rounded-lg border border-[var(--border)] bg-transparent px-2.5 py-1.5 text-sm";
 
+// Tipos de bloque agrupados por categoría para el selector "Añadir bloque".
+const BLOCK_GROUPS: { label: string; types: LandingBlock["type"][] }[] = [
+  { label: "Texto", types: ["heading", "paragraph", "bullets"] },
+  { label: "Llamada a la acción", types: ["button", "socials"] },
+  { label: "Multimedia", types: ["image", "video"] },
+  { label: "Secciones", types: ["steps", "cards", "faq", "logos", "countdown"] },
+  { label: "Estructura", types: ["row", "spacer", "html"] },
+];
+
 function Seg<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { v: T; l: string }[] }) {
   return (
     <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
@@ -111,6 +120,7 @@ export default function LandingsAdminPage() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [themeOpen, setThemeOpen] = useState(true);
+  const [addType, setAddType] = useState<LandingBlock["type"]>("heading");
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
@@ -425,12 +435,17 @@ export default function LandingsAdminPage() {
                       <button onClick={() => { setImportText(""); setImportOpen(true); }} className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--border)]/10">Importar</button>
                     </div>
                   </div>
-                  <p className="text-[10px] text-[var(--foreground)]/40 mb-1.5">Se inserta tras el bloque seleccionado.</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(Object.keys(BLOCK_LABELS) as LandingBlock["type"][]).map((t) => (
-                      <button key={t} onClick={() => addBlock(t)} className="text-[11px] px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--brand-1)] hover:bg-[var(--brand-1)]/10 transition-colors">+ {BLOCK_LABELS[t]}</button>
-                    ))}
+                  <div className="flex gap-1.5">
+                    <select value={addType} onChange={(e) => setAddType(e.target.value as LandingBlock["type"])} className={inputCls}>
+                      {BLOCK_GROUPS.map((g) => (
+                        <optgroup key={g.label} label={g.label}>
+                          {g.types.map((t) => <option key={t} value={t}>{BLOCK_LABELS[t]}</option>)}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <button onClick={() => addBlock(addType)} className="text-sm px-3 py-1.5 rounded-lg font-semibold text-black flex-shrink-0" style={{ background: "var(--brand-4)" }}>Añadir</button>
                   </div>
+                  <p className="text-[10px] text-[var(--foreground)]/40 mt-1.5">Eliges el tipo y pulsas Añadir. Se inserta tras el bloque seleccionado.</p>
                 </div>
                 <div className="rounded-xl border border-[var(--border)]" style={{ background: "var(--card)" }}>
                   <div className="px-3 py-2 border-b border-[var(--border)]"><Lbl>Bloques ({(editing.blocks || []).length})</Lbl></div>
