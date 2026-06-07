@@ -21,9 +21,9 @@ interface SidebarLink {
 // Perfil de Negocio
 const negocioLinks: SidebarLink[] = [
   { label: "Perfil", href: "/negocio/perfil", category: "Mi Negocio" },
-  { label: "Estadísticas", href: "/negocio/estadisticas", category: "Mi Negocio" },
   { label: "Herramientas", href: "/negocio/herramientas", category: "Mi Negocio", module: "module_tools" },
   { label: "Clientes", href: "/negocio/clientes", category: "Mi Negocio" },
+  { label: "Estadísticas", href: "/negocio/estadisticas", category: "Mi Negocio" },
 ];
 
 // Perfil de Fidelización
