@@ -316,3 +316,19 @@ input[type="range"]::-moz-range-thumb {
 :not(.dark) *[style*="backgroundColor: #1e293b"] {
   background-color: var(--card) !important;
 }
+
+/* ─────────────────────────────────────────────
+   LANDING PÚBLICA DEL LLAVERO (.landing-public)
+   Va SIEMPRE sobre su propio fondo oscuro, independientemente del
+   modo claro/oscuro de la app. Por eso hay que restaurar los blancos
+   translúcidos: en modo claro las reglas globales los convertían en
+   cajas blancas sólidas y el texto blanco quedaba invisible.
+───────────────────────────────────────────── */
+.landing-public .bg-white\/5  { background-color: rgba(255,255,255,0.05); }
+.landing-public .bg-white\/10 { background-color: rgba(255,255,255,0.10); }
+.landing-public .bg-white\/20 { background-color: rgba(255,255,255,0.20); }
+.landing-public .border-white\/10 { border-color: rgba(255,255,255,0.10); }
+.landing-public .border-white\/15 { border-color: rgba(255,255,255,0.15); }
+.landing-public .border-white\/20 { border-color: rgba(255,255,255,0.20); }
+.landing-public .border-white\/30 { border-color: rgba(255,255,255,0.30); }
+.landing-public .border-white\/40 { border-color: rgba(255,255,255,0.40); }
