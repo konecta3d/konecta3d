@@ -272,6 +272,34 @@ export default function LandingsAdminPage() {
       } catch { /* iframe no accesible */ }
     }, 40);
   }
+  /** Al cargar la vista previa: clic en un bloque → lo selecciona para editarlo. */
+  function onPreviewLoad() {
+    try {
+      const doc = previewRef.current?.contentDocument;
+      if (!doc) return;
+      doc.addEventListener("click", (e) => {
+        const start = (e.target as HTMLElement)?.closest?.("[data-bid]") as HTMLElement | null;
+        if (!start) return;
+        // subir al data-bid más externo = bloque de nivel superior
+        let outer = start;
+        let p: HTMLElement | null = start.parentElement;
+        while (p) {
+          const a = p.closest("[data-bid]") as HTMLElement | null;
+          if (!a) break;
+          outer = a; p = a.parentElement;
+        }
+        const bid = outer.getAttribute("data-bid");
+        if (!bid) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setSelId(bid);
+        setThemeOpen(false);
+        outer.style.outline = "3px solid #ffb400";
+        outer.style.outlineOffset = "-3px";
+        setTimeout(() => { outer.style.outline = "none"; }, 1200);
+      }, true);
+    } catch { /* iframe no accesible */ }
+  }
   function moveBlock(idx: number, dir: -1 | 1) {
     if (!editing?.blocks) return;
     const arr = [...editing.blocks]; const j = idx + dir;
@@ -417,7 +445,7 @@ export default function LandingsAdminPage() {
             <div className="lg:sticky lg:top-4 h-fit">
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
                 <div className="flex items-center justify-center h-full p-2">
-                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
                 </div>
               </div>
             </div>
@@ -466,12 +494,6 @@ export default function LandingsAdminPage() {
                     ))}
                   </div>
                 </div>
-                {sel && (
-                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3" style={{ background: "var(--card)" }}>
-                    <p className="text-sm font-semibold mb-2 truncate">Contenido · {BLOCK_LABELS[sel.type]}</p>
-                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} section="content" />
-                  </div>
-                )}
               </aside>
             )}
 
@@ -479,7 +501,7 @@ export default function LandingsAdminPage() {
             <div className="lg:sticky lg:top-4 h-fit min-w-0">
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
                 <div className="flex items-center justify-center h-full p-2">
-                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
                 </div>
               </div>
               <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa — clic en un bloque (izquierda) para ir a su sección.</p>
@@ -487,13 +509,19 @@ export default function LandingsAdminPage() {
 
             {/* DERECHA — Estilo del bloque + Tema (desplegable) */}
             {!rightCollapsed && (
-              <aside className="lg:sticky lg:top-4 h-fit space-y-3 min-w-0">
+              <aside className="lg:sticky lg:top-4 h-fit space-y-3 min-w-0 overflow-y-auto" style={{ maxHeight: "86vh" }}>
                 {sel && (
-                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3 overflow-y-auto" style={{ background: "var(--card)", maxHeight: "60vh" }}>
+                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3" style={{ background: "var(--card)" }}>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold truncate">Estilo · {BLOCK_LABELS[sel.type]}</p>
+                      <p className="text-sm font-semibold truncate">Contenido · {BLOCK_LABELS[sel.type]}</p>
                       <button onClick={() => { setSelId(null); setThemeOpen(true); }} className="text-[11px] text-[var(--foreground)]/50 hover:text-[var(--foreground)] flex-shrink-0">Cerrar</button>
                     </div>
+                    <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} section="content" />
+                  </div>
+                )}
+                {sel && (
+                  <div className="rounded-xl border border-[var(--brand-1)]/40 p-3" style={{ background: "var(--card)" }}>
+                    <p className="text-sm font-semibold mb-2 truncate">Estilo · {BLOCK_LABELS[sel.type]}</p>
                     <BlockControls block={sel} update={(patch) => updateBlock(sel.id, patch)} section="style" />
                   </div>
                 )}
