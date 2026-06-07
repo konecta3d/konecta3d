@@ -175,10 +175,12 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     }, [pathname, isAdminMode]);
 
     // ── Botones de acceso rápido a otros perfiles ──────────────────────────
-    const QuickProfileButtons = () => {
+    const QuickProfileButtons = ({ compact = false }: { compact?: boolean }) => {
         if (!showBusinessSidebar) return null;
 
-        const btnBase = "w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:opacity-90";
+        const btnBase = compact
+            ? "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all hover:opacity-90"
+            : "w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:opacity-90";
 
         if (isFidelizacionMode) return (
             <>
@@ -241,6 +243,15 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
     };
 
     return (
+        <>
+        {/* Conmutador de perfiles fijo arriba a la derecha (solo escritorio, perfiles de negocio) */}
+        {showBusinessSidebar && (
+            <div className="hidden md:flex fixed top-3 right-4 z-40 items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1.5 shadow-lg"
+                style={{ background: "color-mix(in srgb, var(--card) 92%, transparent)", backdropFilter: "blur(8px)" }}>
+                <span className="text-[10px] uppercase tracking-widest text-[var(--foreground)]/40 pl-1.5 hidden lg:inline">Cambiar a</span>
+                <QuickProfileButtons compact />
+            </div>
+        )}
         <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:flex md:flex-col">
             {title ? title : <SidebarTitle />}
 
@@ -359,14 +370,6 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                         </button>
                     )}
 
-                    {/* ── Acceso rápido a los otros 2 perfiles ── */}
-                    <div className="space-y-1.5 pb-1">
-                        <p className="text-[10px] uppercase tracking-widest px-1 mb-1.5 text-[var(--foreground)]/40">
-                            Cambiar a
-                        </p>
-                        <QuickProfileButtons />
-                    </div>
-
                     {/* Toggle modo claro/oscuro */}
                     <button type="button" onClick={toggleTheme}
                         className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center flex items-center justify-center gap-2 hover:bg-[var(--brand-1)]/10 transition-colors"
@@ -391,5 +394,6 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 </div>
             )}
         </aside>
+        </>
     );
 }
