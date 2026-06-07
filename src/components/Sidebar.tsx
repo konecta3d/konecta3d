@@ -179,20 +179,20 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (!showBusinessSidebar) return null;
 
         const btnBase = compact
-            ? "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all hover:opacity-90"
-            : "w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:opacity-90";
+            ? "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all hover:opacity-95 hover:scale-[1.03]"
+            : "w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all hover:opacity-95 hover:scale-[1.02]";
 
         if (isFidelizacionMode) return (
             <>
                 <Link href="/captacion" className={btnBase}
-                    style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
+                    style={{ background: "#4f46e5", color: "#ffffff", border: "1px solid rgba(255,255,255,0.28)", boxShadow: "0 2px 10px rgba(79,70,229,0.5)" }}>
                     <span>Captación</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/negocio/perfil" className={btnBase}
-                    style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
+                    style={{ background: "#c5a059", color: "#1a1208", border: "1px solid rgba(0,0,0,0.2)", boxShadow: "0 2px 10px rgba(197,160,98,0.5)" }}>
                     <span>Mi Negocio</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -204,14 +204,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (isCaptacionMode) return (
             <>
                 <Link href="/mi-negocio/dashboard" className={btnBase}
-                    style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
+                    style={{ background: "#1a7e78", color: "#ffffff", border: "1px solid rgba(255,255,255,0.28)", boxShadow: "0 2px 10px rgba(26,126,120,0.5)" }}>
                     <span>Fidelización</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/negocio/perfil" className={btnBase}
-                    style={{ background: "rgba(197,160,98,0.14)", color: "rgba(170,130,60,1)", border: "1px solid rgba(197,160,98,0.4)" }}>
+                    style={{ background: "#c5a059", color: "#1a1208", border: "1px solid rgba(0,0,0,0.2)", boxShadow: "0 2px 10px rgba(197,160,98,0.5)" }}>
                     <span>Mi Negocio</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -223,14 +223,14 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         if (isNegocioMode) return (
             <>
                 <Link href="/mi-negocio/dashboard" className={btnBase}
-                    style={{ background: "rgba(57,161,169,0.14)", color: "rgba(57,161,169,1)", border: "1px solid rgba(57,161,169,0.4)" }}>
+                    style={{ background: "#1a7e78", color: "#ffffff", border: "1px solid rgba(255,255,255,0.28)", boxShadow: "0 2px 10px rgba(26,126,120,0.5)" }}>
                     <span>Fidelización</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </Link>
                 <Link href="/captacion" className={btnBase}
-                    style={{ background: "rgba(99,102,241,0.14)", color: "rgba(99,102,241,1)", border: "1px solid rgba(99,102,241,0.4)" }}>
+                    style={{ background: "#4f46e5", color: "#ffffff", border: "1px solid rgba(255,255,255,0.28)", boxShadow: "0 2px 10px rgba(79,70,229,0.5)" }}>
                     <span>Captación</span>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -246,9 +246,9 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         <>
         {/* Conmutador de perfiles fijo arriba a la derecha (solo escritorio, perfiles de negocio) */}
         {showBusinessSidebar && (
-            <div className="hidden md:flex fixed top-3 right-4 z-40 items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1.5 shadow-lg"
-                style={{ background: "color-mix(in srgb, var(--card) 92%, transparent)", backdropFilter: "blur(8px)" }}>
-                <span className="text-[10px] uppercase tracking-widest text-[var(--foreground)]/40 pl-1.5 hidden lg:inline">Cambiar a</span>
+            <div className="hidden md:flex fixed top-3 right-4 z-40 items-center gap-2 rounded-full border border-[var(--border)] px-2.5 py-2 shadow-xl"
+                style={{ background: "color-mix(in srgb, var(--card) 96%, transparent)", backdropFilter: "blur(10px)" }}>
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--foreground)]/60 pl-1.5 hidden lg:inline">Cambiar a</span>
                 <QuickProfileButtons compact />
             </div>
         )}
