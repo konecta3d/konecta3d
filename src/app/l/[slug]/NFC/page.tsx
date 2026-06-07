@@ -52,10 +52,11 @@ export default async function PublicLanding({ params, searchParams }: { params: 
     ...resolvedConfig,
     businessName: resolvedConfig?.businessName || biz.name || "",
     businessId: biz.id,
+    slug: biz.slug,
   };
 
   // Herramientas solo activas si el negocio tiene el módulo tools habilitado
   const toolsEnabled = !!biz.module_tools;
 
-  return <LandingRenderer config={config} toolsEnabled={toolsEnabled} />;
+  return <LandingRenderer config={config} toolsEnabled={toolsEnabled} skipLeadCapture />;
 }

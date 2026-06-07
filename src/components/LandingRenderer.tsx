@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LandingConfig } from "@/lib/landingTypes";
 import FormModal from "./FormModal";
 import LeadCaptureModal from "./LeadCaptureModal";
@@ -87,13 +88,16 @@ export default function LandingRenderer({
   config,
   toolsEnabled = true,
   activeForms = [],
+  skipLeadCapture = false,
 }: {
   config: LandingConfig;
   toolsEnabled?: boolean;
   activeForms?: ActiveForm[];
+  skipLeadCapture?: boolean;
 }) {
   if (!config) return null;
 
+  const router = useRouter();
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [activeLmId, setActiveLmId]             = useState("");
@@ -101,6 +105,11 @@ export default function LandingRenderer({
   const activeForm = activeForms[0] as ActiveForm | undefined;
 
   const openLeadCapture = (leadMagnetId: string, ctaText: string) => {
+    if (skipLeadCapture) {
+      const slug = config.slug || "";
+      router.push(`/l/${slug}/gracias?lm=${leadMagnetId}`);
+      return;
+    }
     setActiveLmId(leadMagnetId);
     setActiveLmText(ctaText);
     setCaptureModalOpen(true);
