@@ -255,6 +255,81 @@ export function newBlock(type: LandingBlock["type"]): LandingBlock {
 export const CHILD_BLOCK_TYPES: LandingBlock["type"][] =
   (["heading", "paragraph", "bullets", "button", "image", "spacer", "logos", "steps", "cards", "faq", "countdown", "video", "socials", "html"] as LandingBlock["type"][]);
 
+// ─── Plantillas de sección (grupos de bloques listos) ─────────────────────────
+export const SECTION_TEMPLATES: { key: string; label: string }[] = [
+  { key: "hero", label: "Hero (promesa + CTA)" },
+  { key: "problema", label: "Problema" },
+  { key: "posibilidad", label: "Posibilidad" },
+  { key: "como", label: "Cómo funciona" },
+  { key: "beneficios", label: "Beneficios" },
+  { key: "prueba", label: "Prueba social (logos)" },
+  { key: "urgencia", label: "Urgencia (cuenta atrás)" },
+  { key: "faq", label: "Preguntas (FAQ)" },
+  { key: "cta", label: "CTA final" },
+];
+
+/** Devuelve los bloques de una sección prearmada. */
+export function sectionTemplate(key: string): LandingBlock[] {
+  const wa = "34623759451";
+  switch (key) {
+    case "hero": return [
+      { id: uid(), type: "heading", level: 1, align: "center", padY: "xl", accent: true, text: "Titular con la promesa principal.\nO el coste de no actuar." },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", size: "lg", text: "Una o dos frases que amplíen el titular y dejen claro el beneficio concreto." },
+      { id: uid(), type: "button", align: "center", padY: "md", label: "Quiero verlo para mi negocio", linkType: "whatsapp", value: wa, waMessage: "Hola, quiero info de Konecta3D", style: "gold", size: "lg" },
+    ];
+    case "problema": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "El problema que vive tu cliente" },
+      { id: uid(), type: "cards", align: "center", padY: "md", columns: 3, items: [
+        { icon: "📇", title: "Dolor 1", text: "Describe el primer problema con el que se identifica." },
+        { icon: "⏳", title: "Dolor 2", text: "El segundo problema y su coste real." },
+        { icon: "❓", title: "Dolor 3", text: "El tercero, lo que pierde si no lo resuelve." },
+      ] },
+    ];
+    case "posibilidad": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "brandSoft", text: "Cómo se ve cuando está resuelto" },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", size: "lg", text: "Pinta la situación ideal: qué consigue, cómo se siente, qué cambia en su día a día." },
+    ];
+    case "como": return [
+      { id: uid(), type: "heading", level: 3, align: "center", padY: "lg", text: "Cómo funciona" },
+      { id: uid(), type: "steps", align: "center", padY: "none", items: [
+        { title: "Paso 1", text: "Lo primero que ocurre, simple y claro." },
+        { title: "Paso 2", text: "El segundo paso." },
+        { title: "Paso 3", text: "El resultado final." },
+      ] },
+    ];
+    case "beneficios": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "Lo que cambia para ti" },
+      { id: uid(), type: "cards", align: "center", padY: "none", columns: 2, items: [
+        { icon: "🌅", title: "Beneficio 1", text: "Un ángulo por deseo del cliente." },
+        { icon: "📊", title: "Beneficio 2", text: "Otro beneficio concreto." },
+        { icon: "✨", title: "Beneficio 3", text: "Otro más." },
+        { icon: "🤝", title: "Beneficio 4", text: "Y el cuarto." },
+      ] },
+    ];
+    case "prueba": return [
+      { id: uid(), type: "logos", align: "center", padY: "lg", title: "Negocios que ya confían en nosotros", items: [{ src: "", alt: "Cliente 1" }, { src: "", alt: "Cliente 2" }, { src: "", alt: "Cliente 3" }] },
+    ];
+    case "urgencia": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "card", text: "Por qué actuar ahora" },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", text: "Explica la fecha límite real (su próxima feria) y el coste de esperar." },
+      { id: uid(), type: "countdown", align: "center", padY: "md", target: "", label: "Cuenta atrás" },
+    ];
+    case "faq": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "Antes de que preguntes" },
+      { id: uid(), type: "faq", align: "center", padY: "none", items: [
+        { q: "¿Es caro?", a: "Responde a la objeción de precio." },
+        { q: "¿Necesito saber de tecnología?", a: "Responde a la objeción de dificultad." },
+        { q: "¿Y si no funciona?", a: "Responde con la prueba gratis / riesgo cero." },
+      ] },
+    ];
+    case "cta": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "brandSoft", text: "Cierre que invita a actuar" },
+      { id: uid(), type: "button", align: "center", padY: "md", label: "Hablar con Konecta3D", linkType: "whatsapp", value: wa, waMessage: "Hola, quiero info de Konecta3D para mi negocio", style: "gold", size: "lg" },
+    ];
+    default: return [];
+  }
+}
+
 export const BLOCK_LABELS: Record<LandingBlock["type"], string> = {
   heading: "Titular",
   paragraph: "Párrafo",

@@ -7,6 +7,7 @@ import { renderLandingHtml } from "@/lib/landing/render";
 import {
   LandingBlock, LandingTheme, BlockStyle, RowBlock,
   DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
+  SECTION_TEMPLATES, sectionTemplate,
 } from "@/lib/landing/blocks";
 import { SiteConfig, SiteHeader, SiteFooter, NavLink, DEFAULT_SITE } from "@/lib/landing/site";
 import { importHtmlToBlocks } from "@/lib/landing/import";
@@ -121,6 +122,7 @@ export default function LandingsAdminPage() {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [themeOpen, setThemeOpen] = useState(true);
   const [addType, setAddType] = useState<LandingBlock["type"]>("heading");
+  const [addSectionKey, setAddSectionKey] = useState("hero");
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
@@ -245,6 +247,15 @@ export default function LandingsAdminPage() {
     const idx = selId ? arr.findIndex((x) => x.id === selId) : -1;
     if (idx >= 0) arr.splice(idx + 1, 0, b); else arr.push(b);
     setBlocks(arr); setSelId(b.id);
+  }
+  function addSection(key: string) {
+    if (!editing) return;
+    const blocks = sectionTemplate(key);
+    if (blocks.length === 0) return;
+    const arr = [...(editing.blocks || [])];
+    const idx = selId ? arr.findIndex((x) => x.id === selId) : -1;
+    if (idx >= 0) arr.splice(idx + 1, 0, ...blocks); else arr.push(...blocks);
+    setBlocks(arr); setSelId(blocks[0].id);
   }
   function duplicateBlock(id: string) {
     if (!editing?.blocks) return;
@@ -474,6 +485,13 @@ export default function LandingsAdminPage() {
                     <button onClick={() => addBlock(addType)} className="text-sm px-3 py-1.5 rounded-lg font-semibold text-black flex-shrink-0" style={{ background: "var(--brand-4)" }}>Añadir</button>
                   </div>
                   <p className="text-[10px] text-[var(--foreground)]/40 mt-1.5">Eliges el tipo y pulsas Añadir. Se inserta tras el bloque seleccionado.</p>
+                  <div className="mt-2 pt-2 border-t border-[var(--border)] flex gap-1.5">
+                    <select value={addSectionKey} onChange={(e) => setAddSectionKey(e.target.value)} className={inputCls}>
+                      {SECTION_TEMPLATES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                    </select>
+                    <button onClick={() => addSection(addSectionKey)} className="text-sm px-3 py-1.5 rounded-lg border border-[var(--brand-1)] text-[var(--brand-1)] font-semibold flex-shrink-0 hover:bg-[var(--brand-1)]/10">+ Sección</button>
+                  </div>
+                  <p className="text-[10px] text-[var(--foreground)]/40 mt-1">Inserta una sección entera (varios bloques) lista para editar.</p>
                 </div>
                 <div className="rounded-xl border border-[var(--border)]" style={{ background: "var(--card)" }}>
                   <div className="px-3 py-2 border-b border-[var(--border)]"><Lbl>Bloques ({(editing.blocks || []).length})</Lbl></div>
