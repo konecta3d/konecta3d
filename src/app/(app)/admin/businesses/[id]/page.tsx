@@ -191,12 +191,13 @@ export default function BusinessDetail() {
   return (
     <div className="min-h-[70vh] rounded-xl border border-[var(--border)] bg-[var(--card)]">
       {/* Breadcrumb */}
-      <div className="border-b border-[var(--border)] p-3">
+      <div className="border-b border-[var(--border)] p-3 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <a className="text-[var(--brand-1)]" href="/admin/configuracion?tab=negocios">← Negocios</a>
           <span className="text-[var(--foreground)]/30">/</span>
           <span className="text-[var(--foreground)]">{business.name}</span>
         </div>
+        <a href={`/admin/businesses/${id}/dashboard`} className="text-xs px-3 py-1.5 rounded-lg font-semibold text-black" style={{ background: "var(--brand-4)" }}>Ver estadísticas →</a>
       </div>
 
       <div className="grid md:grid-cols-[280px_1fr]">

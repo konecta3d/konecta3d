@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { DEFAULT_LAUNCH_FUNNEL } from "@/lib/crm/launch-funnel";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -11,7 +12,11 @@ export default function AdminDashboard() {
     leads30d: 0,
     totalLandings: 0,
     onboardingCompleted: 0,
+    totalViews: 0,
+    views30d: 0,
+    conversionGlobal: 0,
   });
+  const [journeyByStage, setJourneyByStage] = useState<Record<number, number>>({});
   const [recentBusinesses, setRecentBusinesses] = useState<any[]>([]);
   const [recentLeads, setRecentLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +43,7 @@ export default function AdminDashboard() {
 
       const json = await res.json();
       setStats(json.stats);
+      setJourneyByStage(json.journeyByStage || {});
       setRecentBusinesses(json.recentBusinesses);
       setRecentLeads(json.recentLeads);
     } catch (err) {
@@ -92,9 +98,47 @@ export default function AdminDashboard() {
           <div className="text-xs text-white uppercase tracking-wide mb-1">Landings creadas</div>
           <div className="text-3xl font-bold text-orange-400">{stats.totalLandings}</div>
         </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Visitas totales</div>
+          <div className="text-3xl font-bold text-cyan-400">{stats.totalViews}</div>
+          <div className="text-[11px] text-white/60 mt-0.5">{stats.views30d} en 30 días</div>
+        </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+          <div className="text-xs text-white uppercase tracking-wide mb-1">Conversión global</div>
+          <div className="text-3xl font-bold text-[var(--brand-4)]">{stats.conversionGlobal}%</div>
+          <div className="text-[11px] text-white/60 mt-0.5">leads ÷ visitas</div>
+        </div>
       </div>
 
       <p className="text-xs text-white">* Se considera onboarding completado si el negocio tiene sector y slug de landing definidos.</p>
+
+      {/* Negocios por etapa del lanzamiento */}
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Negocios por etapa del lanzamiento</h2>
+          <a href="/admin/crm/panel-lanzamiento" className="text-sm text-[var(--brand-4)] hover:underline">Panel de lanzamiento →</a>
+        </div>
+        {Object.keys(journeyByStage).length === 0 ? (
+          <p className="text-sm text-white/60">Aún no hay negocios en seguimiento. Añádelos en “Seguimiento de clientes”.</p>
+        ) : (
+          <div className="space-y-2">
+            {DEFAULT_LAUNCH_FUNNEL.stages.map((s) => {
+              const count = journeyByStage[s.id] || 0;
+              const max = Math.max(1, ...Object.values(journeyByStage));
+              return (
+                <div key={s.id} className="flex items-center gap-3">
+                  <span className="text-xs text-white/60 w-40 shrink-0 truncate">{s.id}. {s.nombre}</span>
+                  <div className="flex-1 h-5 rounded-md overflow-hidden" style={{ background: "var(--background)" }}>
+                    <div className="h-full rounded-md flex items-center justify-end px-2" style={{ width: `${Math.max((count / max) * 100, count > 0 ? 12 : 0)}%`, background: s.color }}>
+                      {count > 0 && <span className="text-[10px] font-bold text-white">{count}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Quick lists */}
       <div className="grid md:grid-cols-2 gap-6">

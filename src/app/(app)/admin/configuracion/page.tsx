@@ -71,7 +71,17 @@ const validTabs = ["dashboard", "negocios", "modulos", "configuracion", "activid
     loadBusinesses();
     loadActivity();
     loadCustomNames();
+    loadSummary();
   }, []);
+
+  const [summary, setSummary] = useState<Record<string, { leads: number; views: number }>>({});
+
+  const loadSummary = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? "";
+    const res = await fetch("/api/admin/businesses-summary", { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) { const json = await res.json(); setSummary(json.summary || {}); }
+  };
 
   const loadBusinesses = async () => {
     setLoading(true);
@@ -455,6 +465,13 @@ const generateOnboardingPdf = async () => {
 
                   <div className="text-xs bg-[var(--background)] px-2 py-1 rounded mb-3 font-mono">
                     ID: {b.public_id || "Sin ID"}
+                  </div>
+
+                  {/* Resumen de salud */}
+                  <div className="flex items-center gap-2 mb-3 text-xs flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400">{summary[b.id]?.leads ?? 0} leads</span>
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400">{summary[b.id]?.views ?? 0} visitas</span>
+                    <a href={`/admin/businesses/${b.id}/dashboard`} className="ml-auto text-[var(--brand-4)] hover:underline">Estadísticas →</a>
                   </div>
 
                   {/* Módulos */}
