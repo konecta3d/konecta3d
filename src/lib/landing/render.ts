@@ -126,7 +126,7 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
           <summary style="cursor:pointer;padding:18px 22px;font-weight:700;font-size:16px;color:${textColor};list-style:none">${esc(it.q)}</summary>
           <div style="padding:0 22px 18px;color:${hexA(textColor, 0.7)};font-size:15px">${nl2br(it.a)}</div></details>`
       ).join("");
-      return `<div style="max-width:760px;margin:0 auto;text-align:left">${items}</div>`;
+      return `<div data-faq style="max-width:760px;margin:0 auto;text-align:left">${items}</div>`;
     }
     case "countdown": {
       const cd = b as CountdownBlock;
@@ -361,6 +361,13 @@ ${body}
       if(q('d'))q('d').textContent=d; if(q('h'))q('h').textContent=p(h);
       if(q('m'))q('m').textContent=p(m); if(q('s'))q('s').textContent=p(sec);
     } upd(); setInterval(upd,1000);
+  });
+  document.querySelectorAll('[data-faq]').forEach(function(faq){
+    faq.querySelectorAll('details').forEach(function(det){
+      det.addEventListener('toggle',function(){
+        if(det.open){faq.querySelectorAll('details').forEach(function(o){if(o!==det)o.removeAttribute('open')});}
+      });
+    });
   });
 })();
 </script>
