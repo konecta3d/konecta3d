@@ -256,6 +256,42 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     ],
   },
 
+  "formularios-feedback": {
+    slug: "formularios-feedback",
+    title: "Formularios de Feedback",
+    intro: "La forma de escuchar a los clientes que ya te compraron: su opinión sobre el servicio, la atención y el producto, para mejorar y que vuelvan.",
+    items: [
+      {
+        question: "¿En qué se diferencia de un formulario de captación?",
+        answer: "En a quién preguntas. El de captación sirve para conseguir el contacto de gente nueva. El de feedback sirve para escuchar a quien YA es tu cliente y ha comprado, y saber qué mejorar.",
+      },
+      {
+        question: "¿Qué tipos de feedback puedo recoger?",
+        answer: "Cuatro: opinión general (valoraciones y preguntas abiertas), NPS (probabilidad de que te recomienden del 0 al 10), producto o servicio (satisfacción con algo concreto) y empleados (amabilidad, profesionalidad y rapidez de tu equipo).",
+      },
+      {
+        question: "¿Qué le puedo preguntar al cliente?",
+        answer: "Lo que te ayude a mejorar: cómo valoró la atención, si el producto cumplió, qué cambiaría, si te recomendaría. Pocas preguntas y claras: cuanto más corto, más respuestas.",
+      },
+      {
+        question: "¿Cómo se lo hago llegar al cliente?",
+        answer: "Compartes el enlace del formulario después de la compra o la visita: por WhatsApp, por email o donde tengas contacto con él. No necesita instalar nada ni registrarse.",
+      },
+      {
+        question: "¿Qué hago con las respuestas?",
+        answer: "Las ves recogidas en la plataforma. Te sirven para detectar qué falla y qué funciona: si la atención flojea, si un servicio gusta más que otro, qué te piden mejorar. Decides con datos, no a ciegas.",
+      },
+      {
+        question: "¿Para qué me sirve esto de verdad?",
+        answer: "Para que tus clientes vuelvan. Un cliente al que escuchas se siente valorado y repite. Y detectas un problema a tiempo, antes de que se vaya en silencio sin que sepas por qué.",
+      },
+      {
+        question: "¿El cliente tiene que dar muchos datos?",
+        answer: "No. Responde en unos segundos. El objetivo es que opine sin esfuerzo, no captar sus datos (para eso está la captación).",
+      },
+    ],
+  },
+
   "campanas": {
     slug: "campanas",
     title: "Campañas de captación",
@@ -469,7 +505,7 @@ export function getHelpSlug(pathname: string): string {
   if (pathname.startsWith("/landing"))                 return "landing";
   if (pathname.startsWith("/lead-magnet"))             return "recurso-de-valor";
   if (pathname.startsWith("/vip-benefits"))            return "beneficios-vip";
-  if (pathname.startsWith("/formularios"))             return "formularios";
+  if (pathname.startsWith("/formularios"))             return "formularios-feedback";
   if (pathname.startsWith("/acciones"))                return "herramientas";
   if (pathname.startsWith("/mi-negocio/perfil"))       return "perfil";
   if (pathname.startsWith("/mi-negocio"))              return "dashboard";
