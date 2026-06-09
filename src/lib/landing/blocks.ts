@@ -19,7 +19,7 @@ export interface LandingTheme {
 }
 
 export type BlockAlign = "left" | "center" | "right";
-export type BlockPad = "none" | "sm" | "md" | "lg" | "xl";
+export type BlockPad = "none" | "xs" | "sm" | "md" | "lg" | "xl";
 export type BlockBg = "none" | "card" | "brandSoft";
 
 /** Estilo avanzado opcional por bloque. Sobrescribe el tema global. */

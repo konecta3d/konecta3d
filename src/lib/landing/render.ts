@@ -16,7 +16,7 @@ const esc = (s: unknown) =>
 
 const nl2br = (s: string) => esc(s).replace(/\n/g, "<br/>");
 
-const PAD: Record<string, number> = { none: 0, sm: 24, md: 44, lg: 72, xl: 104 };
+const PAD: Record<string, number> = { none: 0, xs: 12, sm: 24, md: 44, lg: 72, xl: 104 };
 
 function blockHref(b: ButtonBlock): { href: string; target: string } {
   const v = (b.value || "").trim();

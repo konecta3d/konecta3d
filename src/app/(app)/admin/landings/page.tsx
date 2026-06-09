@@ -674,7 +674,7 @@ function BlockControls({ block, update, section = "all" }: { block: LandingBlock
       <div><Lbl>Alineado</Lbl><Seg value={block.align || "left"} onChange={(v) => update({ align: v })} options={[{ v: "left", l: "Izq" }, { v: "center", l: "Centro" }, { v: "right", l: "Der" }]} /></div>
       <div><Lbl>Espaciado</Lbl>
         <select value={block.padY || "md"} onChange={(e) => update({ padY: e.target.value as LandingBlock["padY"] })} className={inputCls}>
-          <option value="none">Ninguno</option><option value="sm">S</option><option value="md">M</option><option value="lg">L</option><option value="xl">XL</option>
+          <option value="none">Sin espacio</option><option value="xs">Mínimo</option><option value="sm">Pequeño</option><option value="md">Normal</option><option value="lg">Grande</option><option value="xl">Muy grande</option>
         </select>
       </div>
       <div><Lbl>Fondo</Lbl>
