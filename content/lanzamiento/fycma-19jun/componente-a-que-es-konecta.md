@@ -1,60 +1,67 @@
-# Componente A — "Qué es Konecta" (3 niveles)
+# Componente A — "Qué es Konecta"
 
-> Contenido listo para memorizar y usar en el stand de FYCMA.
-> Voz: directa, cercana, honesta. Hablamos del resultado, NUNCA de la tecnología.
-> Regla de oro: no lideres con "llavero NFC". Lideras con clientes de la feria.
-
----
-
-## Nivel 1 — Una frase (el gancho, 5-10 segundos)
-Para abrir, mientras le pones el llavero en la mano:
-
-> "Konecta convierte tu feria en clientes: un llavero con tu marca que tus visitantes
-> tocan con el móvil, dejan su contacto y se llevan tu marca puesta."
-
-Variante con gancho de dolor (si le ves escéptico):
-> "¿Toda la gente que se para en tu stand y luego no vuelves a ver? Konecta hace que
-> se queden contigo."
+> Contenido listo para memorizar y usar. Estructura: QUÉ ES → QUÉ HACE → CÓMO LO HACE.
+> Voz: directa, cercana, honesta. Hablamos del resultado, no de la tecnología.
+> Basado en el modelo de la pizarra (qué es / qué hace / cómo lo hace).
 
 ---
 
-## Nivel 2 — 30 segundos (el del stand)
-Cuando ya tiene el llavero en la mano y ha mostrado interés:
-
-> "Mira: te gastas un dineral en montar este stand y, cuando acaba la feria, la
-> mayoría de la gente que pasó por aquí se va sin que te quede nada suyo. Konecta es
-> esto que tienes en la mano: un llavero con tu marca. Tu visitante lo toca con el
-> móvil, se abre tu página, deja su contacto en dos toques y se lleva el llavero
-> puesto. Tú sales de la feria con una lista de clientes, no con tarjetas tiradas. Y
-> sabes con números exactos cuántos te trajo."
-
-(Después de decir esto → pasas a las 3 preguntas.)
+## La idea en una línea
+> "Konecta es un sistema físico y digital para **captar, fidelizar y dar valor** a tus clientes."
 
 ---
 
-## Nivel 3 — 2 minutos (cuando hay interés real)
-Cuando quiere saber más. Aquí entra la plataforma como mata-objeciones:
+## 1. QUÉ ES
+> "Konecta es un **sistema físico y digital** que ayuda a tu negocio a **captar clientes, fidelizarlos y darles valor**. La parte física es un **llavero con tu marca**; la digital es una **plataforma donde lo gestionas todo**, sin saber de tecnología."
 
-> "El llavero es solo la punta. Detrás hay una plataforma donde tú mandas, aunque no
-> tengas ni idea de informática:
+---
+
+## 2. QUÉ HACE (los 3 trabajos)
+> "Konecta hace tres cosas por tu negocio:
+> - **Captar** — convierte a la gente de tus ferias y de tu día a día en contactos guardados, sin que se te escape nadie.
+> - **Fidelizar** — hace que esos clientes vuelvan: escuchas su opinión y les das motivos para repetir.
+> - **Dar valor** — les entregas recursos útiles que te posicionan como el experto y te diferencian."
+
+Tres palabras que repites siempre: **captar · fidelizar · dar valor.**
+
+---
+
+## 3. CÓMO LO HACE (mecanismo + diferenciadores)
+> "¿Cómo lo consigue? Con dos piezas que trabajan juntas:
 >
-> - **Tú decides qué ve tu cliente** y lo cambias cuando quieras, sin reimprimir nada.
-> - **No tienes que saber de marketing:** la plataforma te ayuda a montar tu página,
->   tu recurso de valor y tus formularios. Lo que antes hacías con cinco herramientas
->   sueltas, aquí está todo en un sitio.
-> - **Capturas el contacto en el momento**, aunque tú estés ocupado con otro cliente.
-> - **Lo mejor: mides.** Sabes cuántas personas tocaron, cuántas dejaron sus datos y
->   cuántos clientes te trajo cada feria. Se acabó el 'no sé si esto funciona'.
-> - Y el llavero **se queda en su mano cada día**, así que tu marca sigue ahí mucho
->   después de que la feria termine.
+> - **El llavero (físico)** hace dos cosas: lleva tu marca y **se queda con tu cliente cada día** (recuerdo de marca), y es la **llave que abre todo el sistema con un toque**.
+> - **El sistema digital** son tres espacios, según lo que necesites:
+>   - Tu **Negocio**: tus herramientas, tus clientes y tus métricas, todo en un sitio.
+>   - **Captación**: campañas, formularios y lead magnets, con una metodología propia.
+>   - **Fidelización**: tu página, recursos de valor y formularios para que el cliente vuelva.
 >
-> Empiezas con un mes gratis, sin compromiso. Si funciona, seguimos; si no, no pasa
-> nada. Lo montamos juntos con tiempo para tu próxima feria."
+> Y lo que lo hace distinto de hacerlo por tu cuenta:
+> - **Centraliza** — dejas de usar cinco herramientas sueltas; todo en uno.
+> - **Mide** — sabes con números cuántos captas y cuántos vuelven.
+> - **Método propio** — no solo te da la herramienta, te da la estrategia.
+> - **Convierte tu información en valor** para tu cliente."
+
+---
+
+## Versiones por duración (para el stand)
+- **10 segundos** → la línea de arriba (QUÉ ES).
+- **30 segundos** → QUÉ ES + QUÉ HACE (los 3 trabajos).
+- **2 minutos** → los tres bloques completos (añades el CÓMO LO HACE cuando hay interés real).
+
+---
+
+## Ángulos de entrada (elige según con quién hablas)
+Cómo ABRIR antes de explicar. Una frase, según la persona:
+- **Problema** (al que se queja): "En las ferias pasa siempre lo mismo: te llevas conversaciones pero ni un contacto."
+- **Resultado** (al práctico): "Konecta hace que salgas de la feria con clientes, no con tarjetas tiradas."
+- **Analogía** (al no técnico): "¿Sabes el programa de puntos de una tienda? Konecta es eso, pero para tu feria."
+- **Contraste** (al de herramientas sueltas): "Lo que hoy haces con cinco apps, Konecta lo hace en una."
+- **Pregunta** (siempre — tu método): "¿Qué haces ahora con los datos de la gente que se para en tu stand?"
 
 ---
 
 ## Lo que NUNCA dices
-- No empieces por "es un llavero NFC" → empieza por el resultado (clientes de la feria).
+- No empieces por "es un llavero NFC" → empieza por el resultado (captar, fidelizar, dar valor).
 - No digas "es barato" → di "lo recuperas con un solo cliente".
 - No prometas cifras que no tienes → usa la demostración (el toque) como prueba.
 - No menciones QR. Es el enemigo.
@@ -62,5 +69,5 @@ Cuando quiere saber más. Aquí entra la plataforma como mata-objeciones:
 ---
 
 ## Cómo encaja en la coreografía
-Nivel 1 → al entregar el llavero · Nivel 2 → antes de las 3 preguntas · Nivel 3 →
-cuando hay interés, antes del cierre. (Ver `../estrategia-fycma-19jun.md`.)
+Ángulo de entrada → QUÉ ES (10s) al entregar el llavero → QUÉ HACE antes de las 3 preguntas →
+CÓMO LO HACE cuando hay interés, antes del cierre. (Ver `../estrategia-fycma-19jun.md`.)
