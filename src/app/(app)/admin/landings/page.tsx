@@ -443,8 +443,15 @@ export default function LandingsAdminPage() {
           <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })}
             className="text-lg font-bold bg-transparent border-b border-transparent hover:border-[var(--border)] focus:border-[var(--brand-1)] outline-none px-1" />
           <div className="flex items-center gap-2 flex-wrap">
-            <Seg value={editing.mode} onChange={(v) => setEditing({ ...editing, mode: v })}
-              options={[{ v: "visual", l: "Visual" }, { v: "code", l: "Código" }]} />
+            <Seg value={editing.mode} onChange={(v) => {
+              if (v === "code") {
+                const rendered = renderLandingHtml(editing.theme ?? DEFAULT_THEME, editing.blocks ?? [], editing.name, site);
+                setEditing({ ...editing, mode: "code", html: rendered });
+              } else {
+                const parsed = editing.html.trim() ? importHtmlToBlocks(editing.html) : [];
+                setEditing({ ...editing, mode: "visual", blocks: parsed.length > 0 ? parsed : (editing.blocks ?? []) });
+              }
+            }} options={[{ v: "visual", l: "Visual" }, { v: "code", l: "Código" }]} />
             <Seg value={device} onChange={setDevice} options={[{ v: "desktop", l: "Escritorio" }, { v: "mobile", l: "Móvil" }]} />
             {editing.mode === "visual" && (
               <>

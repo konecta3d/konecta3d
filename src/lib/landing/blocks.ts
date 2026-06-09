@@ -266,6 +266,9 @@ export const SECTION_TEMPLATES: { key: string; label: string }[] = [
   { key: "urgencia", label: "Urgencia (cuenta atrás)" },
   { key: "faq", label: "Preguntas (FAQ)" },
   { key: "cta", label: "CTA final" },
+  { key: "faq-konecta3d", label: "FAQ — ¿Qué es Konecta3D?" },
+  { key: "faq-llavero", label: "FAQ — El llavero NFC" },
+  { key: "faq-plataforma", label: "FAQ — La plataforma" },
 ];
 
 /** Devuelve los bloques de una sección prearmada. */
@@ -325,6 +328,37 @@ export function sectionTemplate(key: string): LandingBlock[] {
     case "cta": return [
       { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", bg: "brandSoft", text: "Cierre que invita a actuar" },
       { id: uid(), type: "button", align: "center", padY: "md", label: "Hablar con Konecta3D", linkType: "whatsapp", value: wa, waMessage: "Hola, quiero info de Konecta3D para mi negocio", style: "gold", size: "lg" },
+    ];
+    case "faq-konecta3d": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "¿Qué es Konecta3D?" },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", size: "md", text: "Para quién está pensado y qué diferencia hay respecto a lo que ya tienes." },
+      { id: uid(), type: "faq", align: "center", padY: "md", items: [
+        { q: "¿Qué es Konecta3D?", a: "Konecta3D es una plataforma de presencia digital para negocios locales. No es una web, no es una app ni una red social.\n\nEs un sistema que conecta el momento en que un cliente está contigo —en tu consulta, en tu local, en un evento— con su móvil: para que deje su contacto, descargue algo tuyo o reciba una oferta, de forma automática.\n\nEl llavero NFC es la llave que activa todo." },
+        { q: "¿Para qué tipo de negocio está pensado?", a: "Para cualquier profesional con clientes presenciales: dentistas, fisioterapeutas, centros de estética, psicólogos, abogados, inmobiliarias, academias, talleres, restaurantes...\n\nSi tienes clientes que te visitan en persona y quieres que ese contacto no se pierda, Konecta3D trabaja para ti." },
+        { q: "¿Qué diferencia hay entre esto y tener una web?", a: "Una web la tiene todo el mundo y muy poca gente la visita.\n\nKonecta3D actúa en el momento de mayor atención del cliente: cuando está contigo. El cliente toca el llavero, llega a tu página y puede dejarte su contacto o descargarse algo tuyo en segundos.\n\nTu web no sabe quién la visita, no captura ese contacto y no te avisa de nada. Konecta3D sí." },
+        { q: "¿Qué necesito para empezar?", a: "Solo tres cosas:\n\n1. Un móvil o un ordenador con internet.\n2. Los datos de tu negocio: nombre, logo, teléfono, descripción.\n3. Entre 1 y 2 horas para configurarlo la primera vez.\n\nNo necesitas contratar a nadie, no necesitas saber de diseño y no necesitas conocimientos técnicos. Si puedes usar WhatsApp, puedes configurar Konecta3D." },
+      ] },
+    ];
+    case "faq-llavero": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "El llavero NFC" },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", size: "md", text: "Qué es, cómo funciona y por qué no es solo un gadget." },
+      { id: uid(), type: "faq", align: "center", padY: "md", items: [
+        { q: "¿Qué es el llavero NFC y para qué sirve?", a: "Es un llavero físico con un chip electrónico en su interior.\n\nCuando alguien acerca la parte trasera de su móvil al llavero, se abre automáticamente la página de tu negocio. Sin apps, sin códigos QR, sin buscar nada.\n\nEs la forma más directa de convertir un cliente que tienes delante en alguien que está en tu sistema digital." },
+        { q: "¿Qué ve el cliente cuando lo toca?", a: "Ve la página que tú has diseñado para tu negocio: tu logo, tu descripción, tus botones de acción (WhatsApp, reservar cita, Instagram, llamar), y si lo has configurado, un recurso gratuito para descargar o un formulario para dejar sus datos.\n\nTodo en menos de dos segundos, desde el móvil, sin salir del navegador." },
+        { q: "¿El cliente necesita instalar algo?", a: "No. Solo acercar la parte trasera del móvil al llavero.\n\nFunciona con cualquier iPhone desde el modelo 7 y con la mayoría de teléfonos Android de los últimos cinco años. El NFC ya viene activado por defecto." },
+        { q: "¿Qué pasa si cambio de número, de web o de servicios?", a: "El llavero no cambia nunca. Apunta a una URL fija de Konecta3D.\n\nLo que cambia es el contenido de tu página en la plataforma: puedes actualizar tu número, tus botones o tu oferta cuando quieras.\n\nTodos los llaveros que ya tienes distribuidos entre tus clientes seguirán llevando siempre a la versión más actualizada. No tienes que recogerlos ni reemplazarlos." },
+        { q: "¿Cuántos llaveros puedo tener?", a: "Los que necesites. Puedes tener uno en recepción, entregarlo con cada visita, dejarlo en la sala de espera, incluirlo en un regalo o dárselo a un empleado que vende o atiende.\n\nCada llavero lleva siempre a la misma página de tu negocio." },
+      ] },
+    ];
+    case "faq-plataforma": return [
+      { id: uid(), type: "heading", level: 2, align: "center", padY: "lg", text: "La plataforma" },
+      { id: uid(), type: "paragraph", align: "center", padY: "none", size: "md", text: "Las herramientas que incluye y cómo cada una trabaja para que tu negocio crezca." },
+      { id: uid(), type: "faq", align: "center", padY: "md", items: [
+        { q: "¿Qué herramientas incluye la plataforma?", a: "Cuatro módulos principales:\n\n1. Página de bienvenida — La que se abre al tocar el llavero. Tu escaparate digital: logo, descripción, botones de contacto.\n\n2. Imán de clientes — Un PDF con tu conocimiento profesional que regalas a cambio del contacto del cliente.\n\n3. Beneficios VIP — Documentos con descuentos y ofertas para que el cliente que ya te conoce vuelva y te recomiende.\n\n4. Formularios — Para captar automáticamente el contacto de quien visita tu página, sin que estés presente." },
+        { q: "¿Cómo capto el contacto de los clientes automáticamente?", a: "Con la combinación: página + imán de clientes + formulario.\n\nEl cliente toca el llavero → llega a tu página → ve un recurso gratuito → decide descargarlo → deja su nombre y correo → ese contacto queda guardado en tu lista.\n\nSin que hayas hecho nada. Sin que estés presente. Puedes revisar quién se ha apuntado desde el panel cuando quieras." },
+        { q: "¿Cómo consigo que un cliente que ya me conoce vuelva?", a: "Con los beneficios VIP. Creas un documento con una oferta concreta (un descuento, un 2x1, una sesión de valoración gratuita) y lo envías por WhatsApp o lo activas en tu página.\n\nUn PDF bien diseñado con tu logo tiene más valor percibido que un mensaje de texto: el cliente lo guarda en el móvil y vuelve a verlo cuando lo necesita." },
+        { q: "¿Necesito saber de marketing o de diseño para usarlo?", a: "No. El panel está diseñado para quien sabe mucho de su oficio y poco de tecnología. Sin código, sin diseño desde cero, sin configuraciones técnicas.\n\nLa única condición es saber qué haces y para quién lo haces. De eso te encargas tú." },
+      ] },
     ];
     default: return [];
   }
