@@ -785,6 +785,16 @@ function CaptacionLeadMagnetWizardInner() {
               ))}
             </div>
 
+            {/* Color de los botones (compartido por los dos CTAs) */}
+            <div className="bg-[var(--card)] rounded-xl p-4 mb-4 border border-[var(--border)]">
+              <label className="block text-xs text-[var(--foreground)]/50 mb-2">Color de los botones</label>
+              <div className="flex items-center gap-2 max-w-xs">
+                <input type="color" value={colorButton} onChange={e => setColorButton(e.target.value)} className="w-10 h-10 rounded cursor-pointer flex-shrink-0" />
+                <input type="text" value={colorButton} onChange={e => setColorButton(e.target.value)} className="flex-1 min-w-0 px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-xs uppercase" />
+              </div>
+              <p className="text-[10px] text-[var(--foreground)]/40 mt-2">El texto del botón ajusta su contraste automáticamente.</p>
+            </div>
+
             {/* Colors */}
             <div className="bg-[var(--card)] rounded-xl p-4 md:p-6 mb-4 border border-[var(--border)]">
               <h3 className="text-[var(--foreground)] font-bold mb-4">Colores del documento</h3>
@@ -793,7 +803,6 @@ function CaptacionLeadMagnetWizardInner() {
                   { label: "Color marca", val: colorBrand, set: setColorBrand },
                   { label: "Color etiqueta", val: colorTag, set: setColorTag },
                   { label: "Color título", val: colorTitle, set: setColorTitle },
-                  { label: "Color botón CTA", val: colorButton, set: setColorButton },
                 ].map(({ label, val, set }) => (
                   <div key={label} className="bg-[var(--card)] rounded-lg p-3 border border-[var(--border)]">
                     <label className="block text-xs text-[var(--foreground)]/50 mb-2">{label}</label>
