@@ -84,6 +84,11 @@ Acabas de vivirlo tú mismo: tocaste el llavero, dejaste tu contacto y estás le
 esto. **Eso es exactamente lo que vivirá tu cliente en tu stand.**
 
 ¿Quieres montar tu propia oferta irresistible con tu llavero para tu próxima feria?
-Pruébalo gratis un mes, sin compromiso. Hablamos.
+
+**CTAs del documento** (botón corto + microcopia debajo):
+- **Botón primario → WhatsApp:** `Quiero empezar`
+  *Microcopia: Gratis el primer mes, sin compromiso. Te escribo por WhatsApp.*
+- **Botón secundario → landing de información:** `Ver cómo funciona`
+  *Microcopia: Cómo convierte tu feria en clientes.*
 
 *Konecta3D — convierte tu feria en clientes.*
