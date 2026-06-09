@@ -1,10 +1,31 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Inter, Poppins, Lora, Montserrat } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
 const outfit = Outfit({
   variable: "--font-outfit",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
@@ -83,7 +104,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${outfit.variable} antialiased`}>{children}</body>
+      <body className={`${outfit.variable} ${inter.variable} ${poppins.variable} ${lora.variable} ${montserrat.variable} antialiased`}>{children}</body>
     </html>
   );
 }

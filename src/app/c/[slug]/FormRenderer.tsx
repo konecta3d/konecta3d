@@ -30,6 +30,24 @@ interface Props {
   businessPublicId?: string;
 }
 
+// ── Mapa de fuentes → CSS variables cargadas en el root layout ──
+// Convierte el nombre de fuente guardado en el diseño a la variable CSS
+// que Next.js genera al importar la fuente en layout.tsx.
+// Sin este mapa el browser recibe "Inter" (nombre de fuente puro) pero
+// como Inter no está en las fuentes del sistema falla y usa la fuente
+// por defecto. Con la variable el browser usa el subconjunto pre-cargado.
+const FONT_VAR: Record<string, string> = {
+  Inter:       "var(--font-inter, Inter, system-ui, sans-serif)",
+  Poppins:     "var(--font-poppins, Poppins, system-ui, sans-serif)",
+  Lora:        "var(--font-lora, Lora, Georgia, serif)",
+  Montserrat:  "var(--font-montserrat, Montserrat, system-ui, sans-serif)",
+  Outfit:      "var(--font-outfit, Outfit, system-ui, sans-serif)",
+};
+
+function resolveFont(fontFamily: string): string {
+  return FONT_VAR[fontFamily] ?? fontFamily;
+}
+
 // ── Logo helper ────────────────────────────────────────────────
 
 function LogoImg({ design }: { design: FormDesign }) {
@@ -143,7 +161,7 @@ function DefaultForm({
     const hasResource = !!(leadMagnetUrl || codeValue);
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
-        style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+        style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
           style={{ background: `${s.accent_color}30`, border: `2px solid ${s.accent_color}50` }}>
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -198,7 +216,7 @@ function DefaultForm({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+      style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
       <div className="w-full max-w-sm space-y-5">
         <div className="text-center mb-6">
           {s.logo_url && <div className="flex justify-center mb-5"><LogoImg design={s} /></div>}
@@ -360,7 +378,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const col = cfg.text_color || s.text_color;
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
-            style={{ background: bg, color: col, fontFamily: s.font_family }}>
+            style={{ background: bg, color: col, fontFamily: resolveFont(s.font_family) }}>
             {/* Logo — solo si está configurado */}
             {s.logo_url && (
               <div className="flex justify-center mb-6">
@@ -382,7 +400,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const cfg = currentBlock.config as SegmentationConfig;
         return (
           <div className="min-h-screen flex flex-col justify-center p-6"
-            style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+            style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
             <h2 className="text-xl font-bold mb-2">¿Qué describe mejor tu situación?</h2>
             <p className="text-sm mb-6" style={{ opacity: 0.5 }}>Elige la opción que más se ajuste a ti</p>
             <div className="space-y-3 mb-8">
@@ -413,7 +431,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const qs  = cfg.questions || [];
         return (
           <div className="min-h-screen flex flex-col justify-center p-6"
-            style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+            style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
             <div className="space-y-6 mb-8">
               {qs.map(q => (
                 <div key={q.id}>
@@ -480,7 +498,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         const enabledFields = cfg.fields.filter(f => f.enabled);
         return (
           <div className="min-h-screen flex flex-col justify-center p-6"
-            style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+            style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
             <h2 className="text-xl font-bold mb-1">Tus datos</h2>
             <p className="text-sm mb-6" style={{ opacity: 0.5 }}>Solo pedimos lo que realmente necesitamos</p>
             <div className="space-y-4 mb-6">
@@ -559,7 +577,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
 
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
-            style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+            style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
             <div className="w-14 h-14 rounded-full flex items-center justify-center mb-5"
               style={{ background: `${s.accent_color}25`, border: `1px solid ${s.accent_color}50` }}>
               <svg className="w-7 h-7" style={{ color: s.accent_color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -621,7 +639,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
           : null;
         return (
           <div className="min-h-screen flex flex-col items-center justify-center text-center p-6"
-            style={{ background: s.bg_color, color: s.text_color, fontFamily: s.font_family }}>
+            style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
               style={{ background: `${s.accent_color}25`, border: `2px solid ${s.accent_color}50` }}>
               <svg className="w-8 h-8" style={{ color: s.accent_color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
