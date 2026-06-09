@@ -70,7 +70,7 @@ export async function POST(req: Request) {
   // Cargar datos del negocio para notificaciones (en paralelo, no bloquea el flujo)
   const businessPromise = db
     .from("businesses")
-    .select("email, name")
+    .select("contact_email, name")
     .eq("id", campaign.business_id)
     .single();
 
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
   // Se ejecutan en paralelo y no bloquean la respuesta al lead.
   // Si fallan, el lead ya está guardado y no se pierde.
   const { data: biz } = await businessPromise;
-  const typedBiz = biz as { email: string; name: string } | null;
+  const typedBiz = biz as { contact_email: string; name: string } | null;
   const campaignTyped = campaign as {
     id: string; business_id: string; lead_magnet_id?: string; status: string; name: string;
   };
@@ -143,10 +143,10 @@ export async function POST(req: Request) {
   const emailTasks: Promise<unknown>[] = [];
 
   // 1. Notificación al negocio
-  if (typedBiz?.email) {
+  if (typedBiz?.contact_email) {
     emailTasks.push(
       sendLeadNotification({
-        businessEmail: typedBiz.email,
+        businessEmail: typedBiz.contact_email,
         businessName: typedBiz.name ?? "Tu negocio",
         leadName: name?.trim() || null,
         leadPhone: phone?.trim() || "",
