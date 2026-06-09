@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT } from "@/lib/help-content";
+import Link from "next/link";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,8 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   const [open, setOpen]           = useState(false);
   const [expandedIndex, setExpIdx] = useState<number | null>(null);
   const [section, setSection]     = useState<HelpSection>(getHelpSection(pathname));
+  const [activeTab, setActiveTab] = useState<"guide" | "faq">("faq");
+  const [showPulse, setShowPulse] = useState(false);
 
   // ── Contenido dinámico (cargado desde la API al primer uso) ──────────────
   const [dynamicContent, setDynamicContent] = useState<Record<string, HelpSection> | null>(null);
@@ -74,8 +77,27 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   useEffect(() => {
     const slug = getHelpSlug(pathname);
     const src  = dynamicContent ?? HELP_CONTENT;
-    setSection(src[slug] ?? src["como-funciona"] ?? getHelpSection(pathname));
+    const newSection = src[slug] ?? src["como-funciona"] ?? getHelpSection(pathname);
+    setSection(newSection);
     setExpIdx(null);
+
+    // Si la sección tiene guía, seleccionar esa pestaña por defecto
+    if (newSection.guide) {
+      setActiveTab("guide");
+      // Pulso proactivo: una sola vez por sección por sesión
+      try {
+        const key = `konecta-guide-seen-${slug}`;
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          setShowPulse(true);
+          const t = setTimeout(() => setShowPulse(false), 6000);
+          return () => clearTimeout(t);
+        }
+      } catch { /* ignora errores de sessionStorage */ }
+    } else {
+      setActiveTab("faq");
+      setShowPulse(false);
+    }
   }, [pathname, dynamicContent]);
 
   // ── Tecla Escape ─────────────────────────────────────────────────────────
@@ -182,11 +204,13 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
         style={{
           top:    effectivePos.y,
           left:   effectivePos.x,
-          background:  "var(--brand-1)",
-          color:       "#ffffff",
-          boxShadow:   "0 2px 10px rgba(0,0,0,0.18)",
+          background:  showPulse ? "var(--brand-4)" : "var(--brand-1)",
+          color:       showPulse ? "#000000" : "#ffffff",
+          boxShadow:   showPulse
+            ? "0 0 0 4px rgba(197,160,98,0.25), 0 2px 10px rgba(0,0,0,0.18)"
+            : "0 2px 10px rgba(0,0,0,0.18)",
           cursor:      dragging ? "grabbing" : "grab",
-          transition:  dragging ? "none" : "box-shadow 0.15s, opacity 0.15s",
+          transition:  dragging ? "none" : "background 0.3s, color 0.3s, box-shadow 0.3s",
           opacity:     dragging ? 0.85 : 1,
           touchAction: "none",
           userSelect:  "none",
@@ -205,11 +229,19 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
           <circle cx="2.5" cy="12" r="1.5" fill="currentColor" />
           <circle cx="7.5" cy="12" r="1.5" fill="currentColor" />
         </svg>
-        <span className="text-sm leading-none font-bold">?</span>
-        {/* Escritorio: nombre de la sección + número de preguntas */}
-        <span className="hidden sm:inline whitespace-nowrap">Dudas de {helpSectionLabel} · {helpCount}</span>
-        {/* Móvil: versión compacta */}
-        <span className="sm:hidden whitespace-nowrap">Dudas · {helpCount}</span>
+        <span className="text-sm leading-none font-bold">{showPulse ? "★" : "?"}</span>
+        {/* Escritorio */}
+        {showPulse ? (
+          <span className="hidden sm:inline whitespace-nowrap font-bold">Guía disponible — ábrela</span>
+        ) : (
+          <span className="hidden sm:inline whitespace-nowrap">Dudas de {helpSectionLabel} · {helpCount}</span>
+        )}
+        {/* Móvil */}
+        {showPulse ? (
+          <span className="sm:hidden whitespace-nowrap font-bold">Guía</span>
+        ) : (
+          <span className="sm:hidden whitespace-nowrap">Dudas · {helpCount}</span>
+        )}
 
         {/* Indicador: oculto para clientes */}
         {isAdmin && !enabled && (
@@ -276,69 +308,156 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
           </button>
         </div>
 
+        {/* Pestañas — solo si la sección tiene guía */}
+        {section.guide && (
+          <div
+            className="flex gap-1 px-4 pt-3 pb-2 flex-shrink-0"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveTab("guide")}
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
+              style={{
+                background: activeTab === "guide" ? "var(--brand-1)" : "transparent",
+                color:      activeTab === "guide" ? "#fff" : "var(--foreground)",
+                opacity:    activeTab === "guide" ? 1 : 0.5,
+              }}
+            >
+              Guía rápida
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("faq")}
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
+              style={{
+                background: activeTab === "faq" ? "var(--brand-1)" : "transparent",
+                color:      activeTab === "faq" ? "#fff" : "var(--foreground)",
+                opacity:    activeTab === "faq" ? 1 : 0.5,
+              }}
+            >
+              Preguntas · {section.items.length}
+            </button>
+          </div>
+        )}
+
         {/* Cuerpo con scroll */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* Intro */}
-          {section.intro && (
-            <div
-              className="mx-4 mt-4 mb-2 px-4 py-3 rounded-xl text-sm text-[var(--foreground)]/70 leading-relaxed"
-              style={{ background: "var(--background)" }}
-            >
-              {section.intro}
-            </div>
-          )}
-
-          {/* Acordeón Q&A */}
-          <div className="px-4 pb-6 pt-2 space-y-1">
-            {section.items.map((item, i) => {
-              const isOpen = expandedIndex === i;
-              return (
+          {/* ── Pestaña: Guía rápida ── */}
+          {activeTab === "guide" && section.guide && (
+            <div className="px-4 pt-4 pb-6 space-y-3">
+              <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)", opacity: 0.6 }}>
+                {section.guide.intro}
+              </p>
+              {section.guide.steps.map((s) => (
                 <div
-                  key={i}
-                  className="rounded-xl overflow-hidden transition-all"
-                  style={{
-                    border:     `1px solid ${isOpen ? "rgba(10,50,60,0.2)" : "var(--border)"}`,
-                    background: isOpen ? "var(--background)" : "transparent",
-                  }}
+                  key={s.step}
+                  className="rounded-xl p-4"
+                  style={{ border: "1px solid var(--border)", background: "var(--background)" }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggle(i)}
-                    className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--border)]/20"
-                  >
-                    <span className="text-sm font-semibold text-[var(--foreground)] leading-snug flex-1">
-                      {item.question}
-                    </span>
-                    <span
-                      className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 mt-0.5 ${
-                        isOpen ? "rotate-45" : "rotate-0"
-                      }`}
-                      style={{
-                        background: isOpen ? "var(--brand-1)" : "var(--border)",
-                        color:      isOpen ? "#fff" : "var(--foreground)",
-                      }}
-                    >
-                      +
-                    </span>
-                  </button>
-
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      isOpen ? "max-h-96" : "max-h-0"
-                    }`}
-                  >
+                  <div className="flex items-start gap-3">
                     <div
-                      className="px-4 pb-4 text-sm text-[var(--foreground)]/70 leading-relaxed whitespace-pre-line"
-                      style={{ borderTop: "1px solid var(--border)" }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                      style={{ background: "var(--brand-1)", color: "#fff" }}
                     >
-                      <div className="pt-3">{item.answer}</div>
+                      {s.step}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold">{s.title}</div>
+                      <div className="text-xs mt-1 leading-relaxed" style={{ color: "var(--foreground)", opacity: 0.6 }}>
+                        {s.description}
+                      </div>
+                      {s.tip && (
+                        <div
+                          className="text-xs mt-2 px-2.5 py-1.5 rounded-lg leading-relaxed"
+                          style={{ background: "rgba(197,160,98,0.12)", color: "var(--brand-4)" }}
+                        >
+                          💡 {s.tip}
+                        </div>
+                      )}
+                      {s.href && (
+                        <Link
+                          href={s.href}
+                          onClick={() => setOpen(false)}
+                          className="inline-block mt-2.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-opacity hover:opacity-80"
+                          style={{ background: "var(--brand-4)", color: "#000" }}
+                        >
+                          {s.hrefLabel ?? "Ir →"}
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Pestaña: Preguntas frecuentes ── */}
+          {(!section.guide || activeTab === "faq") && (
+            <>
+              {/* Intro */}
+              {section.intro && (
+                <div
+                  className="mx-4 mt-4 mb-2 px-4 py-3 rounded-xl text-sm text-[var(--foreground)]/70 leading-relaxed"
+                  style={{ background: "var(--background)" }}
+                >
+                  {section.intro}
+                </div>
+              )}
+
+              {/* Acordeón Q&A */}
+              <div className="px-4 pb-6 pt-2 space-y-1">
+                {section.items.map((item, i) => {
+                  const isOpen = expandedIndex === i;
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-xl overflow-hidden transition-all"
+                      style={{
+                        border:     `1px solid ${isOpen ? "rgba(10,50,60,0.2)" : "var(--border)"}`,
+                        background: isOpen ? "var(--background)" : "transparent",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggle(i)}
+                        className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--border)]/20"
+                      >
+                        <span className="text-sm font-semibold text-[var(--foreground)] leading-snug flex-1">
+                          {item.question}
+                        </span>
+                        <span
+                          className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 mt-0.5 ${
+                            isOpen ? "rotate-45" : "rotate-0"
+                          }`}
+                          style={{
+                            background: isOpen ? "var(--brand-1)" : "var(--border)",
+                            color:      isOpen ? "#fff" : "var(--foreground)",
+                          }}
+                        >
+                          +
+                        </span>
+                      </button>
+
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ${
+                          isOpen ? "max-h-96" : "max-h-0"
+                        }`}
+                      >
+                        <div
+                          className="px-4 pb-4 text-sm text-[var(--foreground)]/70 leading-relaxed whitespace-pre-line"
+                          style={{ borderTop: "1px solid var(--border)" }}
+                        >
+                          <div className="pt-3">{item.answer}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Pie */}

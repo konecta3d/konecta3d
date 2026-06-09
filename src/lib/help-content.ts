@@ -5,10 +5,25 @@ export interface HelpQA {
   answer: string; // puede contener \n para saltos de línea
 }
 
+export interface HelpGuideStep {
+  step: number;
+  title: string;
+  description: string;
+  tip?: string;
+  href?: string;
+  hrefLabel?: string;
+}
+
+export interface HelpGuide {
+  intro: string;
+  steps: HelpGuideStep[];
+}
+
 export interface HelpSection {
   slug: string;
   title: string;
   intro?: string;
+  guide?: HelpGuide;
   items: HelpQA[];
 }
 
@@ -56,6 +71,34 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     slug: "dashboard",
     title: "Panel de control",
     intro: "Lo que ves nada más entrar: un resumen de lo que está pasando en tu negocio digital.",
+    guide: {
+      intro: "Tienes todo lo que necesitas aquí. Estos 3 pasos te ponen en marcha.",
+      steps: [
+        {
+          step: 1,
+          title: "Completa tu perfil",
+          description: "Logo, descripción y dirección web. Es lo primero que ven tus clientes al abrir el llavero.",
+          tip: "Sin logo, tus documentos salen con iniciales. Sube uno aunque sea provisional.",
+          href: "/mi-negocio/perfil",
+          hrefLabel: "Ir al perfil →",
+        },
+        {
+          step: 2,
+          title: "Crea tu página de bienvenida",
+          description: "La página que se abre cuando alguien toca el llavero NFC. Añade tu WhatsApp y tus servicios.",
+          href: "/landing/new",
+          hrefLabel: "Crear página →",
+        },
+        {
+          step: 3,
+          title: "Activa tu imán de clientes",
+          description: "Un recurso gratuito (guía, checklist) que intercambias por el contacto del visitante.",
+          tip: "Ejemplo: «5 ejercicios para el dolor de espalda». Lo que sabes tú y ellos no.",
+          href: "/lead-magnet",
+          hrefLabel: "Crear imán →",
+        },
+      ],
+    },
     items: [
       {
         question: "¿Para qué sirve el dashboard si ya sé lo que pasa en mi negocio?",
@@ -84,6 +127,29 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     slug: "perfil",
     title: "Perfil del negocio",
     intro: "Los datos básicos que identifican tu negocio en toda la plataforma y en tu página pública.",
+    guide: {
+      intro: "3 cosas que completar antes de nada. Tardan menos de 5 minutos.",
+      steps: [
+        {
+          step: 1,
+          title: "Sube tu logo",
+          description: "Aparece en tu página del llavero y en todos los documentos que generes. PNG o JPG.",
+          tip: "¿No tienes logo en digital? Haz una foto con el móvil a tu cartel o tarjeta. Funciona igual.",
+        },
+        {
+          step: 2,
+          title: "Escribe tu descripción",
+          description: "1-2 frases sobre lo que haces. Sin tecnicismos. Como se lo explicarías a un amigo.",
+          tip: "Ej: «Clínica dental en Valencia especializada en ortodoncia para adultos que quieren una sonrisa sin brackets visibles.»",
+        },
+        {
+          step: 3,
+          title: "Define tu dirección web",
+          description: "El nombre corto de tu página pública. Sin espacios ni acentos. Ej: «mi-clinica-dental»",
+          tip: "Una vez que el llavero está en manos de clientes, no lo cambies — dejarías de funcionar.",
+        },
+      ],
+    },
     items: [
       {
         question: "¿Por qué tengo que rellenar el perfil si ya tengo todo en mi web?",
@@ -116,6 +182,35 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     slug: "landing",
     title: "Tu página de fidelización",
     intro: "La página que se abre cuando alguien toca tu llavero NFC. Tu escaparate digital.",
+    guide: {
+      intro: "Configura tu página en 4 pasos. Sin diseño ni código.",
+      steps: [
+        {
+          step: 1,
+          title: "Pon tu nombre y descripción",
+          description: "Aparecen en la cabecera de la página. Cópialo de tu perfil si ya lo tienes.",
+        },
+        {
+          step: 2,
+          title: "Añade tus botones de acción",
+          description: "WhatsApp, reservas, Instagram... El más importante primero. 3-4 botones es ideal.",
+          tip: "Más de 5 botones y el cliente no sabe qué hacer. Menos es más.",
+        },
+        {
+          step: 3,
+          title: "Conecta tu imán de clientes",
+          description: "Si tienes un recurso gratuito creado, añádelo aquí. Es lo que convierte visitas en contactos.",
+          href: "/lead-magnet",
+          hrefLabel: "Crear imán primero →",
+        },
+        {
+          step: 4,
+          title: "Guarda y prueba desde el móvil",
+          description: "Copia el enlace de tu página y ábrelo en el móvil. Así es como lo ven tus clientes.",
+          tip: "¿Se ve bien en pantalla pequeña? Eso es lo único que importa.",
+        },
+      ],
+    },
     items: [
       {
         question: "¿Es como una página web?",
@@ -154,8 +249,32 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
 
   "recurso-de-valor": {
     slug: "recurso-de-valor",
-    title: "Recurso de Valor",
+    title: "Imán de clientes",
     intro: "Un PDF con tu conocimiento profesional que entregas gratis a tus clientes para generar confianza y captar contactos.",
+    guide: {
+      intro: "Crea tu primer imán en 3 pasos. No tienes que escribir desde cero.",
+      steps: [
+        {
+          step: 1,
+          title: "Elige el tema",
+          description: "¿Qué sabe tu negocio que tus clientes no saben? Un checklist, una guía, 5 consejos concretos.",
+          tip: "Ej fisioterapeuta: «Checklist para saber si tu postura daña tu espalda». Ej dentista: «5 hábitos que desgastan tus dientes sin saberlo».",
+        },
+        {
+          step: 2,
+          title: "Adapta la plantilla",
+          description: "El asistente te propone el contenido según tu objetivo. Tú ajustas los textos a tu negocio.",
+          tip: "No hace falta que sea perfecto. Con 5 puntos útiles y tu logo ya tienes un imán de clientes real.",
+        },
+        {
+          step: 3,
+          title: "Actívalo en tu página",
+          description: "Cuando esté listo, ve a tu landing y añade el recurso. Sin eso, el imán no capta contactos.",
+          href: "/landing/new",
+          hrefLabel: "Ir a la página →",
+        },
+      ],
+    },
     items: [
       {
         question: "¿Para qué me sirve regalar un PDF?",
@@ -224,6 +343,29 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     slug: "beneficios-vip",
     title: "Beneficios VIP",
     intro: "PDFs con descuentos y ofertas exclusivas para captar, fidelizar y generar referidos.",
+    guide: {
+      intro: "Tu primera oferta en 3 pasos. Algo concreto que haga que el cliente vuelva.",
+      steps: [
+        {
+          step: 1,
+          title: "Decide la oferta",
+          description: "Algo que el cliente valore y tú puedas cumplir. Descuento, 2x1, regalo, upgrade de servicio.",
+          tip: "La mejor oferta es la que soluciona el principal motivo por el que no vuelven. ¿Por qué no vuelven?",
+        },
+        {
+          step: 2,
+          title: "Diseña el documento",
+          description: "Ponle tu logo, tus colores y un botón que lleve a reservar cita. Con eso es suficiente.",
+          tip: "Añade una fecha de caducidad visible. Sin urgencia, el cliente lo guarda y nunca lo usa.",
+        },
+        {
+          step: 3,
+          title: "Distribúyelo",
+          description: "Envíalo por WhatsApp, ponlo en tu landing o entrégalo en mano. Los tres canales funcionan.",
+          tip: "El mejor momento para darlo: justo después de que el cliente acaba de visitarte. Está satisfecho y lo guarda.",
+        },
+      ],
+    },
     items: [
       {
         question: "¿En qué se diferencia de hacer una oferta por WhatsApp?",
