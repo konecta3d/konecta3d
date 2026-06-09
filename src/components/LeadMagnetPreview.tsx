@@ -194,11 +194,8 @@ export function LeadMagnetPreview({
               {customIntro || ""}
             </div>
 
-            {/* Content section */}
+            {/* Content section (sin título de tipo: ya está en la etiqueta superior) */}
             <div style={{ marginBottom: "36px" }}>
-              <h4 style={{ color: colorBrand, fontSize: "1.08rem", textTransform: "uppercase", borderLeft: `4px solid ${colorBrand}`, paddingLeft: "12px", marginBottom: "18px" }}>
-                {getTypeLabel()}
-              </h4>
               <div style={{ fontSize: "1.08rem", lineHeight: 1.8 }}>{renderContentPreview()}</div>
             </div>
 

@@ -548,7 +548,7 @@ function LeadMagnetWizardInner() {
       showLogo && logoUrl
         ? `<img src="${logoUrl}" alt="logo" class="brand-logo" />`
         : ""
-    }<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || "TITULO"}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><h4>${getTypeLabel()}</h4><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${
+    }<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || "TITULO"}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${
       cta1Enabled && cta1Text
         ? `<a href="${cta1Link || "#"}" class="cta-btn" target="_blank">${cta1Text}</a>`
         : ""
