@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
+import { verifyBusinessOwnership } from "@/lib/auth-helpers";
 import { launchBrowser } from "@/lib/pdf-browser";
 
 export const maxDuration = 60; // Vercel Pro: hasta 60s para PDF generation
@@ -16,12 +16,9 @@ export async function POST(req: Request) {
       return Response.json({ error: "businessId requerido" }, { status: 400 });
     }
 
-    // Verificar propiedad del negocio O sesión de admin (igual que las rutas de lead magnets)
-    const [hasOwnership, { isAdmin }] = await Promise.all([
-      verifyBusinessOwnership(req, businessId),
-      verifyAdminSession(req),
-    ]);
-    if (!hasOwnership && !isAdmin) {
+    // Verificar propiedad del negocio
+    const hasOwnership = await verifyBusinessOwnership(req, businessId);
+    if (!hasOwnership) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
 
