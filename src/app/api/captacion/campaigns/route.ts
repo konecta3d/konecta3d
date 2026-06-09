@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 // POST /api/captacion/campaigns — crear campaña
 export async function POST(req: Request) {
   const body = await req.json();
-  const { businessId, name, type, starts_at, ends_at, target_client, objective, form_id, lead_magnet_id, keychains_distributed } = body;
+  const { businessId, name, type, starts_at, ends_at, target_client, objective, form_id, lead_magnet_id, keychains_distributed, privacy_url, privacy_text } = body;
 
   if (!businessId || !name?.trim()) {
     return NextResponse.json({ error: "businessId y name son obligatorios" }, { status: 400 });
@@ -67,6 +67,8 @@ export async function POST(req: Request) {
       form_id: form_id || null,
       lead_magnet_id: lead_magnet_id || null,
       keychains_distributed: keychains_distributed || 0,
+      privacy_url: privacy_url || null,
+      privacy_text: privacy_text || null,
       slug,
     })
     .select()

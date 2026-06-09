@@ -163,6 +163,8 @@ export interface CaptacionCampaign {
   lead_magnet_id?: string;
   keychains_distributed: number;
   slug: string;
+  privacy_url?: string | null;
+  privacy_text?: string | null;
   created_at: string;
   updated_at: string;
   // joins opcionales

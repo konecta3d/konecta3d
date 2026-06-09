@@ -32,10 +32,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   const body = await req.json();
   const allowed = ["name", "type", "status", "starts_at", "ends_at", "target_client",
-    "objective", "form_id", "lead_magnet_id", "keychains_distributed"];
+    "objective", "form_id", "lead_magnet_id", "keychains_distributed", "privacy_url", "privacy_text"];
   // Campos que deben ser NULL (no "") cuando vienen vacíos
   const timestampFields = new Set(["starts_at", "ends_at"]);
-  const nullableFields  = new Set(["form_id", "lead_magnet_id", "target_client", "objective"]);
+  const nullableFields  = new Set(["form_id", "lead_magnet_id", "target_client", "objective", "privacy_url", "privacy_text"]);
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (!(key in body)) continue;

@@ -28,7 +28,7 @@ export default async function CampaignPage({ params }: PageProps) {
   // Buscar campaña por slug
   const { data: campaign, error } = await db
     .from("captacion_campaigns")
-    .select("id, name, status, form_id, lead_magnet_id, business_id")
+    .select("id, name, status, form_id, lead_magnet_id, business_id, privacy_url, privacy_text")
     .eq("slug", slug)
     .single();
 
@@ -127,6 +127,8 @@ export default async function CampaignPage({ params }: PageProps) {
       design={design}
       slug={slug}
       businessPublicId={businessPublicId}
+      privacyUrl={campaign.privacy_url || undefined}
+      privacyText={campaign.privacy_text || undefined}
     />
   );
 }

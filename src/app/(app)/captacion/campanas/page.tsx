@@ -20,6 +20,7 @@ const emptyForm = {
   name: "", type: "event" as "event" | "permanent",
   starts_at: "", ends_at: "", target_client: "", objective: "",
   form_id: "", lead_magnet_id: "", keychains_distributed: 0,
+  privacy_url: "", privacy_text: "",
 };
 
 // ─── Línea de lanzamiento ─────────────────────────────────────────────────────
@@ -272,6 +273,7 @@ export default function CampanasPage() {
       target_client: c.target_client || "", objective: c.objective || "",
       form_id: c.form_id || "", lead_magnet_id: c.lead_magnet_id || "",
       keychains_distributed: c.keychains_distributed,
+      privacy_url: c.privacy_url || "", privacy_text: c.privacy_text || "",
     });
     setWizardStep(1);
     setMode("editing");
@@ -298,6 +300,8 @@ export default function CampanasPage() {
         ends_at:   form.ends_at.trim()   !== "" ? form.ends_at   : null,
         form_id:         form.form_id        || null,
         lead_magnet_id:  form.lead_magnet_id || null,
+        privacy_url:     form.privacy_url    || null,
+        privacy_text:    form.privacy_text   || null,
       };
       const res = editingId
         ? await fetch(`/api/captacion/campaigns/${editingId}`, { method: "PUT", headers, body: JSON.stringify(body) })
@@ -545,6 +549,45 @@ export default function CampanasPage() {
                 </select>
               )}
             </div>
+            {/* Política de privacidad */}
+            <div className="border-t pt-4 mt-1" style={{ borderColor: "var(--border)" }}>
+              <p className="text-xs font-semibold text-[var(--foreground)]/60 uppercase tracking-wider mb-3">
+                Política de privacidad (checkbox del formulario)
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1.5">
+                    URL de la política de privacidad
+                  </label>
+                  <input
+                    className="w-full rounded-xl border px-4 py-3 text-sm bg-transparent focus:border-[var(--brand-1)] outline-none transition-colors"
+                    style={{ borderColor: "var(--border)" }}
+                    value={form.privacy_url}
+                    onChange={e => setForm(f => ({ ...f, privacy_url: e.target.value }))}
+                    placeholder="https://tudominio.com/privacidad (vacío = usa la de Konecta3D)"
+                  />
+                  <p className="text-xs text-[var(--foreground)]/35 mt-1">
+                    Si tu negocio tiene política propia, pégala aquí. Si no, el formulario enlaza a la de Konecta3D.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1.5">
+                    Texto del consentimiento (opcional)
+                  </label>
+                  <input
+                    className="w-full rounded-xl border px-4 py-3 text-sm bg-transparent focus:border-[var(--brand-1)] outline-none transition-colors"
+                    style={{ borderColor: "var(--border)" }}
+                    value={form.privacy_text}
+                    onChange={e => setForm(f => ({ ...f, privacy_text: e.target.value }))}
+                    placeholder="y consiento el tratamiento de mis datos para recibir el recurso solicitado."
+                  />
+                  <p className="text-xs text-[var(--foreground)]/35 mt-1">
+                    Texto que aparece tras «política de privacidad» en el checkbox. Déjalo vacío para usar el texto por defecto.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Resumen */}
             <div className="rounded-xl border p-4 space-y-2"
               style={{ background: "rgba(57,161,169,0.06)", borderColor: "rgba(57,161,169,0.25)" }}>

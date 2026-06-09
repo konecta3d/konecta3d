@@ -28,6 +28,10 @@ interface Props {
   slug?: string;
   /** public_id del negocio — destino de la redirección a fidelización */
   businessPublicId?: string;
+  /** URL de la política de privacidad del negocio. Por defecto /privacidad */
+  privacyUrl?: string;
+  /** Texto personalizado junto al link de privacidad */
+  privacyText?: string;
 }
 
 // ── Mapa de fuentes → CSS variables cargadas en el root layout ──
@@ -96,12 +100,16 @@ function DefaultForm({
   design,
   slug,
   businessPublicId,
+  privacyUrl,
+  privacyText,
 }: {
   campaignId: string;
   leadMagnet: LeadMagnetInfo | null;
   design: FormDesign;
   slug?: string;
   businessPublicId?: string;
+  privacyUrl?: string;
+  privacyText?: string;
 }) {
   const [step, setStep] = useState<"capture" | "done">("capture");
   const [name, setName] = useState("");
@@ -262,14 +270,15 @@ function DefaultForm({
           <span className="text-xs leading-relaxed" style={{ opacity: 0.55 }}>
             He leído y acepto la{" "}
             <a
-              href="#"
-              onClick={e => e.preventDefault()}
+              href={privacyUrl || "/privacidad"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="underline underline-offset-2"
               style={{ opacity: 1, color: s.accent_color }}
             >
               política de privacidad
             </a>
-            {" "}y consiento el tratamiento de mis datos para recibir información comercial. *
+            {" "}{privacyText || "y consiento el tratamiento de mis datos para recibir el recurso solicitado."} *
           </span>
         </label>
 
@@ -286,7 +295,7 @@ function DefaultForm({
 
 // ── Full form renderer con bloques ────────────────────────────
 
-export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp, slug, businessPublicId }: Props) {
+export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp, slug, businessPublicId, privacyUrl, privacyText }: Props) {
   const design = { ...DEFAULT_DESIGN, ...(designProp || {}) };
   const s = design;
   void campaignName;
@@ -322,7 +331,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   };
 
   if (!blocks || blocks.length === 0) {
-    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} />;
+    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} privacyUrl={privacyUrl} privacyText={privacyText} />;
   }
 
   const next = () => {
@@ -549,14 +558,15 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
               <span className="text-xs leading-relaxed" style={{ opacity: 0.55 }}>
                 He leído y acepto la{" "}
                 <a
-                  href="#"
-                  onClick={e => e.preventDefault()}
+                  href={privacyUrl || "/privacidad"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="underline underline-offset-2"
                   style={{ opacity: 1, color: s.accent_color }}
                 >
                   política de privacidad
                 </a>
-                {" "}y consiento el tratamiento de mis datos para recibir información comercial. *
+                {" "}{privacyText || "y consiento el tratamiento de mis datos para recibir el recurso solicitado."} *
               </span>
             </label>
 
