@@ -187,6 +187,10 @@ function CaptacionLeadMagnetWizardInner() {
   const [subtitleSize, setSubtitleSize] = useState(1.1);
   const [contentSize, setContentSize] = useState(0.9);
   const [contentLineHeight, setContentLineHeight] = useState(1.8);
+  const [btnSize, setBtnSize] = useState(1);
+  const [btnRadius, setBtnRadius] = useState(9999);
+  const [btnShadow, setBtnShadow] = useState(true);
+  const [btnArrow, setBtnArrow] = useState(true);
   const [cta1Enabled, setCta1Enabled] = useState(true);
   const [cta1Text, setCta1Text] = useState("Reservar cita");
   const [cta1Link, setCta1Link] = useState("");
@@ -264,6 +268,10 @@ function CaptacionLeadMagnetWizardInner() {
             if (typeof c.subtitleSize === "number") setSubtitleSize(c.subtitleSize);
             if (typeof c.contentSize === "number") setContentSize(c.contentSize);
             if (typeof c.contentLineHeight === "number") setContentLineHeight(c.contentLineHeight);
+            if (typeof c.btnSize === "number") setBtnSize(c.btnSize);
+            if (typeof c.btnRadius === "number") setBtnRadius(c.btnRadius);
+            if (typeof c.btnShadow === "boolean") setBtnShadow(c.btnShadow);
+            if (typeof c.btnArrow === "boolean") setBtnArrow(c.btnArrow);
             if (typeof c.cta1Enabled === "boolean") setCta1Enabled(c.cta1Enabled);
             if (typeof c.cta1Text === "string") setCta1Text(c.cta1Text);
             if (typeof c.cta1Link === "string") setCta1Link(c.cta1Link);
@@ -319,6 +327,7 @@ function CaptacionLeadMagnetWizardInner() {
     colorBrand, colorTag, colorTitle, colorButton,
     titleSize, logoSize, showLogo,
     subtitleSize, contentSize, contentLineHeight,
+    btnSize, btnRadius, btnShadow, btnArrow,
     cta1Enabled, cta1Text, cta1Link,
     cta2Enabled, cta2Text, cta2Link,
     sn1, sn1En, sn2, sn2En,
@@ -391,7 +400,7 @@ function CaptacionLeadMagnetWizardInner() {
         snSection = `<div style="position:absolute;bottom:150px;left:20mm;right:20mm;padding:1rem;border-top:1px dashed rgba(0,0,0,0.1);border-bottom:1px dashed rgba(0,0,0,0.1);border-radius:8px;font-size:0.85rem;line-height:1.4;background:#f9fafb">${sn1En && sn1 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${sn1}</div>` : ""}${sn2En && sn2 ? `<div style="margin-bottom:12px;color:#000000;font-weight:bold">${sn2}</div>` : ""}</div>`;
       }
 
-      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${logoSize >= 40 ? "9999px" : "6px"}}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:${subtitleSize}rem;color:#4B5563;margin-bottom:30px;white-space:pre-line}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:${contentSize}rem;color:#374151;line-height:${contentLineHeight};white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:16px 36px;border-radius:9999px;background:${colorButton};color:${contrastText(colorButton)};font-weight:800;text-transform:uppercase;font-size:0.9rem;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,0.18)}.cta-btn-outline{padding:13px 28px;border-radius:9999px;border:2px solid ${colorButton};color:${colorButton};font-weight:700;text-transform:uppercase;font-size:0.8rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${showLogo && logoUrl ? `<img src="${logoUrl}" alt="logo" class="brand-logo" />` : ""}<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || "TITULO"}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${cta1Enabled && cta1Text ? `<a href="${cta1Link || "#"}" class="cta-btn" target="_blank">${cta1Text} →</a>` : ""}${cta2Enabled && cta2Text ? `<a href="${cta2Link || "#"}" class="cta-btn-outline" target="_blank">${cta2Text}</a>` : ""}</div></div></body></html>`;
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${logoSize >= 40 ? "9999px" : "6px"}}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:${subtitleSize}rem;color:#4B5563;margin-bottom:30px;white-space:pre-line}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:${contentSize}rem;color:#374151;line-height:${contentLineHeight};white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:${16 * btnSize}px ${36 * btnSize}px;border-radius:${btnRadius}px;background:${colorButton};color:${contrastText(colorButton)};font-weight:800;text-transform:uppercase;font-size:${0.9 * btnSize}rem;text-decoration:none;box-shadow:${btnShadow ? "0 6px 18px rgba(0,0,0,0.18)" : "none"}}.cta-btn-outline{padding:${13 * btnSize}px ${28 * btnSize}px;border-radius:${btnRadius}px;border:2px solid ${colorButton};color:${colorButton};font-weight:700;text-transform:uppercase;font-size:${0.8 * btnSize}rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${showLogo && logoUrl ? `<img src="${logoUrl}" alt="logo" class="brand-logo" />` : ""}<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || "TITULO"}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${cta1Enabled && cta1Text ? `<a href="${cta1Link || "#"}" class="cta-btn" target="_blank">${cta1Text}${btnArrow ? " →" : ""}</a>` : ""}${cta2Enabled && cta2Text ? `<a href="${cta2Link || "#"}" class="cta-btn-outline" target="_blank">${cta2Text}</a>` : ""}</div></div></body></html>`;
 
       // 3. Generate PDF and get URL
       const { data: { session } } = await supabase.auth.getSession();
@@ -443,6 +452,10 @@ function CaptacionLeadMagnetWizardInner() {
         subtitleSize={subtitleSize}
         contentSize={contentSize}
         contentLineHeight={contentLineHeight}
+        btnSize={btnSize}
+        btnRadius={btnRadius}
+        btnShadow={btnShadow}
+        btnArrow={btnArrow}
         sn1={sn1} sn1En={sn1En}
         sn2={sn2} sn2En={sn2En}
         sn3="" sn3En={false}
@@ -793,6 +806,31 @@ function CaptacionLeadMagnetWizardInner() {
                 <input type="text" value={colorButton} onChange={e => setColorButton(e.target.value)} className="flex-1 min-w-0 px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-xs uppercase" />
               </div>
               <p className="text-[10px] text-[var(--foreground)]/40 mt-2">El texto del botón ajusta su contraste automáticamente.</p>
+            </div>
+
+            {/* Estilo de los botones */}
+            <div className="bg-[var(--card)] rounded-xl p-4 mb-4 border border-[var(--border)]">
+              <h3 className="text-[var(--foreground)] font-bold text-sm mb-3">Estilo de los botones</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[var(--foreground)]/50 mb-2">Tamaño del botón ({btnSize.toFixed(2)})</label>
+                  <input type="range" min="0.7" max="1.4" step="0.05" value={btnSize} onChange={e => setBtnSize(Number(e.target.value))} className="w-full" />
+                </div>
+                <div>
+                  <label className="block text-xs text-[var(--foreground)]/50 mb-2">Forma</label>
+                  <select value={btnRadius} onChange={e => setBtnRadius(Number(e.target.value))} className="w-full px-3 py-2 rounded-lg border text-[var(--foreground)] text-sm" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+                    <option value={9999}>Pill (muy redondeado)</option>
+                    <option value={14}>Redondeado</option>
+                    <option value={4}>Esquinas rectas</option>
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-[var(--foreground)]/70">
+                  <input type="checkbox" checked={btnShadow} onChange={e => setBtnShadow(e.target.checked)} className="w-4 h-4 accent-[var(--brand-4)]" />Sombra en el botón principal
+                </label>
+                <label className="flex items-center gap-2 text-xs text-[var(--foreground)]/70">
+                  <input type="checkbox" checked={btnArrow} onChange={e => setBtnArrow(e.target.checked)} className="w-4 h-4 accent-[var(--brand-4)]" />Flecha → en el botón principal
+                </label>
+              </div>
             </div>
 
             {/* Colors */}

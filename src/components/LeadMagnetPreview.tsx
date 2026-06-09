@@ -47,6 +47,10 @@ export interface LeadMagnetPreviewProps {
   subtitleSize?: number;
   contentSize?: number;
   contentLineHeight?: number;
+  btnSize?: number;
+  btnRadius?: number;
+  btnShadow?: boolean;
+  btnArrow?: boolean;
   sn1: string;
   sn1En: boolean;
   sn2: string;
@@ -84,6 +88,10 @@ export function LeadMagnetPreview({
   subtitleSize = 1.1,
   contentSize = 0.9,
   contentLineHeight = 1.8,
+  btnSize = 1,
+  btnRadius = 9999,
+  btnShadow = true,
+  btnArrow = true,
   sn1,
   sn1En,
   sn2,
@@ -218,12 +226,12 @@ export function LeadMagnetPreview({
             {/* CTA Box */}
             <div style={{ position: "absolute", bottom: "60px", left: "20mm", right: "20mm", display: "flex", justifyContent: "center", gap: "18px", flexWrap: "wrap" }}>
               {cta1Enabled && cta1Text && (
-                <a href={cta1Link || "#"} style={{ padding: "16px 36px", borderRadius: "9999px", background: colorButton, color: contrastText(colorButton), fontWeight: 800, textTransform: "uppercase", fontSize: "1.05rem", textDecoration: "none", display: "inline-block", boxShadow: "0 6px 18px rgba(0,0,0,0.18)" }}>
-                  {cta1Text} →
+                <a href={cta1Link || "#"} style={{ padding: `${16 * btnSize}px ${36 * btnSize}px`, borderRadius: `${btnRadius}px`, background: colorButton, color: contrastText(colorButton), fontWeight: 800, textTransform: "uppercase", fontSize: `${1.05 * btnSize}rem`, textDecoration: "none", display: "inline-block", boxShadow: btnShadow ? "0 6px 18px rgba(0,0,0,0.18)" : "none" }}>
+                  {cta1Text}{btnArrow ? " →" : ""}
                 </a>
               )}
               {cta2Enabled && cta2Text && (
-                <a href={cta2Link || "#"} style={{ padding: "13px 28px", borderRadius: "9999px", border: `2px solid ${colorButton}`, color: colorButton, fontWeight: 700, textTransform: "uppercase", fontSize: "0.95rem", textDecoration: "none", display: "inline-block" }}>
+                <a href={cta2Link || "#"} style={{ padding: `${13 * btnSize}px ${28 * btnSize}px`, borderRadius: `${btnRadius}px`, border: `2px solid ${colorButton}`, color: colorButton, fontWeight: 700, textTransform: "uppercase", fontSize: `${0.95 * btnSize}rem`, textDecoration: "none", display: "inline-block" }}>
                   {cta2Text}
                 </a>
               )}
