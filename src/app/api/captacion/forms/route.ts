@@ -48,7 +48,10 @@ export async function POST(req: Request) {
   if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const obj = (objective || "diagnostic") as "quick" | "diagnostic" | "full";
-  const blocks = DEFAULT_BLOCKS[obj] || DEFAULT_BLOCKS.diagnostic;
+  // blocks/design opcionales para duplicar un formulario existente
+  const blocksPayload = body.blocks
+    ? { blocks: body.blocks, design: body.design ?? null }
+    : DEFAULT_BLOCKS[obj] || DEFAULT_BLOCKS.diagnostic;
 
   const { data, error } = await supabaseAdmin()
     .from("captacion_forms")
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
       name: name.trim(),
       objective: obj,
       status: "draft",
-      blocks,
+      blocks: blocksPayload,
     })
     .select()
     .single();

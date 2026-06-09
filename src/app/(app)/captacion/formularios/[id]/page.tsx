@@ -601,7 +601,7 @@ function CapturePreview({ config, design }: { config: CaptureConfig; design: For
         className="mt-2 w-full py-3 rounded-xl text-sm font-semibold"
         style={{ background: design.accent_color, color: design.bg_color }}
       >
-        Recibir recurso gratis
+        {config.cta_text || "Enviar"}
       </button>
     </div>
   );
@@ -802,15 +802,25 @@ function CaptureEditor({ config, onChange }: { config: CaptureConfig; onChange: 
   const toggleField = (i: number, key: "enabled" | "required", val: boolean) => {
     const fields = [...config.fields];
     fields[i] = { ...fields[i], [key]: val };
-    onChange({ fields });
+    onChange({ ...config, fields });
   };
   const updateLabel = (i: number, label: string) => {
     const fields = [...config.fields];
     fields[i] = { ...fields[i], label };
-    onChange({ fields });
+    onChange({ ...config, fields });
   };
   return (
     <div className="space-y-2">
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Texto del botón</label>
+        <input
+          className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent"
+          style={{ borderColor: "var(--border)" }}
+          value={config.cta_text ?? ""}
+          onChange={e => onChange({ ...config, cta_text: e.target.value })}
+          placeholder="Enviar"
+        />
+      </div>
       <p className="text-xs text-[var(--foreground)]/50 mb-2">Activa los campos que quieres mostrar. Más campos = menos conversión.</p>
       {config.fields.map((f: CaptureField, i: number) => (
         <div key={f.name} className={`rounded-lg border p-3 transition-opacity ${!f.enabled ? "opacity-40" : ""}`}
@@ -1003,6 +1013,8 @@ export default function FormBuilderPage() {
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [previewBlock, setPreviewBlock]   = useState<FormBlock | null>(null);
   const [showDesignModal, setShowDesignModal] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
 
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale]   = useState(1);
@@ -1143,6 +1155,18 @@ export default function FormBuilderPage() {
     setShowDesignModal(false);
   };
 
+  // Guardar solo el nombre
+  const saveName = async (name: string) => {
+    if (!name.trim() || name === formData?.name) { setEditingName(false); return; }
+    await fetch(`/api/captacion/forms/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: name.trim() }),
+    });
+    setFormData(prev => prev ? { ...prev, name: name.trim() } : prev);
+    setEditingName(false);
+  };
+
   // Guardar
   const save = async () => {
     if (!formData) return;
@@ -1217,7 +1241,28 @@ export default function FormBuilderPage() {
             >
               ← Volver
             </button>
-            <h1 className="font-bold text-lg">{formData.name}</h1>
+            {editingName ? (
+              <input
+                autoFocus
+                className="font-bold text-lg bg-transparent border-b outline-none"
+                style={{ borderColor: "var(--brand-1)", color: "var(--foreground)" }}
+                value={nameValue}
+                onChange={e => setNameValue(e.target.value)}
+                onBlur={() => saveName(nameValue)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") saveName(nameValue);
+                  if (e.key === "Escape") setEditingName(false);
+                }}
+              />
+            ) : (
+              <button
+                onClick={() => { setNameValue(formData.name); setEditingName(true); }}
+                className="font-bold text-lg hover:opacity-70 transition-opacity text-left"
+                title="Clic para renombrar"
+              >
+                {formData.name}
+              </button>
+            )}
             <span className={`text-xs px-2 py-0.5 rounded-full ${
               formData.status === "published"
                 ? "bg-green-500/15 text-green-400"

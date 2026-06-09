@@ -55,6 +55,7 @@ export interface CaptureField {
 
 export interface CaptureConfig {
   fields: CaptureField[];
+  cta_text?: string;
 }
 
 export interface FinalMessageConfig {

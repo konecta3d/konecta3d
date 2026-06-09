@@ -84,6 +84,26 @@ export default function FormulariosPage() {
     await loadForms(businessId, token);
   };
 
+  const duplicateForm = async (id: string, name: string) => {
+    const res = await fetch(`/api/captacion/forms/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const { form } = await res.json();
+    if (!form) return;
+    await fetch("/api/captacion/forms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        businessId,
+        name: `Copia de ${name}`,
+        objective: form.objective,
+        blocks: form.blocks,
+        design: form.design,
+      }),
+    });
+    await loadForms(businessId, token);
+  };
+
   const enterCreating = () => {
     setCreationStep(1);
     setNewName("");
@@ -351,6 +371,13 @@ export default function FormulariosPage() {
                 >
                   Editar
                 </Link>
+                <button
+                  onClick={() => duplicateForm(f.id, f.name)}
+                  className="text-xs px-3 py-2 rounded-lg border transition-colors hover:border-[var(--brand-1)]/50 whitespace-nowrap"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  Duplicar
+                </button>
                 <button
                   onClick={() => deleteForm(f.id)}
                   className="text-red-400 text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors whitespace-nowrap"

@@ -244,14 +244,6 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
 
     return (
         <>
-        {/* Conmutador de perfiles fijo arriba a la derecha (solo escritorio, perfiles de negocio) */}
-        {showBusinessSidebar && (
-            <div className="hidden md:flex fixed top-3 right-4 z-40 items-center gap-2 rounded-full border border-[var(--border)] px-2.5 py-2 shadow-xl"
-                style={{ background: "color-mix(in srgb, var(--card) 96%, transparent)", backdropFilter: "blur(10px)" }}>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--foreground)]/60 pl-1.5 hidden lg:inline">Cambiar a</span>
-                <QuickProfileButtons compact />
-            </div>
-        )}
         <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:flex md:flex-col">
             {title ? title : <SidebarTitle />}
 
@@ -270,9 +262,20 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             )}
 
             {!isAdminMode && businessName && (
-                <div className="mb-6 font-semibold"
+                <div className="mb-4 font-semibold"
                     style={{ fontSize: "var(--sidebar-title-size)", color: "var(--foreground)" }}>
                     {businessName}
+                </div>
+            )}
+
+            {/* Conmutador de perfiles — dentro del sidebar */}
+            {showBusinessSidebar && (
+                <div className="mb-5 space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-widest font-semibold px-0.5 mb-2"
+                        style={{ color: "var(--foreground)", opacity: 0.4 }}>
+                        Cambiar a
+                    </p>
+                    <QuickProfileButtons />
                 </div>
             )}
 
