@@ -44,6 +44,9 @@ export interface LeadMagnetPreviewProps {
   colorTitle: string;
   colorButton: string;
   titleSize: number;
+  subtitleSize?: number;
+  contentSize?: number;
+  contentLineHeight?: number;
   sn1: string;
   sn1En: boolean;
   sn2: string;
@@ -78,6 +81,9 @@ export function LeadMagnetPreview({
   colorTitle,
   colorButton,
   titleSize,
+  subtitleSize = 1.1,
+  contentSize = 0.9,
+  contentLineHeight = 1.8,
   sn1,
   sn1En,
   sn2,
@@ -127,7 +133,7 @@ export function LeadMagnetPreview({
         </ol>
       );
     }
-    return <div style={{ whiteSpace: "pre-line", color: "#374151", lineHeight: 1.8 }}><RichText text={customContent} /></div>;
+    return <div style={{ whiteSpace: "pre-line", color: "#374151", lineHeight: contentLineHeight }}><RichText text={customContent} /></div>;
   };
 
   const getTypeLabel = () => {
@@ -190,13 +196,13 @@ export function LeadMagnetPreview({
             </div>
 
             {/* Intro */}
-            <div style={{ fontSize: "1.32rem", color: "#4B5563", marginBottom: "48px" }}>
+            <div style={{ fontSize: `${subtitleSize * 1.2}rem`, whiteSpace: "pre-line", color: "#4B5563", marginBottom: "48px" }}>
               {customIntro || ""}
             </div>
 
             {/* Content section (sin título de tipo: ya está en la etiqueta superior) */}
             <div style={{ marginBottom: "36px" }}>
-              <div style={{ fontSize: "1.08rem", lineHeight: 1.8 }}>{renderContentPreview()}</div>
+              <div style={{ fontSize: `${contentSize * 1.2}rem`, lineHeight: contentLineHeight }}>{renderContentPreview()}</div>
             </div>
 
             {/* SN Section */}

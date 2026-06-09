@@ -267,6 +267,9 @@ function LeadMagnetWizardInner() {
   const [colorTitle, setColorTitle] = useState("#0a323c");
   const [colorButton, setColorButton] = useState("#ffb400");
   const [titleSize, setTitleSize] = useState(1.5);
+  const [subtitleSize, setSubtitleSize] = useState(1.1);
+  const [contentSize, setContentSize] = useState(0.9);
+  const [contentLineHeight, setContentLineHeight] = useState(1.8);
   const [sn1, setSn1] = useState("");
   const [sn1En, setSn1En] = useState(true);
   const [sn2, setSn2] = useState("");
@@ -400,6 +403,9 @@ function LeadMagnetWizardInner() {
         colorTitle={colorTitle}
         colorButton={colorButton}
         titleSize={titleSize}
+        subtitleSize={subtitleSize}
+        contentSize={contentSize}
+        contentLineHeight={contentLineHeight}
         sn1={sn1}
         sn1En={sn1En}
         sn2={sn2}
@@ -544,7 +550,7 @@ function LeadMagnetWizardInner() {
 
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${
       logoSize >= 40 ? "9999px" : "6px"
-    }}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:1.1rem;color:#4B5563;margin-bottom:30px}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:0.9rem;color:#374151;line-height:1.8;white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:12px 25px;border-radius:8px;background:${colorButton};color:#fff;font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.cta-btn-outline{padding:12px 25px;border-radius:8px;border:2px solid ${colorButton};color:${colorButton};font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${
+    }}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:${subtitleSize}rem;color:#4B5563;margin-bottom:30px;white-space:pre-line}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:${contentSize}rem;color:#374151;line-height:${contentLineHeight};white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:12px 25px;border-radius:8px;background:${colorButton};color:#fff;font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}.cta-btn-outline{padding:12px 25px;border-radius:8px;border:2px solid ${colorButton};color:${colorButton};font-weight:800;text-transform:uppercase;font-size:0.85rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${
       showLogo && logoUrl
         ? `<img src="${logoUrl}" alt="logo" class="brand-logo" />`
         : ""
@@ -1146,6 +1152,21 @@ function LeadMagnetWizardInner() {
                   <div className="flex items-center gap-4 mb-3">
                     <input type="range" min="1" max="3" step="0.1" value={titleSize} onChange={(e) => setTitleSize(Number(e.target.value))} className="flex-1" />
                     <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{titleSize}rem</div>
+                  </div>
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Tamaño del subtítulo</label>
+                  <div className="flex items-center gap-4 mb-3">
+                    <input type="range" min="0.7" max="1.8" step="0.05" value={subtitleSize} onChange={(e) => setSubtitleSize(Number(e.target.value))} className="flex-1" />
+                    <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{subtitleSize}rem</div>
+                  </div>
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Tamaño del contenido</label>
+                  <div className="flex items-center gap-4 mb-3">
+                    <input type="range" min="0.6" max="1.4" step="0.05" value={contentSize} onChange={(e) => setContentSize(Number(e.target.value))} className="flex-1" />
+                    <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{contentSize}rem</div>
+                  </div>
+                  <label className="block text-xs text-[var(--foreground)] mb-2">Interlineado</label>
+                  <div className="flex items-center gap-4 mb-3">
+                    <input type="range" min="1" max="2.2" step="0.1" value={contentLineHeight} onChange={(e) => setContentLineHeight(Number(e.target.value))} className="flex-1" />
+                    <div className="text-sm text-[var(--foreground)] font-bold w-16 text-center">{contentLineHeight}</div>
                   </div>
                   <label className="block text-xs text-[var(--foreground)] mb-2">Tamano del logo</label>
                   <div className="flex items-center gap-4">
