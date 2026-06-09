@@ -188,6 +188,38 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
     ],
   },
 
+  "lead-magnets-captacion": {
+    slug: "lead-magnets-captacion",
+    title: "Lead Magnets",
+    intro: "Un regalo de valor (una guía, un checklist, una plantilla) que ofreces a cambio del contacto de alguien que todavía NO es tu cliente. El gancho para captar.",
+    items: [
+      {
+        question: "¿Qué es un lead magnet y para qué sirve?",
+        answer: "Es un contenido gratuito y útil que ofreces a cambio del contacto de un cliente potencial. La persona te deja su nombre y WhatsApp (o email) a cambio de algo que quiere. Quien lo descarga ya está interesado en tu sector: es un contacto caliente.",
+      },
+      {
+        question: "¿En qué se diferencia del Recurso de Valor de fidelización?",
+        answer: "En a quién va dirigido. El lead magnet de captación busca conseguir contactos NUEVOS (gente que aún no te conoce). El Recurso de Valor de fidelización da valor a clientes que YA tienes. Mismo formato, objetivo distinto.",
+      },
+      {
+        question: "¿Qué contenido funciona mejor para captar?",
+        answer: "Algo concreto, rápido de consumir y que resuelva un problema inmediato de tu cliente ideal. Checklists, guías de una página, plantillas. Cuanto más específico al momento del cliente, más se descarga.",
+      },
+      {
+        question: "¿Cómo lo uso en una feria o evento?",
+        answer: "Como gancho: la persona toca el llavero o entra a tu campaña, deja su contacto y se descarga el lead magnet. Acabas de captar a alguien interesado, con su contacto guardado, sin perseguir a nadie.",
+      },
+      {
+        question: "¿Cómo se conecta con las campañas y los formularios?",
+        answer: "El lead magnet es el premio, el formulario es lo que rellena para conseguirlo y la campaña es el conjunto. Creas el lead magnet, lo enlazas a un formulario de captación y lo lanzas como campaña con su propio enlace.",
+      },
+      {
+        question: "¿Tengo que escribir el contenido yo?",
+        answer: "No. El asistente te propone una plantilla según el objetivo. Tú la adaptas a tu negocio. No empiezas desde cero.",
+      },
+    ],
+  },
+
   "beneficios-vip": {
     slug: "beneficios-vip",
     title: "Beneficios VIP",
@@ -492,7 +524,7 @@ export function getHelpSlug(pathname: string): string {
   // Más específico primero
   if (pathname.startsWith("/captacion/campanas"))      return "campanas";
   if (pathname.startsWith("/captacion/formularios"))   return "formularios";
-  if (pathname.startsWith("/captacion/lead-magnets"))  return "recurso-de-valor";
+  if (pathname.startsWith("/captacion/lead-magnets"))  return "lead-magnets-captacion";
   if (pathname.startsWith("/captacion/clientes"))      return "clientes";
   if (pathname.startsWith("/captacion/contexto"))      return "contexto-captacion";
   if (pathname.startsWith("/captacion/recorrido"))     return "como-funciona";
