@@ -290,6 +290,33 @@ export default function LandingsAdminPage() {
       } catch { /* iframe no accesible */ }
     }, 40);
   }
+  /** Engancha (una sola vez por documento) el clic para seleccionar un bloque desde la vista previa. */
+  function attachPreviewClick(doc: Document) {
+    const d = doc as Document & { __k3dClick?: boolean };
+    if (d.__k3dClick) return;
+    d.__k3dClick = true;
+    doc.addEventListener("click", (e) => {
+      const start = (e.target as HTMLElement)?.closest?.("[data-bid]") as HTMLElement | null;
+      if (!start) return;
+      // subir al data-bid más externo = bloque de nivel superior
+      let outer = start;
+      let p: HTMLElement | null = start.parentElement;
+      while (p) {
+        const a = p.closest("[data-bid]") as HTMLElement | null;
+        if (!a) break;
+        outer = a; p = a.parentElement;
+      }
+      const bid = outer.getAttribute("data-bid");
+      if (!bid) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setSelId(bid);
+      setThemeOpen(false);
+      outer.style.outline = "3px solid #ffb400";
+      outer.style.outlineOffset = "-3px";
+      setTimeout(() => { outer.style.outline = "none"; }, 1200);
+    }, true);
+  }
   /** Pinta el HTML en el iframe parcheando head/body, sin recargarlo (sin parpadeo ni salto). */
   function paintPreview() {
     const iframe = previewRef.current;
@@ -306,37 +333,13 @@ export default function LandingsAdminPage() {
       // En el editor mostramos todos los bloques visibles (la animación de aparición
       // por scroll necesita JS que aquí no se ejecuta; sin esto saldrían a opacity:0).
       doc.querySelectorAll("[data-reveal]").forEach((el) => el.classList.add("in"));
+      attachPreviewClick(doc);
     } catch { return; }
     iframe.contentWindow?.scrollTo(0, y);
   }
-  /** Al cargar la vista previa: clic en un bloque → lo selecciona para editarlo. */
+  /** Al cargar la vista previa: pinta el contenido y engancha el clic de selección. */
   function onPreviewLoad() {
-    try {
-      const doc = previewRef.current?.contentDocument;
-      if (!doc) return;
-      doc.addEventListener("click", (e) => {
-        const start = (e.target as HTMLElement)?.closest?.("[data-bid]") as HTMLElement | null;
-        if (!start) return;
-        // subir al data-bid más externo = bloque de nivel superior
-        let outer = start;
-        let p: HTMLElement | null = start.parentElement;
-        while (p) {
-          const a = p.closest("[data-bid]") as HTMLElement | null;
-          if (!a) break;
-          outer = a; p = a.parentElement;
-        }
-        const bid = outer.getAttribute("data-bid");
-        if (!bid) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setSelId(bid);
-        setThemeOpen(false);
-        outer.style.outline = "3px solid #ffb400";
-        outer.style.outlineOffset = "-3px";
-        setTimeout(() => { outer.style.outline = "none"; }, 1200);
-      }, true);
-      paintPreview();
-    } catch { /* iframe no accesible */ }
+    paintPreview();
   }
   function moveBlock(idx: number, dir: -1 | 1) {
     if (!editing?.blocks) return;
