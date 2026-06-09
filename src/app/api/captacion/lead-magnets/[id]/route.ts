@@ -30,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await req.json();
-  const allowed = ["name", "type", "file_url", "external_url", "code_value", "title", "description", "cta_text", "status"];
+  const allowed = ["name", "type", "file_url", "external_url", "code_value", "title", "description", "cta_text", "status", "content"];
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];

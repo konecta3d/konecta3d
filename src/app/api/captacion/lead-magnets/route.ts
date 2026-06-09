@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { businessId, name, type, file_url, external_url, code_value, title, description, cta_text } = body;
+  const { businessId, name, type, file_url, external_url, code_value, title, description, cta_text, content } = body;
 
   if (!businessId || !name?.trim()) {
     return NextResponse.json({ error: "businessId y name son obligatorios" }, { status: 400 });
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
       title: title || null,
       description: description || null,
       cta_text: cta_text || "Descargar ahora",
+      content: content ?? null,
       status: "draft",
     })
     .select()

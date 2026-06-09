@@ -244,6 +244,31 @@ function CaptacionLeadMagnetWizardInner() {
           setDescription(lm.description || "");
           setCtaText(lm.cta_text || "Obtener recurso gratis");
           setExternalUrl(lm.external_url || "");
+          // Restaurar el contenido editable guardado (intro, cuerpo, colores, CTAs…)
+          const c = lm.content;
+          if (c && typeof c === "object") {
+            if (c.objective) setObjective(c.objective);
+            if (c.docType) setDocType(c.docType);
+            setCustomIntro(c.customIntro ?? "");
+            setCustomContent(c.customContent ?? "");
+            if (c.colorBrand) setColorBrand(c.colorBrand);
+            if (c.colorTag) setColorTag(c.colorTag);
+            if (c.colorTitle) setColorTitle(c.colorTitle);
+            if (c.colorButton) setColorButton(c.colorButton);
+            if (typeof c.titleSize === "number") setTitleSize(c.titleSize);
+            if (typeof c.logoSize === "number") setLogoSize(c.logoSize);
+            if (typeof c.showLogo === "boolean") setShowLogo(c.showLogo);
+            if (typeof c.cta1Enabled === "boolean") setCta1Enabled(c.cta1Enabled);
+            if (typeof c.cta1Text === "string") setCta1Text(c.cta1Text);
+            if (typeof c.cta1Link === "string") setCta1Link(c.cta1Link);
+            if (typeof c.cta2Enabled === "boolean") setCta2Enabled(c.cta2Enabled);
+            if (typeof c.cta2Text === "string") setCta2Text(c.cta2Text);
+            if (typeof c.cta2Link === "string") setCta2Link(c.cta2Link);
+            if (typeof c.sn1 === "string") setSn1(c.sn1);
+            if (typeof c.sn1En === "boolean") setSn1En(c.sn1En);
+            if (typeof c.sn2 === "string") setSn2(c.sn2);
+            if (typeof c.sn2En === "boolean") setSn2En(c.sn2En);
+          }
           setStep("tipo");
         }
       }
@@ -281,6 +306,17 @@ function CaptacionLeadMagnetWizardInner() {
     if (idx > 0) setStep(steps[idx - 1]);
   };
 
+  // ── Contenido editable a persistir (para poder recargarlo al editar) ───────
+  const buildContent = () => ({
+    objective, docType,
+    customIntro, customContent,
+    colorBrand, colorTag, colorTitle, colorButton,
+    titleSize, logoSize, showLogo,
+    cta1Enabled, cta1Text, cta1Link,
+    cta2Enabled, cta2Text, cta2Link,
+    sn1, sn1En, sn2, sn2En,
+  });
+
   // ── Save for URL/code types ────────────────────────────────────────────────
   const handleSaveSimple = async () => {
     if (!businessId || !name.trim()) return;
@@ -289,6 +325,7 @@ function CaptacionLeadMagnetWizardInner() {
       businessId, name, type,
       title: customTitle, description, cta_text: ctaText,
       external_url: externalUrl,
+      content: buildContent(),
     };
     const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
     try {
@@ -313,6 +350,7 @@ function CaptacionLeadMagnetWizardInner() {
       const basePayload = {
         businessId, name: name || customTitle || "Recurso de captación",
         type: "pdf", title: customTitle, description: customIntro || description, cta_text: cta1Text || ctaText,
+        content: buildContent(),
       };
 
       let lmId = editingId;

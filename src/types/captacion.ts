@@ -142,6 +142,7 @@ export interface CaptacionLeadMagnet {
   description?: string;
   cta_text: string;
   status: 'active' | 'draft' | 'archived';
+  content?: Record<string, unknown> | null;
   delivered_count: number;
   created_at: string;
   updated_at: string;
