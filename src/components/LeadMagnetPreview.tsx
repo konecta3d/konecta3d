@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { splitPoints } from "@/lib/leadmagnet-format";
+import { splitPoints, contrastText } from "@/lib/leadmagnet-format";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
 
@@ -218,12 +218,12 @@ export function LeadMagnetPreview({
             {/* CTA Box */}
             <div style={{ position: "absolute", bottom: "60px", left: "20mm", right: "20mm", display: "flex", justifyContent: "center", gap: "18px", flexWrap: "wrap" }}>
               {cta1Enabled && cta1Text && (
-                <a href={cta1Link || "#"} style={{ padding: "14px 30px", borderRadius: "8px", background: colorButton, color: "#fff", fontWeight: 800, textTransform: "uppercase", fontSize: "1.02rem", textDecoration: "none", display: "inline-block" }}>
-                  {cta1Text}
+                <a href={cta1Link || "#"} style={{ padding: "16px 36px", borderRadius: "9999px", background: colorButton, color: contrastText(colorButton), fontWeight: 800, textTransform: "uppercase", fontSize: "1.05rem", textDecoration: "none", display: "inline-block", boxShadow: "0 6px 18px rgba(0,0,0,0.18)" }}>
+                  {cta1Text} →
                 </a>
               )}
               {cta2Enabled && cta2Text && (
-                <a href={cta2Link || "#"} style={{ padding: "14px 30px", borderRadius: "8px", border: `2px solid ${colorButton}`, color: colorButton, fontWeight: 800, textTransform: "uppercase", fontSize: "1.02rem", textDecoration: "none", display: "inline-block" }}>
+                <a href={cta2Link || "#"} style={{ padding: "13px 28px", borderRadius: "9999px", border: `2px solid ${colorButton}`, color: colorButton, fontWeight: 700, textTransform: "uppercase", fontSize: "0.95rem", textDecoration: "none", display: "inline-block" }}>
                   {cta2Text}
                 </a>
               )}
