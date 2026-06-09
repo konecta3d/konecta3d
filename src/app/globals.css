@@ -244,6 +244,15 @@ input[type="range"]::-moz-range-thumb {
   color: #ffffff !important;
 }
 
+/* Restaurar colores reales dentro del formulario público de captación (/c/[slug]).
+   Mismo motivo que landing-public: los inline styles de color del diseño del form
+   deben respetarse tal cual, sin que la regla global de modo claro los sobreescriba. */
+:not(.dark) .captacion-form-public *[style*="color: #ffffff"],
+:not(.dark) .captacion-form-public *[style*="color:#ffffff"],
+:not(.dark) .captacion-form-public *[style*="color: white"] {
+  color: #ffffff !important;
+}
+
 /* ─────────────────────────────────────────────
    BRAND-1 BACKGROUNDS — texto blanco preservado
    bg-[var(--brand-1)] (nav activo, botones primarios)

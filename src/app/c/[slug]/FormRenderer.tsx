@@ -711,7 +711,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   };
 
   return (
-    <div className="relative">
+    <div className="relative captacion-form-public">
       {/* Progress dots */}
       {sortedBlocks.length > 1 && currentBlock.type !== "thank_you" && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
