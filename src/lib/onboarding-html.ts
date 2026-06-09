@@ -160,6 +160,8 @@ export function buildOnboardingHtml(
   const subtitle   = escapeHtml(t.header_subtitle);
   const notice     = escapeHtml(t.notice_text);
   const platformUrl = escapeHtml(t.platform_url || DEFAULT.platform_url);
+  const rawPlatformUrl = t.platform_url || DEFAULT.platform_url;
+  const platformHref = rawPlatformUrl.startsWith("http") ? escapeHtml(rawPlatformUrl) : `https://${escapeHtml(rawPlatformUrl)}`;
   const supText    = escapeHtml(t.support_text);
   const supPhone   = escapeHtml(t.support_phone);
   const supBtn     = escapeHtml(t.support_btn_text);
@@ -308,17 +310,9 @@ export function buildOnboardingHtml(
     .hc-row { margin-bottom: 9px; }
     .hc-row:last-child { margin-bottom: 0; }
     .hc-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-    .hc-value-wrap { display: flex; align-items: center; gap: 6px; }
-    .hc-value { font-size: 12px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 9px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hc-value.accent { font-size: 11px; }
-    .copy-btn {
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.6); border-radius: 5px; padding: 4px 8px;
-      font-size: 9px; font-weight: 700; cursor: pointer; flex-shrink: 0;
-      font-family: inherit; letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.15s;
-    }
-    .copy-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
-    .copy-btn.ok { background: rgba(37,211,102,0.2); color: #4ade80; border-color: rgba(37,211,102,0.35); }
+    .hc-value { font-size: 12px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 5px 9px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hc-value.accent { font-size: 11px; text-decoration: none; }
+    .hc-hint { font-size: 8px; color: rgba(255,255,255,0.28); margin-top: 10px; line-height: 1.5; }
     .notice {
       margin: 14px 28px;
       background: rgba(197,160,89,0.07); border: 1px solid rgba(197,160,89,0.22);
@@ -408,25 +402,17 @@ export function buildOnboardingHtml(
         <div class="hc-title">🔑 Tus datos de acceso</div>
         <div class="hc-row">
           <div class="hc-label">Plataforma</div>
-          <div class="hc-value-wrap">
-            <div class="hc-value accent" style="color:${accentColor};">${platformUrl}</div>
-            <button class="copy-btn" data-v="${platformUrl}" onclick="copyVal(this)">Copiar</button>
-          </div>
+          <a href="${platformHref}" class="hc-value accent" style="color:${accentColor};">${platformUrl}</a>
         </div>
         <div class="hc-row">
           <div class="hc-label">Email</div>
-          <div class="hc-value-wrap">
-            <div class="hc-value">${mail}</div>
-            <button class="copy-btn" data-v="${mail}" onclick="copyVal(this)">Copiar</button>
-          </div>
+          <div class="hc-value">${mail}</div>
         </div>
         <div class="hc-row">
           <div class="hc-label">Contraseña</div>
-          <div class="hc-value-wrap">
-            <div class="hc-value">${pass}</div>
-            <button class="copy-btn" data-v="${pass}" onclick="copyVal(this)">Copiar</button>
-          </div>
+          <div class="hc-value">${pass}</div>
         </div>
+        <p class="hc-hint">Pulsa la URL para abrir · Mantén pulsado para copiar email o contraseña</p>
       </div>
     </div>
   </div>
@@ -475,25 +461,6 @@ export function buildOnboardingHtml(
     <p class="footer-text">${footer}</p>
   </div>
 
-  <script>
-    function copyVal(btn) {
-      var text = btn.getAttribute('data-v');
-      var done = function() {
-        btn.textContent = '✓ OK'; btn.classList.add('ok');
-        setTimeout(function() { btn.textContent = 'Copiar'; btn.classList.remove('ok'); }, 1800);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(function() { fallbackCopy(text); done(); });
-      } else { fallbackCopy(text); done(); }
-    }
-    function fallbackCopy(text) {
-      var ta = document.createElement('textarea');
-      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      try { document.execCommand('copy'); } catch(e) {}
-      document.body.removeChild(ta);
-    }
-  </script>
 </body>
 </html>`;
 }
