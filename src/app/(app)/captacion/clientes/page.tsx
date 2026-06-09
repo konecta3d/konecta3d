@@ -45,11 +45,13 @@ function LeadPanel({
   updating,
   onClose,
   onUpdate,
+  questionMap,
 }: {
   lead: CaptacionLead;
   updating: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<CaptacionLead>) => void;
+  questionMap: Record<string, string>;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(0,0,0,0.4)" }}
@@ -89,7 +91,7 @@ function LeadPanel({
             <div className="space-y-2">
               {Object.entries(lead.quiz_answers).map(([q, a]) => (
                 <div key={q} className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: "var(--border)" }}>
-                  <p className="text-[var(--foreground)]/50">{q}</p>
+                  <p className="text-[var(--foreground)]/50">{questionMap[q] || q}</p>
                   <p className="font-medium mt-0.5">{String(a)}</p>
                 </div>
               ))}
@@ -465,7 +467,8 @@ function ClientesPage() {
   const [addForm, setAddForm] = useState({ name: "", phone: "", email: "", notes: "", campaignId: "" });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState("");
-  const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([]);
+  const [campaigns, setCampaigns] = useState<{ id: string; name: string; form_id?: string }[]>([]);
+  const [questionMap, setQuestionMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -483,7 +486,7 @@ function ClientesPage() {
         headers: { Authorization: `Bearer ${t}` },
       });
       const campsData = await campsRes.json();
-      setCampaigns((campsData.campaigns || []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
+      setCampaigns((campsData.campaigns || []).map((c: { id: string; name: string; form_id?: string }) => ({ id: c.id, name: c.name, form_id: c.form_id })));
     };
     load();
   }, []);
@@ -511,6 +514,37 @@ function ClientesPage() {
       }
     }
     setUpdating(false);
+  };
+
+  // Seleccionar lead: carga el mapa de preguntas si tiene quiz_answers
+  const selectLead = async (lead: CaptacionLead | null) => {
+    setSelectedLead(lead);
+    if (!lead || !lead.quiz_answers || Object.keys(lead.quiz_answers).length === 0) {
+      setQuestionMap({});
+      return;
+    }
+    // Buscar el form_id de la campaña del lead
+    const camp = campaigns.find(c => c.id === lead.campaign_id);
+    if (!camp?.form_id) return;
+    try {
+      const res = await fetch(`/api/captacion/forms/${camp.form_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const { form } = await res.json();
+      // Construir mapa questionId → questionText
+      const map: Record<string, string> = {};
+      for (const block of (form?.blocks ?? [])) {
+        if (block.type === "questions" && Array.isArray(block.config?.questions)) {
+          for (const q of block.config.questions) {
+            if (q.id && q.text) map[q.id] = q.text;
+          }
+        }
+      }
+      setQuestionMap(map);
+    } catch {
+      setQuestionMap({});
+    }
   };
 
   const addManualLead = async () => {
@@ -718,7 +752,7 @@ function ClientesPage() {
               group={group}
               token={token}
               businessId={businessId}
-              onSelectLead={setSelectedLead}
+              onSelectLead={selectLead}
               onRefresh={() => loadLeads(businessId, token)}
             />
           ))}
@@ -730,8 +764,9 @@ function ClientesPage() {
         <LeadPanel
           lead={selectedLead}
           updating={updating}
-          onClose={() => setSelectedLead(null)}
+          onClose={() => selectLead(null)}
           onUpdate={updateLead}
+          questionMap={questionMap}
         />
       )}
 

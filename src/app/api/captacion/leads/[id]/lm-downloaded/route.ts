@@ -40,14 +40,17 @@ export async function PATCH(
     return NextResponse.json({ ok: true, already: true });
   }
 
-  // Actualizar el lead
+  // Actualizar el lead + migrar automáticamente a fidelización
+  const now = new Date().toISOString();
   const { error: updateErr } = await db
     .from("captacion_leads")
     .update({
       lm_status: "downloaded",
       funnel_step: "lm_downloaded",
       lead_magnet_delivered: true,
-      lead_magnet_delivered_at: new Date().toISOString(),
+      lead_magnet_delivered_at: now,
+      migrated_to_fidelizacion: true,
+      migrated_at: now,
     })
     .eq("id", id);
 
