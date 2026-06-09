@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konecta3D — Cómo funciona</title>
+  <style>
+    /* ── Reset y base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-dark:  #1A4D4A;
+      --teal-mid:   #2D7A74;
+      --teal-light: #3DA89F;
+      --gold:       #C5A059;
+      --gold-light: #D4B878;
+      --black:      #0A0A0B;
+      --dark:       #161618;
+      --card:       #1E1E21;
+      --border:     rgba(255,255,255,0.08);
+      --text:       #F0F0F2;
+      --muted:      #A0A0A8;
+      --radius:     14px;
+      --transition: 0.25s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      padding: 56px 20px 40px;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(26,77,74,0.45) 0%, transparent 60%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(197,160,89,0.12);
+      border: 1px solid rgba(197,160,89,0.3);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .logo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+
+    header h1 {
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    header h1 span {
+      background: linear-gradient(135deg, var(--teal-light) 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Secciones ────────────────────────────────────────────── */
+    .section {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-header {
+      margin-bottom: 36px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .icon-teal  { background: rgba(45,122,116,0.2); }
+    .icon-gold  { background: rgba(197,160,89,0.15); }
+    .icon-white { background: rgba(255,255,255,0.07); }
+
+    .section-header-text {}
+
+    .section-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .section-title {
+      font-size: clamp(20px, 3.5vw, 26px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ── Acordeón ─────────────────────────────────────────────── */
+    .faq {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .faq-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+
+    .faq-item.open {
+      border-color: rgba(45,122,116,0.4);
+    }
+
+    .faq-btn {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+      transition: background var(--transition);
+    }
+
+    .faq-btn:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .faq-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      transition: background var(--transition), color var(--transition), transform var(--transition);
+      margin-top: 1px;
+    }
+
+    .faq-item.open .faq-icon {
+      background: var(--teal-mid);
+      color: #fff;
+      transform: rotate(45deg);
+    }
+
+    .faq-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.3s ease;
+    }
+
+    .faq-body.open {
+      grid-template-rows: 1fr;
+    }
+
+    .faq-body-inner {
+      overflow: hidden;
+    }
+
+    .faq-answer {
+      padding: 0 20px 20px;
+      color: var(--muted);
+      font-size: 14.5px;
+      line-height: 1.75;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .faq-answer ol,
+    .faq-answer ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .faq-answer li {
+      margin-bottom: 6px;
+    }
+
+    .faq-answer li strong,
+    .faq-answer strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ── CTA final ────────────────────────────────────────────── */
+    .cta {
+      padding: 64px 20px;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(26,77,74,0.3) 0%, transparent 70%);
+    }
+
+    .cta h2 {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .cta p {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 32px;
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #25D366;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity var(--transition), transform var(--transition);
+      box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+    }
+
+    .cta-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .cta-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .cta-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      header { padding: 40px 20px 32px; }
+      .section { padding: 40px 0; }
+      .faq-btn { padding: 16px; }
+      .faq-answer { padding: 0 16px 16px; padding-top: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo-badge">
+      <span class="logo-dot"></span>
+      Konecta3D
+    </div>
+    <h1>Presencia digital para<br><span>negocios locales</span></h1>
+    <p>Todo lo que necesitas saber sobre cómo funciona
+       Konecta3D y qué puede hacer por tu negocio.</p>
+  </header>
+
+  <!-- ── Bloque 1: ¿Qué es Konecta3D? ──────────────────────────────────── -->
+  <div class="container">
+    <section class="section" id="konecta3d">
+      <div class="section-header">
+        <div class="section-icon icon-teal">🧩</div>
+        <div class="section-header-text">
+          <div class="section-num">Bloque 01</div>
+          <h2 class="section-title">¿Qué es Konecta3D?</h2>
+          <p class="section-subtitle">Para quién está pensado y qué diferencia hay respecto a lo que ya tienes.</p>
+        </div>
+      </div>
+
+      <div class="faq">
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué es Konecta3D?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Konecta3D es una plataforma de presencia digital para negocios locales.<br><br>
+                No es una web, no es una app ni una red social. Es un sistema que conecta el momento en que un cliente está contigo — en tu consulta, en tu local, en un evento — con su móvil: para que deje su contacto, descargue algo tuyo o reciba una oferta, de forma automática.<br><br>
+                El llavero NFC es la llave que activa todo.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Para qué tipo de negocio está pensado?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Para cualquier profesional con clientes presenciales: dentistas, fisioterapeutas, centros de estética, psicólogos, abogados, inmobiliarias, academias, talleres, restaurantes...<br><br>
+                Si tienes clientes que te visitan en persona y quieres que ese contacto no se pierda cuando salen por la puerta, Konecta3D trabaja para ti.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué diferencia hay entre Konecta3D y tener una web?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Una web la tiene todo el mundo y muy poca gente la visita.<br><br>
+                Konecta3D actúa en el momento de mayor atención del cliente: cuando está contigo. El cliente toca el llavero, llega a tu página y puede dejarte su contacto o descargarse algo tuyo en segundos.<br><br>
+                Tu web no sabe quién la visita, no captura ese contacto y no te avisa de nada. Konecta3D sí.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué necesito para empezar?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Solo tres cosas:
+                <ol>
+                  <li>Un móvil o un ordenador con internet.</li>
+                  <li>Los datos de tu negocio: nombre, logo, teléfono, descripción.</li>
+                  <li>Entre 1 y 2 horas para configurarlo la primera vez.</li>
+                </ol>
+                <br>
+                No necesitas contratar a nadie, no necesitas saber de diseño y no necesitas conocimientos técnicos. Si puedes usar WhatsApp, puedes configurar Konecta3D.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Bloque 2: El llavero NFC ──────────────────────────────────────── -->
+    <section class="section" id="llavero">
+      <div class="section-header">
+        <div class="section-icon icon-gold">🔑</div>
+        <div class="section-header-text">
+          <div class="section-num">Bloque 02</div>
+          <h2 class="section-title">El llavero NFC</h2>
+          <p class="section-subtitle">Qué es, cómo funciona y por qué no es solo un gadget.</p>
+        </div>
+      </div>
+
+      <div class="faq">
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué es el llavero NFC y para qué sirve?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Es un llavero físico con un chip electrónico en su interior.<br><br>
+                Cuando alguien acerca la parte trasera de su móvil al llavero, se abre automáticamente la página de tu negocio. Sin apps, sin códigos QR, sin buscar nada.<br><br>
+                Es la forma más directa de convertir un cliente que tienes delante en alguien que está en tu sistema digital.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué ve el cliente cuando lo toca?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Ve la página que tú has diseñado para tu negocio: tu logo, tu descripción, tus botones de acción (WhatsApp, reservar cita, Instagram, llamar), y si lo has configurado, un recurso gratuito para descargar o un formulario para dejar sus datos.<br><br>
+                Todo en menos de dos segundos, desde el móvil, sin salir del navegador.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿El cliente necesita instalar algo o hacer algo especial?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                No. Solo acercar la parte trasera del móvil al llavero.<br><br>
+                Funciona con cualquier iPhone desde el modelo 7 y con la mayoría de teléfonos Android de los últimos cinco años. El NFC ya viene activado por defecto en casi todos los móviles modernos.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué pasa si cambio de número, de web o de servicios?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                El llavero no cambia nunca. Apunta a una URL fija de Konecta3D.<br><br>
+                Lo que cambia es el contenido de tu página en la plataforma: puedes actualizar tu número, tus botones o tu oferta cuando quieras, desde el panel.<br><br>
+                Todos los llaveros que ya tienes distribuidos entre tus clientes seguirán llevando siempre a la versión más actualizada. No tienes que recogerlos ni reemplazarlos.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Cuántos llaveros puedo tener?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Los que necesites. No hay límite de usos ni de toques por llavero.<br><br>
+                Puedes tener uno en recepción, entregarlo con cada visita, dejarlo en la sala de espera, incluirlo en un detalle al cliente o dárselo a un empleado que vende o atiende.<br><br>
+                Cada llavero lleva siempre a la misma página de tu negocio.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Bloque 3: La plataforma ────────────────────────────────────────── -->
+    <section class="section" id="plataforma">
+      <div class="section-header">
+        <div class="section-icon icon-white">⚡</div>
+        <div class="section-header-text">
+          <div class="section-num">Bloque 03</div>
+          <h2 class="section-title">La plataforma</h2>
+          <p class="section-subtitle">Las herramientas que incluye y cómo cada una trabaja para que tu negocio crezca.</p>
+        </div>
+      </div>
+
+      <div class="faq">
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Qué herramientas incluye la plataforma?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Cuatro módulos principales:
+                <ol>
+                  <li><strong>Página de bienvenida</strong> — La que se abre al tocar el llavero. Tu escaparate digital: logo, descripción y botones de contacto.</li>
+                  <li><strong>Imán de clientes</strong> — Un PDF con tu conocimiento profesional que regalas a cambio del contacto del cliente. (Ej: «5 hábitos que dañan tus dientes», «Checklist de postura y dolor de espalda».)</li>
+                  <li><strong>Beneficios VIP</strong> — Documentos con descuentos u ofertas para que el cliente que ya te conoce vuelva y te recomiende.</li>
+                  <li><strong>Formularios</strong> — Para captar automáticamente el contacto de quien visita tu página, sin que estés presente.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Cómo capto el contacto de nuevos clientes automáticamente?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Con la combinación: página + imán de clientes + formulario.<br><br>
+                El cliente toca el llavero → llega a tu página → ve un recurso gratuito → decide descargarlo → deja su nombre y correo → ese contacto queda guardado en tu lista.<br><br>
+                Sin que hayas hecho nada. Sin que estés presente. Puedes revisar quién se ha apuntado desde el panel cuando quieras.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Cómo consigo que un cliente que ya me conoce vuelva?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                Con los beneficios VIP. Creas un documento con una oferta concreta — un descuento, un 2x1, una sesión de valoración gratuita — y lo envías por WhatsApp o lo activas en tu página.<br><br>
+                Un PDF bien diseñado con tu logo tiene más valor percibido que un mensaje de texto: el cliente lo guarda en el móvil y vuelve a verlo cuando lo necesita.<br><br>
+                Añade siempre una fecha de caducidad. Sin urgencia, el cliente lo guarda y nunca lo usa.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿Necesito saber de marketing o de diseño para usarlo?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                No. El panel está diseñado para quien sabe mucho de su oficio y poco de tecnología.<br><br>
+                Sin código, sin diseño desde cero, sin configuraciones técnicas. La única condición es saber qué haces y para quién lo haces. De eso te encargas tú.<br><br>
+                Si tienes dudas mientras configuras algo, el panel tiene una guía de ayuda en cada sección que te explica qué hacer paso a paso.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggle(this)" aria-expanded="false">
+            <span>¿En cuánto tiempo lo tengo funcionando?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-body-inner">
+              <div class="faq-answer">
+                La configuración completa — perfil, página, imán de clientes y formulario — lleva entre 1 y 3 horas.<br><br>
+                Muchos negocios lo tienen activo en la primera tarde. A partir de ahí el mantenimiento es mínimo: revisar los contactos que llegan, actualizar datos si cambian, crear una oferta nueva de vez en cuando.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div><!-- /container -->
+
+  <!-- ── CTA final ─────────────────────────────────────────────────────── -->
+  <div class="cta">
+    <h2>¿Quieres verlo<br>funcionando en tu negocio?</h2>
+    <p>Escríbenos por WhatsApp y te mostramos cómo quedaría con los datos de tu negocio. Sin compromiso, en menos de 10 minutos.</p>
+    <a href="https://wa.me/34623759451" class="cta-btn" target="_blank" rel="noopener noreferrer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      Hablar con Konecta3D
+    </a>
+    <p class="cta-note">Sin compromiso · Respuesta en menos de 24 h</p>
+  </div>
+
+  <footer>
+    © 2025 Konecta3D · Presencia digital para negocios locales
+  </footer>
+
+  <!-- ── Script del acordeón ─────────────────────────────────────────────── -->
+  <script>
+    function toggle(btn) {
+      const item   = btn.closest('.faq-item');
+      const body   = item.querySelector('.faq-body');
+      const isOpen = item.classList.contains('open');
+
+      // Cierra todos los abiertos en el mismo bloque
+      const allItems = item.closest('.faq').querySelectorAll('.faq-item');
+      allItems.forEach(function(i) {
+        i.classList.remove('open');
+        i.querySelector('.faq-body').classList.remove('open');
+        i.querySelector('.faq-btn').setAttribute('aria-expanded', 'false');
+      });
+
+      // Abre el pulsado (si estaba cerrado)
+      if (!isOpen) {
+        item.classList.add('open');
+        body.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+  </script>
+
+</body>
+</html>
