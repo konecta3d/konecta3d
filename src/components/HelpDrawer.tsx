@@ -164,6 +164,10 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   // ── Posición efectiva del botón ───────────────────────────────────────────
   const effectivePos = pos ?? DEFAULT_POS;
 
+  // ── Etiqueta dinámica: muestra la sección actual y cuántas preguntas tiene ──
+  const helpCount = section.items.length;
+  const helpSectionLabel = section.title.replace(/^Tu /, "tu ");
+
   return (
     <>
       {/* ── Botón arrastrable ──────────────────────────────────────────────── */}
@@ -202,7 +206,10 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
           <circle cx="7.5" cy="12" r="1.5" fill="currentColor" />
         </svg>
         <span className="text-sm leading-none font-bold">?</span>
-        <span>Ayuda</span>
+        {/* Escritorio: nombre de la sección + número de preguntas */}
+        <span className="hidden sm:inline whitespace-nowrap">Dudas de {helpSectionLabel} · {helpCount}</span>
+        {/* Móvil: versión compacta */}
+        <span className="sm:hidden whitespace-nowrap">Dudas · {helpCount}</span>
 
         {/* Indicador: oculto para clientes */}
         {isAdmin && !enabled && (
