@@ -303,6 +303,9 @@ export default function LandingsAdminPage() {
       Array.from(doc.body.attributes).forEach((a) => doc.body.removeAttribute(a.name));
       Array.from(parsed.body.attributes).forEach((a) => doc.body.setAttribute(a.name, a.value));
       doc.body.innerHTML = parsed.body.innerHTML;
+      // En el editor mostramos todos los bloques visibles (la animación de aparición
+      // por scroll necesita JS que aquí no se ejecuta; sin esto saldrían a opacity:0).
+      doc.querySelectorAll("[data-reveal]").forEach((el) => el.classList.add("in"));
     } catch { return; }
     iframe.contentWindow?.scrollTo(0, y);
   }
