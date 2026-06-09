@@ -141,9 +141,11 @@ export default function PerfilPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-xl md:text-2xl font-bold">Mi Perfil</h1>
-        <p className="text-sm text-white">Gestiona los datos de tu negocio</p>
+      <div>
+        <h1 className="text-xl md:text-2xl font-bold">Tu identidad digital</h1>
+        <p className="text-sm mt-1" style={{ color: "var(--foreground)", opacity: 0.6 }}>
+          Esto es lo que ven tus clientes cuando abren el llavero NFC.
+        </p>
       </div>
 
       {/* Mensaje */}
@@ -156,7 +158,8 @@ export default function PerfilPage() {
       <div className="space-y-6">
         {/* Logo */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          <h2 className="text-lg font-semibold mb-4">Logo</h2>
+          <h2 className="text-lg font-semibold mb-1">Tu imagen de marca</h2>
+          <p className="text-xs mb-4" style={{ color: "var(--foreground)", opacity: 0.5 }}>Aparece en tu página pública y en los materiales que generes.</p>
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 rounded-xl border-2 border-dashed border-[var(--border)] flex items-center justify-center overflow-hidden bg-[var(--background)]">
               {logoUrl ? (
@@ -179,7 +182,7 @@ export default function PerfilPage() {
 
         {/* Datos básicos */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Datos básicos</h2>
+          <h2 className="text-lg font-semibold">Información del negocio</h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -192,9 +195,9 @@ export default function PerfilPage() {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Slug (enlace)</label>
+              <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Tu dirección web</label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-                <span className="text-xs text-white whitespace-nowrap">konecta3d.com/l/</span>
+                <span className="text-xs whitespace-nowrap" style={{ color: "var(--foreground)", opacity: 0.5 }}>konecta3d.com/l/</span>
                 <input
                   type="text"
                   value={slug}
@@ -220,7 +223,7 @@ export default function PerfilPage() {
                 disabled
                 className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 opacity-50"
               />
-              <p className="text-xs text-white mt-1">El email no se puede cambiar</p>
+              <p className="text-xs mt-1" style={{ color: "var(--foreground)", opacity: 0.5 }}>Es tu acceso al panel — si necesitas cambiarlo, contacta con soporte</p>
             </div>
             <div className="md:col-span-2">
               <label className="text-xs uppercase tracking-wide font-bold text-[var(--brand-4)] block mb-2">Descripción</label>
@@ -229,7 +232,7 @@ export default function PerfilPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
-                placeholder="Descripción de tu negocio..."
+                placeholder="Ej: Clínica dental en Valencia especializada en implantes y ortodoncia invisible para adultos..."
               />
             </div>
             <div className="md:col-span-2">
@@ -255,11 +258,12 @@ export default function PerfilPage() {
         {/* Enlace público */}
         {slug && (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-            <h2 className="text-lg font-semibold mb-4">Tu enlace público</h2>
+            <h2 className="text-lg font-semibold mb-1">Tu página del llavero NFC</h2>
+            <p className="text-xs mb-4" style={{ color: "var(--foreground)", opacity: 0.5 }}>Esta es la URL que se abre cuando alguien toca el llavero.</p>
             <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--background)]">
               <div>
-                <div className="font-medium text-sm">Landing pública</div>
-                <div className="text-xs text-white mt-0.5">app.konecta3d.com/l/{slug}</div>
+                <div className="font-medium text-sm">Página pública</div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.5 }}>app.konecta3d.com/l/{slug}</div>
               </div>
               <a
                 href={`/l/${slug}`}

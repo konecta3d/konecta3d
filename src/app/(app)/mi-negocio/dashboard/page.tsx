@@ -136,8 +136,8 @@ export default function DashboardPage() {
   const generadores = [
     {
       key: "landing",
-      label: "Landing",
-      description: "Tu página pública con datos de contacto y servicios.",
+      label: "Página de bienvenida",
+      description: "La que se abre cuando alguien toca tu llavero NFC.",
       href: "/landing/new",
       enabled: true,
       count: counts.landings,
@@ -152,8 +152,8 @@ export default function DashboardPage() {
     },
     {
       key: "lead_magnet",
-      label: "Recurso de Valor",
-      description: "Guías y checklists para atraer y fidelizar clientes.",
+      label: "Imán de clientes",
+      description: "Un recurso gratuito que atrae contactos nuevos a tu lista.",
       href: "/lead-magnet",
       enabled: business?.module_lead_magnet !== false,
       count: counts.leadMagnets,
@@ -340,10 +340,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Generadores — solo módulos activos */}
+      {/* Herramientas activas — solo módulos activos */}
       {generadores.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-1)] mb-3">Generadores</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-1)] mb-3">Tus herramientas</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {generadores.map((mod) => (
               <Link

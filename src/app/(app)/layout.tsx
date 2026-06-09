@@ -28,24 +28,24 @@ const negocioLinks: SidebarLink[] = [
 
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
-  // Contexto aparece primero → debajo del Dashboard y encima de Generadores
-  { label: "Contexto de Fidelización", href: "/mi-contexto", category: "Contexto" },
-  { label: "Landing", href: "/landing/new", category: "Generadores", nameKey: "landing" },
-  { label: "Recurso de Valor", href: "/lead-magnet", category: "Generadores", nameKey: "leadMagnet", module: "module_lead_magnet" },
-  { label: "Beneficios VIP", href: "/vip-benefits", category: "Generadores", nameKey: "vipBenefits", module: "module_vip_benefits" },
-  { label: "Formularios", href: "/formularios", category: "Generadores", nameKey: "forms", module: "module_forms" },
-  { label: "GPT Externo", href: "/gpt-fidelizacion", category: "Avanzado", module: "module_gpt" },
+  // Contexto aparece primero → debajo del Dashboard y encima de Herramientas
+  { label: "Contexto del negocio", href: "/mi-contexto", category: "Contexto" },
+  { label: "Página de bienvenida", href: "/landing/new", category: "Herramientas", nameKey: "landing" },
+  { label: "Imán de clientes", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
+  { label: "Beneficios VIP", href: "/vip-benefits", category: "Herramientas", nameKey: "vipBenefits", module: "module_vip_benefits" },
+  { label: "Formularios", href: "/formularios", category: "Herramientas", nameKey: "forms", module: "module_forms" },
+  { label: "Asistente IA", href: "/gpt-fidelizacion", category: "Avanzado", module: "module_gpt" },
 ];
 
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   // "Inicio" se renderiza como botón destacado en Sidebar.tsx (igual que Dashboard en Fidelización)
-  { label: "Contexto de Captación", href: "/captacion/contexto", category: "Captación" },
+  { label: "Contexto del negocio", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
-  { label: "Lead Magnets", href: "/captacion/lead-magnets", category: "Captación" },
+  { label: "Imanes de clientes", href: "/captacion/lead-magnets", category: "Captación" },
   // Recorrido del Cliente: oculto si module_recorrido === false
-  { label: "Recorrido del Cliente", href: "/captacion/recorrido", category: "Captación", module: "module_recorrido" },
+  { label: "Recorrido del cliente", href: "/captacion/recorrido", category: "Captación", module: "module_recorrido" },
 ];
 
 
