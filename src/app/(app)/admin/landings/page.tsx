@@ -124,6 +124,7 @@ export default function LandingsAdminPage() {
   const [addType, setAddType] = useState<LandingBlock["type"]>("heading");
   const [addSectionKey, setAddSectionKey] = useState("hero");
   const previewRef = useRef<HTMLIFrameElement>(null);
+  const previewHtmlRef = useRef("");
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
 
@@ -160,6 +161,12 @@ export default function LandingsAdminPage() {
     }, 250);
     return () => clearTimeout(id);
   }, [editing, site]);
+
+  // Pinta la vista previa en el iframe SIN recargarlo (evita el parpadeo y el salto al inicio)
+  useEffect(() => {
+    previewHtmlRef.current = previewHtml;
+    paintPreview();
+  }, [previewHtml]);
 
   async function load() {
     setLoading(true);
@@ -283,6 +290,22 @@ export default function LandingsAdminPage() {
       } catch { /* iframe no accesible */ }
     }, 40);
   }
+  /** Pinta el HTML en el iframe parcheando head/body, sin recargarlo (sin parpadeo ni salto). */
+  function paintPreview() {
+    const iframe = previewRef.current;
+    const doc = iframe?.contentDocument;
+    const html = previewHtmlRef.current;
+    if (!iframe || !doc || !doc.body || !html) return;
+    const y = iframe.contentWindow?.scrollY ?? 0;
+    try {
+      const parsed = new DOMParser().parseFromString(html, "text/html");
+      doc.head.innerHTML = parsed.head.innerHTML;
+      Array.from(doc.body.attributes).forEach((a) => doc.body.removeAttribute(a.name));
+      Array.from(parsed.body.attributes).forEach((a) => doc.body.setAttribute(a.name, a.value));
+      doc.body.innerHTML = parsed.body.innerHTML;
+    } catch { return; }
+    iframe.contentWindow?.scrollTo(0, y);
+  }
   /** Al cargar la vista previa: clic en un bloque → lo selecciona para editarlo. */
   function onPreviewLoad() {
     try {
@@ -309,6 +332,7 @@ export default function LandingsAdminPage() {
         outer.style.outlineOffset = "-3px";
         setTimeout(() => { outer.style.outline = "none"; }, 1200);
       }, true);
+      paintPreview();
     } catch { /* iframe no accesible */ }
   }
   function moveBlock(idx: number, dir: -1 | 1) {
@@ -456,7 +480,7 @@ export default function LandingsAdminPage() {
             <div className="lg:sticky lg:top-4 h-fit">
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
                 <div className="flex items-center justify-center h-full p-2">
-                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                  <iframe ref={previewRef} title="preview" onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
                 </div>
               </div>
             </div>
@@ -519,7 +543,7 @@ export default function LandingsAdminPage() {
             <div className="lg:sticky lg:top-4 h-fit min-w-0">
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-black/20" style={{ height: "82vh" }}>
                 <div className="flex items-center justify-center h-full p-2">
-                  <iframe ref={previewRef} title="preview" srcDoc={previewHtml} onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
+                  <iframe ref={previewRef} title="preview" onLoad={onPreviewLoad} className="bg-white rounded-lg shadow-2xl transition-all" style={{ width: device === "mobile" ? 390 : "100%", height: "100%", border: "none", maxWidth: "100%" }} />
                 </div>
               </div>
               <p className="text-[11px] text-[var(--foreground)]/40 mt-1 text-center">Vista previa — clic en un bloque (izquierda) para ir a su sección.</p>
