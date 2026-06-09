@@ -550,6 +550,16 @@ export default function ContextoPage() {
   const completed = completedCount(context);
   const progress = Math.round((completed / BLOCKS.length) * 100);
 
+  const handleSuggestion = (suggestion: Record<string, unknown>) => {
+    const blockId = suggestion.block_id as string | undefined;
+    const fieldId = suggestion.field_id as string | undefined;
+    const value = suggestion.value as string | undefined;
+    if (blockId && fieldId && value) {
+      updateField(blockId, fieldId, value);
+      setOpenBlock(blockId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -755,11 +765,13 @@ export default function ContextoPage() {
       )}
 
       {/* ── Asistente IA ── */}
-      {businessId && token && (
+      {!loading && businessId && token && (
         <CaptacionChatPanel
           section="contexto"
           businessId={businessId}
           token={token}
+          onSuggestion={handleSuggestion}
+          defaultOpen={completed === 0}
         />
       )}
     </div>

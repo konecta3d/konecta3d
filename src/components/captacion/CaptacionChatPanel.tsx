@@ -18,6 +18,8 @@ interface CaptacionChatPanelProps {
   token: string;
   /** Callback cuando el usuario pulsa "Usar esto" en una sugerencia */
   onSuggestion?: (suggestion: Record<string, unknown>) => void;
+  /** Abre el panel automáticamente al montar el componente */
+  defaultOpen?: boolean;
 }
 
 // ─── Quick actions por sección ────────────────────────────────────────────────
@@ -44,9 +46,9 @@ const QUICK_ACTIONS: Record<CaptacionChatSection, Array<{ label: string; prompt:
     { label: "Guion de llamada de seguimiento", prompt: "Escríbeme un guion de llamada de seguimiento para la semana después del evento. Corto, directo y orientado a conseguir una cita." },
   ],
   contexto: [
-    { label: "Completar mi perfil", prompt: "Ayúdame a completar el perfil de captación. Empieza por el bloque más importante para que el asistente pueda darme mejores respuestas." },
-    { label: "Mejorar cliente ideal", prompt: "Mi descripción del cliente ideal es muy genérica. Ayúdame a hacerla más específica con preguntas concretas." },
-    { label: "Definir mi diferenciación", prompt: "¿Cómo puedo explicar mejor qué me diferencia de la competencia? Ayúdame con preguntas concretas." },
+    { label: "Guíame campo a campo", prompt: "Empieza a entrevistarme para rellenar mi perfil. Hazme las preguntas una a una, empezando por el primer campo vacío." },
+    { label: "¿Qué pongo aquí?", prompt: "No entiendo bien qué tengo que poner en algunos campos. Explícame el bloque de identidad con un ejemplo para mi tipo de negocio." },
+    { label: "Propón respuestas", prompt: "Basándote en lo que ya sabes de mi negocio, propónme directamente una respuesta para el primer campo disponible." },
   ],
   general: [
     { label: "¿Por dónde empiezo?", prompt: "Soy nuevo en la plataforma. ¿Por dónde me recomiendas empezar para tener una campaña lista para mi próximo evento?" },
@@ -70,8 +72,9 @@ export default function CaptacionChatPanel({
   businessId,
   token,
   onSuggestion,
+  defaultOpen = false,
 }: CaptacionChatPanelProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

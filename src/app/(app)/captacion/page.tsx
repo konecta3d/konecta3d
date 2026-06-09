@@ -497,6 +497,38 @@ export default function CaptacionPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--brand-1)" }}>
           Perfil de Captación
         </h2>
+
+        {/* Contexto — siempre visible como primer paso */}
+        <Link
+          href="/captacion/contexto"
+          className="mb-3 flex rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 items-center gap-3 hover:border-[var(--brand-1)]/40 transition-colors group"
+        >
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(57,161,169,0.13)", color: "var(--brand-1)" }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-sm">Perfil del negocio</div>
+            <div className="text-xs mt-0.5 text-[var(--foreground)]/50">
+              El asistente usa este perfil para ayudarte en cada sección
+            </div>
+          </div>
+          <span
+            className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap"
+            style={{ background: "rgba(57,161,169,0.13)", color: "var(--brand-1)" }}
+          >
+            Empezar aquí
+          </span>
+          <svg className="w-4 h-4 flex-shrink-0 opacity-30 group-hover:opacity-70 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {sections.map((s) => (
             <Link
