@@ -86,6 +86,52 @@ export default function DashboardPage() {
     );
   }
 
+  // Checklist de configuración inicial
+  const setupItems = [
+    {
+      key: "perfil",
+      label: "Completa tu perfil",
+      description: "Logo, descripción y datos de contacto — lo primero que ven tus clientes.",
+      href: "/mi-negocio/perfil",
+      done: !!(business?.description && business?.logo_url),
+      ctaLabel: "Completar",
+      passive: false,
+    },
+    {
+      key: "landing",
+      label: "Crea tu página de bienvenida",
+      description: "La página que se abre al tocar el llavero NFC.",
+      href: "/landing/new",
+      done: counts.landings > 0,
+      ctaLabel: "Crear",
+      passive: false,
+    },
+    ...(business?.module_lead_magnet !== false ? [{
+      key: "lead_magnet",
+      label: "Activa tu imán de clientes",
+      description: "Un recurso gratuito que convierte visitas en contactos.",
+      href: "/lead-magnet",
+      done: counts.leadMagnets > 0,
+      ctaLabel: "Activar",
+      passive: false,
+    }] : []),
+    {
+      key: "leads",
+      label: "Captura tu primer contacto",
+      description: counts.leads > 0
+        ? `Ya tienes ${counts.leads} contacto${counts.leads !== 1 ? "s" : ""} en tu lista.`
+        : "Automático — aparece cuando alguien usa tu página.",
+      href: "/captacion/leads",
+      done: counts.leads > 0,
+      ctaLabel: "Ver contactos",
+      passive: true,
+    },
+  ];
+
+  const completedCount = setupItems.filter((i) => i.done).length;
+  const totalCount = setupItems.length;
+  const allDone = completedCount === totalCount;
+
   // Módulos generadores — se muestran solo si están activos
   const generadores = [
     {
@@ -207,6 +253,92 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Estado del sistema */}
+      {!allDone ? (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold">Pon tu sistema en marcha</h2>
+              <p className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.55 }}>
+                {completedCount} de {totalCount} pasos completados
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${(completedCount / totalCount) * 100}%`, background: "var(--brand-3)" }}
+                />
+              </div>
+              <span className="text-xs font-medium tabular-nums" style={{ color: "var(--brand-3)" }}>
+                {Math.round((completedCount / totalCount) * 100)}%
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {setupItems.map((item) => (
+              <div
+                key={item.key}
+                className={`flex items-center gap-3 p-3 rounded-lg ${item.done ? "opacity-50" : "bg-[var(--background)]/50"}`}
+              >
+                <div
+                  className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
+                  style={{
+                    background: item.done ? "#22c55e22" : "#f59e0b22",
+                    border: `1.5px solid ${item.done ? "#22c55e" : "#f59e0b"}`,
+                  }}
+                >
+                  {item.done ? (
+                    <svg className="w-3 h-3" style={{ color: "#22c55e" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f59e0b" }} />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm font-medium ${item.done ? "line-through" : ""}`}>{item.label}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.55 }}>
+                    {item.description}
+                  </div>
+                </div>
+
+                {!item.done && !item.passive && (
+                  <Link
+                    href={item.href}
+                    className="text-xs px-3 py-1.5 rounded-lg flex-shrink-0 font-medium transition-opacity hover:opacity-80"
+                    style={{ background: "var(--brand-4)", color: "black" }}
+                  >
+                    {item.ctaLabel}
+                  </Link>
+                )}
+                {!item.done && item.passive && (
+                  <span className="text-xs px-3 py-1.5 rounded-lg flex-shrink-0 border border-[var(--border)] opacity-40">
+                    Automático
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" style={{ color: "#22c55e" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <div className="text-sm font-medium" style={{ color: "#22c55e" }}>¡Tu sistema está activo!</div>
+            <div className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.55 }}>
+              Todo configurado. Ahora céntrate en atraer más clientes.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Generadores — solo módulos activos */}
       {generadores.length > 0 && (
