@@ -75,10 +75,20 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
       const bt = b as ButtonBlock;
       const { href, target } = blockHref(bt);
       const pad = bt.size === "lg" ? "16px 30px" : "12px 24px";
-      const style = bt.style === "ghost"
-        ? `background:transparent;color:${textColor};border:1px solid ${hexA(textColor, 0.3)}`
-        : `background:linear-gradient(135deg, ${lighten(t.brand)}, ${t.brand});color:${t.brandText};border:none;box-shadow:0 8px 30px ${hexA(t.brand, 0.35)}`;
-      return `<a href="${esc(href)}" target="${target}" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;border-radius:999px;padding:${pad};font-size:${bt.size === "lg" ? "16px" : "15px"};text-decoration:none;${style}">${esc(bt.label)}</a>`;
+      const fs = bt.size === "lg" ? "16px" : "15px";
+      let btnStyle: string;
+      let icon = "";
+      if (bt.style === "ghost") {
+        btnStyle = `background:transparent;color:${textColor};border:1px solid ${hexA(textColor, 0.3)}`;
+      } else if (bt.style === "whatsapp") {
+        btnStyle = `background:#25D366;color:#ffffff;border:none;box-shadow:0 8px 30px rgba(37,211,102,0.35)`;
+        icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-2.8.7.7-2.8-.2-.3A8 8 0 1112 20zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.5l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3a3 3 0 00-.9 2.2c0 1.3 1 2.6 1.1 2.7s1.9 3 4.7 4.1c1.7.7 2.3.8 3.2.6.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1z"/></svg>`;
+      } else if (bt.style === "white") {
+        btnStyle = `background:#ffffff;color:#0a0a0b;border:none;box-shadow:0 8px 30px rgba(255,255,255,0.18)`;
+      } else {
+        btnStyle = `background:linear-gradient(135deg, ${lighten(t.brand)}, ${t.brand});color:${t.brandText};border:none;box-shadow:0 8px 30px ${hexA(t.brand, 0.35)}`;
+      }
+      return `<a href="${esc(href)}" target="${target}" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;border-radius:999px;padding:${pad};font-size:${fs};text-decoration:none;${btnStyle}">${icon}${esc(bt.label)}</a>`;
     }
     case "image": {
       const im = b as ImageBlock;

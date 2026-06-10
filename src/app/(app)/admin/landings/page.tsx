@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
 import { renderLandingHtml } from "@/lib/landing/render";
 import {
-  LandingBlock, LandingTheme, BlockStyle, RowBlock,
+  LandingBlock, LandingTheme, BlockStyle, RowBlock, ButtonBlock,
   DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
   SECTION_TEMPLATES, sectionTemplate,
 } from "@/lib/landing/blocks";
@@ -762,7 +762,14 @@ function BlockControls({ block, update, section = "all" }: { block: LandingBlock
       </div>
       {block.linkType === "whatsapp" && <div><Lbl>Mensaje predefinido</Lbl><input value={block.waMessage || ""} onChange={(e) => update({ waMessage: e.target.value })} className={inputCls} /></div>}
       <div className="grid grid-cols-2 gap-2">
-        <div><Lbl>Estilo</Lbl><Seg value={block.style} onChange={(v) => update({ style: v })} options={[{ v: "gold", l: "Marca" }, { v: "ghost", l: "Contorno" }]} /></div>
+        <div><Lbl>Estilo</Lbl>
+          <select value={block.style} onChange={(e) => update({ style: e.target.value as ButtonBlock["style"] })} className={inputCls}>
+            <option value="gold">Marca (dorado)</option>
+            <option value="white">Blanco</option>
+            <option value="whatsapp">WhatsApp (verde)</option>
+            <option value="ghost">Contorno</option>
+          </select>
+        </div>
         <div><Lbl>Tamaño</Lbl><Seg value={block.size || "md"} onChange={(v) => update({ size: v })} options={[{ v: "md", l: "Normal" }, { v: "lg", l: "Grande" }]} /></div>
       </div>
       {block.linkType === "url" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!block.newTab} onChange={(e) => update({ newTab: e.target.checked })} />Abrir en pestaña nueva</label>}

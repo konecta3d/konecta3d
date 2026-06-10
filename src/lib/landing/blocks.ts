@@ -75,7 +75,7 @@ export interface ButtonBlock extends BaseBlock {
   linkType: "url" | "whatsapp" | "tel" | "email" | "anchor";
   value: string;       // URL, número, email o id de ancla
   waMessage?: string;  // mensaje predefinido (solo whatsapp)
-  style: "gold" | "ghost";
+  style: "gold" | "ghost" | "whatsapp" | "white";
   size?: "md" | "lg";
   newTab?: boolean;
 }
