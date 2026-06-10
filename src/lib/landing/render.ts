@@ -100,7 +100,7 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
     case "logos": {
       const lo = b as LogosBlock;
       const valid = (lo.items || []).filter((i) => i.src);
-      const SZ = { sm: { h: 48, img: 28, w: 110 }, md: { h: 64, img: 40, w: 140 }, lg: { h: 88, img: 60, w: 160 } };
+      const SZ = { sm: { h: 68, img: 44, w: 140 }, md: { h: 88, img: 60, w: 170 }, lg: { h: 116, img: 84, w: 200 } };
       const sz = SZ[lo.imgSize || "md"];
       const imgFilter = lo.color ? "none" : "grayscale(1) brightness(1.6)";
       const imgOpacity = lo.color ? "1" : ".85";
