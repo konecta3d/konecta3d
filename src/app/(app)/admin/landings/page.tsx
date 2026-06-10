@@ -123,8 +123,54 @@ export default function LandingsAdminPage() {
   const [themeOpen, setThemeOpen] = useState(true);
   const [addType, setAddType] = useState<LandingBlock["type"]>("heading");
   const [addSectionKey, setAddSectionKey] = useState("hero");
+  const [undoStack, setUndoStack] = useState<LandingBlock[][]>([]);
+  const [redoStack, setRedoStack] = useState<LandingBlock[][]>([]);
+  const [dragId, setDragId] = useState<string | null>(null);
   const previewRef = useRef<HTMLIFrameElement>(null);
   const previewHtmlRef = useRef("");
+  const editingRef = useRef<LandingFull | null>(null);
+  const lastOpenedIdRef = useRef<string | null>(null);
+
+  useEffect(() => { editingRef.current = editing; }, [editing]);
+
+  // Auto-guardado silencioso (2.5 s de inactividad)
+  useEffect(() => {
+    if (!editing) return;
+    if (lastOpenedIdRef.current !== editing.id) { lastOpenedIdRef.current = editing.id; return; }
+    const t = setTimeout(save, 2500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing]);
+
+  // Teclado: Ctrl+Z / Ctrl+Y (Deshacer / Rehacer)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!editingRef.current) return;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        setUndoStack((prev) => {
+          if (!prev.length) return prev;
+          const blocks = prev[prev.length - 1];
+          setRedoStack((rs) => [...rs, editingRef.current?.blocks ?? []]);
+          setEditing((ed) => ed ? { ...ed, blocks } : ed);
+          return prev.slice(0, -1);
+        });
+      }
+      if (mod && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+        e.preventDefault();
+        setRedoStack((prev) => {
+          if (!prev.length) return prev;
+          const blocks = prev[prev.length - 1];
+          setUndoStack((us) => [...us, editingRef.current?.blocks ?? []]);
+          setEditing((ed) => ed ? { ...ed, blocks } : ed);
+          return prev.slice(0, -1);
+        });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => { setOrigin(window.location.origin); load(); loadSite(); }, []);
 
@@ -241,6 +287,25 @@ export default function LandingsAdminPage() {
     setMsg(`Link copiado: ${origin}/p/${slug}`); setTimeout(() => setMsg(null), 2500);
   }
 
+  // ── Undo / Redo ─────────────────────────────────────────────────────────────
+  function pushUndo() {
+    const blocks = editingRef.current?.blocks ?? [];
+    setUndoStack((s) => [...s.slice(-29), [...blocks]]);
+    setRedoStack([]);
+  }
+
+  // ── Drag & drop ──────────────────────────────────────────────────────────────
+  function reorderBlocks(fromId: string, toId: string) {
+    const arr = [...(editingRef.current?.blocks ?? [])];
+    const fi = arr.findIndex((b) => b.id === fromId);
+    const ti = arr.findIndex((b) => b.id === toId);
+    if (fi < 0 || ti < 0 || fi === ti) return;
+    pushUndo();
+    const [item] = arr.splice(fi, 1);
+    arr.splice(ti, 0, item);
+    if (editing) setEditing({ ...editing, blocks: arr });
+  }
+
   // ── Operaciones de bloques ──────────────────────────────────────────────────
   function setBlocks(blocks: LandingBlock[]) { if (editing) setEditing({ ...editing, blocks }); }
   function updateBlock(id: string, patch: Partial<LandingBlock>) {
@@ -249,6 +314,7 @@ export default function LandingsAdminPage() {
   }
   function addBlock(type: LandingBlock["type"]) {
     if (!editing) return;
+    pushUndo();
     const b = newBlock(type);
     const arr = [...(editing.blocks || [])];
     const idx = selId ? arr.findIndex((x) => x.id === selId) : -1;
@@ -257,6 +323,7 @@ export default function LandingsAdminPage() {
   }
   function addSection(key: string) {
     if (!editing) return;
+    pushUndo();
     const blocks = sectionTemplate(key);
     if (blocks.length === 0) return;
     const arr = [...(editing.blocks || [])];
@@ -266,6 +333,7 @@ export default function LandingsAdminPage() {
   }
   function duplicateBlock(id: string) {
     if (!editing?.blocks) return;
+    pushUndo();
     const arr = [...editing.blocks];
     const idx = arr.findIndex((x) => x.id === id);
     if (idx < 0) return;
@@ -343,12 +411,14 @@ export default function LandingsAdminPage() {
   }
   function moveBlock(idx: number, dir: -1 | 1) {
     if (!editing?.blocks) return;
+    pushUndo();
     const arr = [...editing.blocks]; const j = idx + dir;
     if (j < 0 || j >= arr.length) return;
     [arr[idx], arr[j]] = [arr[j], arr[idx]]; setBlocks(arr);
   }
   function deleteBlock(id: string) {
     if (!editing?.blocks) return;
+    pushUndo();
     setBlocks(editing.blocks.filter((b) => b.id !== id));
     if (selId === id) setSelId(null);
   }
@@ -459,6 +529,8 @@ export default function LandingsAdminPage() {
                 <button onClick={() => setRightCollapsed((v) => !v)} title="Mostrar/ocultar panel de edición" className={`text-sm px-2.5 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 ${rightCollapsed ? "opacity-50" : ""}`}>⚙</button>
               </>
             )}
+            <button onClick={() => setUndoStack((prev) => { if (!prev.length) return prev; const blocks = prev[prev.length - 1]; setRedoStack((rs) => [...rs, editingRef.current?.blocks ?? []]); setEditing((ed) => ed ? { ...ed, blocks } : ed); return prev.slice(0, -1); })} disabled={undoStack.length === 0} title="Deshacer (Ctrl+Z)" className="text-sm px-2.5 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 disabled:opacity-30">↩</button>
+            <button onClick={() => setRedoStack((prev) => { if (!prev.length) return prev; const blocks = prev[prev.length - 1]; setUndoStack((us) => [...us, editingRef.current?.blocks ?? []]); setEditing((ed) => ed ? { ...ed, blocks } : ed); return prev.slice(0, -1); })} disabled={redoStack.length === 0} title="Rehacer (Ctrl+Y)" className="text-sm px-2.5 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10 disabled:opacity-30">↪</button>
             <a href={`${publicUrl}?v=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)]/10">Ver ↗</a>
             <button onClick={save} disabled={saving} className="text-sm px-4 py-2 rounded-lg font-semibold text-black disabled:opacity-50" style={{ background: "var(--brand-4)" }}>{saving ? "Guardando…" : "Guardar"}</button>
           </div>
@@ -535,10 +607,19 @@ export default function LandingsAdminPage() {
                   <div className="overflow-y-auto p-2 space-y-1" style={{ maxHeight: "29vh" }}>
                     {(editing.blocks || []).length === 0 && <p className="text-xs text-[var(--foreground)]/40 px-1 py-2">Sin bloques. Añádelos arriba o genera con IA.</p>}
                     {(editing.blocks || []).map((b, i) => (
-                      <div key={b.id} onClick={() => selectBlock(b.id)}
-                        className={`rounded-lg border px-2.5 py-2 flex items-center justify-between gap-1 cursor-pointer ${selId === b.id ? "border-[var(--brand-1)]" : "border-[var(--border)]"}`}
+                      <div key={b.id}
+                        draggable
+                        onDragStart={() => setDragId(b.id)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => { e.preventDefault(); if (dragId && dragId !== b.id) reorderBlocks(dragId, b.id); setDragId(null); }}
+                        onDragEnd={() => setDragId(null)}
+                        onClick={() => selectBlock(b.id)}
+                        className={`rounded-lg border px-2 py-2 flex items-center justify-between gap-1 cursor-pointer transition-opacity ${selId === b.id ? "border-[var(--brand-1)]" : "border-[var(--border)]"} ${dragId === b.id ? "opacity-30" : ""}`}
                         style={{ background: "var(--background)" }}>
-                        <span className="text-xs truncate">{BLOCK_LABELS[b.type]}{b.type === "heading" || b.type === "paragraph" ? <span className="text-[var(--foreground)]/40"> · {String((b as { text?: string }).text || "").slice(0, 16)}</span> : null}</span>
+                        <span className="flex items-center gap-1 min-w-0">
+                          <span className="text-[var(--foreground)]/25 cursor-grab text-sm select-none flex-shrink-0" title="Arrastra para reordenar">⠿</span>
+                          <span className="text-xs truncate">{BLOCK_LABELS[b.type]}{b.type === "heading" || b.type === "paragraph" ? <span className="text-[var(--foreground)]/40"> · {String((b as { text?: string }).text || "").slice(0, 16)}</span> : null}</span>
+                        </span>
                         <span className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => moveBlock(i, -1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↑</button>
                           <button onClick={() => moveBlock(i, 1)} className="px-1 text-[var(--foreground)]/50 hover:text-[var(--foreground)]">↓</button>
@@ -805,6 +886,9 @@ function BlockControls({ block, update, section = "all" }: { block: LandingBlock
           <ImagePicker value={it.src} onChange={(url) => { const items = [...block.items]; items[i] = { ...items[i], src: url }; update({ items }); }} kind="landing-logo" />
           <div className="flex gap-1">
             <input value={it.alt || ""} placeholder="Nombre del negocio" onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], alt: e.target.value }; update({ items }); }} className={inputCls} />
+            <select value={it.imgSize || ""} onChange={(e) => { const items = [...block.items]; items[i] = { ...items[i], imgSize: (e.target.value || undefined) as LogosBlock["imgSize"] }; update({ items }); }} className="rounded-lg border border-[var(--border)] bg-transparent px-1 text-xs flex-shrink-0">
+              <option value="">Auto</option><option value="sm">S</option><option value="md">M</option><option value="lg">L</option>
+            </select>
             <button onClick={() => update({ items: block.items.filter((_, j) => j !== i) })} className="px-2 text-red-500/70 hover:text-red-500">✕</button>
           </div>
         </div>
