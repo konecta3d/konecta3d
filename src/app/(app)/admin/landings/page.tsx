@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { DEFAULT_LANDING_HTML } from "@/lib/landing-template";
 import { renderLandingHtml } from "@/lib/landing/render";
 import {
-  LandingBlock, LandingTheme, BlockStyle, RowBlock, ButtonBlock,
+  LandingBlock, LandingTheme, BlockStyle, RowBlock, ButtonBlock, LogosBlock,
   DEFAULT_THEME, newBlock, BLOCK_LABELS, CHILD_BLOCK_TYPES,
   SECTION_TEMPLATES, sectionTemplate,
 } from "@/lib/landing/blocks";
@@ -786,6 +786,19 @@ function BlockControls({ block, update, section = "all" }: { block: LandingBlock
   } else if (block.type === "logos") {
     specific = <>
       <div><Lbl>Título (opcional)</Lbl><input value={block.title || ""} onChange={(e) => update({ title: e.target.value })} className={inputCls} /></div>
+      <div className="grid grid-cols-2 gap-2">
+        <div><Lbl>Tamaño</Lbl>
+          <select value={block.imgSize || "md"} onChange={(e) => update({ imgSize: e.target.value as LogosBlock["imgSize"] })} className={inputCls}>
+            <option value="sm">Pequeño</option>
+            <option value="md">Normal</option>
+            <option value="lg">Grande</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 mt-5">
+          <input type="checkbox" id="logos-color" checked={!!block.color} onChange={(e) => update({ color: e.target.checked })} />
+          <label htmlFor="logos-color" className="text-sm cursor-pointer">Logos en color</label>
+        </div>
+      </div>
       <Lbl>Logos</Lbl>
       {block.items.map((it, i) => (
         <div key={i} className="rounded-lg border border-[var(--border)] p-2 space-y-1">

@@ -100,9 +100,13 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
     case "logos": {
       const lo = b as LogosBlock;
       const valid = (lo.items || []).filter((i) => i.src);
+      const SZ = { sm: { h: 48, img: 28, w: 110 }, md: { h: 64, img: 40, w: 140 }, lg: { h: 88, img: 60, w: 160 } };
+      const sz = SZ[lo.imgSize || "md"];
+      const imgFilter = lo.color ? "none" : "grayscale(1) brightness(1.6)";
+      const imgOpacity = lo.color ? "1" : ".85";
       const chip = (i: { src: string; alt?: string }) =>
-        `<div style="flex:0 0 auto;height:64px;min-width:140px;display:flex;align-items:center;justify-content:center;padding:0 22px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px"><img src="${esc(i.src)}" alt="${esc(i.alt)}" style="max-height:40px;max-width:120px;object-fit:contain;filter:grayscale(1) brightness(1.6);opacity:.85"/></div>`;
-      const ph = (n: number) => `<div style="flex:0 0 auto;height:64px;min-width:150px;display:flex;align-items:center;justify-content:center;padding:0 26px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px;color:${hexA(textColor, 0.5)};font-weight:700;font-size:13px">LOGO ${n}</div>`;
+        `<div style="flex:0 0 auto;height:${sz.h}px;min-width:${sz.w}px;display:flex;align-items:center;justify-content:center;padding:0 22px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px"><img src="${esc(i.src)}" alt="${esc(i.alt)}" style="max-height:${sz.img}px;max-width:${sz.w - 20}px;object-fit:contain;filter:${imgFilter};opacity:${imgOpacity}"/></div>`;
+      const ph = (n: number) => `<div style="flex:0 0 auto;height:${sz.h}px;min-width:${sz.w + 10}px;display:flex;align-items:center;justify-content:center;padding:0 26px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px;color:${hexA(textColor, 0.5)};font-weight:700;font-size:13px">LOGO ${n}</div>`;
       const cells = valid.length > 0 ? valid.map(chip) : [1, 2, 3, 4, 5].map(ph);
       const track = [...cells, ...cells].join("");
       const title = lo.title ? `<p style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${hexA(textColor, 0.55)};text-align:center;margin-bottom:22px">${esc(lo.title)}</p>` : "";

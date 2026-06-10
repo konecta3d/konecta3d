@@ -95,6 +95,8 @@ export interface LogosBlock extends BaseBlock {
   type: "logos";
   title?: string;
   items: { src: string; alt?: string }[];
+  color?: boolean;          // false (por defecto) = gris; true = color original
+  imgSize?: "sm" | "md" | "lg"; // tamaño de cada chip: sm=48px, md=64px, lg=88px
 }
 export interface StepsBlock extends BaseBlock {
   type: "steps";
