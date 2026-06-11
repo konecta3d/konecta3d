@@ -143,8 +143,6 @@ export const STAGES: StageDef[] = [
   },
 ];
 
-// Etapas que se muestran como columnas del kanban principal (excluye terminales
-// que se ven en vistas filtradas: perdido, cliente_recurrente)
 export const PIPELINE_COLUMNS: StageKey[] = [
   "prospecto",
   "lead_frio",
@@ -154,7 +152,9 @@ export const PIPELINE_COLUMNS: StageKey[] = [
   "propuesta_enviada",
   "negociacion",
   "ganado",
+  "perdido",
   "cliente_activo",
+  "cliente_recurrente",
 ];
 
 export const STAGE_BY_KEY: Record<StageKey, StageDef> = STAGES.reduce(
