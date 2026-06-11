@@ -71,9 +71,9 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e1o3", titulo: "Recoger los datos para el alta", check: "Tengo nombre de negocio, email y teléfono" },
       ],
       mensajes: [
-        { id: "e1m1", titulo: "Apertura — cliente actual", objetivoId: "e1o1", contenido: "Hola [nombre], llevo [X meses] sin escribirte. He estado desarrollando algo que potencia el llavero que ya tienes: ahora tú mismo personalizas lo que aparece al escanearlo y captas contactos automáticamente. Está en pruebas (un MVP), sin precio aún. ¿Te apetece probarlo y darme tu opinión? Sin compromiso y gratis mientras está en pruebas." },
-        { id: "e1m2", titulo: "Apertura — grupo de WhatsApp", objetivoId: "e1o1", contenido: "Buenas a todos 👋 Algunos me conocéis por los llaveros NFC de Konecta3D. He desarrollado una plataforma que los convierte en un sistema para captar clientes en ferias y eventos. He preparado una guía gratuita: «Los 10 fallos que te hacen perder clientes en las ferias». Comentad o escribidme por privado y os la paso." },
-        { id: "e1m3", titulo: "Explicación + info", objetivoId: "e1o2", contenido: "Te lo resumo: una plataforma que convierte tu llavero en un sistema para captar clientes. Cada persona que lo toca te puede dejar su contacto. Aquí lo tienes con más detalle: [landing de información]. ¿Lo vemos en una llamada rápida o prefieres que te deje el acceso y lo trasteas?" },
+        { id: "e1m1", titulo: "Apertura — cliente actual", objetivoId: "e1o1", contenido: "Buenos días [nombre], llevo [X meses] sin escribirte. He lanzado una plataforma que potencia el llavero que tienes: personalizas lo que aparece al escanearlo y captas contactos de forma automática. El primer mes es gratis, sin permanencia, y luego son 99 €/mes. ¿Lo vemos el martes a las 10 o el miércoles a las 12, 15 minutos? — Equipo Konecta3D" },
+        { id: "e1m2", titulo: "Apertura — grupo de WhatsApp", objetivoId: "e1o1", contenido: "Buenos días. Algunos me conocéis de los llaveros NFC de Konecta3D. He lanzado una plataforma que convierte el llavero en un sistema para captar clientes en ferias y eventos. He preparado una guía gratuita: «Los 10 fallos que te hacen perder clientes en las ferias». Escribidme por privado y os la paso. — Miguel, Konecta3D" },
+        { id: "e1m3", titulo: "Explicación + info", objetivoId: "e1o2", contenido: "Te lo resumo: una plataforma que convierte tu llavero en un sistema para captar clientes. Cada persona que lo toca te puede dejar su contacto. Aquí tienes más detalle: [landing de información]. ¿Lo vemos el martes a las 10 o el miércoles a las 12, 15 minutos? Si prefieres explorar primero solo, te dejo el acceso y luego hablamos. — Equipo Konecta3D" },
         { id: "e1m4", titulo: "Petición de datos", objetivoId: "e1o3", contenido: "Para dejarte el acceso listo solo necesito 3 cosas:\n· Nombre de tu negocio\n· Tu email (será tu usuario)\n· Tu teléfono\nCon eso te lo preparo y te paso las claves." },
       ],
       documentos: [
@@ -90,9 +90,9 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e2o1", titulo: "Completar las 5 fases del onboarding", check: "Las 5 fases completadas y verificadas" },
       ],
       mensajes: [
-        { id: "e2m1", titulo: "Fase 1 — Identidad", objetivoId: "e2o1", contenido: "Primer paso, el más rápido: entra en Mi Negocio → Perfil, pon el nombre, sube tu logo y elige tu dirección web. Con eso ya tienes tu identidad lista. ¿Alguna duda?" },
+        { id: "e2m1", titulo: "Fase 1 — Identidad", objetivoId: "e2o1", contenido: "Primer paso, el más rápido: entra en Mi Negocio → Perfil, pon el nombre, sube el logo y elige tu dirección web. Son 5 minutos. ¿Tienes ya el logo en JPG o PNG? Si no lo tienes a mano, dímelo y te explico cómo sacarlo. — Miriam, Equipo Konecta3D" },
         { id: "e2m2", titulo: "Fase 2 — Botones de acción", objetivoId: "e2o1", contenido: "Ahora tus botones. En Mi Negocio → Herramientas añade lo que ya usas: WhatsApp, web, Instagram, reservas… Te paso una guía rápida. Estos serán los botones de tu página." },
-        { id: "e2m3", titulo: "Fase 3 — Tu página", objetivoId: "e2o1", contenido: "Vamos con tu página, la que verán al escanear el llavero. En Fidelización → Landing personaliza textos, colores y secciones para que tenga tu imagen. ¿Quieres que la veamos juntos en una llamada?" },
+        { id: "e2m3", titulo: "Fase 3 — Tu página", objetivoId: "e2o1", contenido: "Vamos con tu página, la que verán al escanear el llavero. En Fidelización → Landing personaliza textos, colores y secciones para que tenga tu imagen. Si te atasca algún bloque, el martes a las 10 o el miércoles a las 12 lo vemos juntos en 15 minutos. — Miriam, Equipo Konecta3D" },
         { id: "e2m4", titulo: "Fase 4 — Tu captación", objetivoId: "e2o1", contenido: "El paso que marca la diferencia: que tu página capte contactos. Crea un recurso de valor (una guía, un descuento) y un formulario. Así cada visitante te puede dejar sus datos automáticamente." },
         { id: "e2m5", titulo: "Fase 5 — Prueba y validación", objetivoId: "e2o1", contenido: "Último paso antes de activar: escanea tu propia URL desde el móvil y comprueba que todo va bien —los botones, el formulario, el recurso. Cuando lo confirmes, activamos tu llavero." },
       ],
@@ -121,8 +121,8 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e3o2", titulo: "Verificar el llavero físico", check: "El llavero abre la landing correcta" },
       ],
       mensajes: [
-        { id: "e3m1", titulo: "Cambio de link", objetivoId: "e3o1", contenido: "Tu plataforma está lista. Ahora hacemos que tu llavero apunte a tu nueva página. Te explico cómo en 2 minutos, o lo hago yo y te confirmo. ¿Cómo lo prefieres?" },
-        { id: "e3m2", titulo: "Verificación", objetivoId: "e3o2", contenido: "Escanea tu llavero con el móvil y comprueba que abre tu nueva página. ¿Todo bien?" },
+        { id: "e3m1", titulo: "Cambio de link", objetivoId: "e3o1", contenido: "Tu plataforma está lista. Hay que hacer que el llavero apunte a tu nueva página, 2 minutos. ¿Te explico los pasos y lo haces tú, o prefieres que lo gestionemos nosotros y te confirmamos cuando esté? — Miriam, Equipo Konecta3D" },
+        { id: "e3m2", titulo: "Verificación", objetivoId: "e3o2", contenido: "[Nombre], escanea el llavero con el móvil y confirma que abre tu nueva página correctamente. Si algo no carga bien, mándame una captura y lo revisamos. — Miriam, Equipo Konecta3D" },
       ],
       documentos: [
         { id: "e3d1", nombre: "Guía: cómo cambiar el link de tu llavero", estado: "por_crear" },
@@ -140,8 +140,8 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
       ],
       mensajes: [
         { id: "e4m1", titulo: "Invitación a usarlo", objetivoId: "e4o1", contenido: "Ya está todo activo. Úsalo en tu local o tu próximo evento. Cada persona que toque el llavero te puede dejar su contacto." },
-        { id: "e4m2", titulo: "Mirar resultados", objetivoId: "e4o2", contenido: "Entra en tu panel y mira cuántos contactos has captado. ¿Te ayudo a interpretarlo?" },
-        { id: "e4m3", titulo: "Reconocer el valor", objetivoId: "e4o3", contenido: "¿Qué tal la experiencia? ¿Cuántos contactos conseguiste?" },
+        { id: "e4m2", titulo: "Mirar resultados", objetivoId: "e4o2", contenido: "[Nombre], entra en tu panel y mira la sección de estadísticas: ahí ves visitas, contactos captados y cuándo entraron. ¿Cuántos tienes hasta ahora? — Miriam, Equipo Konecta3D" },
+        { id: "e4m3", titulo: "Reconocer el valor", objetivoId: "e4o3", contenido: "[Nombre], llevas [X días] usando el sistema. ¿Cuántos contactos tienes en el panel y en qué contextos has usado el llavero hasta ahora? — Miguel, Equipo Konecta3D" },
       ],
       documentos: [
         { id: "e4d1", nombre: "Guía: cómo leer tus resultados", estado: "por_crear" },
@@ -179,8 +179,8 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e6o3", titulo: "Cerrar la suscripción", check: "Cliente con suscripción activa" },
       ],
       mensajes: [
-        { id: "e6m1", titulo: "Presentar oferta", objetivoId: "e6o1", contenido: "Has estado usando la plataforma en prueba. Ya está lista su versión completa. Te explico cómo queda a partir de ahora y el precio." },
-        { id: "e6m2", titulo: "Cierre", objetivoId: "e6o3", contenido: "¿Lo activamos en su versión completa para que sigas captando sin interrupción?" },
+        { id: "e6m1", titulo: "Conversión — mensaje de cierre", objetivoId: "e6o1", contenido: "[Nombre], en este mes has captado [X contactos] con el llavero y tienes tu landing activa. Eso son [X] personas en tu lista que no tenías antes. El [fecha] termina el acceso gratuito. A partir de ahí son 99 €/mes, sin permanencia. — Miguel, Equipo Konecta3D" },
+        { id: "e6m2", titulo: "Conversión — seguimiento si no responde", objetivoId: "e6o3", contenido: "[Nombre], si tienes alguna duda antes de que acabe el período, el [día] a las [hora] o el [día] a las [hora] lo vemos en 10 minutos. — Miguel, Equipo Konecta3D" },
       ],
       documentos: [
         { id: "e6d1", nombre: "Oferta de la plataforma", estado: "por_crear" },
@@ -198,9 +198,9 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e7o3", titulo: "Recurrencia", check: "Segundo pedido o renovación" },
       ],
       mensajes: [
-        { id: "e7m1", titulo: "Seguimiento", objetivoId: "e7o1", contenido: "¿Cómo va todo? ¿Necesitas algo o tienes alguna duda con la plataforma?" },
-        { id: "e7m2", titulo: "Pedir referido", objetivoId: "e7o2", contenido: "¿Conoces a alguien más que vaya a ferias con quien merezca la pena hablar? Con tu nombre le contacto." },
-        { id: "e7m3", titulo: "Recurrencia", objetivoId: "e7o3", contenido: "¿Tienes alguna feria próxima? ¿Necesitas más llaveros? Te preparo el lote con tiempo." },
+        { id: "e7m1", titulo: "Seguimiento mensual", objetivoId: "e7o1", contenido: "Buenos días [nombre], llevas [X semanas] como cliente. ¿Cuántos leads captaste este mes y en qué contextos usaste el llavero? Si algo no está funcionando como esperabas, dímelo antes de que se convierta en un problema. — Miguel, Equipo Konecta3D" },
+        { id: "e7m2", titulo: "Pedir referido", objetivoId: "e7o2", contenido: "[Nombre], ¿conoces a alguien que vaya a ferias y tenga el mismo problema que tenías tú de perder contactos? Con tu nombre le contacto. Si le encaja, te mando [X llaveros extra] de regalo. — Miguel, Equipo Konecta3D" },
+        { id: "e7m3", titulo: "Próxima feria", objetivoId: "e7o3", contenido: "[Nombre], ¿tienes alguna feria en los próximos 60 días? Los llaveros tardan entre 1 y 3 semanas en fabricación según la cantidad. Si hay fecha, mejor planificarlo ahora. — Miriam, Equipo Konecta3D" },
       ],
       documentos: [
         { id: "e7d1", nombre: "Novedades / mejoras", estado: "por_crear" },

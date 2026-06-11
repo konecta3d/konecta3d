@@ -3,14 +3,14 @@
 > Por qué un llavero NFC y no una tarjeta, un QR o nada.
 
 ## Llavero vs alternativas
-| | Tarjeta de papel | QR suelto | **Llavero Konecta3D** |
+| | Tarjeta de papel        | QR suelto |            **Llavero Konecta3D** |
 |---|---|---|---|
-| Se queda con el cliente | Se tira | No es físico | **Sí, uso diario** |
-| Lleva tu marca a diario | No | No | **Sí** |
-| Captura el contacto | No | A veces | **Sí, al instante** |
-| Sabes qué le interesó | No | No | **Sí (formulario)** |
-| Mides por feria | No | No | **Sí** |
-| Coste | Bajo pero inútil | Bajo | **~3 €, alto retorno** |
+| Se queda con el cliente   | Se tira| No es físico | **Sí, uso diario** |
+| Lleva tu marca a diario   | No | No               | **Sí** |
+| Captura el contacto       | No | A veces          | **Sí, al instante** |
+| Sabes qué le interesó     | No | No               | **Sí (formulario)** |
+| Mides por feria           | No | No               | **Sí** |
+| Coste | Bajo pero inútil  | Bajo                  | **~3 €, alto retorno** |
 
 ## Los 3 argumentos que más convierten
 1. **Permanencia, no solo presencia** — la tarjeta muere el domingo; el llavero sigue en su mano cada día.

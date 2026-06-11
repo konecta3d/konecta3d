@@ -7,26 +7,35 @@
 Konecta3D convierte cada feria o evento en clientes: un llavero con tu marca que tus visitantes tocan con el móvil y quedan capturados en tu plataforma.
 
 ## Propuesta de valor
-El negocio invierte miles en cada feria y pierde la mayoría de los contactos. Konecta3D captura esos contactos en el momento (sin depender de que el equipo esté libre), los deja listos para el seguimiento y mantiene la marca presente después del evento — todo con un objeto físico de bajo coste y una plataforma que se autogestiona.
+El negocio invierte cientos de euros en cada feria y pierde la mayoría de los contactos porque entrega tarjetas sin estrategia.
+Konecta3D captura esos contactos en el momento entregando valor y estrategia a la vez (sin depender de que el equipo esté libre), los deja listos para el seguimiento y mantiene la marca presente después del evento — todo con un objeto físico de bajo coste y una plataforma que se autogestiona.
 
 ## Para quién (cliente ideal)
 **El Expositor**: negocio local (2-20 empleados) que usa ferias y eventos para captar clientes. Tiene presupuesto para el stand pero no un sistema para convertir las conversaciones en leads reales. (Detalle completo en *Cliente ideal*.)
 
 ## Contra qué competimos (alternativas del cliente)
-- **Tarjetas de papel** → se pierden, no se miden, mueren el domingo.
-- **QR básico** → frío, sin marca, sin datos del interés.
-- **No hacer nada** → el 60-70% de los interesados desaparece.
+- **Tarjetas de papel** → se pierden, no se miden, mueren por el camino, no se diferencian con el resto.
+- **QR básico** → frío, sin marca, sin datos del interés. Dependen de que el cliente quiera sacar la cámara y escanear.
+- **No hacer nada** → el 60-70% de los interesados desaparece. 
 - **Un CRM que ya tienen** → no lo reemplazamos: lo alimentamos justo donde hoy pierden a la gente.
 
 ## Diferenciadores
-1. **Objeto físico con su marca** que se queda con el cliente (permanencia, no solo presencia).
+1. **Objeto físico con su marca** que se queda con el cliente (permanencia, no solo presencia, recordación).
 2. **Captura en el momento** del interés, aunque el equipo esté ocupado.
 3. **Coste marginal bajísimo** frente al coste del stand.
 4. **Plataforma autogestionable** por un no-técnico.
 5. **Datos por evento** para decidir en qué ferias repetir.
+6. **El negocio entrega valor en forma de información y experiencia al cliente fianl** 
 
 ## Misión
 Que ningún negocio local pierda en una feria al cliente que ya tenía delante.
+
+## Equipo
+
+- **Miguel** — Fundador. Ventas, llamadas de calificación, conversiones y desarrollo de producto.
+- **Miriam** — Operaciones. Seguimiento de onboarding, check-ins semanales y soporte al cliente.
+
+El cliente siempre sabe con quién habla. Cada mensaje va firmado con el nombre de quien lo envía y "Equipo Konecta3D".
 
 ## Cómo lo decimos (voz)
 Directo, cercano, honesto. Hablamos del problema real y del resultado tangible, no de tecnología. (Guía completa en *Voz y copy*.)

@@ -5,15 +5,19 @@
 
 ## Coste y pedidos
 - **Coste**: ~3 € por unidad en lote. Precio no negociable.
-- **Lote mínimo**: [COMPLETAR: cantidad mínima por pedido].
-- **Compra típica del cliente**: 200-1.000 unidades por pedido.
+- **Lote mínimo**: Cantidad mínima por pedido - 100 unidades.
+- **Compra típica del cliente**: 100-500 unidades por pedido.
 - Sin descuentos monetarios; si hace falta valor, **10-15 unidades extra**.
 
 ## Plazos (clave para la venta)
-- **Diseño/personalización**: [COMPLETAR: días].
+- **Diseño/personalización**: 
+>2 días
 - **Fabricación**: [COMPLETAR: días].
-- **Envío**: [COMPLETAR: días + transportista].
-- **Total desde el OK hasta tenerlos en mano**: [COMPLETAR].
+>100 unidades 5 días.
+>250 unidades 10 días.
+>500 unidades 15 días.
+- **Envío**: 5 días según transportista.
+- **Total desde el OK hasta tenerlos en mano**: [Dependerá de la cantidad elegida por el negocio]
 
 > Por eso la urgencia es real: hay que empezar con tiempo para llegar a la feria con los llaveros listos. Usa este dato en la venta.
 
@@ -23,11 +27,13 @@
 3. Se fabrican y se programan (apuntan a su landing).
 4. Se envían antes de su feria.
 
-## Proveedor / fabricación
-- [COMPLETAR: proveedor, capacidad máxima por semana, si hay cupos por temporada de ferias.]
+## Fabricante
+
+- **Konecta3D fabrica directamente sus llaveros NFC.** Control total de producción y personalización.
+- Capacidad de fabricación por semana: [COMPLETAR cuando tengamos el dato real].
+- En temporada alta de ferias (primavera y otoño) puede haber cupos limitados — confirmar disponibilidad antes de cerrar un pedido urgente. Usar esta información como palanca de urgencia honesta solo si es real.
 
 ## Coste de envío
-- [COMPLETAR: quién asume el envío y coste aproximado.]
 
-## Escasez real (palanca de venta honesta)
-Si hay cupos de fabricación limitados antes de una temporada de ferias, indícalo aquí para usarlo con honestidad: [COMPLETAR].
+- **Gratis en pedidos de 300 unidades o más.**
+- En pedidos menores de 300 unidades, el coste se confirma al presupuestar.
