@@ -1,70 +1,105 @@
-# Componente G — Cierre + seguimiento
+# Componente G — Cierre en el stand + seguimiento post-feria
 
-> Qué decir para cerrar en el stand (según temperatura) y cómo hacer el seguimiento
-> después de la feria. Contenido final listo para usar.
-> Voz: directa, cercana, honesta. Sin presión.
+> Qué decir para cerrar en el stand según la temperatura del prospecto,
+> y cómo arrancar el seguimiento esa misma tarde.
+> El seguimiento completo (11 contactos en 4 semanas) está en:
+> content/modelo-negocio/03-pipeline-seguimiento.md
 
 ---
 
-## El cierre en el stand (según nivel de interés)
+## El cierre en el stand (según temperatura)
 
-El cierre no es "¿me compras?". Es **proponer el siguiente paso** que corresponda.
+El cierre no es vender. Es proponer el siguiente paso concreto.
 
-### Caliente (quiere ya)
-> "Te lo monto para tu próxima feria. Empezamos con un mes gratis, sin compromiso.
-> ¿Cuál es tu próximo evento? Así calculamos los tiempos y lo tienes listo."
-→ Agendar / pedir datos del próximo evento.
+### Caliente — quiere probar ya
 
-### Templado (interesado, pero no ahora)
-> "No hace falta decidir nada hoy. Te he enviado la guía por WhatsApp; déjame que te
-> escriba esta semana y te enseño cómo quedaría con tu marca, sin compromiso. ¿Te
-> parece?"
-→ Permiso para seguimiento + fecha concreta.
+> "Para tu próxima feria lo dejas listo. Empezamos con un mes gratis, sin compromiso.
+> ¿Cuándo es tu próximo evento? Así calculamos los tiempos y lo tienes listo."
 
-### Frío (curioso, sin prisa)
-> "Quédate el llavero y la guía. Si en tu próxima feria piensas en no perder ni un
+→ Agendar. Pedir fecha del próximo evento. Pasar a Contacto 0 del pipeline esa tarde.
+
+---
+
+### Templado — interesado, pero no decide hoy
+
+> "No hace falta decidir nada hoy. Te escribo esta semana y te enseño exactamente cómo
+> quedaría con la marca de tu negocio, sin compromiso.
+> ¿El martes a las 10 o el miércoles a las 12 te viene mejor?"
+
+→ Confirmar día y hora antes de que se vaya del stand. Pasar a Contacto 0 esa tarde.
+
+---
+
+### Frío — curioso, sin urgencia
+
+> "Quédate el llavero y la guía. Si en tu próxima feria no quieres perder ni un
 > contacto, escríbeme. Aquí me tienes."
-→ Que se quede en nutrición. No forzar.
+
+→ Que se quede en seguimiento pasivo. No forzar. Pasar a pipeline con nota.
 
 ---
 
 ## Regla de oro del cierre
-- Siempre sales con **el contacto capturado** (ya lo tienes del formulario) y con un
-  **siguiente paso acordado** (fecha, permiso, o piloto).
-- Nunca presionas. La prueba gratis hace el trabajo: quita el riesgo.
+
+Nunca te vas sin dos cosas:
+1. Su contacto capturado (ya lo tienes del formulario)
+2. Un siguiente paso acordado (fecha, hora, o permiso para escribirle)
 
 ---
 
-## El seguimiento (después de la feria)
+## El seguimiento — mismo día (tarde de la feria)
 
-### Mismo día (o máximo 24 h) — WhatsApp
-> "¡Hola [nombre]! Soy [tú] de Konecta3D, nos vimos hoy en FYCMA. Aquí tienes otra vez
-> la guía de la oferta irresistible 👉 [enlace]. Cuando quieras, te enseño en 5 minutos
-> cómo quedaría con la marca de [negocio] para tu próxima feria. ¿Te viene bien esta
-> semana?"
+### Contacto 0 — todos los que dejaron datos
 
-### Si no responde (a los 2-3 días)
-> "¡Hola [nombre]! Te escribo por si se te pasó. Lo de captar los contactos de tu feria
-> sin perder a nadie sigue en pie. ¿Te mando un ejemplo rápido de cómo funcionaría para
-> [negocio]?"
+**Quién:** Miguel
+**Cuándo:** esa misma tarde, antes de que acabe el día
 
-### Si muestra interés → propuesta de piloto
-> "Genial. Te propongo esto: lo montamos juntos, pruebas la plataforma gratis un mes y
-> lo dejas listo para [su próximo evento]. Sin compromiso. ¿Cuándo es esa feria?"
+> "[Nombre], soy Miguel de Konecta3D. Mira lo que recibí cuando dejaste tus datos en
+> el llavero: [captura de pantalla del lead en el panel]. Esto es exactamente lo que
+> verías tú con cada cliente que toca el llavero. — Equipo Konecta3D"
 
 ---
 
-## Después del WhatsApp: el CRM
-- [ ] Registrar cada lead en el **embudo / pipeline** (etapa correspondiente).
-- [ ] Anotar el ángulo que funcionó y la objeción que puso (alimenta el mapa de objeciones).
-- [ ] Mover por etapas según responde.
-- [ ] Marcar a los que quieren piloto → onboarding 1 a 1.
+### Si no responde al día siguiente
+
+**Quién:** Miguel
+
+> "Buenos días [nombre], ¿tienes 15 min el martes [fecha] a las 10 o el miércoles
+> [fecha] a las 12? Quiero ver contigo si Konecta3D encaja en tu negocio.
+> — Miguel, Equipo Konecta3D"
 
 ---
 
-## Medición del 19 (vuélcalo al cerrar el día)
-- Nº de conversaciones.
-- Nº de descargas del LM (leads capturados).
-- Nº de pilotos comprometidos.
-- Qué ángulos de pregunta funcionaron mejor.
-- Qué objeciones aparecieron (nuevas para el mapa).
+### A partir de aquí: seguir el pipeline
+
+Ver tabla completa de los 11 contactos en:
+`content/modelo-negocio/03-pipeline-seguimiento.md`
+
+---
+
+## Lo que este documento cubre que el pipeline NO cubre
+
+El pipeline empieza después de la feria. Este documento cubre lo que pasa EN el stand:
+- Cómo cerrar según el nivel de interés (caliente/templado/frío)
+- El primer contacto esa misma tarde
+
+No duplicar: los mensajes de seguimiento de día 1 en adelante están en el pipeline.
+
+---
+
+## Medición del día (volcar al cerrar la feria)
+
+Antes de llegar a casa, anotar:
+- Nº de conversaciones mantenidas
+- Nº de leads capturados (formulario)
+- Nº de descargas del LM
+- Nº de comprometidos a probar el sistema
+- Ángulos que funcionaron mejor
+- Objeciones nuevas que aparecieron (añadir al mapa de objeciones)
+
+Mover cada lead al CRM con su etapa y su temperatura anotada en las notas.
+
+---
+
+*Voz: directa, cercana, sin presión. Sin exclamaciones. Sin emojis.*
+*Firma siempre: "[Nombre], Equipo Konecta3D"*
