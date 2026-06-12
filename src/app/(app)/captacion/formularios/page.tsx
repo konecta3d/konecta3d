@@ -36,6 +36,10 @@ export default function FormulariosPage() {
   const [newObjective, setNewObjective] = useState<"quick" | "diagnostic" | "full">("quick");
   const [creating, setCreating] = useState(false);
 
+  // Modo prueba: enlace para probar el formulario en el móvil sin cookies
+  const [origin, setOrigin] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   useEffect(() => {
     const load = async () => {
       const { data: s } = await supabase.auth.getSession();
@@ -50,6 +54,8 @@ export default function FormulariosPage() {
     };
     load();
   }, []);
+
+  useEffect(() => { setOrigin(window.location.origin); }, []);
 
   const loadForms = async (bid: string, tok: string) => {
     const res = await fetch(`/api/captacion/forms?businessId=${bid}`, {
@@ -102,6 +108,12 @@ export default function FormulariosPage() {
       }),
     });
     await loadForms(businessId, token);
+  };
+
+  const copyTestLink = (id: string) => {
+    navigator.clipboard.writeText(`${origin}/form-preview/${id}`);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const enterCreating = () => {
@@ -359,7 +371,7 @@ export default function FormulariosPage() {
 
               {/* Subtitle */}
               <p className="text-xs text-[var(--foreground)]/40">
-                {f.blocks?.length || 0} bloques
+                {(Array.isArray(f.blocks) ? f.blocks.length : (f.blocks as { blocks?: unknown[] })?.blocks?.length) || 0} bloques
               </p>
 
               {/* Buttons row */}
@@ -371,6 +383,14 @@ export default function FormulariosPage() {
                 >
                   Editar
                 </Link>
+                <button
+                  onClick={() => copyTestLink(f.id)}
+                  title="Copia un enlace de prueba para abrir el formulario en tu móvil (sin cookies, no guarda nada)"
+                  className="text-xs px-3 py-2 rounded-lg border transition-colors hover:border-[var(--brand-1)]/50 whitespace-nowrap"
+                  style={{ borderColor: copiedId === f.id ? "var(--brand-1)" : "var(--border)", color: copiedId === f.id ? "var(--brand-1)" : undefined }}
+                >
+                  {copiedId === f.id ? "✓ Copiado" : "Link de prueba"}
+                </button>
                 <button
                   onClick={() => duplicateForm(f.id, f.name)}
                   className="text-xs px-3 py-2 rounded-lg border transition-colors hover:border-[var(--brand-1)]/50 whitespace-nowrap"

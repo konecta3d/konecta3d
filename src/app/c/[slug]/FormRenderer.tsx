@@ -143,6 +143,15 @@ function DefaultForm({
   const submit = async () => {
     if (!phone.trim()) { setError("El teléfono es obligatorio"); return; }
     if (!consent) { setError("Debes aceptar la política de privacidad para continuar."); return; }
+    if (preview) {
+      // modo prueba: no se guarda ningún lead, solo se avanza para ver el flujo
+      const purl = (leadMagnet?.type === "pdf" ? leadMagnet.file_url : null)
+        || (leadMagnet?.type === "url" ? leadMagnet.external_url : null) || null;
+      if (purl) setLeadMagnetUrl(purl);
+      if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
+      setStep("done");
+      return;
+    }
     setSubmitting(true);
     setError("");
     const res = await fetch("/api/captacion/leads", {
@@ -348,6 +357,15 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
     const phoneField = captureData.phone;
     if (!phoneField?.trim()) { setSubmitError("El teléfono es obligatorio"); return; }
     if (!consent) { setSubmitError("Debes aceptar la política de privacidad para continuar."); return; }
+    if (preview) {
+      // modo prueba: no se guarda ningún lead, solo se avanza para ver el flujo
+      const purl = (leadMagnet?.type === "pdf" ? leadMagnet.file_url : null)
+        || (leadMagnet?.type === "url" ? leadMagnet.external_url : null) || null;
+      if (purl) setLeadMagnetUrl(purl);
+      if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
+      next();
+      return;
+    }
     setSubmitting(true);
     setSubmitError("");
     const res = await fetch("/api/captacion/leads", {
