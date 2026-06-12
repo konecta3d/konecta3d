@@ -31,6 +31,26 @@
 
 ---
 
+### Paso Preguntas (cualifican + sacan el dolor)
+Dos preguntas, cada una con su trabajo: la primera cualifica y recuerda el marco;
+la segunda saca el dolor en su idioma (no etiqueta: hace que se vea en el problema).
+
+**Pregunta 1 — cualifica + prima**
+> ¿Cuántas ferias haces al año para captar clientes?
+> - 1-2
+> - 3-5
+> - +5
+
+**Pregunta 2 — saca el dolor (medición)**
+> ¿Sabes cuántos clientes te trajo tu última feria?
+> - Sí, con números
+> - Más o menos
+> - Ni idea
+
+Regla: ninguna pregunta que no cualifique o saque dolor. Si solo "está por estar", fuera.
+
+---
+
 ### Formulario (corto, sin fricción)
 Campos:
 - **Nombre**
