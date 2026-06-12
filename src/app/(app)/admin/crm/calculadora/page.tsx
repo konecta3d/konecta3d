@@ -47,6 +47,7 @@ export default function CalculadoraPage() {
   const [ticket, setTicket] = useState("800");
   const [ferias, setFerias] = useState("3");
   const [periodo, setPeriodo] = useState<Periodo>("anual");
+  const [nombre, setNombre] = useState("");
   const [copiado, setCopiado] = useState(false);
 
   const r = useMemo(() => {
@@ -85,7 +86,9 @@ export default function CalculadoraPage() {
   const hasDatos = Number(visitantes) > 0 && Number(ticket) > 0;
 
   function compartir() {
-    const params = new URLSearchParams({ v: visitantes, i: interes, c: captados, t: ticket, f: ferias, p: periodo });
+    const p: Record<string, string> = { v: visitantes, i: interes, c: captados, t: ticket, f: ferias, p: periodo };
+    if (nombre.trim()) p.n = nombre.trim();
+    const params = new URLSearchParams(p);
     const url = `${window.location.origin}/calculadora?${params.toString()}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopiado(true);
@@ -166,6 +169,19 @@ export default function CalculadoraPage() {
             hint="¿A cuántas ferias o eventos van al año?"
             value={ferias} onChange={setFerias} min={1}
           />
+
+          {/* Nombre del negocio (personaliza el enlace) */}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium">Nombre del negocio <span className="font-normal text-[var(--foreground)]/40">(opcional)</span></label>
+            <p className="text-xs text-[var(--foreground)]/50">Aparece en el título de la página que verá el prospecto</p>
+            <input
+              type="text"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              placeholder="Ej: Clínica Dental Martínez"
+              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:border-[var(--brand-1)]"
+            />
+          </div>
 
           {/* Botón compartir */}
           <button
