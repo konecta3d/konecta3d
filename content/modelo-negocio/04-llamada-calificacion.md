@@ -32,22 +32,43 @@ Presentarse brevemente. No lanzar el pitch todavía.
 *Qué buscas: tipo de negocio, volumen de interacción física con clientes. Si es 100% online sin contacto físico → no encaja.*
 
 **2. Captación actual**
-> "¿Cómo consigues ahora mismo clientes nuevos: boca a boca, ferias, redes?"
+> "¿Cómo consigues ahora mismo clientes nuevos?
 
+- Boca a boca
+- ferias
+- redes sosciales
+- publicidad
+- referidos
+- otros (cuál)
 *Qué buscas: si depende de canales donde el llavero puede añadir valor.*
 
 **3. El agujero (el dolor central)**
 > "¿Tienes alguna forma de contactar a alguien que pasó por tu negocio y no volvió?"
 
+- CRM (cuál)
+- Sistema manual
+- Personal propio
+
 *Silencio aquí es una venta. Si dicen "no"→ eso es el problema que resolvemos.*
 
 **4. Ferias y eventos**
-> "¿Asistes a ferias, eventos o networking con regularidad?"
+> "Nos conocimos en la feria de Málaga... ¿A cuántas ferias o eventos asistes al año?"
+
+- 1-2
+- 3-5
+- +10
 
 *Qué buscas: si hay un contexto natural de entrega del llavero. Si va a ferias → caso de uso principal.*
 
 **5. WhatsApp de negocio**
 > "¿Tienes WhatsApp activo para el negocio?"
+- si
+- no
+- no lo uso
+
+> "¿Tienes alguna estrategia para que entren más clientes por esta vía?"
+- si (Cuál)
+- no
 
 *Necesario para el enlace de contacto directo en la landing.*
 
@@ -60,6 +81,38 @@ Presentarse brevemente. No lanzar el pitch todavía.
 > "¿Eres tú quien decide incorporar herramientas nuevas al negocio o lo haces con alguien más?"
 
 *Si no es el que decide → el siguiente paso incluye a quien decide.*
+
+---
+
+### La calculadora — antes de cerrar (3-4 min)
+
+Después de confirmar que va a ferias y que tiene un agujero de captación, antes de hablar de precio:
+
+> "Quiero mostrarte algo. Voy a necesitar tres datos rápidos para que lo que te enseñe sean tus números, no los míos."
+
+Abrir `/admin/crm/calculadora` y rellenar mientras habla.
+
+**Las preguntas, en este orden:**
+
+| Dato | Pregunta | Por qué este orden |
+|---|---|---|
+| Visitantes/feria | "¿Cuántas personas pasan por vuestro stand en un día de feria? Una estimación." | Empieza con el número grande — el potencial |
+| % interés | "De esas, ¿cuántas os paran y hablan con vosotros?" | Todavía suena bien |
+| % captados hoy | "Y de las que hablan, ¿cuántas acaban dejando sus datos ese mismo día?" | Aquí aparece el agujero — dejar silencio |
+| Ticket medio | "¿Cuánto vale para ti un cliente nuevo en el primer año, a grandes rasgos?" | Convierte el agujero en euros |
+| Ferias/año | Ya lo tienes de la pregunta 4 — no repetir | Multiplica el dolor |
+
+**Cuando aparezca el número rojo:**
+No lo comentes. Deja que lo lea en silencio. Espera a que él hable primero.
+
+Si dice "vaya" o similar → "Eso es lo que se va de cada feria sin sistema. Y eso es lo que vimos en la tuya del [nombre feria]."
+
+Si no reacciona → "¿Ese número te parece realista con tu negocio?"
+
+**Después, el ROI:**
+La calculadora ya lo calcula. Señalarlo:
+
+> "Con Konecta3D son 99 €/mes — 1.188 €/año. Con tu ticket de [X€] necesitas captar [N clientes] al año para recuperarlo. Con [ferias] ferias, eso es [resultado] por evento."
 
 ---
 
