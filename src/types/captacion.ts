@@ -17,6 +17,7 @@ export interface WelcomeConfig {
   logo_url?: string;
   title: string;
   subtitle: string;
+  cta_text?: string;
   bg_color: string;
   text_color: string;
 }
@@ -54,6 +55,8 @@ export interface CaptureField {
 }
 
 export interface CaptureConfig {
+  title?: string;
+  subtitle?: string;
   fields: CaptureField[];
   cta_text?: string;
 }

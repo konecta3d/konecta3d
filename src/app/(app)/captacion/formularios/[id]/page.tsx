@@ -503,7 +503,7 @@ function WelcomePreview({ config, design }: { config: WelcomeConfig; design: For
         className="mt-8 px-6 py-3 rounded-xl font-semibold text-sm"
         style={{ background: design.accent_color, color: bg }}
       >
-        Comenzar →
+        {config.cta_text || "Comenzar →"}
       </button>
     </div>
   );
@@ -583,7 +583,8 @@ function QuestionsPreview({ config, design }: { config: QuestionsConfig; design:
 function CapturePreview({ config, design }: { config: CaptureConfig; design: FormDesign }) {
   return (
     <div className="p-5 flex flex-col gap-3" style={{ fontFamily: design.font_family }}>
-      <p className="text-sm font-semibold mb-1" style={{ color: design.text_color }}>Tus datos</p>
+      <p className="text-sm font-semibold mb-1" style={{ color: design.text_color }}>{config.title || "Tus datos"}</p>
+      <p className="text-xs mb-2" style={{ color: design.text_color, opacity: 0.5 }}>{config.subtitle || "Solo pedimos lo que realmente necesitamos"}</p>
       {(config.fields || []).filter(f => f.enabled).map(f => (
         <div key={f.name}>
           <label className="text-xs block mb-1" style={{ color: design.text_color, opacity: 0.6 }}>
@@ -693,6 +694,11 @@ function WelcomeEditor({ config, onChange }: { config: WelcomeConfig; onChange: 
         <textarea className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent resize-none" rows={2}
           style={{ borderColor: "var(--border)" }}
           value={config.subtitle} onChange={e => onChange({ ...config, subtitle: e.target.value })} />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Texto del botón</label>
+        <input className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
+          value={config.cta_text ?? ""} onChange={e => onChange({ ...config, cta_text: e.target.value })} placeholder="Comenzar →" />
       </div>
       <p className="text-xs text-[var(--foreground)]/40">
         Los colores de este bloque se sincronizan con el diseño global. Usa el botón "Diseño" para cambiarlos.
@@ -811,6 +817,16 @@ function CaptureEditor({ config, onChange }: { config: CaptureConfig; onChange: 
   };
   return (
     <div className="space-y-2">
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Título</label>
+        <input className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
+          value={config.title ?? ""} onChange={e => onChange({ ...config, title: e.target.value })} placeholder="Tus datos" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Subtítulo</label>
+        <input className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
+          value={config.subtitle ?? ""} onChange={e => onChange({ ...config, subtitle: e.target.value })} placeholder="Solo pedimos lo que realmente necesitamos" />
+      </div>
       <div>
         <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Texto del botón</label>
         <input

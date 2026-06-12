@@ -399,7 +399,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
             <button onClick={next}
               className="px-8 py-4 rounded-2xl font-semibold text-base active:scale-95 transition-transform"
               style={{ background: s.accent_color, color: bg }}>
-              Comenzar →
+              {cfg.cta_text || "Comenzar →"}
             </button>
           </div>
         );
@@ -508,8 +508,8 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
         return (
           <div className="min-h-screen flex flex-col justify-center p-6"
             style={{ background: s.bg_color, color: s.text_color, fontFamily: resolveFont(s.font_family) }}>
-            <h2 className="text-xl font-bold mb-1">Tus datos</h2>
-            <p className="text-sm mb-6" style={{ opacity: 0.5 }}>Solo pedimos lo que realmente necesitamos</p>
+            <h2 className="text-xl font-bold mb-1">{cfg.title || "Tus datos"}</h2>
+            <p className="text-sm mb-6" style={{ opacity: 0.5 }}>{cfg.subtitle || "Solo pedimos lo que realmente necesitamos"}</p>
             <div className="space-y-4 mb-6">
               {enabledFields.map(f => (
                 <div key={f.name}>
