@@ -28,6 +28,8 @@ interface Props {
   slug?: string;
   /** public_id del negocio — destino de la redirección a fidelización */
   businessPublicId?: string;
+  /** Modo prueba: muestra el formulario sin poner cookie ni redirigir a fidelización */
+  preview?: boolean;
   /** URL de la política de privacidad del negocio. Por defecto /privacidad */
   privacyUrl?: string;
   /** Texto personalizado junto al link de privacidad */
@@ -102,6 +104,7 @@ function DefaultForm({
   businessPublicId,
   privacyUrl,
   privacyText,
+  preview,
 }: {
   campaignId: string;
   leadMagnet: LeadMagnetInfo | null;
@@ -110,6 +113,7 @@ function DefaultForm({
   businessPublicId?: string;
   privacyUrl?: string;
   privacyText?: string;
+  preview?: boolean;
 }) {
   const [step, setStep] = useState<"capture" | "done">("capture");
   const [name, setName] = useState("");
@@ -129,6 +133,7 @@ function DefaultForm({
         .catch(() => {/* silencioso */});
     }
     // 2. Marcar cookie de fidelización y redirigir tras iniciar descarga
+    if (preview) return; // modo prueba: ni cookie ni redirección a fidelización
     if (slug) markConverted(slug);
     if (businessPublicId) {
       setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
@@ -295,7 +300,7 @@ function DefaultForm({
 
 // ── Full form renderer con bloques ────────────────────────────
 
-export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp, slug, businessPublicId, privacyUrl, privacyText }: Props) {
+export default function FormRenderer({ campaignId, campaignName, blocks, leadMagnet, design: designProp, slug, businessPublicId, privacyUrl, privacyText, preview }: Props) {
   const design = { ...DEFAULT_DESIGN, ...(designProp || {}) };
   const s = design;
   void campaignName;
@@ -324,6 +329,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
       fetch(`/api/captacion/leads/${leadId}/lm-downloaded`, { method: "PATCH" })
         .catch(() => {/* silencioso */});
     }
+    if (preview) return; // modo prueba: ni cookie ni redirección a fidelización
     if (slug) markConverted(slug);
     if (businessPublicId) {
       setTimeout(() => window.location.replace(`/l/${businessPublicId}/NFC`), 1200);
@@ -331,7 +337,7 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
   };
 
   if (!blocks || blocks.length === 0) {
-    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} privacyUrl={privacyUrl} privacyText={privacyText} />;
+    return <DefaultForm campaignId={campaignId} leadMagnet={leadMagnet} design={design} slug={slug} businessPublicId={businessPublicId} privacyUrl={privacyUrl} privacyText={privacyText} preview={preview} />;
   }
 
   const next = () => {

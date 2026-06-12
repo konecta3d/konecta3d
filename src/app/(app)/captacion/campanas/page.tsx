@@ -749,6 +749,15 @@ export default function CampanasPage() {
                     style={{ borderColor: copied === c.slug ? undefined : "var(--border)" }}>
                     {copied === c.slug ? "✓ Copiado" : "Copiar link"}
                   </button>
+                  <a
+                    href={`${origin}/c/${c.slug}?preview=1`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Abre el formulario en modo prueba: no pone cookie ni redirige a fidelización"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors hover:border-[var(--brand-1)]/50"
+                    style={{ borderColor: "var(--border)" }}>
+                    Ver en prueba
+                  </a>
                   <button onClick={() => deleteCampaign(c.id)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-red-400 hover:bg-red-500/10">
                     Eliminar

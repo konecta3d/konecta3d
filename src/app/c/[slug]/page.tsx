@@ -14,6 +14,7 @@ function supabaseAdmin() {
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // Nombre de la cookie que marca que este cliente ya completó el flujo
@@ -21,8 +22,10 @@ export function fidelizacionCookieName(slug: string) {
   return `k3d_done_${slug}`;
 }
 
-export default async function CampaignPage({ params }: PageProps) {
+export default async function CampaignPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const preview = sp.preview === "1"; // modo prueba: ver el formulario sin redirigir a fidelización
   const db = supabaseAdmin();
 
   // Buscar campaña por slug
@@ -45,7 +48,7 @@ export default async function CampaignPage({ params }: PageProps) {
   // ── Redirección automática a fidelización ─────────────────────────────────
   // Si el cliente ya completó el flujo (cookie en su dispositivo),
   // redirigirlo directamente a la landing de fidelización sin mostrar el form.
-  if (campaign.status === "active" && businessPublicId) {
+  if (campaign.status === "active" && businessPublicId && !preview) {
     const cookieStore = await cookies();
     if (cookieStore.get(fidelizacionCookieName(slug))?.value === "1") {
       redirect(`/l/${businessPublicId}/NFC`);
@@ -129,6 +132,7 @@ export default async function CampaignPage({ params }: PageProps) {
       businessPublicId={businessPublicId}
       privacyUrl={campaign.privacy_url || undefined}
       privacyText={campaign.privacy_text || undefined}
+      preview={preview}
     />
   );
 }
