@@ -43,7 +43,7 @@ function Parametro({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: hex(color, 0.4) }}>
+      <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: hex(color, 0.8) }}>
         {label}
       </p>
       <div className="flex items-baseline gap-1">
@@ -55,11 +55,11 @@ function Parametro({
           max={max}
           className="bg-transparent text-2xl font-bold w-full focus:outline-none border-b-2 border-transparent transition-colors pb-0.5"
           style={{ color: "#fff", borderBottomColor: "transparent" }}
-          onFocus={e => (e.target.style.borderBottomColor = hex(color, 0.5))}
+          onFocus={e => (e.target.style.borderBottomColor = hex(color, 0.6))}
           onBlur={e  => (e.target.style.borderBottomColor = "transparent")}
         />
         {suffix && (
-          <span className="text-base font-semibold" style={{ color: hex(color, 0.45) }}>{suffix}</span>
+          <span className="text-base font-semibold" style={{ color: hex(color, 0.7) }}>{suffix}</span>
         )}
       </div>
     </div>
@@ -162,7 +162,7 @@ export default function CalculadoraPublica() {
           className="rounded-2xl p-5"
           style={{ background: hex("#ffffff", 0.04), border: `1px solid ${hex("#ffffff", 0.08)}` }}
         >
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-5" style={{ color: hex(colPot, 0.5) }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-5" style={{ color: hex(colPot, 0.85) }}>
             Tus datos
           </p>
 
@@ -175,7 +175,7 @@ export default function CalculadoraPublica() {
 
           {/* Ticket + periodo */}
           <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${hex("#ffffff", 0.07)}` }}>
-            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: hex(colPot, 0.4) }}>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: hex(colPot, 0.8) }}>
               Valor de un cliente
             </p>
             <div className="flex items-end gap-3">
@@ -187,10 +187,10 @@ export default function CalculadoraPublica() {
                   min={0}
                   className="bg-transparent text-2xl font-bold w-full focus:outline-none border-b-2 border-transparent transition-colors pb-0.5"
                   style={{ color: "#fff" }}
-                  onFocus={e => (e.target.style.borderBottomColor = hex(colPot, 0.5))}
+                  onFocus={e => (e.target.style.borderBottomColor = hex(colPot, 0.6))}
                   onBlur={e  => (e.target.style.borderBottomColor = "transparent")}
                 />
-                <span className="text-base font-semibold" style={{ color: hex(colPot, 0.45) }}>€</span>
+                <span className="text-base font-semibold" style={{ color: hex(colPot, 0.7) }}>€</span>
               </div>
               <div className="flex gap-1 pb-0.5">
                 {(["mensual", "trimestral", "anual"] as Periodo[]).map(p => (
@@ -211,7 +211,7 @@ export default function CalculadoraPublica() {
               </div>
             </div>
             {periodo !== "anual" && r.t > 0 && (
-              <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.55)" }}>
                 = {fmt(r.ticketAnual)} € en el primer año
               </p>
             )}
@@ -224,7 +224,7 @@ export default function CalculadoraPublica() {
             className="rounded-2xl p-5 space-y-3"
             style={{ background: hex("#ffffff", 0.03), border: `1px solid ${hex("#ffffff", 0.07)}` }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-wider mb-4" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
               Cómo se calcula
             </p>
 
@@ -336,7 +336,7 @@ export default function CalculadoraPublica() {
               <p className="text-sm font-semibold mb-0.5" style={{ color: colPot }}>
                 Lo que puedes ganar con Konecta3D
               </p>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
                 Elige un escenario — ¿cuántos de los que hoy se van crees que captarías?
               </p>
             </div>
@@ -371,13 +371,13 @@ export default function CalculadoraPublica() {
             </p>
 
             <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: hex(colPot, 0.65) }}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: hex(colPot, 0.85) }}>
                 Ingresos adicionales al año
               </p>
               <p className="font-black leading-none" style={{ fontSize: "clamp(2.5rem,13vw,4rem)", color: colPot }}>
                 +{fmt(potencial.ingresos)} €
               </p>
-              <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {potencial.recuperadosAnual} clientes × {fmt(r.ticketAnual)} €/cliente
               </p>
             </div>
