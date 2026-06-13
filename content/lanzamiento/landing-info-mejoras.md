@@ -119,6 +119,38 @@ Añade una línea de plazo (informa y crea urgencia real):
 
 ---
 
+## SECCIÓN 7 — Por qué funciona, en números (dato HONESTO, sin inventar)
+*Dónde ponerla: tras el "cómo funciona" o dentro de la FAQ ("¿y si no funciona en mi caso?").*
+
+> Regla: **no inventamos resultados** (aún no hay piloto). El dato honesto es la CUENTA
+> con los números del PROPIO prospecto. Ya tienes la herramienta: la **calculadora**
+> (`/calculadora`), que con sus datos (visitantes, ticket, ferias) le dice cuánto dinero
+> pierde y cuántos clientes necesita para pagar Konecta. Cero invención.
+
+**Bloque Titular (heading):**
+> ¿Por qué funciona? Porque la cuenta sale sola.
+
+**Bloque Párrafo (paragraph):**
+> Un stand te cuesta miles de euros. Konecta cuesta 99 €/mes. Con que captes y cierres
+> un solo cliente más por feria, ya lo has pagado de sobra. Y por primera vez sabes, con
+> números, qué feria te trajo clientes y cuál no.
+
+**Bloque Botón (button) — CTA secundario:**
+> Haz tú la cuenta con tus datos → *(enlace a `/calculadora`)*
+
+**Cuando tengas un piloto (prueba real), añade el número real:**
+> "[Negocio] captó [N] contactos en [feria]. Antes se le iban casi todos." — [Nombre], [Sector].
+
+---
+
+## Sobre el "pierdes el 80%" del hero (honestidad)
+Esa cifra hoy es una afirmación sin fuente. Para no exponerte:
+- Si tienes un **estudio** que lo respalde, cítalo: "Según [fuente], el 80%…".
+- Si no, **suavízalo** a "la mayoría" / "casi todos": "pierdes a la mayoría de los contactos".
+- En cuanto tengas **tu propio dato** (de un piloto), sustitúyelo por el número real.
+
+---
+
 ## Recordatorio de prioridad
 Si solo haces 3 cosas: (1) el **vídeo del toque + la captura del panel** (Sección 5),
 (2) **qué cuesta + plazos** (Sección 2 + Paso 2), (3) **las erratas**. El resto suma,
