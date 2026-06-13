@@ -6,10 +6,17 @@ import { useSearchParams } from "next/navigation";
 const KONECTA_MENSUAL = 99;
 const KONECTA_ANUAL = KONECTA_MENSUAL * 12;
 
-type Periodo = "mensual" | "trimestral" | "anual";
+type Periodo  = "mensual" | "trimestral" | "anual";
+type Escenario = "conservador" | "realista" | "optimista";
 
-const PERIODO_MULT: Record<Periodo, number> = { mensual: 12, trimestral: 4, anual: 1 };
-const PERIODO_LABELS: Record<Periodo, string> = { mensual: "mes", trimestral: "trimestre", anual: "año" };
+const PERIODO_MULT:   Record<Periodo,  number> = { mensual: 12, trimestral: 4, anual: 1 };
+const PERIODO_LABELS: Record<Periodo,  string> = { mensual: "mes", trimestral: "trimestre", anual: "año" };
+const ESCENARIO_PORC: Record<Escenario, number> = { conservador: 0.25, realista: 0.5, optimista: 0.75 };
+const ESCENARIO_DESC: Record<Escenario, string> = {
+  conservador: "1 de cada 4 que se van",
+  realista:    "1 de cada 2 que se van",
+  optimista:   "3 de cada 4 que se van",
+};
 
 function fmt(n: number) {
   return n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
@@ -37,7 +44,7 @@ function Parametro({
           onChange={e => onChange(e.target.value)}
           min={min ?? 0}
           max={max}
-          className="bg-transparent text-2xl font-bold w-full focus:outline-none border-b-2 border-transparent focus:border-[#C5A059]/60 transition-colors pb-0.5 appearance-none"
+          className="bg-transparent text-2xl font-bold w-full focus:outline-none border-b-2 border-transparent focus:border-[#C5A059]/60 transition-colors pb-0.5"
           style={{ color: "#fff" }}
         />
         {suffix && (
@@ -60,6 +67,7 @@ export default function CalculadoraPublica() {
   const [ticket, setTicket]         = useState(params.get("t") ?? "800");
   const [ferias, setFerias]         = useState(params.get("f") ?? "3");
   const [periodo, setPeriodo]       = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "anual");
+  const [escenario, setEscenario]   = useState<Escenario>("realista");
 
   const r = useMemo(() => {
     const v = Math.max(0, Number(visitantes) || 0);
@@ -91,6 +99,15 @@ export default function CalculadoraPublica() {
       dineroPorFeria, dineroAnual, clientesNecesarios, paybackLabel,
     };
   }, [visitantes, interes, captados, ticket, ferias, periodo]);
+
+  const potencial = useMemo(() => {
+    const porc = ESCENARIO_PORC[escenario];
+    const recuperadosPorFeria = Math.round(r.perdidosPorFeria * porc);
+    const recuperadosAnual    = recuperadosPorFeria * r.f;
+    const ingresos            = recuperadosAnual * r.ticketAnual;
+    const beneficio           = ingresos - KONECTA_ANUAL;
+    return { recuperadosPorFeria, recuperadosAnual, ingresos, beneficio };
+  }, [r, escenario]);
 
   const hasDatos = r.v > 0 && r.t > 0;
 
@@ -127,22 +144,10 @@ export default function CalculadoraPublica() {
           </p>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-            <Parametro
-              label="Visitantes por feria"
-              value={visitantes} onChange={setVisitantes} min={0}
-            />
-            <Parametro
-              label="Ferias al año"
-              value={ferias} onChange={setFerias} min={1}
-            />
-            <Parametro
-              label="% muestran interés"
-              value={interes} onChange={setInteres} suffix="%" min={0} max={100}
-            />
-            <Parametro
-              label="% dejan sus datos"
-              value={captados} onChange={setCaptados} suffix="%" min={0} max={100}
-            />
+            <Parametro label="Visitantes por feria" value={visitantes} onChange={setVisitantes} min={0} />
+            <Parametro label="Ferias al año"        value={ferias}     onChange={setFerias}     min={1} />
+            <Parametro label="% muestran interés"   value={interes}    onChange={setInteres}    suffix="%" min={0} max={100} />
+            <Parametro label="% dejan sus datos"    value={captados}   onChange={setCaptados}   suffix="%" min={0} max={100} />
           </div>
 
           {/* Ticket + periodo */}
@@ -173,8 +178,8 @@ export default function CalculadoraPublica() {
                     className="px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-colors"
                     style={{
                       borderColor: periodo === p ? "#C5A059" : "rgba(255,255,255,0.12)",
-                      background: periodo === p ? "rgba(197,160,89,0.15)" : "transparent",
-                      color: periodo === p ? "#C5A059" : "rgba(255,255,255,0.35)",
+                      background:  periodo === p ? "rgba(197,160,89,0.15)" : "transparent",
+                      color:       periodo === p ? "#C5A059" : "rgba(255,255,255,0.35)",
                     }}
                   >
                     {p === "mensual" ? "mes" : p === "trimestral" ? "trim." : "año"}
@@ -200,7 +205,6 @@ export default function CalculadoraPublica() {
               Cómo se calcula
             </p>
 
-            {/* Paso 1 */}
             <div className="flex items-start gap-3">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5"
                 style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>1</span>
@@ -208,14 +212,10 @@ export default function CalculadoraPublica() {
                 <strong className="text-white">{fmt(r.v)}</strong> personas pasan por tu stand en cada feria
               </p>
             </div>
-
-            <div className="ml-3 border-l" style={{ borderColor: "rgba(255,255,255,0.1)", paddingLeft: "1.25rem" }}>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                el {r.i}% muestra interés real
-              </p>
+            <div className="ml-3 border-l pl-5" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>el {r.i}% muestra interés real</p>
             </div>
 
-            {/* Paso 2 */}
             <div className="flex items-start gap-3">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5"
                 style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>2</span>
@@ -223,50 +223,40 @@ export default function CalculadoraPublica() {
                 <strong className="text-white">{fmt(r.interesadosPorFeria)}</strong> personas hablan contigo y preguntan
               </p>
             </div>
-
-            <div className="ml-3 border-l" style={{ borderColor: "rgba(255,255,255,0.1)", paddingLeft: "1.25rem" }}>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                solo el {r.c}% deja sus datos ese mismo día
-              </p>
+            <div className="ml-3 border-l pl-5" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>solo el {r.c}% deja sus datos ese mismo día</p>
             </div>
 
-            {/* Paso 3 — el agujero */}
             <div className="flex items-start gap-3">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5"
                 style={{ background: "rgba(239,68,68,0.2)", color: "#f87171" }}>3</span>
-              <div>
-                <p className="text-sm leading-relaxed">
-                  <strong className="text-white">{fmt(r.captadosPorFeria)}</strong>
-                  <span style={{ color: "rgba(255,255,255,0.6)" }}> captados</span>
-                  <span style={{ color: "rgba(255,255,255,0.35)" }}> — pero </span>
-                  <strong style={{ color: "#f87171" }}>{fmt(r.perdidosPorFeria)} se van sin contacto</strong>
-                </p>
-              </div>
+              <p className="text-sm leading-relaxed">
+                <strong className="text-white">{fmt(r.captadosPorFeria)}</strong>
+                <span style={{ color: "rgba(255,255,255,0.6)" }}> captados</span>
+                <span style={{ color: "rgba(255,255,255,0.35)" }}> — pero </span>
+                <strong style={{ color: "#f87171" }}>{fmt(r.perdidosPorFeria)} se van sin contacto</strong>
+              </p>
             </div>
 
-            {/* Cálculo del dinero */}
             <div
               className="mt-2 rounded-xl p-4 space-y-1.5"
               style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
             >
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {fmt(r.perdidosPorFeria)} contactos × {fmt(r.ticketAnual)} €
-                {periodo !== "anual" && (
-                  <span> ({ticket} €/{PERIODO_LABELS[periodo]} × {PERIODO_MULT[periodo]})</span>
-                )}{" "}
-                = <strong style={{ color: "rgba(248,113,113,0.9)" }}>{fmt(r.dineroPorFeria)} €</strong>
+                {periodo !== "anual" && <span> ({ticket} €/{PERIODO_LABELS[periodo]} × {PERIODO_MULT[periodo]})</span>}
+                {" "}= <strong style={{ color: "rgba(248,113,113,0.9)" }}>{fmt(r.dineroPorFeria)} €</strong>
                 <span style={{ color: "rgba(255,255,255,0.3)" }}> por feria</span>
               </p>
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {fmt(r.dineroPorFeria)} € × {r.f} feria{r.f !== 1 ? "s" : ""}{" "}
-                ={" "}
-                <strong style={{ color: "#f87171" }}>{fmt(r.dineroAnual)} € al año</strong>
+                {fmt(r.dineroPorFeria)} € × {r.f} feria{r.f !== 1 ? "s" : ""}
+                {" "}= <strong style={{ color: "#f87171" }}>{fmt(r.dineroAnual)} € al año</strong>
               </p>
             </div>
           </div>
         )}
 
-        {/* Número protagonista */}
+        {/* Número protagonista — el dolor */}
         <div
           className="rounded-2xl p-7 text-center"
           style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)" }}
@@ -287,7 +277,7 @@ export default function CalculadoraPublica() {
           )}
         </div>
 
-        {/* ROI */}
+        {/* Break-even con Konecta3D */}
         <div
           className="rounded-2xl p-5"
           style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)" }}
@@ -297,9 +287,7 @@ export default function CalculadoraPublica() {
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
             Con un ticket de{" "}
-            <strong className="text-white">
-              {ticket} €/{PERIODO_LABELS[periodo]}
-            </strong>
+            <strong className="text-white">{ticket} €/{PERIODO_LABELS[periodo]}</strong>
             {periodo !== "anual" && (
               <span style={{ color: "rgba(255,255,255,0.4)" }}> ({fmt(r.ticketAnual)} €/año)</span>
             )}
@@ -312,16 +300,94 @@ export default function CalculadoraPublica() {
             al año para que la plataforma se pague sola.
           </p>
           {hasDatos && r.clientesNecesarios > 0 && (
-            <div
-              className="mt-3 rounded-xl py-2.5 px-3 text-center"
-              style={{ background: "rgba(34,197,94,0.12)" }}
-            >
-              <p className="text-sm font-semibold" style={{ color: "#4ade80" }}>
-                {r.paybackLabel}
-              </p>
+            <div className="mt-3 rounded-xl py-2.5 px-3 text-center" style={{ background: "rgba(34,197,94,0.12)" }}>
+              <p className="text-sm font-semibold" style={{ color: "#4ade80" }}>{r.paybackLabel}</p>
             </div>
           )}
         </div>
+
+        {/* Potencial real — el upside */}
+        {hasDatos && r.perdidosPorFeria > 0 && (
+          <div
+            className="rounded-2xl p-5 space-y-5"
+            style={{ background: "rgba(197,160,89,0.07)", border: "1px solid rgba(197,160,89,0.25)" }}
+          >
+            <div>
+              <p className="text-sm font-semibold mb-0.5" style={{ color: "#C5A059" }}>
+                Lo que puedes ganar con Konecta3D
+              </p>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Elige un escenario según tu criterio — ¿cuántos de los que hoy se van crees que captarías?
+              </p>
+            </div>
+
+            {/* Selector de escenario */}
+            <div className="flex gap-2">
+              {(["conservador", "realista", "optimista"] as Escenario[]).map(e => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setEscenario(e)}
+                  className="flex-1 rounded-xl border py-2.5 px-1 text-center transition-colors"
+                  style={{
+                    borderColor: escenario === e ? "#C5A059" : "rgba(255,255,255,0.1)",
+                    background:  escenario === e ? "rgba(197,160,89,0.18)" : "transparent",
+                  }}
+                >
+                  <p className="text-xs font-semibold capitalize" style={{ color: escenario === e ? "#C5A059" : "rgba(255,255,255,0.45)" }}>
+                    {e}
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    {ESCENARIO_DESC[e]}
+                  </p>
+                </button>
+              ))}
+            </div>
+
+            {/* Clientes adicionales */}
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Captarías{" "}
+              <strong className="text-white">{potencial.recuperadosPorFeria} contactos más por feria</strong>
+              {" "}— en {r.f} feria{r.f !== 1 ? "s" : ""} serían{" "}
+              <strong className="text-white">{potencial.recuperadosAnual} clientes nuevos al año</strong>.
+            </p>
+
+            {/* Ingresos adicionales — número protagonista en dorado */}
+            <div className="text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(197,160,89,0.6)" }}>
+                Ingresos adicionales al año
+              </p>
+              <p className="font-black leading-none" style={{ fontSize: "clamp(2.5rem,13vw,4rem)", color: "#C5A059" }}>
+                +{fmt(potencial.ingresos)} €
+              </p>
+              <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                {potencial.recuperadosAnual} clientes × {fmt(r.ticketAnual)} €/cliente
+              </p>
+            </div>
+
+            {/* Cuenta de resultados */}
+            <div
+              className="rounded-xl p-4 space-y-2"
+              style={{ background: "rgba(197,160,89,0.1)", border: "1px solid rgba(197,160,89,0.2)" }}
+            >
+              <div className="flex justify-between text-sm">
+                <span style={{ color: "rgba(255,255,255,0.5)" }}>Ingresos adicionales</span>
+                <span style={{ color: "#C5A059" }}>+{fmt(potencial.ingresos)} €</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span style={{ color: "rgba(255,255,255,0.5)" }}>Konecta3D (99 €/mes)</span>
+                <span style={{ color: "rgba(255,255,255,0.4)" }}>−{fmt(KONECTA_ANUAL)} €</span>
+              </div>
+              <div
+                className="flex justify-between pt-2 font-bold"
+                style={{ borderTop: "1px solid rgba(197,160,89,0.3)" }}
+              >
+                <span style={{ color: "#C5A059" }}>Beneficio neto</span>
+                <span className="text-lg" style={{ color: "#C5A059" }}>+{fmt(potencial.beneficio)} €</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="text-center pt-2 pb-4">
           <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.18)" }}>
