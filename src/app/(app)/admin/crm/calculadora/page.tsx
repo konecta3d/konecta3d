@@ -40,6 +40,21 @@ function InputField({
   );
 }
 
+function ColorSwatch({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex flex-col items-center gap-1.5 cursor-pointer group">
+      <div
+        className="w-9 h-9 rounded-xl border-2 border-[var(--border)] group-hover:border-[var(--foreground)]/40 transition-colors shadow-sm"
+        style={{ background: value }}
+      />
+      <span className="text-[10px] text-[var(--foreground)]/45 font-medium text-center">{label}</span>
+      <input type="color" value={value} onChange={e => onChange(e.target.value)} className="sr-only" />
+    </label>
+  );
+}
+
+const DEFAULT_COLORS = { bg: "#0a0a0b", pain: "#ef4444", roi: "#22c55e", pot: "#c5a059" };
+
 export default function CalculadoraPage() {
   const [visitantes, setVisitantes] = useState("150");
   const [interes, setInteres] = useState("20");
@@ -49,6 +64,10 @@ export default function CalculadoraPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const [nombre, setNombre] = useState("");
   const [copiado, setCopiado] = useState(false);
+  const [colBg,   setColBg]   = useState(DEFAULT_COLORS.bg);
+  const [colPain, setColPain] = useState(DEFAULT_COLORS.pain);
+  const [colRoi,  setColRoi]  = useState(DEFAULT_COLORS.roi);
+  const [colPot,  setColPot]  = useState(DEFAULT_COLORS.pot);
 
   function changePeriodo(nuevo: Periodo) {
     const anual = Number(ticket) * PERIODO_MULT[periodo];
@@ -93,7 +112,11 @@ export default function CalculadoraPage() {
 
   function compartir() {
     const p: Record<string, string> = { v: visitantes, i: interes, c: captados, t: ticket, f: ferias, p: periodo };
-    if (nombre.trim()) p.n = nombre.trim();
+    if (nombre.trim())              p.n  = nombre.trim();
+    if (colBg   !== DEFAULT_COLORS.bg)   p.bg = colBg;
+    if (colPain !== DEFAULT_COLORS.pain) p.c1 = colPain;
+    if (colRoi  !== DEFAULT_COLORS.roi)  p.c2 = colRoi;
+    if (colPot  !== DEFAULT_COLORS.pot)  p.c3 = colPot;
     const params = new URLSearchParams(p);
     const url = `${window.location.origin}/calculadora?${params.toString()}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -187,6 +210,26 @@ export default function CalculadoraPage() {
               placeholder="Ej: Clínica Dental Martínez"
               className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:border-[var(--brand-1)]"
             />
+          </div>
+
+          {/* Colores de la calculadora */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">Colores de la calculadora</label>
+              <button
+                type="button"
+                onClick={() => { setColBg(DEFAULT_COLORS.bg); setColPain(DEFAULT_COLORS.pain); setColRoi(DEFAULT_COLORS.roi); setColPot(DEFAULT_COLORS.pot); }}
+                className="text-xs text-[var(--foreground)]/40 hover:text-[var(--foreground)]/60 transition-colors"
+              >
+                Restablecer
+              </button>
+            </div>
+            <div className="flex justify-around pt-1">
+              <ColorSwatch label="Fondo"      value={colBg}   onChange={setColBg}   />
+              <ColorSwatch label="Dolor"      value={colPain} onChange={setColPain} />
+              <ColorSwatch label="Break-even" value={colRoi}  onChange={setColRoi}  />
+              <ColorSwatch label="Potencial"  value={colPot}  onChange={setColPot}  />
+            </div>
           </div>
 
           {/* Botón compartir */}
