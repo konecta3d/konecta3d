@@ -99,7 +99,7 @@ Abrir `/admin/crm/calculadora` y rellenar mientras habla.
 | Visitantes/feria | "¿Cuántas personas pasan por vuestro stand en un día de feria? Una estimación." | Empieza con el número grande — el potencial |
 | % interés | "De esas, ¿cuántas os paran y hablan con vosotros?" | Todavía suena bien |
 | % captados hoy | "Y de las que hablan, ¿cuántas acaban dejando sus datos ese mismo día?" | Aquí aparece el agujero — dejar silencio |
-| Ticket medio | "¿Cuánto vale para ti un cliente nuevo en el primer año, a grandes rasgos?" | Convierte el agujero en euros |
+| Ticket medio | "¿Cuánto gasta de media un cliente tuyo al mes?" | Más fácil de responder que el anual — la calculadora convierte automáticamente |
 | Ferias/año | Ya lo tienes de la pregunta 4 — no repetir | Multiplica el dolor |
 
 **Cuando aparezca el número rojo:**

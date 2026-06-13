@@ -66,7 +66,7 @@ export default function CalculadoraPublica() {
   const [captados, setCaptados]     = useState(params.get("c") ?? "10");
   const [ticket, setTicket]         = useState(params.get("t") ?? "800");
   const [ferias, setFerias]         = useState(params.get("f") ?? "3");
-  const [periodo, setPeriodo]       = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "anual");
+  const [periodo, setPeriodo]       = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "mensual");
   const [escenario, setEscenario]   = useState<Escenario>("realista");
 
   function changePeriodo(nuevo: Periodo) {

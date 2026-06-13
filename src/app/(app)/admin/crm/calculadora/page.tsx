@@ -46,7 +46,7 @@ export default function CalculadoraPage() {
   const [captados, setCaptados] = useState("10");
   const [ticket, setTicket] = useState("800");
   const [ferias, setFerias] = useState("3");
-  const [periodo, setPeriodo] = useState<Periodo>("anual");
+  const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const [nombre, setNombre] = useState("");
   const [copiado, setCopiado] = useState(false);
 
