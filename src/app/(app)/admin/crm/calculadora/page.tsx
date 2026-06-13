@@ -5,7 +5,8 @@ import { useState, useMemo } from "react";
 const KONECTA_MENSUAL = 99;
 const KONECTA_ANUAL = KONECTA_MENSUAL * 12;
 
-type Periodo = "mensual" | "trimestral" | "anual";
+type Periodo   = "mensual" | "trimestral" | "anual";
+type ModoInput = "pct" | "num";
 
 const PERIODO_MULT: Record<Periodo, number> = { mensual: 12, trimestral: 4, anual: 1 };
 const PERIODO_LABELS: Record<Periodo, string> = { mensual: "Mensual", trimestral: "Trimestral", anual: "Anual" };
@@ -15,15 +16,34 @@ function fmt(n: number) {
 }
 
 function InputField({
-  label, hint, value, onChange, suffix, min, max,
+  label, hint, value, onChange, suffix, min, max, toggle,
 }: {
   label: string; hint: string; value: string;
   onChange: (v: string) => void;
   suffix?: string; min?: number; max?: number;
+  toggle?: { mode: ModoInput; onSwitch: (m: ModoInput) => void };
 }) {
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium">{label}</label>
+        {toggle && (
+          <div className="flex gap-0.5 p-0.5 rounded-md border border-[var(--border)]">
+            {(["pct", "num"] as ModoInput[]).map(m => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => toggle.onSwitch(m)}
+                className={`px-1.5 py-0.5 text-[10px] font-bold rounded transition-colors ${
+                  toggle.mode === m
+                    ? "bg-[var(--brand-1)]/20 text-[var(--brand-1)]"
+                    : "text-[var(--foreground)]/40 hover:text-[var(--foreground)]/60"
+                }`}
+              >{m === "pct" ? "%" : "N"}</button>
+            ))}
+          </div>
+        )}
+      </div>
       <p className="text-xs text-[var(--foreground)]/50">{hint}</p>
       <div className="flex items-center gap-1 mt-1">
         <input
@@ -64,10 +84,12 @@ export default function CalculadoraPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const [nombre, setNombre] = useState("");
   const [copiado, setCopiado] = useState(false);
-  const [colBg,   setColBg]   = useState(DEFAULT_COLORS.bg);
-  const [colPain, setColPain] = useState(DEFAULT_COLORS.pain);
-  const [colRoi,  setColRoi]  = useState(DEFAULT_COLORS.roi);
-  const [colPot,  setColPot]  = useState(DEFAULT_COLORS.pot);
+  const [colBg,        setColBg]        = useState(DEFAULT_COLORS.bg);
+  const [colPain,      setColPain]      = useState(DEFAULT_COLORS.pain);
+  const [colRoi,       setColRoi]       = useState(DEFAULT_COLORS.roi);
+  const [colPot,       setColPot]       = useState(DEFAULT_COLORS.pot);
+  const [interesMode,  setInteresMode]  = useState<ModoInput>("pct");
+  const [captadosMode, setCaptadosMode] = useState<ModoInput>("pct");
 
   function changePeriodo(nuevo: Periodo) {
     const anual = Number(ticket) * PERIODO_MULT[periodo];
@@ -75,16 +97,48 @@ export default function CalculadoraPage() {
     setPeriodo(nuevo);
   }
 
-  const r = useMemo(() => {
+  function changeInteresMode(newMode: ModoInput) {
+    if (newMode === interesMode) return;
     const v = Math.max(0, Number(visitantes) || 0);
-    const i = Math.min(100, Math.max(0, Number(interes) || 0));
-    const c = Math.min(100, Math.max(0, Number(captados) || 0));
-    const t = Math.max(0, Number(ticket) || 0);
-    const f = Math.max(1, Number(ferias) || 1);
+    const iRaw = Math.max(0, Number(interes) || 0);
+    const interesados = interesMode === "pct" ? Math.round(v * (Math.min(100, iRaw) / 100)) : Math.min(v, Math.round(iRaw));
+    if (newMode === "num") {
+      setInteres(String(interesados));
+    } else {
+      setInteres(v > 0 ? String(Math.round((interesados / v) * 100)) : "20");
+    }
+    setInteresMode(newMode);
+  }
+
+  function changeCaptadosMode(newMode: ModoInput) {
+    if (newMode === captadosMode) return;
+    const v    = Math.max(0, Number(visitantes) || 0);
+    const iRaw = Math.max(0, Number(interes) || 0);
+    const cRaw = Math.max(0, Number(captados) || 0);
+    const interesados = interesMode === "pct" ? Math.round(v * (Math.min(100, iRaw) / 100)) : Math.min(v, Math.round(iRaw));
+    const captadosN   = captadosMode === "pct" ? Math.round(interesados * (Math.min(100, cRaw) / 100)) : Math.min(interesados, Math.round(cRaw));
+    if (newMode === "num") {
+      setCaptados(String(captadosN));
+    } else {
+      setCaptados(interesados > 0 ? String(Math.round((captadosN / interesados) * 100)) : "10");
+    }
+    setCaptadosMode(newMode);
+  }
+
+  const r = useMemo(() => {
+    const v    = Math.max(0, Number(visitantes) || 0);
+    const iRaw = Math.max(0, Number(interes) || 0);
+    const cRaw = Math.max(0, Number(captados) || 0);
+    const t    = Math.max(0, Number(ticket) || 0);
+    const f    = Math.max(1, Number(ferias) || 1);
     const ticketAnual = t * PERIODO_MULT[periodo];
 
-    const interesadosPorFeria = Math.round(v * (i / 100));
-    const captadosPorFeria    = Math.round(interesadosPorFeria * (c / 100));
+    const interesadosPorFeria = interesMode === "pct"
+      ? Math.round(v * (Math.min(100, iRaw) / 100))
+      : Math.min(v, Math.round(iRaw));
+    const captadosPorFeria = captadosMode === "pct"
+      ? Math.round(interesadosPorFeria * (Math.min(100, cRaw) / 100))
+      : Math.min(interesadosPorFeria, Math.round(cRaw));
     const perdidosPorFeria    = interesadosPorFeria - captadosPorFeria;
     const dineroPorFeria      = perdidosPorFeria * ticketAnual;
     const dineroAnual         = dineroPorFeria * f;
@@ -102,17 +156,19 @@ export default function CalculadoraPage() {
     const roi = ticketAnual > 0 ? ((dineroAnual - KONECTA_ANUAL) / KONECTA_ANUAL) * 100 : 0;
 
     return {
-      interesadosPorFeria, captadosPorFeria, perdidosPorFeria,
+      v, interesadosPorFeria, captadosPorFeria, perdidosPorFeria,
       dineroPorFeria, dineroAnual,
       clientesNecesarios, clientesPorFeria, paybackLabel, roi, ticketAnual,
     };
-  }, [visitantes, interes, captados, ticket, ferias, periodo]);
+  }, [visitantes, interes, captados, ticket, ferias, periodo, interesMode, captadosMode]);
 
   const hasDatos = Number(visitantes) > 0 && Number(ticket) > 0;
 
   function compartir() {
     const p: Record<string, string> = { v: visitantes, i: interes, c: captados, t: ticket, f: ferias, p: periodo };
     if (nombre.trim())              p.n  = nombre.trim();
+    if (interesMode  !== "pct")    p.im = interesMode;
+    if (captadosMode !== "pct")    p.cm = captadosMode;
     if (colBg   !== DEFAULT_COLORS.bg)   p.bg = colBg;
     if (colPain !== DEFAULT_COLORS.pain) p.c1 = colPain;
     if (colRoi  !== DEFAULT_COLORS.roi)  p.c2 = colRoi;
@@ -156,14 +212,24 @@ export default function CalculadoraPage() {
             value={visitantes} onChange={setVisitantes} min={0}
           />
           <InputField
-            label="% que muestran interés real"
-            hint="De esos visitantes, ¿cuántos se paran y hablan con vosotros?"
-            value={interes} onChange={setInteres} suffix="%" min={0} max={100}
+            label={interesMode === "pct" ? "% que muestran interés real" : "Personas que muestran interés"}
+            hint={interesMode === "pct"
+              ? "De esos visitantes, ¿cuántos se paran y hablan con vosotros?"
+              : "¿Cuántas personas se paran y hablan con vosotros en la feria?"}
+            value={interes} onChange={setInteres}
+            suffix={interesMode === "pct" ? "%" : undefined}
+            min={0} max={interesMode === "pct" ? 100 : Number(visitantes)}
+            toggle={{ mode: interesMode, onSwitch: changeInteresMode }}
           />
           <InputField
-            label="% que dejan datos actualmente"
-            hint="De los que muestran interés, ¿cuántos acaban dejando sus datos hoy?"
-            value={captados} onChange={setCaptados} suffix="%" min={0} max={100}
+            label={captadosMode === "pct" ? "% que dejan datos actualmente" : "Personas que dejan datos"}
+            hint={captadosMode === "pct"
+              ? "De los que muestran interés, ¿cuántos acaban dejando sus datos hoy?"
+              : "¿Cuántas personas acaban dejando sus datos ese mismo día?"}
+            value={captados} onChange={setCaptados}
+            suffix={captadosMode === "pct" ? "%" : undefined}
+            min={0} max={captadosMode === "pct" ? 100 : r.interesadosPorFeria}
+            toggle={{ mode: captadosMode, onSwitch: changeCaptadosMode }}
           />
 
           {/* Selector de periodo */}

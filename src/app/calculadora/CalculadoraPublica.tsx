@@ -7,16 +7,11 @@ const KONECTA_MENSUAL = 99;
 const KONECTA_ANUAL = KONECTA_MENSUAL * 12;
 
 type Periodo   = "mensual" | "trimestral" | "anual";
-type Escenario = "conservador" | "realista" | "optimista";
+type ModoInput = "pct" | "num";
 
-const PERIODO_MULT:   Record<Periodo,   number> = { mensual: 12, trimestral: 4, anual: 1 };
-const PERIODO_LABELS: Record<Periodo,   string> = { mensual: "mes", trimestral: "trimestre", anual: "año" };
-const ESCENARIO_PORC: Record<Escenario, number> = { conservador: 0.25, realista: 0.5, optimista: 0.75 };
-const ESCENARIO_DESC: Record<Escenario, string> = {
-  conservador: "1 de cada 4 que se van",
-  realista:    "1 de cada 2 que se van",
-  optimista:   "3 de cada 4 que se van",
-};
+const PERIODO_MULT:   Record<Periodo, number> = { mensual: 12, trimestral: 4, anual: 1 };
+const PERIODO_LABELS: Record<Periodo, string> = { mensual: "mes", trimestral: "trimestre", anual: "año" };
+const SCENARIO_RATES = [0.25, 0.50, 0.75] as const;
 
 function fmt(n: number) {
   return n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
@@ -35,17 +30,44 @@ function hex(color: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function ModoToggle({
+  mode, onSwitch, color,
+}: { mode: ModoInput; onSwitch: (m: ModoInput) => void; color: string }) {
+  return (
+    <div className="flex gap-0.5 p-0.5 rounded-md" style={{ background: hex(color, 0.15) }}>
+      {(["pct", "num"] as ModoInput[]).map(m => (
+        <button
+          key={m}
+          type="button"
+          onClick={() => onSwitch(m)}
+          className="px-1.5 py-0.5 rounded text-[9px] font-bold transition-colors"
+          style={{
+            background: mode === m ? hex(color, 0.45) : "transparent",
+            color:      mode === m ? color : hex(color, 0.5),
+          }}
+        >
+          {m === "pct" ? "%" : "N"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Parametro({
-  label, value, onChange, suffix, min, max, color,
+  label, value, onChange, suffix, min, max, color, toggle,
 }: {
   label: string; value: string; onChange: (v: string) => void;
   suffix?: string; min?: number; max?: number; color: string;
+  toggle?: { mode: ModoInput; onSwitch: (m: ModoInput) => void };
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: hex(color, 0.8) }}>
-        {label}
-      </p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: hex(color, 0.8) }}>
+          {label}
+        </p>
+        {toggle && <ModoToggle mode={toggle.mode} onSwitch={toggle.onSwitch} color={color} />}
+      </div>
       <div className="flex items-baseline gap-1">
         <input
           type="number"
@@ -72,19 +94,20 @@ export default function CalculadoraPublica() {
   const nombre     = params.get("n") ?? "";
   const rawPeriodo = params.get("p");
 
-  // Colores configurables — con defaults
   const colBg   = params.get("bg") ?? "#0a0a0b";
   const colPain = params.get("c1") ?? "#ef4444";
   const colRoi  = params.get("c2") ?? "#22c55e";
   const colPot  = params.get("c3") ?? "#c5a059";
 
-  const [visitantes, setVisitantes] = useState(params.get("v") ?? "150");
-  const [interes, setInteres]       = useState(params.get("i") ?? "20");
-  const [captados, setCaptados]     = useState(params.get("c") ?? "10");
-  const [ticket, setTicket]         = useState(params.get("t") ?? "67");
-  const [ferias, setFerias]         = useState(params.get("f") ?? "3");
-  const [periodo, setPeriodo]       = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "mensual");
-  const [escenario, setEscenario]   = useState<Escenario>("realista");
+  const [visitantes,   setVisitantes]   = useState(params.get("v") ?? "150");
+  const [interes,      setInteres]      = useState(params.get("i") ?? "20");
+  const [captados,     setCaptados]     = useState(params.get("c") ?? "10");
+  const [ticket,       setTicket]       = useState(params.get("t") ?? "67");
+  const [ferias,       setFerias]       = useState(params.get("f") ?? "3");
+  const [periodo,      setPeriodo]      = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "mensual");
+  const [interesMode,  setInteresMode]  = useState<ModoInput>(params.get("im") === "num" ? "num" : "pct");
+  const [captadosMode, setCaptadosMode] = useState<ModoInput>(params.get("cm") === "num" ? "num" : "pct");
+  const [scenarioIdx,  setScenarioIdx]  = useState<0 | 1 | 2>(1);
 
   function changePeriodo(nuevo: Periodo) {
     const anual = Number(ticket) * PERIODO_MULT[periodo];
@@ -93,18 +116,24 @@ export default function CalculadoraPublica() {
   }
 
   const r = useMemo(() => {
-    const v = Math.max(0, Number(visitantes) || 0);
-    const i = Math.min(100, Math.max(0, Number(interes) || 0));
-    const c = Math.min(100, Math.max(0, Number(captados) || 0));
-    const t = Math.max(0, Number(ticket) || 0);
-    const f = Math.max(1, Number(ferias) || 1);
+    const v    = Math.max(0, Number(visitantes) || 0);
+    const iRaw = Math.max(0, Number(interes) || 0);
+    const cRaw = Math.max(0, Number(captados) || 0);
+    const t    = Math.max(0, Number(ticket) || 0);
+    const f    = Math.max(1, Number(ferias) || 1);
     const ticketAnual = t * PERIODO_MULT[periodo];
 
-    const interesadosPorFeria = Math.round(v * (i / 100));
-    const captadosPorFeria    = Math.round(interesadosPorFeria * (c / 100));
-    const perdidosPorFeria    = interesadosPorFeria - captadosPorFeria;
-    const dineroPorFeria      = perdidosPorFeria * ticketAnual;
-    const dineroAnual         = dineroPorFeria * f;
+    const interesadosPorFeria = interesMode === "pct"
+      ? Math.round(v * (Math.min(100, iRaw) / 100))
+      : Math.min(v, Math.round(iRaw));
+
+    const captadosPorFeria = captadosMode === "pct"
+      ? Math.round(interesadosPorFeria * (Math.min(100, cRaw) / 100))
+      : Math.min(interesadosPorFeria, Math.round(cRaw));
+
+    const perdidosPorFeria = interesadosPorFeria - captadosPorFeria;
+    const dineroPorFeria   = perdidosPorFeria * ticketAnual;
+    const dineroAnual      = dineroPorFeria * f;
 
     const clientesNecesarios = ticketAnual > 0 ? KONECTA_ANUAL / ticketAnual : 0;
     const clientesPorFeria   = clientesNecesarios / f;
@@ -116,23 +145,58 @@ export default function CalculadoraPublica() {
     else if (clientesPorFeria < 1)    paybackLabel = "menos de 1 cliente por feria";
     else                              paybackLabel = `${Math.ceil(clientesPorFeria)} clientes por feria`;
 
+    const interesadosPct = v > 0 ? Math.round((interesadosPorFeria / v) * 100) : 0;
+    const captadosPct    = interesadosPorFeria > 0 ? Math.round((captadosPorFeria / interesadosPorFeria) * 100) : 0;
+
     return {
-      v, i, c, t, f, ticketAnual,
+      v, t, f, ticketAnual,
       interesadosPorFeria, captadosPorFeria, perdidosPorFeria,
       dineroPorFeria, dineroAnual, clientesNecesarios, paybackLabel,
+      interesadosPct, captadosPct,
     };
-  }, [visitantes, interes, captados, ticket, ferias, periodo]);
+  }, [visitantes, interes, captados, ticket, ferias, periodo, interesMode, captadosMode]);
 
   const potencial = useMemo(() => {
-    const porc = ESCENARIO_PORC[escenario];
-    const recuperadosPorFeria = Math.round(r.perdidosPorFeria * porc);
-    const recuperadosAnual    = recuperadosPorFeria * r.f;
-    const ingresos            = recuperadosAnual * r.ticketAnual;
-    const beneficio           = ingresos - KONECTA_ANUAL;
-    return { recuperadosPorFeria, recuperadosAnual, ingresos, beneficio };
-  }, [r, escenario]);
+    const rate = SCENARIO_RATES[scenarioIdx];
+    const recuperadosPorFeria   = Math.round(r.perdidosPorFeria * rate);
+    const totalCaptadosPorFeria = r.captadosPorFeria + recuperadosPorFeria;
+    const recuperadosAnual      = recuperadosPorFeria * r.f;
+    const ingresos              = recuperadosAnual * r.ticketAnual;
+    const beneficio             = ingresos - KONECTA_ANUAL;
+    return { recuperadosPorFeria, totalCaptadosPorFeria, recuperadosAnual, ingresos, beneficio };
+  }, [r, scenarioIdx]);
+
+  function changeInteresMode(newMode: ModoInput) {
+    if (newMode === interesMode) return;
+    if (newMode === "num") {
+      setInteres(String(r.interesadosPorFeria));
+    } else {
+      setInteres(r.v > 0 ? String(Math.round((r.interesadosPorFeria / r.v) * 100)) : "20");
+    }
+    setInteresMode(newMode);
+  }
+
+  function changeCaptadosMode(newMode: ModoInput) {
+    if (newMode === captadosMode) return;
+    if (newMode === "num") {
+      setCaptados(String(r.captadosPorFeria));
+    } else {
+      setCaptados(r.interesadosPorFeria > 0
+        ? String(Math.round((r.captadosPorFeria / r.interesadosPorFeria) * 100))
+        : "10");
+    }
+    setCaptadosMode(newMode);
+  }
 
   const hasDatos = r.v > 0 && r.t > 0;
+
+  const interesHint = interesMode === "pct"
+    ? `el ${r.interesadosPct}% muestra interés real`
+    : "de ellos muestra interés real";
+
+  const captadosHint = captadosMode === "pct"
+    ? `solo el ${r.captadosPct}% deja sus datos ese mismo día`
+    : `solo ${r.captadosPorFeria} deja sus datos ese mismo día`;
 
   return (
     <div className="min-h-screen" style={{ background: colBg, color: "#fff" }}>
@@ -167,10 +231,37 @@ export default function CalculadoraPublica() {
           </p>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-            <Parametro label="Visitantes por feria" value={visitantes} onChange={setVisitantes} color={colPot} />
-            <Parametro label="Ferias al año"        value={ferias}     onChange={setFerias}     color={colPot} min={1} />
-            <Parametro label="% muestran interés"   value={interes}    onChange={setInteres}    color={colPot} suffix="%" max={100} />
-            <Parametro label="% dejan sus datos"    value={captados}   onChange={setCaptados}   color={colPot} suffix="%" max={100} />
+            <Parametro
+              label="Visitantes por feria"
+              value={visitantes}
+              onChange={setVisitantes}
+              color={colPot}
+            />
+            <Parametro
+              label="Ferias al año"
+              value={ferias}
+              onChange={setFerias}
+              color={colPot}
+              min={1}
+            />
+            <Parametro
+              label={interesMode === "pct" ? "% muestran interés" : "Muestran interés"}
+              value={interes}
+              onChange={setInteres}
+              color={colPot}
+              suffix={interesMode === "pct" ? "%" : undefined}
+              max={interesMode === "pct" ? 100 : Number(visitantes)}
+              toggle={{ mode: interesMode, onSwitch: changeInteresMode }}
+            />
+            <Parametro
+              label={captadosMode === "pct" ? "% dejan sus datos" : "Dejan sus datos"}
+              value={captados}
+              onChange={setCaptados}
+              color={colPot}
+              suffix={captadosMode === "pct" ? "%" : undefined}
+              max={captadosMode === "pct" ? 100 : r.interesadosPorFeria}
+              toggle={{ mode: captadosMode, onSwitch: changeCaptadosMode }}
+            />
           </div>
 
           {/* Ticket + periodo */}
@@ -236,7 +327,7 @@ export default function CalculadoraPublica() {
               </p>
             </div>
             <div className="ml-3 border-l pl-5" style={{ borderColor: "rgba(255,255,255,0.15)" }}>
-              <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>el {r.i}% muestra interés real</p>
+              <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>{interesHint}</p>
             </div>
 
             <div className="flex items-start gap-3">
@@ -247,7 +338,7 @@ export default function CalculadoraPublica() {
               </p>
             </div>
             <div className="ml-3 border-l pl-5" style={{ borderColor: "rgba(255,255,255,0.15)" }}>
-              <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>solo el {r.c}% deja sus datos ese mismo día</p>
+              <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>{captadosHint}</p>
             </div>
 
             <div className="flex items-start gap-3">
@@ -267,7 +358,9 @@ export default function CalculadoraPublica() {
             >
               <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.78)" }}>
                 {fmt(r.perdidosPorFeria)} contactos × {fmt(r.ticketAnual)} €
-                {periodo !== "anual" && <span style={{ color: "rgba(255,255,255,0.55)" }}> ({ticket} €/{PERIODO_LABELS[periodo]} × {PERIODO_MULT[periodo]})</span>}
+                {periodo !== "anual" && (
+                  <span style={{ color: "rgba(255,255,255,0.55)" }}> ({ticket} €/{PERIODO_LABELS[periodo]} × {PERIODO_MULT[periodo]})</span>
+                )}
                 {" "}= <strong style={{ color: colPain }}>{fmt(r.dineroPorFeria)} €</strong>
                 <span style={{ color: "rgba(255,255,255,0.5)" }}> por feria</span>
               </p>
@@ -333,34 +426,44 @@ export default function CalculadoraPublica() {
             style={{ background: hex(colPot, 0.1), border: `1px solid ${hex(colPot, 0.35)}` }}
           >
             <div>
-              <p className="text-sm font-semibold mb-0.5" style={{ color: colPot }}>
+              <p className="text-sm font-semibold mb-1" style={{ color: colPot }}>
                 Lo que puedes ganar con Konecta3D
               </p>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Elige un escenario — ¿cuántos de los que hoy se van crees que captarías?
+                Ahora captas <strong className="text-white">{r.captadosPorFeria}</strong> contactos por feria.
+                {" "}¿Cuántos podrías captar?
               </p>
             </div>
 
+            {/* Scenario buttons */}
             <div className="flex gap-2">
-              {(["conservador", "realista", "optimista"] as Escenario[]).map(e => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => setEscenario(e)}
-                  className="flex-1 rounded-xl border py-2.5 px-1 text-center transition-colors"
-                  style={{
-                    borderColor: escenario === e ? colPot : "rgba(255,255,255,0.1)",
-                    background:  escenario === e ? hex(colPot, 0.2) : "transparent",
-                  }}
-                >
-                  <p className="text-xs font-semibold capitalize" style={{ color: escenario === e ? colPot : "rgba(255,255,255,0.45)" }}>
-                    {e}
-                  </p>
-                  <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    {ESCENARIO_DESC[e]}
-                  </p>
-                </button>
-              ))}
+              {([0, 1, 2] as const).map(idx => {
+                const recuperados = Math.round(r.perdidosPorFeria * SCENARIO_RATES[idx]);
+                const total = r.captadosPorFeria + recuperados;
+                const sel = scenarioIdx === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setScenarioIdx(idx)}
+                    className="flex-1 rounded-xl border py-3 px-1 text-center transition-colors"
+                    style={{
+                      borderColor: sel ? colPot : "rgba(255,255,255,0.1)",
+                      background:  sel ? hex(colPot, 0.2) : "transparent",
+                    }}
+                  >
+                    <p className="text-2xl font-black" style={{ color: sel ? colPot : "rgba(255,255,255,0.65)" }}>
+                      {total}
+                    </p>
+                    <p className="text-[9px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                      contactos/feria
+                    </p>
+                    <p className="text-[10px] mt-1.5 font-semibold" style={{ color: sel ? hex(colPot, 0.85) : "rgba(255,255,255,0.3)" }}>
+                      +{recuperados} vs. ahora
+                    </p>
+                  </button>
+                );
+              })}
             </div>
 
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>
