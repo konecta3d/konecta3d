@@ -50,6 +50,12 @@ export default function CalculadoraPage() {
   const [nombre, setNombre] = useState("");
   const [copiado, setCopiado] = useState(false);
 
+  function changePeriodo(nuevo: Periodo) {
+    const anual = Number(ticket) * PERIODO_MULT[periodo];
+    setTicket(String(Math.round(anual / PERIODO_MULT[nuevo])));
+    setPeriodo(nuevo);
+  }
+
   const r = useMemo(() => {
     const v = Math.max(0, Number(visitantes) || 0);
     const i = Math.min(100, Math.max(0, Number(interes) || 0));
@@ -146,7 +152,7 @@ export default function CalculadoraPage() {
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setPeriodo(p)}
+                  onClick={() => changePeriodo(p)}
                   className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                     periodo === p
                       ? "border-[var(--brand-1)] bg-[var(--brand-1)]/10 text-[var(--brand-1)]"

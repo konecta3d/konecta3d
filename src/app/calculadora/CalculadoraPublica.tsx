@@ -69,6 +69,12 @@ export default function CalculadoraPublica() {
   const [periodo, setPeriodo]       = useState<Periodo>(isValidPeriodo(rawPeriodo) ? rawPeriodo : "anual");
   const [escenario, setEscenario]   = useState<Escenario>("realista");
 
+  function changePeriodo(nuevo: Periodo) {
+    const anual = Number(ticket) * PERIODO_MULT[periodo];
+    setTicket(String(Math.round(anual / PERIODO_MULT[nuevo])));
+    setPeriodo(nuevo);
+  }
+
   const r = useMemo(() => {
     const v = Math.max(0, Number(visitantes) || 0);
     const i = Math.min(100, Math.max(0, Number(interes) || 0));
@@ -174,7 +180,7 @@ export default function CalculadoraPublica() {
                   <button
                     key={p}
                     type="button"
-                    onClick={() => setPeriodo(p)}
+                    onClick={() => changePeriodo(p)}
                     className="px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-colors"
                     style={{
                       borderColor: periodo === p ? "#C5A059" : "rgba(255,255,255,0.12)",
