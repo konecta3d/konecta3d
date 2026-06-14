@@ -86,10 +86,63 @@ const DEFAULT_MODULES: Record<string, boolean> = {
   module_recorrido: false,
 };
 
+// Categorías del admin para mobile con iconos SVG
+const ADMIN_MOBILE_CATS = [
+  {
+    key: "Panel Admin",
+    short: "Panel",
+    icon: (active: boolean) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6}>
+        <rect x="2.5" y="2.5" width="6" height="6" rx="1.2" />
+        <rect x="11.5" y="2.5" width="6" height="6" rx="1.2" />
+        <rect x="2.5" y="11.5" width="6" height="6" rx="1.2" />
+        <rect x="11.5" y="11.5" width="6" height="6" rx="1.2" />
+      </svg>
+    ),
+  },
+  {
+    key: "Estrategia",
+    short: "Estrategia",
+    icon: (active: boolean) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6}>
+        <circle cx="10" cy="10" r="7.5" />
+        <circle cx="10" cy="10" r="3.5" />
+        <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    key: "CRM Comercial",
+    short: "CRM",
+    icon: (active: boolean) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6}>
+        <polyline points="2,14 7,9 11,12 17,5" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points="14,5 17,5 17,8" strokeLinecap="round" strokeLinejoin="round" />
+        <line x1="2" y1="17" x2="18" y2="17" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    key: "Contenido",
+    short: "Contenido",
+    icon: (active: boolean) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6}>
+        <rect x="3" y="2.5" width="14" height="15" rx="2" />
+        <line x1="6.5" y1="7" x2="13.5" y2="7" strokeLinecap="round" />
+        <line x1="6.5" y1="10.5" x2="13.5" y2="10.5" strokeLinecap="round" />
+        <line x1="6.5" y1="14" x2="10.5" y2="14" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+] as const;
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminMode = pathname.startsWith("/admin");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Mobile admin: sección activa (tab seleccionado)
+  const [activeMobileSection, setActiveMobileSection] = useState<string | null>(null);
 
   const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
   const [profileActive, setProfileActive] = useState<boolean | null>(null);
@@ -227,6 +280,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     load();
   }, [isAdminMode]);
+
+  // Sincronizar tab activo cuando cambia la ruta
+  useEffect(() => {
+    if (!isAdminMode) return;
+    const activeLink = adminLinks.find(l => {
+      const lp = l.href.split("?")[0];
+      return pathname === lp || pathname.startsWith(lp + "/");
+    });
+    if (activeLink?.category) setActiveMobileSection(activeLink.category);
+  }, [pathname, isAdminMode]);
 
   const isCaptacionMode = pathname.startsWith("/captacion");
   const isNegocioMode   = pathname.startsWith("/negocio");
@@ -405,29 +468,84 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         />
         <div className="flex-1 min-w-0 overflow-x-hidden">
           {/* Header móvil */}
-          <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--card)] px-4 py-3 md:hidden">
-            <div className="flex items-center justify-between gap-2">
+          <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--card)] md:hidden">
+            {/* Fila principal: logo + acciones */}
+            <div className="flex items-center justify-between gap-2 px-4 py-3">
               <MobileTitle />
               <div className="flex items-center gap-2">
-                {/* Toggle tema (móvil) */}
                 <button
                   type="button"
                   onClick={toggleTheme}
                   className="rounded-lg border border-[var(--border)] px-2 py-2 text-base leading-none transition-colors hover:bg-[var(--brand-1)]/10"
-                  title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                  title={darkMode ? "Modo claro" : "Modo oscuro"}
                   style={{ color: "var(--foreground)" }}
                 >
                   {darkMode ? "☀" : "🌙"}
                 </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold"
-                  onClick={() => setMobileMenuOpen(true)}
-                >
-                  Menú
-                </button>
+                {/* Hamburger solo para no-admin */}
+                {!isAdminMode && (
+                  <button
+                    type="button"
+                    className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold"
+                    onClick={() => setMobileMenuOpen(true)}
+                  >
+                    Menú
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Tabs de categorías admin */}
+            {isAdminMode && (
+              <div className="flex border-t border-[var(--border)]">
+                {ADMIN_MOBILE_CATS.map(cat => {
+                  const active = activeMobileSection === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => setActiveMobileSection(s => s === cat.key ? null : cat.key)}
+                      className="flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors"
+                      style={{ color: active ? "var(--brand-1)" : "var(--foreground)", opacity: active ? 1 : 0.45 }}
+                    >
+                      {cat.icon(active)}
+                      <span className="text-[9px] font-semibold tracking-wide">{cat.short}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Dropdown de links del tab activo */}
+            {isAdminMode && activeMobileSection && (
+              <div
+                className="border-t border-[var(--border)] p-2 space-y-0.5 max-h-[55vh] overflow-y-auto"
+                style={{ background: "var(--background)" }}
+              >
+                {links
+                  .filter(l => l.category === activeMobileSection)
+                  .map(link => {
+                    const lp = link.href.split("?")[0];
+                    const isActive = pathname === lp;
+                    const label = (link.nameKey && customNames[link.nameKey]) || link.label;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setActiveMobileSection(null)}
+                        className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                          isActive
+                            ? "bg-[var(--brand-1)] text-white"
+                            : "text-[var(--foreground)] hover:bg-[var(--brand-1)]/10"
+                        }`}
+                      >
+                        <span>{label}</span>
+                        {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0" />}
+                      </Link>
+                    );
+                  })}
+              </div>
+            )}
           </header>
           {/* ── Banner de mantenimiento / avisos ── */}
           {!isAdminMode && maintenanceBanner?.active && maintenanceBanner.message && (

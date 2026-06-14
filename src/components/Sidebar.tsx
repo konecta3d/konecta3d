@@ -137,6 +137,48 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         }
     });
 
+    // Categoría activa (para abrir por defecto la sección correcta)
+    const activeCategory = React.useMemo(() => {
+        const active = filteredLinks.find(l => {
+            const lp = l.href.split("?")[0];
+            return pathname === lp || pathname.startsWith(lp + "/");
+        });
+        return active?.category ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
+
+    // Estado colapsable con persistencia en localStorage
+    const [openSections, setOpenSections] = React.useState<Record<string, boolean>>(() => {
+        if (typeof window === "undefined") return {};
+        try {
+            const saved = localStorage.getItem("konecta-sidebar-sections");
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
+
+    const isSectionOpen = (cat: string) => {
+        if (openSections[cat] !== undefined) return openSections[cat];
+        if (isAdminMode) return cat === activeCategory; // Admin: solo la activa abierta por defecto
+        return true; // Negocio: todas abiertas por defecto
+    };
+
+    const toggleSection = (cat: string) => {
+        const next = { ...openSections, [cat]: !isSectionOpen(cat) };
+        setOpenSections(next);
+        localStorage.setItem("konecta-sidebar-sections", JSON.stringify(next));
+    };
+
+    // Auto-abrir la sección activa al navegar (por si estaba colapsada)
+    React.useEffect(() => {
+        if (!activeCategory) return;
+        setOpenSections(prev => {
+            if (prev[activeCategory] !== false) return prev;
+            const next = { ...prev, [activeCategory]: true };
+            localStorage.setItem("konecta-sidebar-sections", JSON.stringify(next));
+            return next;
+        });
+    }, [activeCategory]);
+
     const renderLink = (link: SidebarLink) => {
         const linkPathname = link.href.split("?")[0];
         const isActive = pathname === linkPathname;
@@ -315,18 +357,41 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 </Link>
             )}
 
-            <nav className="flex-1 space-y-4 text-sm overflow-y-auto">
-                {Object.entries(categories).map(([category, catLinks]) => (
-                    <div key={category} className="space-y-1">
-                        {/* Ocultar etiqueta "Generadores" en Fidelización — queda más limpio */}
-                        {!(isFidelizacionMode && category === "Generadores") && (
-                          <div className="mt-6 mb-2 text-xs uppercase tracking-wide text-[var(--brand-1)] px-3">
-                            {category}
-                          </div>
-                        )}
-                        {catLinks.map(renderLink)}
-                    </div>
-                ))}
+            <nav className="flex-1 space-y-1 text-sm overflow-y-auto">
+                {Object.entries(categories).map(([category, catLinks]) => {
+                    const hideLabel = isFidelizacionMode && category === "Generadores";
+                    const open = isSectionOpen(category);
+                    return (
+                        <div key={category}>
+                            {hideLabel ? (
+                                // Sin encabezado colapsable — mostrar links directamente
+                                <div className="space-y-1 mt-4">{catLinks.map(renderLink)}</div>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSection(category)}
+                                        className="w-full flex items-center justify-between mt-5 mb-1 px-3 py-1 rounded-lg hover:bg-[var(--border)]/40 transition-colors"
+                                    >
+                                        <span className="text-[11px] uppercase tracking-wide font-semibold text-[var(--brand-1)]">
+                                            {category}
+                                        </span>
+                                        <svg
+                                            className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                                            style={{ color: "var(--brand-1)", opacity: 0.6 }}
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    {open && (
+                                        <div className="space-y-1">{catLinks.map(renderLink)}</div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    );
+                })}
             </nav>
 
             {/* ── Pie del sidebar Admin ── */}
