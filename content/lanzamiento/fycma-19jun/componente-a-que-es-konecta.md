@@ -65,8 +65,10 @@ Normalmente no entienden que les regales el llavero, y eso genera apertura y con
 cierre y en el WhatsApp de esa tarde. Y te sirve para auditar el pitch (qué parte engancha).
 
 **Paso 9 — Agenda la llamada (el siguiente capítulo)**
-Buscas compromiso del negocio. Propón una llamada corta y asígnale el hueco en el momento:
-> "Agendamos una llamada de 5 minutos para entender mejor cómo ayudarte y explicarte cómo funciona. ¿Qué día te viene mejor, lunes o martes?"
+Buscas compromiso del negocio. Toca la necesidad que identificaste en el paso 8 y propón la llamada, asignándole el hueco en el momento:
+> "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 10 minutos.
+> Así entendemos mejor tu negocio y cómo ayudarte, sin compromiso.
+> ¿Te viene mejor el lunes o el martes? ¿A qué hora?"
 
 → Le asignas la cita desde **Citas de la feria** (CRM). Los tres desenlaces:
 > - **Cierra cita**: le das día y hora, queda agendado.
