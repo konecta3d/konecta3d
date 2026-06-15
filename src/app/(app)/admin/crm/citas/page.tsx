@@ -79,6 +79,31 @@ export default function CrmCitasPage() {
 
   useEffect(() => { cargar(); }, []);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refresco silencioso de las citas (sin tocar el spinner de carga inicial)
+  async function refrescar() {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/admin/crm/citas", { headers: await authHeaders() });
+      const json = await res.json();
+      if (json.citas) setCitas(json.citas);
+    } catch { /* silencioso */ }
+    setRefreshing(false);
+  }
+
+  // Al volver a la pantalla (cambiar de app/pestaña y volver), traer lo último.
+  // Así, con dos móviles asignando, cada uno ve enseguida lo que reservó el otro.
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") refrescar(); };
+    window.addEventListener("focus", refrescar);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refrescar);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
   // Índice de huecos ocupados: clave `agente__ms`
   const ocupados = useMemo(() => {
     const map = new Map<string, Cita>();
@@ -165,9 +190,16 @@ export default function CrmCitasPage() {
         <Link href="/admin/crm/agenda" className="text-sm text-[var(--foreground)]/50 hover:text-[var(--foreground)] transition-colors">← Agenda</Link>
       </div>
 
-      <div className="mb-5">
-        <h1 className="text-xl font-bold">Citas de la feria</h1>
-        <p className="text-sm text-[var(--foreground)]/50 mt-0.5">Asigna a cada contacto un hueco para la llamada. Toca un hueco libre.</p>
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">Citas de la feria</h1>
+          <p className="text-sm text-[var(--foreground)]/50 mt-0.5">Asigna a cada contacto un hueco para la llamada. Toca un hueco libre.</p>
+        </div>
+        <button onClick={refrescar} disabled={refreshing}
+          className="text-xs px-3 py-1.5 rounded-lg font-medium flex-shrink-0 transition-opacity disabled:opacity-50"
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          {refreshing ? "Actualizando…" : "↻ Actualizar"}
+        </button>
       </div>
 
       {/* Tabs de día */}
