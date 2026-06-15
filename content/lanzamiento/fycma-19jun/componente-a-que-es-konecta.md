@@ -11,6 +11,70 @@
 
 ---
 
+## 0. Marco de apertura — conexión antes de explicar
+
+> **Espíritu: aquí solo MUESTRAS lo que haces, no vendes.** La curiosidad ya hizo su
+> trabajo (te preguntaron). No digas "déjame entender tu caso para que tenga sentido":
+> ellos, con su interés y su atención, te dirán solos si lo tiene.
+
+**Cuando te preguntan "¿qué es? / ¿para qué sirve? / ¿qué lleva dentro?":**
+No respondas al gadget. Redirige con contexto + pregunta.
+
+**Paso 1 — Redirige: contexto + pregunta (busca el sí)**
+> "Tu objetivo principal en una feria es **captar clientes nuevos**, ¿verdad?"
+
+Le nombras su objetivo: casi siempre asiente. Si su meta es otra ("vender en el momento",
+"hacer marca"), quédate con esa palabra y reencuadra desde ahí.
+
+**Paso 2 — Escucha (pregunta, no monólogo)**
+Aquí empieza el descubrimiento. Quieres saber cómo piensa, cómo habla y qué le duele.
+> "¿Qué sueles usar para **captar los datos** de los visitantes? ¿Cómo te funciona?"
+
+→ Cállate y escucha. No juzgues lo que use; el "¿cómo te funciona?" deja que admita el hueco él solo.
+
+**Paso 3 — Proyecta: ¿te interesaría? (segundo sí, cualifica)**
+> "Si tuvieras un método para **captar los datos de manera automática**, ¿te interesaría?"
+
+→ Future-pacing: se imagina el resultado antes de verlo. Y cualifica: un "sí" aquí es señal real de interés.
+
+**Paso 4 — Explica qué es + dale el llavero**
+Conecta con el deseo que acaba de admitir:
+> "Eso es Konecta3D: un **sistema físico y digital** para **captar clientes en automático,
+> fidelizar y aportar valor**. El llavero es la parte física que se queda con el cliente;
+> dentro tiene herramientas para que tome acción. Toma, tócalo con tu móvil."
+
+Al abrirse la campaña:
+> "Esto es lo que puedes preparar de forma sencilla dentro del **programa digital que usan los negocios** en Konecta3D."
+
+**Paso 5 — Que lo viva (la captura)**
+> "Al cliente le toma **5 segundos** dejarte el dato, y se lleva un **recuerdo de tu marca**
+> con otras estrategias de valor dentro."
+
+**Paso 6 — Re-toque: la página del negocio**
+> "Y mira, **vuelve a tocarlo**. Esta es la página principal del negocio para generar acción.
+> Dentro **diseñamos e integramos estrategias sin que sepas de marketing**."
+
+**Paso 7 — El regalo (apertura y confianza)**
+Normalmente no entienden que les regales el llavero, y eso genera apertura y confianza:
+> "Este llavero es para ti. Iremos variando el contenido que ves dentro."
+
+**Paso 8 — ¿Qué te llama la atención? (su botón de compra)**
+> "De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?"
+
+→ **Dato oro:** te dice su motivo de compra con sus propias palabras. Úsalo literal en el
+cierre y en el WhatsApp de esa tarde. Y te sirve para auditar el pitch (qué parte engancha).
+
+→ De aquí pasas al **cierre por temperatura** (Componente G).
+
+**Variante para perfiles técnicos / ROI**
+Con quien busca números, enfoca la presentación en **lo fácil que es captar el dato** y
+**cómo funciona dentro de tu CRM** — sin mostrar datos comprometidos.
+
+**Nota operativa:** graba las conversaciones (para auditarte, pulir el speech y recoger
+objeciones reales). Uso interno.
+
+---
+
 ## 1. QUÉ ES
 > "Konecta es un **sistema físico y digital** que ayuda a tu negocio a **captar clientes, fidelizarlos y darles valor**. La parte física es un **llavero con tu marca**; la digital es una **plataforma donde lo gestionas todo**, sin saber de tecnología."
 
@@ -69,5 +133,7 @@ Cómo ABRIR antes de explicar. Una frase, según la persona:
 ---
 
 ## Cómo encaja en la coreografía
-Ángulo de entrada → QUÉ ES (10s) al entregar el llavero → QUÉ HACE antes de las 3 preguntas →
-CÓMO LO HACE cuando hay interés, antes del cierre. (Ver `../estrategia-fycma-19jun.md`.)
+Te preguntan "¿qué es?" → **Marco de apertura** (Paso 1: rediriges con contexto + pregunta;
+Paso 2: siembras) → **QUÉ ES** corto + das el llavero (Paso 3) → **que lo viva** (captura) →
+re-toque (fidelización) → el regalo → cierre. El **QUÉ HACE / CÓMO LO HACE** completo solo
+cuando hay interés real, antes del cierre. (Ver `../estrategia-fycma-19jun.md` y `dia-de-la-feria.md`.)

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizarra del stand · FYCMA — Konecta3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#1A4D4A;
+    --teal-mid:#2D7A74;
+    --gold:#C5A059;
+    --gold-dk:#9B7A2E;
+    --orange:#B4461F;
+    --cream:#F1EEE4;
+    --cream-line:#DAD7CC;
+    --ink:#172321;
+    --muted:#5b6764;
+    --page:#FBFAF6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--page);
+    color:var(--ink);
+    line-height:1.4;
+    padding:32px 24px 56px;
+  }
+  .wrap{max-width:1060px;margin:0 auto}
+
+  /* Header */
+  header{margin-bottom:22px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--teal-mid);font-weight:700;font-size:16px;margin-top:6px}
+  .rule{height:3px;width:300px;background:var(--gold);border-radius:2px;margin-top:12px}
+
+  /* Column legend */
+  .legend{display:flex;gap:18px;margin:14px 0 4px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .legend b{color:var(--ink)}
+  .legend .g{color:var(--gold-dk)}
+
+  /* Flow steps */
+  .flow{display:flex;flex-direction:column;gap:12px}
+  .step{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr) minmax(0,.92fr);
+    gap:16px;align-items:center;
+    background:var(--teal);color:#fff;
+    border-radius:14px;padding:14px 18px;
+  }
+  .step.alt{background:var(--teal-mid)}
+  .step.gift{background:var(--teal);border:2.5px solid var(--gold)}
+  .step.ask{background:var(--teal-mid);border:2.5px solid var(--gold)}
+  .num{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--gold);color:var(--teal);
+    font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .msg h3{font-size:16px;font-weight:800;margin-bottom:4px}
+  .msg .q{font-style:italic;font-size:13.5px;opacity:.93}
+  .msg .note{color:var(--gold);font-size:12.5px;margin-top:3px}
+  .step.gift .msg h3,.step.ask .msg h3{color:var(--gold)}
+  .msg .note.light{color:rgba(255,255,255,.8)}
+
+  .insight{
+    background:rgba(255,255,255,.10);
+    border-left:3px solid var(--gold);
+    border-radius:10px;padding:9px 12px;
+  }
+  .ilabel{display:block;font-size:10px;font-weight:800;letter-spacing:.06em;
+    color:var(--gold);text-transform:uppercase;margin-bottom:3px}
+  .insight p{font-size:12px;line-height:1.38;color:rgba(255,255,255,.93)}
+
+  .close{
+    background:var(--teal);color:#fff;border-radius:14px;
+    padding:12px 18px;margin-top:4px;text-align:center;
+  }
+  .close strong{font-size:15px;font-weight:800}
+  .close span{display:block;color:rgba(255,255,255,.82);font-size:12.5px;margin-top:2px}
+
+  /* Rails strip */
+  .rails{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:20px}
+  .rail{
+    background:var(--cream);border:1.5px solid var(--cream-line);
+    border-left:6px solid var(--gold);border-radius:13px;padding:13px 16px;
+  }
+  .rail.r-orange{border-left-color:var(--orange)}
+  .rail.r-teal{border-left-color:var(--teal-mid)}
+  .rail.r-dark{background:var(--teal);border:none;color:#fff}
+  .rail h4{font-size:13.5px;font-weight:800;margin-bottom:7px;color:var(--gold-dk)}
+  .rail.r-orange h4{color:var(--orange)}
+  .rail.r-teal h4{color:var(--teal-mid)}
+  .rail.r-dark h4{color:var(--gold)}
+  .rail p{font-size:12.5px;color:var(--ink)}
+  .rail .lead{font-weight:800;margin-bottom:4px}
+  .rail ul{list-style:none;font-size:12.5px}
+  .rail li{padding:2px 0}
+  .rail .small{color:var(--muted);font-size:11.5px;margin-top:3px}
+  .rail.r-dark p{color:#fff;opacity:.92}
+
+  /* Frases */
+  .frases{margin-top:22px;background:var(--cream);border:1.5px solid var(--cream-line);border-radius:13px;padding:16px 20px}
+  .frases h4{color:var(--teal);font-size:15px;font-weight:800;margin-bottom:8px}
+  .frases p{font-size:13.5px;margin:6px 0;padding-left:14px;border-left:3px solid var(--gold)}
+
+  footer{margin-top:22px;color:var(--muted);font-size:11.5px}
+
+  /* Responsive */
+  @media(max-width:760px){
+    .step{grid-template-columns:34px 1fr}
+    .insight{grid-column:1 / -1}
+  }
+
+  /* Print */
+  @media print{
+    body{background:#fff;padding:0;font-size:11.5px}
+    .wrap{max-width:none}
+    .step,.rail,.close,.frases{break-inside:avoid}
+    @page{margin:11mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Pizarra del stand · FYCMA</h1>
+    <p class="sub">Aquí solo MOSTRAMOS, no vendemos. Ellos —con su interés— deciden si tiene sentido.</p>
+    <div class="rule"></div>
+    <div class="legend">
+      <span><b>Columna 1:</b> qué dices / haces</span>
+      <span class="g"><b>Columna 2:</b> lectura · ángulo · dato (qué detectar en el cliente)</span>
+    </div>
+  </header>
+
+  <!-- FLOW -->
+  <section class="flow" aria-label="Guion en 9 pasos">
+
+    <div class="step">
+      <div class="num">0</div>
+      <div class="msg">
+        <h3>ELLOS PREGUNTAN</h3>
+        <div class="q">"¿Qué es? ¿Para qué sirve? ¿Qué lleva dentro?"</div>
+        <div class="note">No respondas al gadget. Pausa y redirige.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Lectura · ángulo</span>
+        <p>Si te preguntan, la curiosidad ya ganó: se acercaron ellos. Decir "es un llavero NFC" lo encierra en gadget. Tu poder está en preguntar primero.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="msg">
+        <h3>REDIRIGE · contexto + pregunta</h3>
+        <div class="q">"Tu objetivo principal en una feria es captar clientes nuevos, ¿verdad?"</div>
+        <div class="note">Le nombras su objetivo → casi siempre asiente.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Ángulo</span>
+        <p>Enmarca todo en SU objetivo, no en tu producto. Si su meta es otra ("vender en el momento", "hacer marca"), quédate con esa palabra y reencuadra desde ahí.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <div class="msg">
+        <h3>ESCUCHA · pregunta, no monólogo</h3>
+        <div class="q">"¿Qué sueles usar para captar los datos de los visitantes? ¿Cómo te funciona?"</div>
+        <div class="note">Cállate y escucha. Apunta sus palabras exactas.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Dato · detectar</span>
+        <p>Su respuesta = su dolor y tu ángulo. Tarjetas → se tiran. Libreta/Excel → lento y se escapa gente. "Nada" → encaje perfecto. El "¿cómo te funciona?" deja que admita el hueco él solo.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <div class="msg">
+        <h3>PROYECTA · ¿te interesaría?</h3>
+        <div class="q">"Si tuvieras un método para captar los datos de manera automática, ¿te interesaría?"</div>
+        <div class="note">Pregunta que abre la puerta. Busca el segundo SÍ.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Ángulo · cualifica</span>
+        <p>Future-pacing: se imagina el resultado antes de verlo. Y cualifica: un "sí" aquí es señal real de interés de compra. Sin criticar nada de lo suyo.</p>
+      </div>
+    </div>
+
+    <div class="step alt">
+      <div class="num">4</div>
+      <div class="msg">
+        <h3>EXPLICA + DA EL LLAVERO</h3>
+        <div class="q">"Eso es Konecta3D: un sistema físico y digital para captar clientes en automático, fidelizar y aportar valor."</div>
+        <div class="note light">El llavero es la parte física que se queda con el cliente; dentro tiene herramientas para que tome acción. "Toma, tócalo."</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Dato</span>
+        <p>El "Eso es" conecta directo con el deseo que acaba de admitir en el paso 3. Ponérselo en la mano = ya lo siente suyo (efecto dotación).</p>
+      </div>
+    </div>
+
+    <div class="step alt">
+      <div class="num">5</div>
+      <div class="msg">
+        <h3>QUE LO VIVA · 5 segundos</h3>
+        <div class="q">Deja su dato + se lleva tu marca con valor dentro.</div>
+        <div class="note">Vive la captación como la viviría su cliente.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Detectar</span>
+        <p>Observa su cara en el "ya está": ahí está el aha. Sin fricción = el argumento se demuestra solo, no hace falta venderlo.</p>
+      </div>
+    </div>
+
+    <div class="step alt">
+      <div class="num">6</div>
+      <div class="msg">
+        <h3>RE-TOQUE · la página del negocio</h3>
+        <div class="q">"Vuelve a tocarlo. Esta es la página principal del negocio para generar acción."</div>
+        <div class="note">Dentro diseñamos e integramos estrategias, sin que sepas de marketing.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Ángulo</span>
+        <p>Ve que no es solo un llavero: hay una plataforma detrás, y se queda (permanencia vs la tarjeta que se tira). "Sin saber de marketing" baja la barrera del no técnico.</p>
+      </div>
+    </div>
+
+    <div class="step gift">
+      <div class="num">7</div>
+      <div class="msg">
+        <h3>EL REGALO · apertura + confianza</h3>
+        <div class="q">"Este llavero es para ti. Iremos variando el contenido que ves dentro."</div>
+        <div class="note light">No esperan un regalo → baja la guardia.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Ángulo</span>
+        <p>Reciprocidad. "Iremos variando" = una relación que continúa, no una venta de una sola vez.</p>
+      </div>
+    </div>
+
+    <div class="step ask">
+      <div class="num">8</div>
+      <div class="msg">
+        <h3>¿QUÉ TE LLAMA LA ATENCIÓN?</h3>
+        <div class="q">"De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?"</div>
+        <div class="note light">Su respuesta marca el cierre y el seguimiento.</div>
+      </div>
+      <div class="insight">
+        <span class="ilabel">Dato · oro</span>
+        <p>Te dice su botón de compra con sus palabras. Úsalo literal en el cierre y en el WhatsApp de esa tarde. Y audita tu pitch: ¿qué parte engancha?</p>
+      </div>
+    </div>
+
+    <div class="close">
+      <strong>→ CIERRE por temperatura</strong>
+      <span>caliente · templado · frío &nbsp;(Componente G)</span>
+    </div>
+  </section>
+
+  <!-- RAILS -->
+  <section class="rails" aria-label="Reglas">
+    <div class="rail">
+      <h4>REGLA DE ORO</h4>
+      <p class="lead">No vendes. Muestras.</p>
+      <p class="small">No estás en venta todavía: enseñas lo que haces. Ellos, con su atención, te lo dirán.</p>
+    </div>
+    <div class="rail r-orange">
+      <h4>NUNCA</h4>
+      <ul>
+        <li>· Criticar lo que ya usa</li>
+        <li>· QR (es el enemigo)</li>
+        <li>· Exclamaciones · monólogo</li>
+      </ul>
+    </div>
+    <div class="rail r-teal">
+      <h4>SIEMPRE</h4>
+      <ul>
+        <li>· Preguntar &gt; hablar</li>
+        <li>· Escuchar sus palabras</li>
+        <li>· Grabar para auditarte</li>
+      </ul>
+    </div>
+    <div class="rail">
+      <h4>NO TE VAS SIN</h4>
+      <ul>
+        <li style="font-weight:800">1 · Contacto capturado</li>
+        <li style="font-weight:800">2 · Siguiente paso acordado</li>
+      </ul>
+      <p class="small">(fecha, hora o permiso para escribir)</p>
+    </div>
+    <div class="rail r-dark">
+      <h4>VARIANTE ROI / técnico</h4>
+      <p>Con el que busca números: enfoca lo fácil que es captar el dato + cómo entra al CRM (sin datos comprometidos).</p>
+    </div>
+  </section>
+
+  <!-- FRASES -->
+  <div class="frases">
+    <h4>Frases para la explicación de la campaña</h4>
+    <p>"Esto es lo que puedes preparar de forma sencilla dentro del programa digital que usan los negocios en Konecta3D."</p>
+    <p>"Al cliente le toma 5 segundos dejarte el dato, y se lleva un recuerdo de tu marca con otras estrategias de valor dentro."</p>
+  </div>
+
+  <footer>
+    Kit de comercialización · content/lanzamiento/fycma-19jun/ — Voz: directa, cercana, sin exclamaciones, sin emojis. Sin QR.
+  </footer>
+</div>
+</body>
+</html>
