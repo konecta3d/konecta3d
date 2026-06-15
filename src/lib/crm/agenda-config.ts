@@ -17,23 +17,18 @@ export interface DiaAgenda {
   agentes: Record<string, Franja[]>;
 }
 
-// Franjas borrador (lunes 22 / martes 23 jun 2026). Edítalas a tu gusto.
+// Franjas borrador (lun 22 – jue 25 jun 2026). Edítalas a tu gusto.
+// Miguel y Miriam comparten el mismo horario.
+const FRANJAS: Franja[] = [
+  { desde: "10:00", hasta: "14:00" },
+  { desde: "16:30", hasta: "19:00" },
+];
+
 export const AGENDA_DIAS: DiaAgenda[] = [
-  {
-    fecha: "2026-06-22",
-    label: "Lunes 22",
-    agentes: {
-      Miriam: [{ desde: "10:00", hasta: "14:00" }, { desde: "16:30", hasta: "19:00" }],
-      Miguel: [{ desde: "16:00", hasta: "20:00" }],
-    },
-  },
-  {
-    fecha: "2026-06-23",
-    label: "Martes 23",
-    agentes: {
-      Miriam: [{ desde: "10:00", hasta: "14:00" }, { desde: "16:30", hasta: "19:00" }],
-    },
-  },
+  { fecha: "2026-06-22", label: "Lunes 22",     agentes: { Miriam: FRANJAS, Miguel: FRANJAS } },
+  { fecha: "2026-06-23", label: "Martes 23",    agentes: { Miriam: FRANJAS, Miguel: FRANJAS } },
+  { fecha: "2026-06-24", label: "Miércoles 24", agentes: { Miriam: FRANJAS, Miguel: FRANJAS } },
+  { fecha: "2026-06-25", label: "Jueves 25",    agentes: { Miriam: FRANJAS, Miguel: FRANJAS } },
 ];
 
 export const AGENTES = ["Miguel", "Miriam"] as const;
