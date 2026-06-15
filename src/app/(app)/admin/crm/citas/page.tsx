@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { PERFIL_INFO } from "@/lib/crm/stages";
-import { AGENDA_DIAS, generarSlots, horaLabel, type Slot } from "@/lib/crm/agenda-config";
+import { AGENDA_DIAS, generarSlots, horaLabel, SLOT_MIN, type Slot } from "@/lib/crm/agenda-config";
 
 interface CitaLead {
   id: string; nombre: string; empresa: string | null; sector: string | null;
@@ -132,6 +132,7 @@ export default function CrmCitasPage() {
     const payload: Record<string, unknown> = {
       agente: slot.agente,
       inicio: slot.inicio,
+      duracion_min: SLOT_MIN,
       notas: notas.trim() || null,
     };
     if (modo === "existente") {

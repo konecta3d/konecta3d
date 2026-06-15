@@ -19,7 +19,7 @@ Columna 1 = **lo que dices** (lo que hay que aprender). Columna 2 = **la clave, 
 | 5 | **La página del negocio** — "Vuelve a tocarlo.<br>Esta es la página principal del negocio para generar acción.<br>Dentro diseñamos e integramos estrategias sin que sepas de marketing." | Que vea que hay una plataforma detrás, no solo un llavero. |
 | 6 | **¿Qué te llama la atención?** — "De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?" | Identifica su necesidad principal. Encájalo en una de las 3:<br>· Captar más / no perder contactos<br>· Saber qué feria funciona<br>· Que vuelvan / destacar |
 | 7 | **El regalo** — "Este llavero es para ti.<br>Iremos variando el contenido que ves dentro." | Regalar genera confianza; no se lo esperan. |
-| 8 | **Agenda la llamada** — "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 10 minutos.<br>Así entendemos mejor tu negocio y cómo ayudarte, sin compromiso.<br>¿Te viene mejor el lunes o el martes?<br>¿A qué hora, X o Y?" → ¿cierra cita? le asignas el hueco; ¿no lo tiene claro? "te contacto más adelante"; ¿sin interés? lo anotas en el CRM. | Tocas su dolor del paso 6 para motivar la cita. Cada desenlace queda en el CRM. |
+| 8 | **Agenda la llamada** — "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 30 minutos.<br>Así entendemos mejor tu negocio y cómo ayudarte, sin compromiso.<br>¿Te viene mejor el lunes o el martes?<br>¿A qué hora, X o Y?" → ¿cierra cita? le asignas el hueco; ¿no lo tiene claro? "te contacto más adelante"; ¿sin interés? lo anotas en el CRM. | Tocas su dolor del paso 6 para motivar la cita. Cada desenlace queda en el CRM. |
 | → | **Cierre por temperatura** | Caliente / templado / frío (Componente G). |
 
 ---

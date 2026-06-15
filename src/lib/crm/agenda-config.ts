@@ -3,7 +3,7 @@
 // Las horas son LOCALES de España. En junio España va en CEST (UTC+2).
 // Si algún día cae en horario de invierno, ajusta TZ_OFFSET a "+01:00".
 
-export const SLOT_MIN = 10;          // minutos por hueco (5 de llamada + 5 de margen)
+export const SLOT_MIN = 40;          // minutos por hueco (30 de llamada + 10 de colchón)
 export const TZ_OFFSET = "+02:00";   // CEST (verano España)
 
 export interface Franja {

@@ -66,9 +66,12 @@ cierre y en el WhatsApp de esa tarde. Y te sirve para auditar el pitch (qué par
 
 **Paso 9 — Agenda la llamada (el siguiente capítulo)**
 Buscas compromiso del negocio. Toca la necesidad que identificaste en el paso 8 y propón la llamada, asignándole el hueco en el momento:
-> "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 10 minutos.
+> "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 30 minutos.
 > Así entendemos mejor tu negocio y cómo ayudarte, sin compromiso.
 > ¿Te viene mejor el lunes o el martes? ¿A qué hora?"
+
+**Objetivo de la llamada:** entender mejor su negocio, explicar bien cómo funciona y
+**motivar que entre en la plataforma** para empezar a personalizar su estrategia.
 
 → Le asignas la cita desde **Citas de la feria** (CRM). Los tres desenlaces:
 > - **Cierra cita**: le das día y hora, queda agendado.
