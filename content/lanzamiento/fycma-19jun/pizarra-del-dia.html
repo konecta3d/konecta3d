@@ -45,10 +45,10 @@
   .flow{display:flex;flex-direction:column;gap:12px}
   .step{
     display:grid;
-    grid-template-columns:40px minmax(0,1fr) minmax(0,.92fr);
+    grid-template-columns:40px minmax(0,1.15fr) minmax(0,.8fr);
     gap:16px;align-items:center;
     background:var(--teal);color:#fff;
-    border-radius:14px;padding:14px 18px;
+    border-radius:14px;padding:15px 18px;
   }
   .step.alt{background:var(--teal-mid)}
   .step.gift{background:var(--teal);border:2.5px solid var(--gold)}
@@ -59,20 +59,19 @@
     font-weight:800;font-size:15px;
     display:flex;align-items:center;justify-content:center;
   }
-  .msg h3{font-size:16px;font-weight:800;margin-bottom:4px}
-  .msg .q{font-style:italic;font-size:13.5px;opacity:.93}
-  .msg .note{color:var(--gold);font-size:12.5px;margin-top:3px}
-  .step.gift .msg h3,.step.ask .msg h3{color:var(--gold)}
-  .msg .note.light{color:rgba(255,255,255,.8)}
+  /* h3 = etiqueta pequeña del paso. La frase a DECIR (.q) es la protagonista. */
+  .msg h3{font-size:12.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;opacity:.7;margin-bottom:6px}
+  .msg .q{font-size:18px;line-height:1.32;font-weight:600}
+  .msg .note{color:var(--gold);font-size:12.5px;margin-top:6px}
+  .step.gift .msg .q,.step.ask .msg .q{color:#fff}
+  .msg .note.light{color:rgba(255,255,255,.82)}
 
   .insight{
     background:rgba(255,255,255,.10);
     border-left:3px solid var(--gold);
-    border-radius:10px;padding:9px 12px;
+    border-radius:10px;padding:10px 12px;
   }
-  .ilabel{display:block;font-size:10px;font-weight:800;letter-spacing:.06em;
-    color:var(--gold);text-transform:uppercase;margin-bottom:3px}
-  .insight p{font-size:12px;line-height:1.38;color:rgba(255,255,255,.93)}
+  .insight p{font-size:12.5px;line-height:1.36;color:rgba(255,255,255,.93)}
 
   .close{
     background:var(--teal);color:#fff;border-radius:14px;
@@ -130,141 +129,107 @@
     <p class="sub">Aquí solo MOSTRAMOS, no vendemos. Ellos —con su interés— deciden si tiene sentido.</p>
     <div class="rule"></div>
     <div class="legend">
-      <span><b>Columna 1:</b> qué dices / haces</span>
-      <span class="g"><b>Columna 2:</b> lectura · ángulo · dato (qué detectar en el cliente)</span>
+      <span><b>Columna 1:</b> lo que dices (en grande, para aprender)</span>
+      <span class="g"><b>Columna 2:</b> la clave, en una frase</span>
     </div>
   </header>
 
   <!-- FLOW -->
-  <section class="flow" aria-label="Guion en 10 pasos">
-
-    <div class="step">
-      <div class="num">0</div>
-      <div class="msg">
-        <h3>ELLOS PREGUNTAN</h3>
-        <div class="q">"¿Qué es? ¿Para qué sirve? ¿Qué lleva dentro?"</div>
-        <div class="note">No respondas al gadget. Pausa y redirige.</div>
-      </div>
-      <div class="insight">
-        <span class="ilabel">Lectura · ángulo</span>
-        <p>Si te preguntan, la curiosidad ya ganó: se acercaron ellos. Decir "es un llavero NFC" lo encierra en gadget. Tu poder está en preguntar primero.</p>
-      </div>
-    </div>
+  <section class="flow" aria-label="Guion en 8 pasos">
 
     <div class="step">
       <div class="num">1</div>
       <div class="msg">
-        <h3>REDIRIGE · contexto + pregunta</h3>
+        <h3>Redirige · contexto + pregunta</h3>
         <div class="q">"Tu objetivo principal en una feria es captar clientes nuevos, ¿verdad?"</div>
         <div class="note">Le nombras su objetivo → casi siempre asiente.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Ángulo</span>
-        <p>Enmarca todo en SU objetivo, no en tu producto. Si su meta es otra ("vender en el momento", "hacer marca"), quédate con esa palabra y reencuadra desde ahí.</p>
+        <p>Enmárcalo en SU objetivo, no en tu producto.</p>
       </div>
     </div>
 
     <div class="step">
       <div class="num">2</div>
       <div class="msg">
-        <h3>ESCUCHA · pregunta, no monólogo</h3>
+        <h3>Escucha · pregunta, no monólogo</h3>
         <div class="q">"¿Qué sueles usar para captar los datos de los visitantes? ¿Cómo te funciona?"</div>
-        <div class="note">Cállate y escucha. Apunta sus palabras exactas.</div>
+        <div class="note">Cállate y escucha. Apunta sus palabras.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Dato · detectar</span>
-        <p>Su respuesta = su dolor y tu ángulo. Tarjetas → se tiran. Libreta/Excel → lento y se escapa gente. "Nada" → encaje perfecto. El "¿cómo te funciona?" deja que admita el hueco él solo.</p>
+        <p>Su respuesta es su dolor y tu ángulo.</p>
       </div>
     </div>
 
     <div class="step">
       <div class="num">3</div>
       <div class="msg">
-        <h3>PROYECTA · ¿te interesaría?</h3>
+        <h3>Proyecta · ¿te interesaría?</h3>
         <div class="q">"Si tuvieras un método para captar los datos de manera automática, ¿te interesaría?"</div>
-        <div class="note">Pregunta que abre la puerta. Busca el segundo SÍ.</div>
+        <div class="note">Busca el segundo SÍ.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Ángulo · cualifica</span>
-        <p>Future-pacing: se imagina el resultado antes de verlo. Y cualifica: un "sí" aquí es señal real de interés de compra. Sin criticar nada de lo suyo.</p>
+        <p>Un "sí" aquí ya es señal de interés de compra.</p>
       </div>
     </div>
 
     <div class="step alt">
       <div class="num">4</div>
       <div class="msg">
-        <h3>EXPLICA + DA EL LLAVERO</h3>
-        <div class="q">"Eso es Konecta3D: un sistema físico y digital para captar clientes en automático, fidelizar y aportar valor."</div>
-        <div class="note light">El llavero es la parte física que se queda con el cliente; dentro tiene herramientas para que tome acción. "Toma, tócalo."</div>
+        <h3>Explica + da el llavero</h3>
+        <div class="q">"Eso es Konecta3D: un sistema físico y digital para captar clientes en automático, fidelizar y aportar valor. Toma, tócalo."</div>
+        <div class="note light">El llavero se queda con el cliente; dentro tiene herramientas para que tome acción.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Dato</span>
-        <p>El "Eso es" conecta directo con el deseo que acaba de admitir en el paso 3. Ponérselo en la mano = ya lo siente suyo (efecto dotación).</p>
+        <p>El llavero en su mano: ya lo siente suyo.</p>
       </div>
     </div>
 
     <div class="step alt">
       <div class="num">5</div>
       <div class="msg">
-        <h3>QUE LO VIVA · 5 segundos</h3>
-        <div class="q">Deja su dato + se lleva tu marca con valor dentro.</div>
-        <div class="note">Vive la captación como la viviría su cliente.</div>
-      </div>
-      <div class="insight">
-        <span class="ilabel">Detectar</span>
-        <p>Observa su cara en el "ya está": ahí está el aha. Sin fricción = el argumento se demuestra solo, no hace falta venderlo.</p>
-      </div>
-    </div>
-
-    <div class="step alt">
-      <div class="num">6</div>
-      <div class="msg">
-        <h3>RE-TOQUE · la página del negocio</h3>
+        <h3>La página del negocio</h3>
         <div class="q">"Vuelve a tocarlo. Esta es la página principal del negocio para generar acción."</div>
-        <div class="note">Dentro diseñamos e integramos estrategias, sin que sepas de marketing.</div>
+        <div class="note light">Dentro diseñamos e integramos estrategias, sin que sepas de marketing.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Ángulo</span>
-        <p>Ve que no es solo un llavero: hay una plataforma detrás, y se queda (permanencia vs la tarjeta que se tira). "Sin saber de marketing" baja la barrera del no técnico.</p>
+        <p>Que vea que hay una plataforma detrás, no solo un llavero.</p>
       </div>
     </div>
 
     <div class="step gift">
-      <div class="num">7</div>
+      <div class="num">6</div>
       <div class="msg">
-        <h3>EL REGALO · apertura + confianza</h3>
+        <h3>El regalo · apertura + confianza</h3>
         <div class="q">"Este llavero es para ti. Iremos variando el contenido que ves dentro."</div>
-        <div class="note light">No esperan un regalo → baja la guardia.</div>
+        <div class="note light">No se lo esperan → baja la guardia.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Ángulo</span>
-        <p>Reciprocidad. "Iremos variando" = una relación que continúa, no una venta de una sola vez.</p>
+        <p>Regalar genera confianza.</p>
+      </div>
+    </div>
+
+    <div class="step ask">
+      <div class="num">7</div>
+      <div class="msg">
+        <h3>¿Qué te llama la atención?</h3>
+        <div class="q">"De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?"</div>
+        <div class="note light">Su respuesta marca el cierre y el seguimiento.</div>
+      </div>
+      <div class="insight">
+        <p>Su botón de compra, en sus palabras.</p>
       </div>
     </div>
 
     <div class="step ask">
       <div class="num">8</div>
       <div class="msg">
-        <h3>¿QUÉ TE LLAMA LA ATENCIÓN?</h3>
-        <div class="q">"De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?"</div>
-        <div class="note light">Su respuesta marca el cierre y el seguimiento.</div>
+        <h3>Agenda la llamada</h3>
+        <div class="q">"Agendamos una llamada de 5 minutos para entender mejor cómo ayudarte y explicarte cómo funciona. ¿Qué día te viene mejor, lunes o martes?"</div>
+        <div class="note light">¿Cierra cita? Le asignas el hueco. ¿No lo tiene claro? "Te contacto más adelante". ¿Sin interés? Lo anotas en el CRM.</div>
       </div>
       <div class="insight">
-        <span class="ilabel">Dato · oro</span>
-        <p>Te dice su botón de compra con sus palabras. Úsalo literal en el cierre y en el WhatsApp de esa tarde. Y audita tu pitch: ¿qué parte engancha?</p>
-      </div>
-    </div>
-
-    <div class="step ask">
-      <div class="num">9</div>
-      <div class="msg">
-        <h3>AGENDA LA LLAMADA · ahí mismo</h3>
-        <div class="q">"Te llamo 5 min y te enseño cómo quedaría con tu marca. ¿El lunes a las 17:00 o el martes a las 11:00?"</div>
-        <div class="note light">Le asignas el hueco en el momento (Citas de la feria). Nada de "ya te contactamos".</div>
-      </div>
-      <div class="insight">
-        <span class="ilabel">Dato · cierre</span>
-        <p>Una hora concreta agendada = el siguiente capítulo, no una promesa. Mucho interés: ciérralo allí. Templado: día y hora. Frío: llavero + permiso para escribir.</p>
+        <p>Buscas compromiso real: una hora concreta. Cada desenlace queda en el CRM.</p>
       </div>
     </div>
 
@@ -303,7 +268,7 @@
         <li style="font-weight:800">1 · Contacto capturado</li>
         <li style="font-weight:800">2 · Siguiente paso acordado</li>
       </ul>
-      <p class="small">(fecha, hora o permiso para escribir)</p>
+      <p class="small">(cita, "te contacto" o anotado en el CRM)</p>
     </div>
     <div class="rail r-dark">
       <h4>VARIANTE ROI / técnico</h4>

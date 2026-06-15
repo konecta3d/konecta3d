@@ -64,13 +64,14 @@ Normalmente no entienden que les regales el llavero, y eso genera apertura y con
 → **Dato oro:** te dice su motivo de compra con sus propias palabras. Úsalo literal en el
 cierre y en el WhatsApp de esa tarde. Y te sirve para auditar el pitch (qué parte engancha).
 
-**Paso 9 — Agenda la llamada ahí mismo (el siguiente capítulo)**
-No te quedes en "ya te contactamos". Propón una hora concreta y asígnale el hueco en el momento:
-> "Te llamo 5 minutos y te enseño cómo quedaría con tu marca. ¿El lunes a las 17:00 o el martes a las 11:00?"
+**Paso 9 — Agenda la llamada (el siguiente capítulo)**
+Buscas compromiso del negocio. Propón una llamada corta y asígnale el hueco en el momento:
+> "Agendamos una llamada de 5 minutos para entender mejor cómo ayudarte y explicarte cómo funciona. ¿Qué día te viene mejor, lunes o martes?"
 
-→ Le asignas la cita desde **Citas de la feria** (CRM). Una hora agendada es el siguiente
-capítulo, no una promesa. Si hay mucho interés, ciérralo allí; si está templado, día y hora;
-si está frío, llavero + permiso para escribir.
+→ Le asignas la cita desde **Citas de la feria** (CRM). Los tres desenlaces:
+> - **Cierra cita**: le das día y hora, queda agendado.
+> - **No lo tiene claro**: "te contacto más adelante" → lo dejas en seguimiento.
+> - **Sin interés**: lo anotas en su ficha del CRM.
 
 → De aquí pasas al **cierre por temperatura** (Componente G).
 

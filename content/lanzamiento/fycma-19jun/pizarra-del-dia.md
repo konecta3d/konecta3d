@@ -6,22 +6,20 @@
 
 ---
 
-## El guion en 10 pasos
+## El guion en 8 pasos
 
-Cada paso tiene **qué dices/haces** + **qué leer del cliente** (ángulo o dato a detectar).
+Columna 1 = **lo que dices** (lo que hay que aprender). Columna 2 = **la clave, en una frase**.
 
-| # | Momento · qué dices / haces | Lectura · ángulo · dato |
-|---|------------------------------|--------------------------|
-| 0 | **Ellos preguntan** — "¿Qué es? ¿Para qué? ¿Qué lleva?" → **NO respondas al gadget.** Pausa y redirige. | Si te preguntan, la curiosidad ya ganó. "Es un llavero NFC" lo encierra en gadget; tu poder es preguntar primero. |
-| 1 | **Redirige** (contexto + pregunta) — "Tu objetivo principal en una feria es captar clientes nuevos, ¿verdad?" → busca el **SÍ**. | Enmarca en SU objetivo, no en tu producto. Si su meta es otra ("vender", "hacer marca"), reencuadra desde esa palabra. |
-| 2 | **Escucha** (pregunta, no monólogo) — "¿Qué sueles usar para captar los datos de los visitantes? ¿Cómo te funciona?" | Su respuesta = su dolor y tu ángulo. Tarjetas→se tiran · Libreta/Excel→lento · "Nada"→encaje perfecto. El "¿cómo te funciona?" deja que admita el hueco él solo. |
-| 3 | **Proyecta** (¿te interesaría?) — "Si tuvieras un método para captar los datos de manera automática, ¿te interesaría?" | Future-pacing + **cualifica**: un "sí" aquí es señal real de interés de compra. Sin criticar lo suyo. |
-| 4 | **Explica + da el llavero** — "Eso es Konecta3D: sistema físico y digital para captar clientes en automático, fidelizar y aportar valor. El llavero se queda con el cliente; dentro tiene herramientas para que tome acción. Toma, tócalo." | El "Eso es" conecta con el deseo que admitió en el paso 3. Llavero en mano = efecto dotación. |
-| 5 | **Que lo viva** (5 segundos) — deja su dato + se lleva tu marca con valor dentro. | Observa su cara en el "ya está": ahí está el aha. Sin fricción, el argumento se demuestra solo. |
-| 6 | **Re-toque** (la página del negocio) — "Vuelve a tocarlo. Esta es la página principal del negocio para generar acción. Dentro diseñamos e integramos estrategias sin que sepas de marketing." | Ve que hay una plataforma detrás, y se queda (permanencia vs la tarjeta que se tira). "Sin saber de marketing" baja la barrera. |
-| 7 | **El regalo** (apertura + confianza) — "Este llavero es para ti. Iremos variando el contenido que ves dentro." | Reciprocidad. "Iremos variando" = relación que continúa, no una venta de una vez. |
-| 8 | **¿Qué te llama la atención?** — "De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?" | **Dato oro:** su botón de compra con sus palabras. Úsalo literal en el cierre y en el WhatsApp de esa tarde. Audita tu pitch. |
-| 9 | **Agenda la llamada ahí mismo** — "Te llamo 5 min y te enseño cómo quedaría con tu marca. ¿El lunes a las 17:00 o el martes a las 11:00?" Le asignas el hueco (Citas de la feria). | Una hora concreta agendada = el siguiente capítulo, no una promesa. Mucho interés: ciérralo allí. Templado: día y hora. Frío: llavero + permiso. |
+| # | Lo que dices / haces | La clave |
+|---|----------------------|----------|
+| 1 | **Redirige** — "Tu objetivo principal en una feria es captar clientes nuevos, ¿verdad?" | Enmárcalo en SU objetivo, no en tu producto. |
+| 2 | **Escucha** — "¿Qué sueles usar para captar los datos de los visitantes? ¿Cómo te funciona?" | Su respuesta es su dolor y tu ángulo: apunta sus palabras. |
+| 3 | **Proyecta** — "Si tuvieras un método para captar los datos de manera automática, ¿te interesaría?" | Un "sí" aquí ya es señal de interés de compra. |
+| 4 | **Explica + da el llavero** — "Eso es Konecta3D: un sistema físico y digital para captar clientes en automático, fidelizar y aportar valor. Toma, tócalo." | El llavero en su mano: ya lo siente suyo. |
+| 5 | **La página del negocio** — "Vuelve a tocarlo. Esta es la página principal del negocio para generar acción. Dentro diseñamos e integramos estrategias sin que sepas de marketing." | Que vea que hay una plataforma detrás, no solo un llavero. |
+| 6 | **El regalo** — "Este llavero es para ti. Iremos variando el contenido que ves dentro." | Regalar genera confianza; no se lo esperan. |
+| 7 | **¿Qué te llama la atención?** — "De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?" | Su botón de compra, en sus palabras. |
+| 8 | **Agenda la llamada** — "Agendamos una llamada de 5 minutos para entender mejor cómo ayudarte y explicarte cómo funciona. ¿Qué día te viene mejor, lunes o martes?" → ¿cierra cita? le asignas el hueco; ¿no lo tiene claro? "te contacto más adelante"; ¿sin interés? lo anotas en el CRM. | Buscas compromiso real: una hora concreta. Cada desenlace queda en el CRM. |
 | → | **Cierre por temperatura** | Caliente / templado / frío (Componente G). |
 
 ---
@@ -43,7 +41,7 @@ Aquí solo mostramos, no vendemos. No estamos en venta todavía: enseñamos lo q
 
 **NO TE VAS SIN**
 1. Contacto capturado (ya lo tienes del formulario)
-2. Siguiente paso acordado (fecha, hora o permiso para escribir)
+2. Siguiente paso definido (cita agendada, "te contacto más adelante" o anotado en el CRM)
 
 **VARIANTE ROI / técnico**
 Con quien busca números: enfoca lo fácil que es captar el dato y cómo entra al CRM
