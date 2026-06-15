@@ -6,7 +6,7 @@
 
 ---
 
-## El guion en 9 pasos
+## El guion en 10 pasos
 
 Cada paso tiene **qué dices/haces** + **qué leer del cliente** (ángulo o dato a detectar).
 
@@ -21,6 +21,7 @@ Cada paso tiene **qué dices/haces** + **qué leer del cliente** (ángulo o dato
 | 6 | **Re-toque** (la página del negocio) — "Vuelve a tocarlo. Esta es la página principal del negocio para generar acción. Dentro diseñamos e integramos estrategias sin que sepas de marketing." | Ve que hay una plataforma detrás, y se queda (permanencia vs la tarjeta que se tira). "Sin saber de marketing" baja la barrera. |
 | 7 | **El regalo** (apertura + confianza) — "Este llavero es para ti. Iremos variando el contenido que ves dentro." | Reciprocidad. "Iremos variando" = relación que continúa, no una venta de una vez. |
 | 8 | **¿Qué te llama la atención?** — "De todo lo que es y hace Konecta3D, ¿qué es lo que más te llama la atención?" | **Dato oro:** su botón de compra con sus palabras. Úsalo literal en el cierre y en el WhatsApp de esa tarde. Audita tu pitch. |
+| 9 | **Agenda la llamada ahí mismo** — "Te llamo 5 min y te enseño cómo quedaría con tu marca. ¿El lunes a las 17:00 o el martes a las 11:00?" Le asignas el hueco (Citas de la feria). | Una hora concreta agendada = el siguiente capítulo, no una promesa. Mucho interés: ciérralo allí. Templado: día y hora. Frío: llavero + permiso. |
 | → | **Cierre por temperatura** | Caliente / templado / frío (Componente G). |
 
 ---
