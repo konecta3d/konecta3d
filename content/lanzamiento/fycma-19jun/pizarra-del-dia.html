@@ -116,37 +116,49 @@
     .insight{grid-column:1 / -1}
   }
 
-  /* Print: todo en NEGRO sobre blanco, legible y con poca tinta.
-     No depende de imprimir fondos de color (los forzamos a blanco). */
+  /* Print: TODO en una sola A4, negro sobre blanco. Pasos en 2 columnas para
+     que quepa en una página. No depende de imprimir fondos de color. */
   @media print{
-    body{background:#fff;color:#000;padding:0;font-size:12px}
+    @page{size:A4 portrait;margin:7mm}
+    body{background:#fff;color:#000 !important;padding:0;font-size:10px}
     .wrap{max-width:none}
-    h1,.sub,.legend,.legend b,.legend .g,footer{color:#000}
-    .rule{background:#000}
+    header{margin-bottom:5px}
+    h1{font-size:16px;color:#000 !important}
+    .sub{font-size:9px;margin-top:2px;color:#000 !important}
+    .rule,.legend{display:none}
 
+    .flow{display:grid;grid-template-columns:1fr 1fr;gap:5px;align-items:start}
     .step,.step.alt,.step.gift,.step.ask{
-      background:#fff;color:#000;border:1px solid #000;
+      grid-template-columns:17px 1fr;gap:6px;padding:5px 7px;align-items:start;
+      background:#fff !important;color:#000 !important;border:0.8px solid #000 !important;
     }
-    .num{background:#fff;color:#000;border:1.5px solid #000}
-    .msg h3{color:#000;opacity:1}
-    .msg .q{color:#000}
-    .msg .note,.msg .note.light{color:#000}
+    .num{width:15px;height:15px;font-size:9px;margin-top:1px;
+      background:#fff !important;color:#000 !important;border:1px solid #000}
+    .msg h3,.step.gift .msg h3,.step.ask .msg h3{font-size:8px;color:#000 !important;opacity:1;margin-bottom:2px}
+    .msg .q,.step.gift .msg .q,.step.ask .msg .q{font-size:10px;line-height:1.22;font-weight:700;color:#000 !important}
+    .msg .note,.msg .note.light{font-size:7.5px;color:#000 !important;margin-top:2px}
 
-    .insight{background:#fff;border-left:3px solid #000}
-    .insight p,.insight li{color:#000}
-    .insight li::before{color:#000}
+    .insight{grid-column:1 / -1;background:#fff !important;border-left:2px solid #000;padding:2px 6px;margin-top:3px}
+    .insight p,.insight li{font-size:7.5px;line-height:1.25;color:#000 !important}
+    .insight ul{margin-top:2px}
+    .insight li::before{color:#000 !important}
 
-    .close{background:#fff;color:#000;border:1px solid #000}
-    .close strong,.close span{color:#000}
+    .close{grid-column:1 / -1;background:#fff !important;color:#000 !important;border:0.8px solid #000;padding:4px 8px}
+    .close strong{font-size:11px;color:#000 !important}
+    .close span{font-size:8px;color:#000 !important}
 
-    .rail,.rail.r-dark{background:#fff;color:#000;border:1px solid #000}
-    .rail h4,.rail.r-dark h4,.rail p,.rail.r-dark p,.rail li,.rail .small{color:#000}
+    .rails{grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
+    .rail,.rail.r-dark{background:#fff !important;color:#000 !important;border:0.8px solid #000;padding:5px 6px}
+    .rail h4,.rail.r-dark h4{font-size:8px;color:#000 !important;margin-bottom:3px}
+    .rail p,.rail.r-dark p,.rail li,.rail .small,.rail .lead{font-size:7.5px;line-height:1.22;color:#000 !important}
 
-    .frases{background:#fff;color:#000;border:1px solid #000}
-    .frases h4,.frases p{color:#000}
+    .frases{margin-top:6px;background:#fff !important;color:#000 !important;border:0.8px solid #000;padding:5px 9px}
+    .frases h4{font-size:9px;color:#000 !important;margin-bottom:2px}
+    .frases p{font-size:7.5px;color:#000 !important;margin:2px 0}
+
+    footer{margin-top:4px;font-size:7px;color:#000 !important}
 
     .step,.rail,.close,.frases{break-inside:avoid}
-    @page{margin:11mm}
   }
 </style>
 </head>
