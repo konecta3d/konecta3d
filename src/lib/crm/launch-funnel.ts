@@ -71,7 +71,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e1o3", titulo: "Recoger los datos para el alta", check: "Tengo nombre de negocio, email y teléfono" },
       ],
       mensajes: [
-        { id: "e1m1", titulo: "Apertura — cliente actual", objetivoId: "e1o1", contenido: "Buenos días [nombre], llevo [X meses] sin escribirte. He lanzado una plataforma que potencia el llavero que tienes: personalizas lo que aparece al escanearlo y captas contactos de forma automática. El primer mes es gratis, sin permanencia, y luego son 99 €/mes. ¿Lo vemos el martes a las 10 o el miércoles a las 12, 15 minutos? — Equipo Konecta3D" },
+        { id: "e1m1", titulo: "Apertura — cliente actual", objetivoId: "e1o1", contenido: "Buenos días [nombre], llevo [X meses] sin escribirte. He lanzado una plataforma que potencia el llavero que tienes: personalizas lo que aparece al escanearlo y captas contactos de forma automática. El primer mes es gratis, sin permanencia, y luego son 149 €/mes. ¿Lo vemos el martes a las 10 o el miércoles a las 12, 15 minutos? — Equipo Konecta3D" },
         { id: "e1m2", titulo: "Apertura — grupo de WhatsApp", objetivoId: "e1o1", contenido: "Buenos días. Algunos me conocéis de los llaveros NFC de Konecta3D. He lanzado una plataforma que convierte el llavero en un sistema para captar clientes en ferias y eventos. He preparado una guía gratuita: «Los 10 fallos que te hacen perder clientes en las ferias». Escribidme por privado y os la paso. — Miguel, Konecta3D" },
         { id: "e1m3", titulo: "Explicación + info", objetivoId: "e1o2", contenido: "Te lo resumo: una plataforma que convierte tu llavero en un sistema para captar clientes. Cada persona que lo toca te puede dejar su contacto. Aquí tienes más detalle: [landing de información]. ¿Lo vemos el martes a las 10 o el miércoles a las 12, 15 minutos? Si prefieres explorar primero solo, te dejo el acceso y luego hablamos. — Equipo Konecta3D" },
         { id: "e1m4", titulo: "Petición de datos", objetivoId: "e1o3", contenido: "Para dejarte el acceso listo solo necesito 3 cosas:\n· Nombre de tu negocio\n· Tu email (será tu usuario)\n· Tu teléfono\nCon eso te lo preparo y te paso las claves." },
@@ -179,7 +179,7 @@ export const DEFAULT_LAUNCH_FUNNEL: LaunchFunnel = {
         { id: "e6o3", titulo: "Cerrar la suscripción", check: "Cliente con suscripción activa" },
       ],
       mensajes: [
-        { id: "e6m1", titulo: "Conversión — mensaje de cierre", objetivoId: "e6o1", contenido: "[Nombre], en este mes has captado [X contactos] con el llavero y tienes tu landing activa. Eso son [X] personas en tu lista que no tenías antes. El [fecha] termina el acceso gratuito. A partir de ahí son 99 €/mes, sin permanencia. — Miguel, Equipo Konecta3D" },
+        { id: "e6m1", titulo: "Conversión — mensaje de cierre", objetivoId: "e6o1", contenido: "[Nombre], en este mes has captado [X contactos] con el llavero y tienes tu landing activa. Eso son [X] personas en tu lista que no tenías antes. El [fecha] termina el acceso gratuito. A partir de ahí son 149 €/mes, sin permanencia. — Miguel, Equipo Konecta3D" },
         { id: "e6m2", titulo: "Conversión — seguimiento si no responde", objetivoId: "e6o3", contenido: "[Nombre], si tienes alguna duda antes de que acabe el período, el [día] a las [hora] o el [día] a las [hora] lo vemos en 10 minutos. — Miguel, Equipo Konecta3D" },
       ],
       documentos: [

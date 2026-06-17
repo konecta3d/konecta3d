@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 
-const KONECTA_MENSUAL = 99;
+const KONECTA_MENSUAL = 149;
 const KONECTA_ANUAL = KONECTA_MENSUAL * 12;
 
 type Periodo   = "mensual" | "trimestral" | "anual";
@@ -357,7 +357,7 @@ export default function CalculadoraPage() {
             className="rounded-2xl border p-6"
             style={{ background: "rgba(34,197,94,0.06)", borderColor: "rgba(34,197,94,0.25)" }}
           >
-            <p className="text-sm text-green-500/80 font-medium mb-4">Con Konecta3D — 99 €/mes</p>
+            <p className="text-sm text-green-500/80 font-medium mb-4">Con Konecta3D — 149 €/mes</p>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="text-center">

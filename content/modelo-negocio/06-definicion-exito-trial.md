@@ -40,7 +40,7 @@ El cliente confirma. Miguel tiene los datos para el Contacto 11.
 
 No preguntar "¿seguimos?". Poner el valor en evidencia y dar la fecha.
 
-> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. Eso son [X] personas en tu lista que no tenías antes. El [fecha] termina el acceso gratuito. A partir de ahí son 99 €/mes, sin permanencia. — Miguel, Equipo Konecta3D"
+> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. Eso son [X] personas en tu lista que no tenías antes. El [fecha] termina el acceso gratuito. A partir de ahí son 149 €/mes, sin permanencia. — Miguel, Equipo Konecta3D"
 
 El cliente decide. Si no responde en 48 horas → llamada de voz ese mismo día.
 
@@ -63,7 +63,7 @@ La plataforma no llegó a funcionar porque el cliente no completó los pasos. In
 
 ## Lo que sigue: fidelización y recomendación
 
-Una vez el cliente convierte a 99 €/mes, empieza la etapa 7 del embudo (Fidelización):
+Una vez el cliente convierte a 149 €/mes, empieza la etapa 7 del embudo (Fidelización):
 
 ### Mes 2 en adelante
 - Check-in mensual de Miguel: cuántos leads, cómo va
@@ -101,7 +101,7 @@ Estas métricas permiten a Miguel y Miriam ver desde admin qué clientes están 
 
 - No extender el período de prueba por inactividad del cliente
 - No hacer el seguimiento de leads por él (el sistema es self-serve)
-- No presionar la conversión con descuentos: el precio es 99 €, sin negociación
+- No presionar la conversión con descuentos: el precio es 149 €, sin negociación
 
 ---
 

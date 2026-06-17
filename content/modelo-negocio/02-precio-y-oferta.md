@@ -9,9 +9,8 @@
 
 | Plan | Precio total | Equivalente/mes | Ahorro vs mensual |
 |---|---|---|---|
-| Mensual | **99 €/mes** | 99 € | — |
-| Trimestral | **249 €/trimestre** | 83 € | 16 % (50 € al trimestre) |
-| Anual | **899 €/año** | 75 € | 24 % (~3 meses gratis) |
+| Mensual | **149 €/mes** | 149 € | — |
+| Anual | **1.490 €/año** | 124 € | 2 meses gratis (~17 %) |
 
 **Sin permanencia en ningún plan. Sin tarjeta para la prueba gratuita.**
 
@@ -38,7 +37,7 @@
 
 ## La oferta de entrada
 
-> "Primer mes gratis, sin tarjeta, sin compromiso. Lo montas, lo pruebas con tus datos reales, ves los resultados. Si al mes no ves valor, lo dejamos aquí. Si sí, son 99 € al mes sin permanencia."
+> "Primer mes gratis, sin tarjeta, sin compromiso. Lo montas, lo pruebas con tus datos reales, ves los resultados. Si al mes no ves valor, lo dejamos aquí. Si sí, son 149 € al mes sin permanencia."
 
 **Por qué funciona:**
 - Elimina el riesgo percibido (el mayor freno en una compra nueva)
@@ -58,11 +57,11 @@
 
 ## Preguntas frecuentes de precio
 
-**¿Por qué 99 € y no menos?**
-El sistema capta leads que valen entre 50 y varios cientos de euros cada uno en la mayoría de negocios. 99 €/mes se recupera con uno o dos nuevos clientes. El precio refleja ese valor real.
+**¿Por qué 149 € y no menos?**
+El sistema capta leads que valen entre 50 y varios cientos de euros cada uno en la mayoría de negocios. 149 €/mes se recupera con uno o dos nuevos clientes. El precio refleja ese valor real.
 
-**¿Puedo pagar por trimestre o año desde el inicio?**
-Sí. El descuento trimestral es del 16 % (249 € vs 297 €). El anual es del 24 % (899 € vs 1.188 €). Disponible tras el mes de prueba.
+**¿Puedo pagar el año desde el inicio?**
+Sí. El plan anual son 1.490 €/año: dos meses gratis frente a pagar mes a mes (1.788 €). Disponible tras el mes de prueba.
 
 **¿Puedo darme de baja en cualquier momento?**
 Sí. Sin permanencia en ningún plan. Sin penalización.
@@ -77,7 +76,7 @@ Los resultados dependen del uso. El sistema no funciona solo si el llavero está
 - No hacemos descuentos monetarios en los llaveros
 - No damos acceso de por vida ni planes alternativos
 - No negociamos el precio base (si hay que añadir valor, son unidades extra)
-- No empezamos por 49 € para subir después
+- No empezamos con un precio bajo para subirlo después
 
 ---
 

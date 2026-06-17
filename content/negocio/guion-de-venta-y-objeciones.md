@@ -36,7 +36,7 @@ Acabas de ver exactamente lo que vivirá tu cliente."
 ## Objeciones → respuestas
 - **"Es caro"** → Dos respuestas según el momento:
   - *Si ya vieron la calculadora:* "Los números que acabas de ver son los tuyos. ¿Cuántos de esos [X clientes perdidos por feria] necesitas recuperar en una feria para que tenga sentido?"
-  - *Si no vieron la calculadora:* "¿Cuánto vale un cliente nuevo para tu negocio? Con 99 €/mes — 1.188 € al año — si tu ticket es de 600 €, necesitas captar 2 clientes nuevos en todo el año para que se pague solo. Con tu número de ferias, eso es menos de 1 por evento."
+  - *Si no vieron la calculadora:* "¿Cuánto vale un cliente nuevo para tu negocio? Con 149 €/mes — 1.788 € al año — si tu ticket es de 600 €, necesitas captar 3 clientes nuevos en todo el año para que se pague solo. Con tu número de ferias, eso es menos de 1 por evento."
 - **"No sé si va a funcionar"** → "Te lo demuestro ahora: toca este llavero. Eso es todo lo que hace, y funciona siempre. Y lo pruebas gratis un mes antes de pagar nada."
 - **"Lo tengo que consultar"** → "Claro. ¿Con quién? ¿Agendamos para el lunes por la mañana o el martes por la tarde? 10 minutos para resolver dudas y que no decidáis con información a medias"
 - **"Ahora no es el momento"** → "¿Cuándo es tu próxima feria? Planifica tu estrategia para esa: si empezas con tiempo, llegas con el sistema montado."

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 
-const KONECTA_MENSUAL = 99;
+const KONECTA_MENSUAL = 149;
 const KONECTA_ANUAL = KONECTA_MENSUAL * 12;
 
 type Periodo   = "mensual" | "trimestral" | "anual";
@@ -396,7 +396,7 @@ export default function CalculadoraPublica() {
           style={{ background: hex(colRoi, 0.07), border: `1px solid ${hex(colRoi, 0.2)}` }}
         >
           <p className="text-sm font-medium mb-3" style={{ color: hex(colRoi, 0.85) }}>
-            Con Konecta3D — 99 €/mes
+            Con Konecta3D — 149 €/mes
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.88)" }}>
             Con un ticket de{" "}
@@ -494,7 +494,7 @@ export default function CalculadoraPublica() {
                 <span style={{ color: colPot }}>+{fmt(potencial.ingresos)} €</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span style={{ color: "rgba(255,255,255,0.75)" }}>Konecta3D (99 €/mes)</span>
+                <span style={{ color: "rgba(255,255,255,0.75)" }}>Konecta3D (149 €/mes)</span>
                 <span style={{ color: "rgba(255,255,255,0.6)" }}>−{fmt(KONECTA_ANUAL)} €</span>
               </div>
               <div className="flex justify-between pt-2 font-bold" style={{ borderTop: `1px solid ${hex(colPot, 0.3)}` }}>

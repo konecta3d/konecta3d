@@ -112,7 +112,7 @@ Si no reacciona → "¿Ese número te parece realista con tu negocio?"
 **Después, el ROI:**
 La calculadora ya lo calcula. Señalarlo:
 
-> "Con Konecta3D son 99 €/mes — 1.188 €/año. Con tu ticket de [X€] necesitas captar [N clientes] al año para recuperarlo. Con [ferias] ferias, eso es [resultado] por evento."
+> "Con Konecta3D son 149 €/mes — 1.788 €/año. Con tu ticket de [X€] necesitas captar [N clientes] al año para recuperarlo. Con [ferias] ferias, eso es [resultado] por evento."
 
 ---
 

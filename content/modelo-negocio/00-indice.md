@@ -15,6 +15,7 @@
 | [04-llamada-calificacion.md](04-llamada-calificacion.md) | Preguntas de la llamada de calificación y criterios de filtro |
 | [05-modo-de-uso-pipeline.md](05-modo-de-uso-pipeline.md) | Protocolo operativo para Miguel y Miriam — quién hace qué y cuándo |
 | [06-definicion-exito-trial.md](06-definicion-exito-trial.md) | Los 5 criterios de éxito, cómo mostrarlos al cliente y arrancar la fidelización |
+| [07-integracion-crm-externo.md](07-integracion-crm-externo.md) | Diseño técnico de integración webhook con CRM externos (HubSpot, Zoho, Pipedrive…) |
 
 ---
 
@@ -23,7 +24,7 @@
 | Hito | Estado |
 |---|---|
 | Primera presentación pública | Feria FYCMA Málaga — 19 junio 2026 |
-| Precio de plataforma | 99 €/mes (cerrado) |
+| Precio de plataforma | 149 €/mes (cerrado) |
 | Primer cliente de pago | Pendiente |
 | Primer caso de éxito documentado | Pendiente |
 | Miriam integrada en operaciones | Sí — seguimiento y onboarding |

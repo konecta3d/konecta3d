@@ -32,7 +32,7 @@
 | Demo hecha | Ya ocurrió en la feria — marcar al crear el lead |
 | Propuesta enviada | Cuando se envía el PDF de acceso |
 | Ganado | Cuando acepta el acceso y empieza el trial |
-| Cliente activo | Cuando paga los primeros 99 €/mes |
+| Cliente activo | Cuando paga los primeros 149 €/mes |
 | Perdido | 2 mensajes sin respuesta |
 
 ### Herramienta B: Seguimiento (`/admin/crm/seguimiento`)
@@ -91,7 +91,7 @@ Esta tabla es el resumen operativo para tener siempre a la vista.
 | # | Día trial | Quién | Objetivo | Señal de avance |
 |---|---|---|---|---|
 | 10 | Día 23 | Miguel | Recopilar datos antes del cierre | Número de leads confirmado |
-| 11 | Día 25 | Miguel | Conversión a 99 €/mes | Cliente activo |
+| 11 | Día 25 | Miguel | Conversión a 149 €/mes | Cliente activo |
 
 ---
 

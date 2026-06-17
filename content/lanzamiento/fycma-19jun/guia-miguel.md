@@ -57,7 +57,7 @@ Referencia rápida calculada desde el 19 de junio. Ajusta si el acceso al trial 
 | 8 | Día 16 | 12 julio | Miguel | Primeros resultados (≥3 leads) |
 | 9 | Día 19 | 15 julio | Miriam | Encuesta de soporte |
 | 10 | Día 23 | 19 julio | Miguel | Datos antes del cierre |
-| 11 | Día 25 | 21 julio | Miguel | Conversión a 99 €/mes |
+| 11 | Día 25 | 21 julio | Miguel | Conversión a 149 €/mes |
 
 *Las fechas son orientativas para un lead captado el 19 y con acceso desde el 26.*
 
@@ -86,7 +86,7 @@ Registrar en las notas del lead en el CRM: sector, ferias al año, próxima fech
 
 No preguntar "¿seguimos?". Mostrar los datos y dar la fecha.
 
-> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. El [fecha] termina el acceso gratuito. A partir de ahí son 99 €/mes, sin permanencia. — Miguel, Equipo Konecta3D"
+> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. El [fecha] termina el acceso gratuito. A partir de ahí son 149 €/mes, sin permanencia. — Miguel, Equipo Konecta3D"
 
 Si no responde en 48 horas → llamada de voz ese mismo día.
 

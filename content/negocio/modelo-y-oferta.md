@@ -35,9 +35,8 @@
 
 | Plan | Precio | Equivalente/mes | Descuento |
 |---|---|---|---|
-| Mensual | **99 €/mes** | 99 € | — |
-| Trimestral | **249 €/trimestre** | 83 € | 16 % |
-| Anual | **899 €/año** | 75 € | 24 % (~3 meses gratis) |
+| Mensual | **149 €/mes** | 149 € | — |
+| Anual | **1.490 €/año** | 124 € | 2 meses gratis (~17 %) |
 
 - Envío de los llaveros: **GRATIS**
 - Lote mínimo de llaveros: 100 unidades a ~3 €/u

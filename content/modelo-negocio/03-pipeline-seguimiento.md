@@ -17,7 +17,7 @@
 | **ONBOARDING** | Setup en progreso (perfil, landing, WhatsApp) |
 | **ACTIVADO** | Primer lead real capturado en su propia landing |
 | **REVISIÓN** | Semana 4, datos sobre la mesa |
-| **CLIENTE** | Conversión confirmada, paga 99 €/mes |
+| **CLIENTE** | Conversión confirmada, paga 149 €/mes |
 | **FRÍO** | 2 mensajes sin respuesta → archivado |
 
 Mover cada negocio en el CRM a medida que avanza.
@@ -165,9 +165,9 @@ Ver preguntas completas en: [04-llamada-calificacion.md](04-llamada-calificacion
 
 ### Contacto 11 — Trial día 25 (día de cierre)
 **Quien:** Miguel
-**Objetivo:** conversión a 99 €/mes
+**Objetivo:** conversión a 149 €/mes
 
-> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. Eso son [X] personas en tu lista que no tenías antes. Hoy termina el acceso gratuito. A partir de mañana son 99 € al mes, sin permanencia. — Miguel, Equipo Konecta3D"
+> "[Nombre], en este mes has captado [X contactos] con el llavero, tienes tu landing activa y el sistema funcionando. Eso son [X] personas en tu lista que no tenías antes. Hoy termina el acceso gratuito. A partir de mañana son 149 € al mes, sin permanencia. — Miguel, Equipo Konecta3D"
 
 **No preguntar "¿seguimos?".** El valor está en los datos. El cliente decide.
 **Si no responde en 48h:** llamada de voz

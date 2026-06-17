@@ -27,7 +27,7 @@ El negocio invierte en ferias, consultas y eventos pero pierde la mayoría de co
 | Pieza | Qué es | Precio |
 |---|---|---|
 | Llavero NFC | Objeto físico con la marca del negocio. Se queda con el cliente. | ~3 €/u (lote mínimo 100u) |
-| Plataforma | Landing, captación de leads, recurso de valor, estadísticas. Autogestionable. | 99 €/mes |
+| Plataforma | Landing, captación de leads, recurso de valor, estadísticas. Autogestionable. | 149 €/mes |
 
 **Sin llavero, es otro SaaS. Sin plataforma, es un gadget.**
 
@@ -46,13 +46,12 @@ El negocio invierte en ferias, consultas y eventos pero pierde la mayoría de co
 Ver documento completo: [02-precio-y-oferta.md](02-precio-y-oferta.md)
 
 **Resumen:**
-- Mensual: **99 €/mes**
-- Trimestral: **249 €/trimestre** (83 €/mes)
-- Anual: **899 €/año** (75 €/mes)
+- Mensual: **149 €/mes**
+- Anual: **1.490 €/año** (124 €/mes — 2 meses gratis)
 - Entrada: **1 mes gratis, sin tarjeta, sin permanencia**
 
 **Decisiones tomadas:**
-- El precio es 99 €, no 49 €. El valor lo justifica.
+- El precio es 149 €/mes. El valor lo justifica (no se empieza barato para subir luego).
 - No se hacen descuentos monetarios en el llavero. Si hay que dar valor extra: unidades adicionales.
 - El mes gratis es la herramienta de convicción, no una rebaja.
 

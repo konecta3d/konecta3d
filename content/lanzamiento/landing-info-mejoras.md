@@ -131,7 +131,7 @@ Añade una línea de plazo (informa y crea urgencia real):
 > ¿Por qué funciona? Porque la cuenta sale sola.
 
 **Bloque Párrafo (paragraph):**
-> Un stand te cuesta miles de euros. Konecta cuesta 99 €/mes. Con que captes y cierres
+> Un stand te cuesta miles de euros. Konecta cuesta 149 €/mes. Con que captes y cierres
 > un solo cliente más por feria, ya lo has pagado de sobra. Y por primera vez sabes, con
 > números, qué feria te trajo clientes y cuál no.
 

@@ -7,7 +7,7 @@
 
 ## El sistema en dos frases
 
-Vendemos a negocios locales un sistema para captar clientes en ferias: un llavero NFC con su marca que abre una página personalizada cuando alguien lo toca con el móvil. La plataforma digital gestiona todo lo demás — leads, landing, lead magnet, estadísticas. El precio es 99 €/mes con un mes de prueba gratuita.
+Vendemos a negocios locales un sistema para captar clientes en ferias: un llavero NFC con su marca que abre una página personalizada cuando alguien lo toca con el móvil. La plataforma digital gestiona todo lo demás — leads, landing, lead magnet, estadísticas. El precio es 149 €/mes con un mes de prueba gratuita.
 
 ---
 
@@ -76,7 +76,7 @@ Cada lead sigue esta cronología desde que llega. Las tareas aparecen solas en e
 | 8 | Día 16 | Miguel | Revisar resultados: ¿cuántos leads reales han captado? |
 | 9 | Día 19 | Miriam | Encuesta de soporte: 3 preguntas |
 | 10 | Día 23 | Miguel | Recopilar datos para el mensaje de conversión |
-| 11 | Día 25 | Miguel | Conversión a 99 €/mes |
+| 11 | Día 25 | Miguel | Conversión a 149 €/mes |
 
 ---
 
@@ -140,7 +140,7 @@ Si no cumple ninguno → no encaja. Cerrar el ciclo con respeto, sin forzar.
 - Ofrecer descuentos o extender el período de prueba (coordinarlo antes si hay caso excepcional)
 - Comprometerse con fechas de entrega de llaveros sin confirmar disponibilidad
 - Responder preguntas técnicas de la plataforma sin estar seguros
-- Dar información de precios distinta a 99 €/mes sin haberlo consensuado
+- Dar información de precios distinta a 149 €/mes sin haberlo consensuado
 
 ---
 
