@@ -21,6 +21,10 @@ const CORE_FIELDS = [
 const OPTIONAL_FIELDS = [
   "profile_active", "landing_active",
   "multi_landing_enabled", "font_family",
+  // Gestión del negocio desde admin (migración 20260617000003)
+  "perfil", "notas_admin",
+  "cuota_mensual", "estado_suscripcion", "metodo_cobro",
+  "proximo_cobro", "fecha_alta_suscripcion",
 ];
 
 export async function POST(req: Request) {
