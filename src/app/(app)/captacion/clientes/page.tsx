@@ -46,12 +46,16 @@ function LeadPanel({
   onClose,
   onUpdate,
   questionMap,
+  isAdmin,
+  onSendToPipeline,
 }: {
   lead: CaptacionLead;
   updating: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<CaptacionLead>) => void;
   questionMap: Record<string, string>;
+  isAdmin: boolean;
+  onSendToPipeline: (id: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(0,0,0,0.4)" }}
@@ -178,6 +182,23 @@ function LeadPanel({
               <p className="text-xs text-[var(--foreground)]/30">{new Date(lead.migrated_at).toLocaleDateString("es-ES")}</p>
             )}
           </div>
+        )}
+
+        {/* Enviar al pipeline de ventas (solo admin / Konecta) */}
+        {isAdmin && (
+          lead.crm_lead_id ? (
+            <a href={`/admin/crm/pipeline/${lead.crm_lead_id}`} target="_blank" rel="noopener noreferrer"
+              className="block text-center w-full py-2.5 rounded-lg text-sm font-semibold border transition-colors"
+              style={{ borderColor: "var(--border)", color: "var(--brand-1)" }}>
+              ✓ En el pipeline — ver ficha
+            </a>
+          ) : (
+            <button disabled={updating} onClick={() => onSendToPipeline(lead.id)}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+              style={{ background: "#22c55e", color: "white" }}>
+              → Enviar al pipeline de ventas
+            </button>
+          )
         )}
       </div>
     </div>
@@ -458,6 +479,7 @@ function ClientesPage() {
   const [selectedLead, setSelectedLead] = useState<CaptacionLead | null>(null);
   const [updating, setUpdating] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Tab activo
   const [activeTab, setActiveTab] = useState<"todos" | "sin_lm" | "fidelizacion" | "manuales">("todos");
@@ -477,6 +499,8 @@ function ClientesPage() {
       const email = s?.session?.user?.email;
       if (!email || !t) { setLoading(false); return; }
       setToken(t);
+      fetch("/api/admin/is-admin", { method: "POST", headers: { Authorization: `Bearer ${t}` } })
+        .then(r => r.json()).then(j => setIsAdmin(!!j.isAdmin)).catch(() => {});
       const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", email).single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
@@ -513,6 +537,21 @@ function ClientesPage() {
         setSelectedLead(prev => prev ? { ...prev, ...updates } : prev);
       }
     }
+    setUpdating(false);
+  };
+
+  const sendToPipeline = async (leadId: string) => {
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/captacion/leads/${leadId}/to-pipeline`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (res.ok) {
+        await loadLeads(businessId, token);
+        setSelectedLead(prev => prev && prev.id === leadId ? { ...prev, crm_lead_id: json.crm_lead_id } : prev);
+      }
+    } catch { /* silencioso */ }
     setUpdating(false);
   };
 
@@ -767,6 +806,8 @@ function ClientesPage() {
           onClose={() => selectLead(null)}
           onUpdate={updateLead}
           questionMap={questionMap}
+          isAdmin={isAdmin}
+          onSendToPipeline={sendToPipeline}
         />
       )}
 

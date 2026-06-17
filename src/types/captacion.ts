@@ -197,6 +197,8 @@ export interface CaptacionLead {
   /** Paso del embudo alcanzado */
   funnel_step: LeadFunnelStep;
   status: 'new' | 'contacted' | 'active' | 'discarded';
+  /** Si ya se envió al pipeline de ventas, id de su ficha en crm_leads */
+  crm_lead_id?: string | null;
   notes?: string;
   migrated_to_fidelizacion: boolean;
   migrated_at?: string;

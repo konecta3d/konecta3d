@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import KeychainOrders from "@/components/admin/KeychainOrders";
 
 async function getAuthHeader(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
@@ -556,6 +557,9 @@ export default function BusinessDetail() {
     </a>
   </div>
 </div>
+
+          {/* Pedidos de llaveros de este negocio */}
+          <KeychainOrders businessId={id} />
         </main>
       </div>
     </div>

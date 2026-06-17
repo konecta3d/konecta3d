@@ -361,9 +361,8 @@ export default function LeadDetailPage() {
             {lead.fecha_cierre && <div className="flex justify-between"><span className="text-[var(--foreground)]/40">Cierre</span><span>{new Date(lead.fecha_cierre).toLocaleDateString("es-ES")}</span></div>}
           </div>
 
-          {/* Conversión a negocio — solo si ganado y aún no vinculado */}
-          {(lead.etapa === "ganado" || lead.etapa === "cliente_activo" || lead.etapa === "cliente_recurrente") && (
-            <div className="rounded-xl border border-green-500/30 p-5" style={{ background: "var(--card)" }}>
+          {/* Conversión a negocio — disponible en cualquier etapa */}
+          <div className="rounded-xl border border-green-500/30 p-5" style={{ background: "var(--card)" }}>
               <h2 className="text-sm font-semibold text-green-500 mb-1">Convertir en negocio</h2>
               {lead.business_id ? (
                 <div className="space-y-2">
@@ -395,7 +394,6 @@ export default function LeadDetailPage() {
                 </div>
               )}
             </div>
-          )}
         </div>
       </div>
     </div>
