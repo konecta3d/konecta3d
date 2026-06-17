@@ -41,10 +41,12 @@ CREATE INDEX IF NOT EXISTS idx_keychain_orders_evento   ON keychain_orders(fecha
 ALTER TABLE keychain_orders ENABLE ROW LEVEL SECURITY;
 
 -- El service role (APIs admin) tiene acceso completo.
+DROP POLICY IF EXISTS keychain_orders_service ON keychain_orders;
 CREATE POLICY keychain_orders_service ON keychain_orders
   FOR ALL USING (auth.role() = 'service_role');
 
 -- El negocio dueño puede ver/crear los suyos (para el auto-servicio futuro).
+DROP POLICY IF EXISTS keychain_orders_owner ON keychain_orders;
 CREATE POLICY keychain_orders_owner ON keychain_orders
   FOR ALL USING (
     business_id IN (SELECT id FROM businesses WHERE user_id = auth.uid()::text)
