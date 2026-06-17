@@ -122,12 +122,14 @@ export default function BusinessesPage() {
                 .map((b) => (
                 <tr key={b.id} className="border-t border-[var(--border)]">
                   <td className="py-2 font-mono text-xs">{b.public_id || "—"}</td>
-                  <td className="py-2 font-medium">{b.name}</td>
+                  <td className="py-2 font-medium">
+                    <a className="hover:text-[var(--brand-1)] hover:underline" href={`/admin/businesses/${b.id}`}>{b.name}</a>
+                  </td>
                   <td className="py-2">{b.sector || "—"}</td>
                   <td className="py-2">{b.contact_email || "—"}</td>
                   <td className="py-2 flex gap-3">
-  <a className="text-[var(--brand-3)]" href={`/admin/businesses/${b.id}`}>
-    Editar
+  <a className="text-[var(--brand-3)] font-semibold" href={`/admin/businesses/${b.id}`}>
+    Gestionar →
   </a>
   <a
     className="text-[var(--brand-1)]"
