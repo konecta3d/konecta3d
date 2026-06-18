@@ -106,7 +106,10 @@ function innerHtml(b: LandingBlock, t: LandingTheme): string {
       const imgOpacity = lo.color ? "1" : ".85";
       const chip = (i: { src: string; alt?: string; imgSize?: "sm" | "md" | "lg" }) => {
         const isz = SZ[i.imgSize || lo.imgSize || "md"];
-        return `<div style="flex:0 0 auto;height:${isz.h}px;min-width:${isz.w}px;display:flex;align-items:center;justify-content:center;padding:0 22px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px"><img src="${esc(i.src)}" alt="${esc(i.alt)}" style="max-height:${isz.img}px;max-width:${isz.w - 20}px;object-fit:contain;filter:${imgFilter};opacity:${imgOpacity}"/></div>`;
+        const name = i.alt
+          ? `<span style="display:block;margin-top:8px;font-size:12px;font-weight:600;color:${hexA(textColor, 0.7)};text-align:center;max-width:${isz.w}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.alt)}</span>`
+          : "";
+        return `<div style="flex:0 0 auto;min-width:${isz.w}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 22px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px"><img src="${esc(i.src)}" alt="${esc(i.alt)}" style="max-height:${isz.img}px;max-width:${isz.w - 20}px;object-fit:contain;filter:${imgFilter};opacity:${imgOpacity}"/>${name}</div>`;
       };
       const ph = (n: number) => `<div style="flex:0 0 auto;height:${sz.h}px;min-width:${sz.w + 10}px;display:flex;align-items:center;justify-content:center;padding:0 26px;background:${hexA(textColor, 0.05)};border:1px solid ${hexA(textColor, 0.1)};border-radius:14px;color:${hexA(textColor, 0.5)};font-weight:700;font-size:13px">LOGO ${n}</div>`;
       const cells = valid.length > 0 ? valid.map(chip) : [1, 2, 3, 4, 5].map(ph);
