@@ -98,6 +98,7 @@ function MetricCard({
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function CaptacionPage() {
+  const [lmAlertDismissed, setLmAlertDismissed] = useState(false);
   const [business, setBusiness] = useState<BusinessData | null>(null);
   const [counts, setCounts] = useState<CaptacionCounts>({
     campaigns: 0,
@@ -359,13 +360,15 @@ export default function CaptacionPage() {
       </div>
 
       {/* ── Alerta leads sin descargar LM ── */}
-      {lmPendingLeads.length > 0 && (
-        <Link
-          href="/captacion/clientes?tab=sin_lm"
-          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-colors"
+      {lmPendingLeads.length > 0 && !lmAlertDismissed && (
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
           style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}
         >
-          <div className="flex items-center gap-3">
+          <Link
+            href="/captacion/clientes?tab=sin_lm"
+            className="flex items-center gap-3 flex-1"
+          >
             <span className="text-orange-400 text-lg flex-shrink-0">⚠</span>
             <div>
               <p className="text-sm font-semibold text-orange-400">
@@ -375,9 +378,16 @@ export default function CaptacionPage() {
                 Puedes contactarles por WhatsApp con el enlace de descarga.
               </p>
             </div>
+          </Link>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link href="/captacion/clientes?tab=sin_lm" className="text-xs font-semibold text-orange-400 whitespace-nowrap">Ver →</Link>
+            <button
+              onClick={() => setLmAlertDismissed(true)}
+              className="text-orange-400/60 hover:text-orange-400 text-lg leading-none transition-colors ml-1"
+              title="Descartar aviso"
+            >×</button>
           </div>
-          <span className="text-xs font-semibold text-orange-400 whitespace-nowrap flex-shrink-0">Ver y contactar →</span>
-        </Link>
+        </div>
       )}
 
       {/* ── Banner campaña activa ── */}

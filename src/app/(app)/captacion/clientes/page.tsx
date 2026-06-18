@@ -45,6 +45,7 @@ function LeadPanel({
   updating,
   onClose,
   onUpdate,
+  onDelete,
   questionMap,
   isAdmin,
   onSendToPipeline,
@@ -53,6 +54,7 @@ function LeadPanel({
   updating: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<CaptacionLead>) => void;
+  onDelete: (id: string) => void;
   questionMap: Record<string, string>;
   isAdmin: boolean;
   onSendToPipeline: (id: string) => void;
@@ -117,20 +119,32 @@ function LeadPanel({
               )}
             </div>
             {/* Botón WhatsApp de seguimiento si no descargó */}
-            {lead.lm_status !== "downloaded" && lead.phone && (
-              <a
-                href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`¡Hola ${lead.name || ""}! 👋 Te enviamos el recurso que pediste. Puedes descargarlo aquí cuando quieras. ¿Tienes alguna duda?`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 mt-2 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
-                style={{ background: "#25d366", color: "white" }}
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.057 24l6.305-1.654A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.7 9.7 0 01-4.948-1.352l-.355-.21-3.676 1.025 1.025-3.676-.21-.355A9.693 9.693 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
-                </svg>
-                Enviar recordatorio por WhatsApp
-              </a>
+            {lead.lm_status !== "downloaded" && (
+              <div className="flex flex-col gap-2 mt-2">
+                {lead.phone && (
+                  <a
+                    href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`¡Hola ${lead.name || ""}! 👋 Te enviamos el recurso que pediste. Puedes descargarlo aquí cuando quieras. ¿Tienes alguna duda?`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
+                    style={{ background: "#25d366", color: "white" }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.057 24l6.305-1.654A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.7 9.7 0 01-4.948-1.352l-.355-.21-3.676 1.025 1.025-3.676-.21-.355A9.693 9.693 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
+                    </svg>
+                    Enviar recordatorio por WhatsApp
+                  </a>
+                )}
+                <button
+                  disabled={updating}
+                  onClick={() => onUpdate(lead.id, { lm_status: "downloaded" } as Partial<CaptacionLead>)}
+                  className="w-full py-2 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50 hover:border-green-500/50 hover:text-green-400"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  Marcar como entregado manualmente
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -200,6 +214,21 @@ function LeadPanel({
             </button>
           )
         )}
+
+        {/* Eliminar lead */}
+        <div className="border-t pt-4" style={{ borderColor: "var(--border)" }}>
+          <button
+            disabled={updating}
+            onClick={() => {
+              if (confirm(`¿Eliminar a ${lead.name || lead.phone}? Esta acción no se puede deshacer.`)) {
+                onDelete(lead.id);
+              }
+            }}
+            className="w-full py-2 rounded-lg text-xs font-semibold transition-colors text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Eliminar lead
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -483,6 +512,7 @@ function ClientesPage() {
 
   // Tab activo
   const [activeTab, setActiveTab] = useState<"todos" | "sin_lm" | "fidelizacion" | "manuales">("todos");
+  const [lmAlertDismissed, setLmAlertDismissed] = useState(false);
 
   // Modal añadir cliente manual
   const [showAddModal, setShowAddModal] = useState(false);
@@ -536,6 +566,19 @@ function ClientesPage() {
       if (selectedLead?.id === id) {
         setSelectedLead(prev => prev ? { ...prev, ...updates } : prev);
       }
+    }
+    setUpdating(false);
+  };
+
+  const deleteLead = async (id: string) => {
+    setUpdating(true);
+    const res = await fetch(`/api/captacion/leads/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      setSelectedLead(null);
+      await loadLeads(businessId, token);
     }
     setUpdating(false);
   };
@@ -732,13 +775,15 @@ function ClientesPage() {
       )}
 
       {/* Alerta leads sin descargar LM */}
-      {totalLmPending > 0 && (
+      {totalLmPending > 0 && !lmAlertDismissed && (
         <div
-          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors"
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-colors"
           style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}
-          onClick={() => setActiveTab("sin_lm")}
         >
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3 flex-1 cursor-pointer"
+            onClick={() => setActiveTab("sin_lm")}
+          >
             <span className="text-orange-400 text-lg">⚠</span>
             <div>
               <p className="text-sm font-semibold text-orange-400">
@@ -749,7 +794,14 @@ function ClientesPage() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-orange-400 whitespace-nowrap">Ver →</span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs font-semibold text-orange-400 cursor-pointer" onClick={() => setActiveTab("sin_lm")}>Ver →</span>
+            <button
+              onClick={() => setLmAlertDismissed(true)}
+              className="text-orange-400/60 hover:text-orange-400 text-lg leading-none transition-colors ml-1"
+              title="Descartar aviso"
+            >×</button>
+          </div>
         </div>
       )}
 
@@ -805,6 +857,7 @@ function ClientesPage() {
           updating={updating}
           onClose={() => selectLead(null)}
           onUpdate={updateLead}
+          onDelete={deleteLead}
           questionMap={questionMap}
           isAdmin={isAdmin}
           onSendToPipeline={sendToPipeline}

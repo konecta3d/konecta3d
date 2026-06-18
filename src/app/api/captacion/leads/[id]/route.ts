@@ -31,13 +31,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await req.json();
-  const allowed = ["status", "notes", "migrated_to_fidelizacion"];
+  const allowed = ["status", "notes", "migrated_to_fidelizacion", "lm_status"];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];
   }
   if (body.migrated_to_fidelizacion === true) {
     updates.migrated_at = new Date().toISOString();
+  }
+  if (body.lm_status === "downloaded" && !body.lead_magnet_delivered_at) {
+    updates.lead_magnet_delivered_at = new Date().toISOString();
+    updates.lead_magnet_delivered = true;
   }
 
   const { data, error } = await supabaseAdmin()
@@ -49,4 +53,25 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ lead: data });
+}
+
+// DELETE /api/captacion/leads/[id] — eliminar lead
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const businessId = await getLeadBusiness(id);
+  if (!businessId) return NextResponse.json({ error: "Lead no encontrado" }, { status: 404 });
+
+  const [owns, { isAdmin }] = await Promise.all([
+    verifyBusinessOwnership(req, businessId),
+    verifyAdminSession(req),
+  ]);
+  if (!owns && !isAdmin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+
+  const { error } = await supabaseAdmin()
+    .from("captacion_leads")
+    .delete()
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
