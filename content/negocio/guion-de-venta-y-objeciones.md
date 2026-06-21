@@ -41,6 +41,7 @@ Acabas de ver exactamente lo que vivirá tu cliente."
 - **"Lo tengo que consultar"** → "Claro. ¿Con quién? ¿Agendamos para el lunes por la mañana o el martes por la tarde? 10 minutos para resolver dudas y que no decidáis con información a medias"
 - **"Ahora no es el momento"** → "¿Cuándo es tu próxima feria? Planifica tu estrategia para esa: si empezas con tiempo, llegas con el sistema montado."
 - **"Ya tenemos un CRM"** → "Perfecto, esto no lo reemplaza: lo alimenta. Captura el contacto en la feria, justo donde hoy lo perdéis, y lo vuelcas a tu sistema."
+- **"Ya tengo llaveros NFC (y más baratos)"** → "El llavero a 1 € lo tiene cualquiera; lo que te falta —y es lo que de verdad pagas— es el **control del contenido y las métricas**: cambiar la campaña cuando quieras y ver qué feria te trajo clientes. No compras el llavero, compras el sistema." *(Objeción real del congreso de junio.)*
 
 ## Reglas de la conversación
 - Escuchar más que hablar en el descubrimiento.

@@ -26,6 +26,7 @@ Esto alimenta el rombo "¿Objeción?" del flujo y es contenido para todos los ca
 | "No puedo cambiar el contenido de mi landing" | Rigidez | Cambios en tiempo real, llavero reprogramable sin reimprimir |
 | "No sé si esto funciona para mí" | Riesgo percibido | Prueba gratis 1 mes + estadísticas reales |
 | "No sé cuántos clientes vinieron por el llavero" | No puede medir (clave) | Estadísticas: visitas y leads por feria |
+| "Ya tengo llaveros NFC (y más baratos)" | Compara el objeto, no el sistema | No vendes el llavero (eso lo tiene cualquiera a ~1 €): vendes el **control del contenido + las métricas + la plataforma**. El llavero sin eso es un gadget. *(Objeción real — congreso jun 2026)* |
 
 **Frase de venta que sale de aquí:**
 > "Todo lo que te frenó del llavero, la plataforma lo resuelve. El llavero capta; la
