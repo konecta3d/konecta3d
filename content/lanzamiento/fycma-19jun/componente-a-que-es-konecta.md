@@ -65,17 +65,27 @@ Normalmente no entienden que les regales el llavero, y eso genera apertura y con
 cierre y en el WhatsApp de esa tarde. Y te sirve para auditar el pitch (qué parte engancha).
 
 **Paso 9 — Agenda la llamada (el siguiente capítulo)**
-Buscas compromiso del negocio. Toca la necesidad que identificaste en el paso 8 y propón la llamada, asignándole el hueco en el momento:
-> "Para ayudarte con [lo que te ha llamado la atención], agendamos una llamada de 30 minutos.
-> Así entendemos mejor tu negocio y cómo ayudarte, sin compromiso.
-> ¿Te viene mejor el lunes o el martes? ¿A qué hora?"
+Buscas compromiso del negocio. **Antes de proponer la cita, averigua quién decide:** las citas se cierran con quien tiene el poder de decisión. Toca la necesidad del paso 8 y pregunta:
+> "Para ayudarte con [lo que te ha llamado la atención] me gustaría agendar una llamada.
+> ¿Esto lo decides tú o lo veis con alguien más del equipo?"
+
+- **Si decide él/ella → cierra la cita en el momento:**
+  > "Agendamos una llamada de 30 minutos. Así entendemos mejor tu negocio y cómo ayudarte,
+  > sin compromiso. ¿Te viene mejor el lunes o el martes? ¿A qué hora?"
+- **Si NO decide → conviértelo en tu puente (entras con referido):**
+  > "Pásame el contacto de quien lleva esto y le escribo de tu parte, diciéndole que lo has
+  > visto y te ha encajado."
+  >
+  > Pídele nombre + WhatsApp/email del decisor y permiso para mencionar su recomendación.
+  > Así entras con referencia, no en frío.
 
 **Objetivo de la llamada:** entender mejor su negocio, explicar bien cómo funciona y
 **motivar que entre en la plataforma** para empezar a personalizar su estrategia.
 
-→ Le asignas la cita desde **Citas de la feria** (CRM). Los tres desenlaces:
-> - **Cierra cita**: le das día y hora, queda agendado.
-> - **No lo tiene claro**: "te contacto más adelante" → lo dejas en seguimiento.
+→ Anotas el desenlace en **Citas de la feria** (CRM):
+> - **Cierra cita** (es quien decide): día y hora, queda agendado.
+> - **Referido**: no decide él → te da el contacto del decisor + permiso; le escribes esa tarde mencionando su recomendación.
+> - **No lo tiene claro**: "te contacto más adelante" → seguimiento.
 > - **Sin interés**: lo anotas en su ficha del CRM.
 
 → De aquí pasas al **cierre por temperatura** (Componente G).
