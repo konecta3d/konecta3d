@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership } from "@/lib/auth-helpers";
-import type { LandingConfig } from "@/lib/landingTypes";
+import { defaultLandingConfig, type LandingConfig } from "@/lib/landingTypes";
 import { claudeChat, extractJson } from "@/lib/anthropic";
 import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
 
@@ -28,11 +28,36 @@ const FORBIDDEN_FIELDS: (keyof LandingConfig)[] = [
   "logoSize",
 ];
 
-function stripForbidden(changes: Partial<LandingConfig> | null): Partial<LandingConfig> | null {
-  if (!changes) return null;
-  const cleaned: Record<string, unknown> = { ...changes };
-  for (const field of FORBIDDEN_FIELDS) {
-    delete cleaned[field as string];
+// Claves válidas = todos los campos reales de LandingConfig menos los prohibidos.
+const ALLOWED_FIELDS: ReadonlySet<string> = new Set(
+  Object.keys(defaultLandingConfig).filter(
+    (k) => !(FORBIDDEN_FIELDS as string[]).includes(k)
+  )
+);
+
+// Limpia el objeto de cambios que devuelve la IA. Descarta:
+//  - campos prohibidos (logo…)
+//  - cualquier clave que NO exista en LandingConfig.
+// Esto último es clave: si la IA alucina un nombre de campo (ej: "showReviewBlock"
+// en vez de "finalBlockMode"), el merge en el editor sería un no-op silencioso y
+// el usuario vería el botón "Aplicar Sugerencias" sin ningún efecto en la vista
+// previa ni en el resultado guardado. Filtramos y dejamos traza para detectar
+// cualquier deriva entre el prompt y el tipo real.
+function sanitizeChanges(changes: Partial<LandingConfig> | null): Partial<LandingConfig> | null {
+  if (!changes || typeof changes !== "object") return null;
+  const cleaned: Record<string, unknown> = {};
+  const dropped: string[] = [];
+  for (const [key, value] of Object.entries(changes)) {
+    if (ALLOWED_FIELDS.has(key)) cleaned[key] = value;
+    else dropped.push(key);
+  }
+  if (dropped.length > 0) {
+    console.warn(
+      "[chat] la IA devolvió claves inválidas (descartadas):",
+      dropped,
+      "| aplicadas:",
+      Object.keys(cleaned)
+    );
   }
   return Object.keys(cleaned).length > 0 ? (cleaned as Partial<LandingConfig>) : null;
 }
@@ -151,12 +176,13 @@ Objetivo: que el visitante pueda contactar o interactuar con 1 tap.
 Acción: recomienda qué botones activar según el tipo de negocio. Para los links, indica que deben ir primero a "Herramientas del negocio" en el menú lateral a configurar sus links (WhatsApp, Instagram, web, etc.) — los links configurados ahí estarán disponibles para cada botón.
 Recomienda texto de botón específico para el negocio (no "CTA 1" genérico).
 
-PASO 4 — BLOQUE FINAL
-Campos: showReviewBlock, reviewImage, reviewLink, showMoreButtons
-Objetivo: añadir un elemento de cierre que refuerce la acción o la confianza.
-Opción A — Imagen con link: ideal para ubicación en Google Maps o foto estratégica del local/equipo (reviewImage + reviewLink).
-Opción B — Botón adicional: para un enlace extra más discreto (showMoreButtons + cta4/cta5).
-Acción: pregunta qué prefieren y propón la configuración concreta.
+PASO 4 — BLOQUE FINAL (cierre de la landing)
+Campo principal: finalBlockMode (uno de: "none" | "invite" | "image" | "tools")
+Objetivo: añadir un cierre que refuerce la acción o la confianza.
+Opción A — Invitar a un amigo (finalBlockMode: "invite"): bloque para que el visitante comparta la landing. Ideal para fidelización y recomendaciones. Puedes ajustar inviteTitle, inviteText, inviteBtnText.
+Opción B — Imagen con enlace (finalBlockMode: "image"): una foto (del local, del equipo o de una reseña) que enlaza a donde quieras, por ejemplo tu ubicación en Google Maps (reviewLink). La imagen se sube desde el editor; tú puedes dejar preparado finalBlockMode y reviewLink, pero NO inventes una URL de imagen.
+Botón extra (opcional, independiente del bloque final): showMoreButtons: true con cta4Text + cta4Link para un enlace adicional discreto.
+Acción: pregunta qué cierre prefieren y propón la configuración concreta (finalBlockMode y los textos).
 
 ═══════════════════════════════════════════
 REGLAS DE COMPORTAMIENTO
@@ -175,7 +201,11 @@ FORMATO DE RESPUESTA — OBLIGATORIO
 ═══════════════════════════════════════════
 Devuelve SIEMPRE un JSON con esta forma exacta:
 { "message": "texto en español (máx 2-3 líneas)", "changes": { /* Partial<LandingConfig> o null */ } }
-Si no propones cambios en este turno, "changes" debe ser null.`;
+Si no propones cambios en este turno, "changes" debe ser null.
+
+NOMBRES DE CAMPO (crítico): en "changes" usa EXCLUSIVAMENTE los nombres de campo tal cual aparecen en el ESTADO ACTUAL DEL EDITOR de arriba y en los 4 pasos. No inventes nombres, no los traduzcas y no cambies mayúsculas. Un nombre que no exista se descarta y el cambio NO se aplica.
+Ejemplo de "changes" válido:
+{ "bgColor": "#1A4D4A", "textColor": "#ffffff", "showSubtitle": true, "subtitle": "Tu clínica dental de confianza" }`;
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
@@ -209,7 +239,7 @@ Si no propones cambios en este turno, "changes" debe ser null.`;
 
     return NextResponse.json({
       message: parsed.message || "(respuesta vacía)",
-      changes: stripForbidden(parsed.changes ?? null),
+      changes: sanitizeChanges(parsed.changes ?? null),
     });
   } catch (e) {
     console.error("chat route error:", e);
