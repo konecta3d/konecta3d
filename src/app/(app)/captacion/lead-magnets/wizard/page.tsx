@@ -211,6 +211,28 @@ function CaptacionLeadMagnetWizardInner() {
   // ── Load business & edit data ──────────────────────────────────────────────
   useEffect(() => {
     const editId = searchParams.get("edit");
+
+    // Prefill desde una sugerencia del asistente IA (la página de lista la guarda
+    // en sessionStorage al pulsar "Usar esto"). Solo para recursos nuevos.
+    // Marcamos contentCustomized para que la plantilla por objetivo no lo sobrescriba.
+    if (!editId && typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem("lm_prefill");
+        if (raw) {
+          sessionStorage.removeItem("lm_prefill");
+          const p = JSON.parse(raw) as {
+            title?: string; description?: string; type?: string; cta_text?: string;
+          };
+          contentCustomized.current = true;
+          if (p.type === "url" || p.type === "pdf") setType(p.type);
+          if (p.title) { setName(p.title); setCustomTitle(p.title); }
+          if (p.description) { setCustomIntro(p.description); setDescription(p.description); }
+          if (p.cta_text) { setCtaText(p.cta_text); setCta1Text(p.cta_text); }
+          setStep("tipo");
+        }
+      } catch { /* prefill inválido — se ignora */ }
+    }
+
     const load = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const userEmail = sessionData?.session?.user?.email || "";

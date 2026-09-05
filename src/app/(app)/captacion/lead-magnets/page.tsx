@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { CaptacionLeadMagnet } from "@/types/captacion";
 import CaptacionChatPanel from "@/components/captacion/CaptacionChatPanel";
@@ -24,6 +25,7 @@ export default function LeadMagnetsPage() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const load = async () => {
@@ -283,6 +285,22 @@ export default function LeadMagnetsPage() {
           section="lead_magnets"
           businessId={businessId}
           token={token}
+          onSuggestion={(s) => {
+            // "Usar esto": lleva la sugerencia al wizard de crear vía sessionStorage.
+            // La página es solo lista; crear se hace en /captacion/lead-magnets/wizard.
+            try {
+              sessionStorage.setItem(
+                "lm_prefill",
+                JSON.stringify({
+                  title: s.title,
+                  description: s.description,
+                  type: s.type,
+                  cta_text: s.cta_text,
+                })
+              );
+            } catch { /* sessionStorage no disponible */ }
+            router.push("/captacion/lead-magnets/wizard");
+          }}
         />
       )}
     </div>

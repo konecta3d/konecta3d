@@ -801,6 +801,19 @@ export default function CampanasPage() {
           section="campanas"
           businessId={businessId}
           token={token}
+          onSuggestion={(s) => {
+            // "Usar esto": abre el formulario de crear con la sugerencia de la IA.
+            // (el gancho "hook" no tiene campo en la campaña — queda en el mensaje del chat)
+            setEditingId(null);
+            setForm({
+              ...emptyForm,
+              name: typeof s.name === "string" ? s.name : "",
+              target_client: typeof s.target_client === "string" ? s.target_client : "",
+              objective: typeof s.objective === "string" ? s.objective : "",
+            });
+            setWizardStep(1);
+            setMode("creating");
+          }}
         />
       )}
     </div>
