@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership } from "@/lib/auth-helpers";
 import type { LandingConfig } from "@/lib/landingTypes";
 import { claudeChat, extractJson } from "@/lib/anthropic";
+import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -117,6 +118,8 @@ export async function POST(req: Request) {
     // ────────────────────────────────────────────────────────────────────────
     const systemPrompt = `Eres el asistente de onboarding de landing de Konecta3D para "${businessName}".
 
+${METODO_KONECTA}
+
 PERFIL DEL NEGOCIO:
 ${businessProfile}
 
@@ -162,7 +165,7 @@ REGLAS DE COMPORTAMIENTO
 2. Guía UN paso a la vez. No mezcles pasos en el mismo mensaje.
 3. Celebra cada paso completado con una frase corta antes de proponer el siguiente.
 4. Personaliza TODAS las sugerencias usando el perfil: tipo de negocio, servicios, tono, cliente objetivo.
-5. Respuestas cortas: máximo 4 líneas. Siempre termina con una acción concreta.
+5. Respuestas cortas: máximo 2-3 líneas. Siempre termina con una acción concreta.
 6. Si preguntan algo fuera de la landing: "Eso está fuera de lo que puedo ayudarte aquí. Para otras dudas, contacta con el equipo de Konecta3D."
 7. NUNCA modifiques: logoUrl, logoShape, showLogo, logoSize.
 8. Responde SIEMPRE en español, tono cercano y directo.
@@ -171,7 +174,7 @@ REGLAS DE COMPORTAMIENTO
 FORMATO DE RESPUESTA — OBLIGATORIO
 ═══════════════════════════════════════════
 Devuelve SIEMPRE un JSON con esta forma exacta:
-{ "message": "texto en español (máx 4 líneas)", "changes": { /* Partial<LandingConfig> o null */ } }
+{ "message": "texto en español (máx 2-3 líneas)", "changes": { /* Partial<LandingConfig> o null */ } }
 Si no propones cambios en este turno, "changes" debe ser null.`;
 
     if (!process.env.ANTHROPIC_API_KEY) {

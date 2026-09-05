@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 import { claudeChat, extractJson } from "@/lib/anthropic";
+import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +66,8 @@ que van a eventos y ferias para captar clientes usando llaveros NFC con formular
 
 El negocio NO es experto en marketing. Habla siempre en su idioma — sin tecnicismos.
 
+${METODO_KONECTA}
+
 ${FOUR_QUESTIONS_FRAMEWORK}
 
 ════════════════════════════════════
@@ -99,7 +102,7 @@ Cuando propongas un recurso, SIEMPRE usa las 4 preguntas como estructura:
 
 Formato de respuesta JSON:
 {
-  "message": "texto en español (máx 4 líneas)",
+  "message": "texto en español (máx 2-3 líneas)",
   "suggestion": {
     "title": "título del recurso",
     "description": "descripción breve (máx 120 chars)",
@@ -124,7 +127,7 @@ Proporciona sugerencias concretas de texto listas para copiar.
 
 Formato de respuesta JSON:
 {
-  "message": "texto en español (máx 4 líneas)",
+  "message": "texto en español (máx 2-3 líneas)",
   "suggestion": {
     "improvements": ["mejora 1", "mejora 2", "mejora 3"],
     "welcome_title": "título sugerido para la pantalla de bienvenida",
@@ -147,7 +150,7 @@ Estructura toda campaña usando las 4 preguntas:
 
 Formato de respuesta JSON:
 {
-  "message": "texto en español (máx 4 líneas)",
+  "message": "texto en español (máx 2-3 líneas)",
   "suggestion": {
     "name": "nombre sugerido para la campaña",
     "target_client": "descripción específica del cliente objetivo",
@@ -173,7 +176,7 @@ Genera mensajes listos para copiar y pegar, con [Nombre] como único placeholder
 
 Formato de respuesta JSON:
 {
-  "message": "texto en español (máx 4 líneas)",
+  "message": "texto en español (máx 2-3 líneas)",
   "suggestion": {
     "content": "el mensaje completo listo para copiar",
     "channel": "whatsapp|llamada|email",
@@ -211,7 +214,7 @@ CÓMO ACTUAR:
 
 Formato de respuesta JSON obligatorio:
 {
-  "message": "tu mensaje en español (máx 4 líneas, tono cercano y directo)",
+  "message": "tu mensaje en español (máx 2-3 líneas, tono cercano y directo)",
   "suggestion": {
     "block_id": "id exacto del bloque",
     "field_id": "id exacto del campo",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 import { claudeChat, extractJson } from "@/lib/anthropic";
+import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
 
 export type WizardChanges = {
   objective?: "volvieron" | "conversion" | "referidos" | "captar" | "reactivar" | "educar" | "temporada" | "lanzamiento";
@@ -95,6 +96,8 @@ y experiencia en un documento PDF que aporte valor real al cliente final:
 resuelva problemas reales, responda dudas frecuentes, muestre el uso correcto
 de sus productos o servicios, y ponga en valor lo que el negocio ofrece.
 El dueño NO es experto en comunicación — guíale paso a paso, habla su idioma.
+
+${METODO_KONECTA}
 
 ════════════════════════════════════
 PERFIL DEL NEGOCIO
