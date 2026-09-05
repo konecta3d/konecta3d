@@ -51,6 +51,14 @@ function sanitizeChanges(changes: Partial<LandingConfig> | null): Partial<Landin
     if (ALLOWED_FIELDS.has(key)) cleaned[key] = value;
     else dropped.push(key);
   }
+  // Garantía de visibilidad del fondo: el renderer solo pinta el color cuando
+  // showBg está activo y bgMode === "color". Si la IA propone un bgColor pero
+  // olvida esos dos, el color no se vería. Los rellenamos solo si faltan, sin
+  // pisar una decisión explícita de la IA en el mismo turno.
+  if ("bgColor" in cleaned) {
+    if (cleaned.bgMode === undefined) cleaned.bgMode = "color";
+    if (cleaned.showBg === undefined) cleaned.showBg = true;
+  }
   if (dropped.length > 0) {
     console.warn(
       "[chat] la IA devolvió claves inválidas (descartadas):",
@@ -161,9 +169,10 @@ FLUJO DE ONBOARDING — 4 PASOS EN ORDEN OBLIGATORIO
 ═══════════════════════════════════════════
 
 PASO 1 — FONDO Y COLOR DE TEXTOS
-Campos: bgColor, bgOpacity, showBg, textColor
+Campos: showBg, bgMode, bgColor, bgOpacity, textColor
 Objetivo: establecer la identidad visual base de la landing.
-Acción: propón un color de fondo acorde al tipo de negocio y un color de texto con buen contraste. Sugiere valores concretos (ej: "#1A4D4A").
+CRÍTICO: para que un color de fondo se VEA, "changes" debe incluir SIEMPRE los tres juntos: "showBg": true, "bgMode": "color" y "bgColor": "#...". Si mandas solo bgColor no se verá nada, porque el fondo puede estar en modo imagen u oculto.
+Acción: propón un color de fondo acorde al tipo de negocio y un color de texto (textColor) con buen contraste. Sugiere valores concretos (ej: "#1A4D4A").
 
 PASO 2 — NOMBRE E IDENTIDAD
 Campos: showBusinessName, subtitle, showSubtitle
@@ -204,8 +213,15 @@ Devuelve SIEMPRE un JSON con esta forma exacta:
 Si no propones cambios en este turno, "changes" debe ser null.
 
 NOMBRES DE CAMPO (crítico): en "changes" usa EXCLUSIVAMENTE los nombres de campo tal cual aparecen en el ESTADO ACTUAL DEL EDITOR de arriba y en los 4 pasos. No inventes nombres, no los traduzcas y no cambies mayúsculas. Un nombre que no exista se descarta y el cambio NO se aplica.
+
+INTERRUPTORES Y MODOS (crítico): cuando propongas contenido para un campo que tiene un interruptor "show..." o un modo, incluye SIEMPRE también ese interruptor/modo activado en el mismo "changes", o el cambio no se verá aunque el valor se guarde. Reglas concretas:
+- Color de fondo → añade "showBg": true y "bgMode": "color" junto a "bgColor".
+- Subtítulo → añade "showSubtitle": true junto a "subtitle".
+- Nombre del negocio → añade "showBusinessName": true.
+- Botón CTA → añade "showCtaN": true junto a "ctaNText" (N = 1..5); si es el 4 o el 5, añade además "showMoreButtons": true.
+- Bloque final → usa "finalBlockMode" con el valor correcto ("invite" | "image" | "tools").
 Ejemplo de "changes" válido:
-{ "bgColor": "#1A4D4A", "textColor": "#ffffff", "showSubtitle": true, "subtitle": "Tu clínica dental de confianza" }`;
+{ "showBg": true, "bgMode": "color", "bgColor": "#1A4D4A", "textColor": "#ffffff", "showSubtitle": true, "subtitle": "Tu clínica dental de confianza" }`;
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: "openai_key_missing" }, { status: 503 });
