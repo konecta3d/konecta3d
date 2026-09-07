@@ -4,6 +4,7 @@ import { verifyBusinessOwnership } from "@/lib/auth-helpers";
 import { defaultLandingConfig, type LandingConfig } from "@/lib/landingTypes";
 import { claudeChat, extractJson } from "@/lib/anthropic";
 import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
+import { getPlatformState } from "@/lib/ai/platform-state";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -116,8 +117,9 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Cargar perfil del negocio (preguntas + respuestas) para el system prompt.
-    const [questionsRes, answersRes] = await Promise.all([
+    // Cargar perfil del negocio (preguntas + respuestas) + estado real de la
+    // plataforma para el system prompt.
+    const [questionsRes, answersRes, platformState] = await Promise.all([
       supabaseAdmin
         .from("gpt_context_questions")
         .select("id, question_text, question_order")
@@ -126,6 +128,7 @@ export async function POST(req: Request) {
         .from("gpt_context_answers")
         .select("question_id, answer_text")
         .eq("business_id", businessId),
+      getPlatformState(supabaseAdmin, businessId),
     ]);
 
     const questions = questionsRes.data || [];
@@ -155,6 +158,8 @@ ${METODO_KONECTA}
 
 PERFIL DEL NEGOCIO:
 ${businessProfile}
+
+${platformState}
 
 ESTADO ACTUAL DEL EDITOR (LandingConfig):
 ${configPayload}

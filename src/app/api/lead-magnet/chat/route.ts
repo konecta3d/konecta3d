@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 import { claudeChat, extractJson } from "@/lib/anthropic";
 import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
+import { getPlatformState } from "@/lib/ai/platform-state";
 
 export type WizardChanges = {
   objective?: "volvieron" | "conversion" | "referidos" | "captar" | "reactivar" | "educar" | "temporada" | "lanzamiento";
@@ -60,8 +61,8 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Load business profile (Q&A from gpt_context_answers)
-    const [questionsRes, answersRes] = await Promise.all([
+    // Load business profile (Q&A) + estado real de la plataforma
+    const [questionsRes, answersRes, platformState] = await Promise.all([
       supabaseAdmin
         .from("gpt_context_questions")
         .select("id, question_text, question_order")
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
         .from("gpt_context_answers")
         .select("question_id, answer_text")
         .eq("business_id", businessId),
+      getPlatformState(supabaseAdmin, businessId),
     ]);
 
     const questions = questionsRes.data || [];
@@ -103,6 +105,8 @@ ${METODO_KONECTA}
 PERFIL DEL NEGOCIO
 ════════════════════════════════════
 ${businessProfile}
+
+${platformState}
 
 ════════════════════════════════════
 ESTADO ACTUAL DEL RECURSO

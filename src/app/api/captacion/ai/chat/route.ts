@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership, verifyAdminSession } from "@/lib/auth-helpers";
 import { claudeChat, extractJson } from "@/lib/anthropic";
 import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
+import { getPlatformState } from "@/lib/ai/platform-state";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -332,7 +333,11 @@ async function loadBusinessContext(
         .join("\n")
     : "";
 
-  return { global, campaign };
+  // Estado real de la plataforma (módulos, herramientas y piezas creadas).
+  const platformState = await getPlatformState(db, businessId);
+  const globalWithState = platformState ? `${global}\n\n${platformState}` : global;
+
+  return { global: globalWithState, campaign };
 }
 
 // ─── Handler principal ────────────────────────────────────────────────────────
