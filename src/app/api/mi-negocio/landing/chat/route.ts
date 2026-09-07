@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyBusinessOwnership } from "@/lib/auth-helpers";
-import { defaultLandingConfig, type LandingConfig } from "@/lib/landingTypes";
+import type { LandingConfig } from "@/lib/landingTypes";
 import { claudeChat, extractJson } from "@/lib/anthropic";
 import { METODO_KONECTA } from "@/lib/ai/metodo-konecta";
 import { getPlatformState } from "@/lib/ai/platform-state";
+import { sanitizeLandingChanges, toGptPayload } from "@/lib/ai/landing-changes";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -18,84 +19,6 @@ interface ChatRequest {
   currentConfig: LandingConfig;
   messages: ChatMessage[];
   userMessage: string;
-}
-
-// Campos que el chat NO puede modificar (defensa en profundidad — el system
-// prompt también lo dice, pero filtramos aquí por si el GPT desobedece).
-const FORBIDDEN_FIELDS: (keyof LandingConfig)[] = [
-  "logoUrl",
-  "logoShape",
-  "showLogo",
-  "logoSize",
-];
-
-// Claves válidas = todos los campos reales de LandingConfig menos los prohibidos.
-const ALLOWED_FIELDS: ReadonlySet<string> = new Set(
-  Object.keys(defaultLandingConfig).filter(
-    (k) => !(FORBIDDEN_FIELDS as string[]).includes(k)
-  )
-);
-
-// Limpia el objeto de cambios que devuelve la IA. Descarta:
-//  - campos prohibidos (logo…)
-//  - cualquier clave que NO exista en LandingConfig.
-// Esto último es clave: si la IA alucina un nombre de campo (ej: "showReviewBlock"
-// en vez de "finalBlockMode"), el merge en el editor sería un no-op silencioso y
-// el usuario vería el botón "Aplicar Sugerencias" sin ningún efecto en la vista
-// previa ni en el resultado guardado. Filtramos y dejamos traza para detectar
-// cualquier deriva entre el prompt y el tipo real.
-function sanitizeChanges(changes: Partial<LandingConfig> | null): Partial<LandingConfig> | null {
-  if (!changes || typeof changes !== "object") return null;
-  const cleaned: Record<string, unknown> = {};
-  const dropped: string[] = [];
-  for (const [key, value] of Object.entries(changes)) {
-    if (ALLOWED_FIELDS.has(key)) cleaned[key] = value;
-    else dropped.push(key);
-  }
-  // Garantía de visibilidad del fondo: el renderer solo pinta el color cuando
-  // showBg está activo y bgMode === "color". Si la IA propone un bgColor pero
-  // olvida esos dos, el color no se vería. Los rellenamos solo si faltan, sin
-  // pisar una decisión explícita de la IA en el mismo turno.
-  if ("bgColor" in cleaned) {
-    if (cleaned.bgMode === undefined) cleaned.bgMode = "color";
-    if (cleaned.showBg === undefined) cleaned.showBg = true;
-  }
-  if (dropped.length > 0) {
-    console.warn(
-      "[chat] la IA devolvió claves inválidas (descartadas):",
-      dropped,
-      "| aplicadas:",
-      Object.keys(cleaned)
-    );
-  }
-  return Object.keys(cleaned).length > 0 ? (cleaned as Partial<LandingConfig>) : null;
-}
-
-// Campos que NO se envían al GPT (son URLs/binarios de imagen, irrelevantes
-// para la personalización conversacional). Además, el replacer recursivo
-// más abajo elimina cualquier base64 o string excesivamente largo que se
-// cuele en sub-objetos o arrays. Sin esto, las imágenes en base64 inflan
-// fácilmente el payload por encima de los 128k tokens del modelo.
-const OMITTED_FIELDS_FOR_GPT: ReadonlySet<string> = new Set([
-  "bgUrl",
-  "logoUrl",
-  "reviewImage",
-  "toolsIds",
-]);
-
-function toGptPayload(config: LandingConfig): string {
-  return JSON.stringify(
-    config,
-    (key, value) => {
-      if (OMITTED_FIELDS_FOR_GPT.has(key)) return undefined;
-      if (typeof value === "string") {
-        if (value.startsWith("data:")) return "[imagen omitida]";
-        if (value.length > 300) return `[valor largo (${value.length} chars)]`;
-      }
-      return value;
-    },
-    2
-  );
 }
 
 export async function POST(req: Request) {
@@ -260,7 +183,7 @@ Ejemplo de "changes" válido:
 
     return NextResponse.json({
       message: parsed.message || "(respuesta vacía)",
-      changes: sanitizeChanges(parsed.changes ?? null),
+      changes: sanitizeLandingChanges(parsed.changes ?? null),
     });
   } catch (e) {
     console.error("chat route error:", e);

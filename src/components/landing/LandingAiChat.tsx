@@ -29,6 +29,7 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
   const [sending, setSending] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Validar perfil del negocio: todas las preguntas del cuestionario deben estar respondidas
@@ -123,6 +124,57 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
       setMessages((prev) => [...prev, errMsg]);
     } finally {
       setSending(false);
+    }
+  };
+
+  // Nivel 3 — monta una primera versión completa de la landing en una pasada.
+  // La respuesta llega como un `changes` completo que se aplica con el mismo
+  // botón "Aplicar Sugerencias" (no es destructivo hasta que el negocio lo aplica).
+  const generateFullVersion = async () => {
+    if (sending || generating || completed) return;
+    setGenerating(true);
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: "Móntame una primera versión completa",
+      changes: null,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      const res = await fetch("/api/mi-negocio/landing/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ businessId, currentConfig: config }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.message || "(respuesta vacía)",
+          changes: data.changes ?? null,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } catch (e) {
+      console.error("generate full version error:", e);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "No pude montar la versión completa. Inténtalo de nuevo.",
+          changes: null,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -241,10 +293,10 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
             </div>
           </div>
         ))}
-        {sending && (
+        {(sending || generating) && (
           <div className="flex justify-start">
             <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl rounded-bl-sm px-3 py-2 text-xs text-[var(--foreground)]/50">
-              Pensando...
+              {generating ? "Montando tu landing..." : "Pensando..."}
             </div>
           </div>
         )}
@@ -265,6 +317,17 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
 
       {/* Input */}
       <div className="border-t border-[var(--border)] p-3 space-y-2">
+        {/* Nivel 3 — montar una primera versión completa de una pasada */}
+        {!completed && (
+          <button
+            type="button"
+            onClick={generateFullVersion}
+            disabled={sending || generating}
+            className="w-full px-3 py-2 rounded-lg border border-[var(--brand-4)] text-[var(--brand-4)] text-xs font-semibold hover:bg-[var(--brand-4)]/10 transition disabled:opacity-40"
+          >
+            {generating ? "Montando tu landing..." : "Móntame una primera versión completa"}
+          </button>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
