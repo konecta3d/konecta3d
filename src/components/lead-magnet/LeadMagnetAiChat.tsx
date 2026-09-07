@@ -59,6 +59,7 @@ export default function LeadMagnetAiChat({
   const [profileState, setProfileState] = useState<ProfileState>("loading");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevStep = useRef<string>("");
 
@@ -201,6 +202,58 @@ export default function LeadMagnetAiChat({
     }
   };
 
+  // Nivel 3 — monta un recurso de valor completo en una pasada. La respuesta
+  // llega como un `changes` completo que se aplica con "Aplicar Sugerencias"
+  // (no es destructivo hasta que el negocio lo aplica).
+  const generateFullResource = async () => {
+    if (sending || generating) return;
+    setGenerating(true);
+    const userMsg: WizardChatMessage = {
+      role: "user",
+      content: "Móntame el recurso completo",
+      changes: null,
+      timestamp: new Date().toISOString(),
+    };
+    const next = [...messages, userMsg];
+    onMessages(next);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      const res = await fetch("/api/lead-magnet/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ businessId, currentState }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      onMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: data.message || "(respuesta vacía)",
+          changes: data.changes ?? null,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } catch (e) {
+      console.error("[LeadMagnetAiChat] generate error:", e);
+      onMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: "No pude montar el recurso completo. Inténtalo de nuevo.",
+          changes: null,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const applyChanges = () => {
     if (!pendingChanges) return;
     onApply(pendingChanges);
@@ -267,10 +320,10 @@ export default function LeadMagnetAiChat({
             </div>
           </div>
         ))}
-        {sending && (
+        {(sending || generating) && (
           <div className="flex justify-start">
             <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl rounded-bl-sm px-3 py-2 text-xs text-[var(--foreground)]/50">
-              Pensando...
+              {generating ? "Montando tu recurso..." : "Pensando..."}
             </div>
           </div>
         )}
@@ -290,7 +343,16 @@ export default function LeadMagnetAiChat({
       )}
 
       {/* Input */}
-      <div className="border-t border-[var(--border)] p-3">
+      <div className="border-t border-[var(--border)] p-3 space-y-2">
+        {/* Nivel 3 — montar un recurso completo de una pasada */}
+        <button
+          type="button"
+          onClick={generateFullResource}
+          disabled={sending || generating}
+          className="w-full px-3 py-2 rounded-lg border border-[var(--brand-4)] text-[var(--brand-4)] text-xs font-semibold hover:bg-[var(--brand-4)]/10 transition disabled:opacity-40"
+        >
+          {generating ? "Montando tu recurso..." : "Móntame el recurso completo"}
+        </button>
         <div className="flex gap-2">
           <input
             type="text"
