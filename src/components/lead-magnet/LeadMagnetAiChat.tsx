@@ -293,11 +293,10 @@ export default function LeadMagnetAiChat({
         <div className="mx-3 mt-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 flex items-start gap-2">
           <span className="text-amber-400 text-sm mt-0.5 flex-shrink-0">⚠</span>
           <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
-            Las sugerencias serán genéricas.{" "}
+            El asistente IA necesita tu contexto completo para funcionar bien y personalizar el recurso. Sin él, las respuestas serán genéricas.{" "}
             <Link href="/mi-contexto" className="text-amber-400 font-semibold hover:underline">
               Completa Mi Contexto →
-            </Link>{" "}
-            para personalizarlas.
+            </Link>
           </p>
         </div>
       )}

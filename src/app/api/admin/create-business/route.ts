@@ -111,9 +111,19 @@ export async function POST(req: Request) {
       public_id: publicId,
       contact_email: email,
       phone: phone || "",
-      module_vip_benefits: module_vip_benefits ?? false,
-      module_lead_magnet: module_lead_magnet ?? true,
-      module_whatsapp: module_whatsapp ?? true,
+      // Módulos: configuración por defecto EXPLÍCITA (no dependemos del default
+      // de la columna en la BD, que era inconsistente y dejaba secciones ocultas).
+      // El formulario de admin solo envía vip/lead_magnet/whatsapp; el resto toma
+      // este default salvo que se envíe explícitamente.
+      module_lead_magnet:  module_lead_magnet  ?? true,
+      module_whatsapp:     module_whatsapp     ?? true,
+      module_vip_benefits: module_vip_benefits ?? false, // en proceso
+      module_tools:        body.module_tools        ?? true,
+      module_forms:        body.module_forms        ?? true,
+      module_captacion:    body.module_captacion    ?? true,
+      module_ai_landing:   body.module_ai_landing   ?? true,  // necesita contexto completo
+      module_ai_recursos:  body.module_ai_recursos  ?? true,  // necesita contexto completo
+      module_gpt:          body.module_gpt          ?? false, // extra fuera de la plataforma
     };
 
     if (userId) {
