@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { normalizeWhatsappPhone } from "@/lib/whatsapp";
 
 interface WhatsAppLink {
   id: string;
@@ -54,7 +55,7 @@ export default function WhatsAppGeneratorPage() {
   };
 
   const generate = () => {
-    const clean = phone.replace(/\D/g, "");
+    const clean = normalizeWhatsappPhone(phone).number;
     const text = encodeURIComponent(message || "Hola, me interesa más información");
     const url = `https://wa.me/${clean}?text=${text}`;
     setLink(url);
@@ -63,19 +64,19 @@ export default function WhatsAppGeneratorPage() {
   const saveToDatabase = async () => {
     if (!businessId || !phone) return;
     
-    const clean = phone.replace(/\D/g, "");
+    const clean = normalizeWhatsappPhone(phone).number;
     const text = encodeURIComponent(message || "Hola, me interesa más información");
     const url = `https://wa.me/${clean}?text=${text}`;
     
     if (editingId) {
       await supabase
         .from("whatsapp_links")
-        .update({ name: linkName, phone, message, url })
+        .update({ name: linkName, phone: clean, message, url })
         .eq("id", editingId);
     } else {
       await supabase
         .from("whatsapp_links")
-        .insert({ business_id: businessId, name: linkName || "Link de WhatsApp", phone, message, url });
+        .insert({ business_id: businessId, name: linkName || "Link de WhatsApp", phone: clean, message, url });
     }
     
     setLinkName("");
@@ -126,6 +127,14 @@ export default function WhatsAppGeneratorPage() {
             onChange={(e) => setPhone(e.target.value)}
             placeholder="Ej: 34600000000"
           />
+          <p className="mt-1 text-[11px] text-[var(--foreground)]/50">
+            Con prefijo de país, sin + ni espacios. Si pones 9 dígitos añadimos el 34 automáticamente.
+          </p>
+          {normalizeWhatsappPhone(phone).warning && (
+            <p className="mt-1 text-[11px] text-red-500 font-medium">
+              {normalizeWhatsappPhone(phone).warning}
+            </p>
+          )}
         </div>
         
         <div>

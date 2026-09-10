@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { normalizeWhatsappPhone } from "@/lib/whatsapp";
 
 type ActionType =
   | "whatsapp"
@@ -174,7 +175,7 @@ useEffect(() => {
     let finalUrl = url;
     
     if (activeCategory === "whatsapp") {
-      const clean = phone.replace(/\D/g, "");
+      const clean = normalizeWhatsappPhone(phone).number;
       const text = encodeURIComponent(message || "Hola, me interesa más información");
       finalUrl = `https://wa.me/${clean}?text=${text}`;
     }
@@ -197,10 +198,10 @@ useEffect(() => {
     let config: any = {};
 
     if (activeCategory === "whatsapp") {
-      const clean = phone.replace(/\D/g, "");
+      const clean = normalizeWhatsappPhone(phone).number;
       const text = encodeURIComponent(message || "Hola, me interesa más información");
       finalUrl = `https://wa.me/${clean}?text=${text}`;
-      config = { phone, message };
+      config = { phone: clean, message };
     }
 
     const linkName = name || ACTION_CATEGORIES[activeCategory!].title;
@@ -400,8 +401,16 @@ useEffect(() => {
                 className="mt-1 w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-2"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder={category.placeholder}
+                placeholder="Ej: 34600000000"
               />
+              <p className="mt-1 text-[11px] text-[var(--foreground)]/50">
+                Con prefijo de país, sin + ni espacios. Si pones 9 dígitos añadimos el 34 automáticamente.
+              </p>
+              {normalizeWhatsappPhone(phone).warning && (
+                <p className="mt-1 text-[11px] text-red-500 font-medium">
+                  {normalizeWhatsappPhone(phone).warning}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-xs uppercase tracking-wide text-[var(--brand-1)]">Mensaje inicial</label>
