@@ -302,10 +302,10 @@ export default function MiContextoPage() {
             <div className="text-2xl mt-0.5">🧠</div>
             <div>
               <h2 className="font-bold text-[var(--foreground)] mb-1">
-                Antes de que los asistentes puedan ayudarte, necesitan conocer tu negocio.
+                Este es el paso más importante: todo lo que crees en la plataforma se basa en esto.
               </h2>
               <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
-                Son {totalCount} preguntas — unos 5 minutos. Una vez completado, el asistente de Landing y el de Recursos de Valor podrán personalizar todas sus sugerencias específicamente para ti.
+                Son {totalCount} preguntas — unos 5 minutos. Cuanto más concreto seas, mejor personalizarán el asistente de Landing y el de Recursos de Valor. Dedícale un rato: es la base de todo.
               </p>
               <p className="text-xs text-[var(--foreground)]/50 mt-2">
                 Las respuestas se guardan automáticamente mientras escribes.

@@ -149,7 +149,7 @@ export default function ContextoIndexPage() {
           <div>
             <h1 className="text-xl font-bold">Contexto de Captación</h1>
             <p className="text-sm text-[var(--foreground)]/60 mt-1">
-              Rellena cada sección para que el asistente genere textos precisos y personalizados.
+              Es lo primero y lo más importante: todo lo que genere el asistente se basa en esto. Cuanto más concreto seas, mejores serán sus textos.
             </p>
           </div>
           <div className="text-right flex-shrink-0">

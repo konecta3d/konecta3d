@@ -289,17 +289,22 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
         <aside className="hidden w-72 border-r border-[var(--border)] bg-[var(--card)] p-6 md:flex md:flex-col">
             {title ? title : <SidebarTitle />}
 
-            {/* ── Etiqueta del perfil activo ── */}
+            {/* ── Etiqueta del perfil activo (grande y remarcada) ── */}
             {!isAdminMode && (
-                <div className="mb-1 text-[10px] uppercase tracking-widest font-bold px-0.5"
+                <div className="mb-2 inline-block rounded-md px-2.5 py-1 text-sm font-bold"
                     style={{
                         color: isCaptacionMode
-                            ? "rgba(147,149,255,0.75)"
+                            ? "rgb(147,149,255)"
                             : isNegocioMode
-                            ? "rgba(197,160,98,0.75)"
-                            : "rgba(57,161,169,0.75)"
+                            ? "rgb(197,160,98)"
+                            : "rgb(57,161,169)",
+                        background: isCaptacionMode
+                            ? "rgba(147,149,255,0.14)"
+                            : isNegocioMode
+                            ? "rgba(197,160,98,0.14)"
+                            : "rgba(57,161,169,0.14)",
                     }}>
-                    {isCaptacionMode ? "Captación" : isNegocioMode ? "Mi Negocio" : "Fidelización"}
+                    {isCaptacionMode ? "Perfil de Captación" : isNegocioMode ? "Perfil de Negocio" : "Perfil de Fidelización"}
                 </div>
             )}
 
@@ -321,7 +326,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 </div>
             )}
 
-            {/* Botón Dashboard — solo en modo fidelización */}
+            {/* Botón Inicio — solo en modo fidelización (mismo nombre que en captación) */}
             {showBusinessSidebar && isFidelizacionMode && (
                 <Link
                     href="/mi-negocio/dashboard"
@@ -335,7 +340,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    Dashboard
+                    Inicio
                 </Link>
             )}
 
