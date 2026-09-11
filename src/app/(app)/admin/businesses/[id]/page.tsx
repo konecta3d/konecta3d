@@ -307,6 +307,15 @@ export default function BusinessDetail() {
                 ))}
               </div>
               <div>
+                <div className="text-xs uppercase tracking-widest text-[var(--brand-1)] mb-2">Editar como este negocio</div>
+                <div className="flex flex-wrap gap-2">
+                  <a href={`/landing/new?businessId=${id}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--brand-1)] transition-colors">Página de bienvenida</a>
+                  <a href={`/lead-magnet/wizard?businessId=${id}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--brand-1)] transition-colors">Crear recurso de valor</a>
+                  <a href={`/formularios/wizard?businessId=${id}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--brand-1)] transition-colors">Crear formulario</a>
+                </div>
+                <p className="text-[11px] text-[var(--foreground)]/40 mt-1.5">Se abre en una pestaña nueva editando los datos de este negocio.</p>
+              </div>
+              <div>
                 <div className="text-xs uppercase tracking-widest text-[var(--brand-1)] mb-2">Documentos</div>
                 {((stats.documents?.fidelizacion.length || 0) + (stats.documents?.captacion.length || 0)) === 0 ? (
                   <p className="text-sm text-[var(--foreground)]/50">Aún no hay documentos.</p>
