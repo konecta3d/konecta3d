@@ -371,7 +371,7 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
                       {s.tip && (
                         <div
                           className="text-xs mt-2 px-2.5 py-1.5 rounded-lg leading-relaxed"
-                          style={{ background: "rgba(197,160,98,0.12)", color: "var(--brand-4)" }}
+                          style={{ background: "rgba(234,88,12,0.10)", color: "#ea580c" }}
                         >
                           💡 {s.tip}
                         </div>

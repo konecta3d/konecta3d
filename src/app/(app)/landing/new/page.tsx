@@ -328,7 +328,7 @@ useEffect(() => {
                 className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
                   chatOpen
                     ? "bg-[var(--brand-4)] border-[var(--brand-4)] text-black"
-                    : "border-[var(--brand-4)] text-[var(--brand-4)] hover:bg-[var(--brand-4)]/10"
+                    : "border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c]/10"
                 }`}
               >
                 {chatOpen ? "Cerrar Asistente IA" : "Asistente IA"}

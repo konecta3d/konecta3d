@@ -325,7 +325,7 @@ export default function LandingAiChat({ businessId, businessName, config, onAppl
               type="button"
               onClick={generateFullVersion}
               disabled={sending || generating}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--brand-4)] text-[var(--brand-4)] text-xs font-semibold hover:bg-[var(--brand-4)]/10 transition disabled:opacity-40"
+              className="w-full px-3 py-2 rounded-lg border border-[#ea580c] text-[#ea580c] text-xs font-semibold hover:bg-[#ea580c]/10 transition disabled:opacity-40"
             >
               {generating ? "Montando tu landing..." : "Móntame una primera versión completa"}
             </button>
