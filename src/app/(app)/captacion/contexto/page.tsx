@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { CONTEXT_BLOCK_GUIDE } from "@/lib/context-guide";
 import type {
   ContextoIdentidad,
   ContextoClientes,
@@ -97,10 +99,21 @@ function getSectionStatus(
 }
 
 export default function ContextoIndexPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContextoIndexInner />
+    </Suspense>
+  );
+}
+
+function ContextoIndexInner() {
   const [context, setContext] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState("");
   const [token, setToken] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [rewardDismissed, setRewardDismissed] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -130,6 +143,12 @@ export default function ContextoIndexPage() {
   const completeCount = statuses.filter((s) => s === "complete").length;
   const progress = Math.round((completeCount / SECTIONS.length) * 100);
   const firstIncomplete = SECTIONS.find((_, i) => statuses[i] !== "complete");
+
+  // Recompensa al volver de un bloque recién completado (?done=<key>)
+  const doneKey = searchParams.get("done");
+  const doneIdx = doneKey ? SECTIONS.findIndex((s) => s.key === doneKey) : -1;
+  const rewardSection = doneIdx !== -1 && statuses[doneIdx] === "complete" ? SECTIONS[doneIdx] : null;
+  const showReward = !loading && !rewardDismissed && !!rewardSection;
 
   if (loading) {
     return (
@@ -236,6 +255,55 @@ export default function ContextoIndexPage() {
           );
         })}
       </div>
+
+      {/* Popup de recompensa al completar un bloque (?done=<key>) */}
+      {showReward && rewardSection && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setRewardDismissed(true)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center"
+              style={{ background: "rgba(34,197,94,0.15)" }}
+            >
+              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-base font-bold mb-0.5">Bloque completo</h3>
+            <p className="text-xs text-[var(--foreground)]/50 mb-3">
+              {completeCount} de {SECTIONS.length} bloques
+            </p>
+            <p className="text-sm leading-relaxed text-[var(--foreground)]/80 mb-4">
+              {CONTEXT_BLOCK_GUIDE[rewardSection.key]?.recompensa}
+            </p>
+            {firstIncomplete ? (
+              <button
+                type="button"
+                onClick={() => { setRewardDismissed(true); router.push(firstIncomplete.href); }}
+                className="w-full px-4 py-2.5 rounded-full bg-[var(--brand-1)] text-white text-sm font-semibold hover:opacity-90 transition-opacity mb-2"
+              >
+                Siguiente: {firstIncomplete.label}
+              </button>
+            ) : (
+              <p className="text-sm font-semibold text-green-500 mb-2">
+                Contexto de captación completo.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setRewardDismissed(true)}
+              className="w-full px-4 py-2 rounded-full border border-[var(--border)] text-sm text-[var(--foreground)]/60 hover:bg-[var(--foreground)]/5 transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

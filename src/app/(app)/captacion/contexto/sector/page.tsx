@@ -207,11 +207,11 @@ export default function SectorPage() {
           <button
             type="button"
             disabled={saving}
-            onClick={() => save()}
+            onClick={async () => { await save(); router.push("/captacion/contexto?done=sector"); }}
             className="px-6 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60 transition-opacity hover:opacity-90"
             style={{ background: "var(--brand-1)", color: "white" }}
           >
-            {saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}
+            {saving ? "Guardando..." : "Guardar y volver"}
           </button>
         </div>
       </div>
