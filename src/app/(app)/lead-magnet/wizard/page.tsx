@@ -7,6 +7,7 @@ import Link from "next/link";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import { splitPoints, joinPoints, stripBullet, pointToHtml, contrastText } from "@/lib/leadmagnet-format";
+import { CTA_CLOSING_LINES } from "@/lib/cta-closing-lines";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
@@ -986,6 +987,27 @@ function LeadMagnetWizardInner() {
                       className="flex-1 px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-sm"
                       style={{ color: "var(--foreground)" }}
                     />
+                  </div>
+                  <div className="pt-1">
+                    <p className="text-[11px] text-[var(--foreground)]/50 mb-1.5">
+                      Ideas de cierre (empujan a pulsar tu botón). Pulsa una para usarla:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CTA_CLOSING_LINES.map((s) => (
+                        <button
+                          key={s.cta}
+                          type="button"
+                          title={s.line}
+                          onClick={() => {
+                            if (!sn1) { setSn1(s.line); setSn1En(true); }
+                            else { setSn2(s.line); setSn2En(true); }
+                          }}
+                          className="text-[11px] px-2 py-1 rounded-full border border-[var(--border)] text-[var(--foreground)]/70 hover:border-[#39a1a9] hover:text-[var(--foreground)] transition-colors"
+                        >
+                          {s.cta}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
