@@ -11,6 +11,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [showContextModal, setShowContextModal] = useState(false);
 
   // Datos del negocio
   const [name, setName] = useState("");
@@ -112,7 +113,8 @@ export default function OnboardingPage() {
       if (step < 3) {
         setStep(step + 1);
       } else {
-        setMsg("Onboarding completado");
+        // Onboarding completado: recomendar el contexto como siguiente paso (el más importante).
+        setShowContextModal(true);
       }
     }
 
@@ -281,6 +283,43 @@ export default function OnboardingPage() {
           {saving ? "Guardando..." : step === 3 ? "Guardar y terminar" : "Guardar y continuar"}
         </button>
       </div>
+
+      {/* Popup tras completar los 3 pasos: empuja al contexto como siguiente paso */}
+      {showContextModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="w-full max-w-md bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[var(--brand-4)] font-bold">
+              Negocio configurado
+            </div>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">
+              Ahora el paso más importante: completa tu contexto
+            </h2>
+            <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
+              El contexto es lo que hace que el asistente monte tus landings, recursos y mensajes con tu voz
+              y tu forma de trabajar. Sin él, todo sale genérico. Es lo primero que conviene rellenar.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => router.push("/mi-contexto")}
+                className="flex-1 px-4 py-3 rounded-lg bg-[var(--brand-4)] text-black font-bold hover:opacity-90"
+              >
+                Completar mi contexto
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowContextModal(false);
+                  router.push("/mi-negocio");
+                }}
+                className="px-4 py-3 rounded-lg border border-[var(--border)] text-sm text-[var(--foreground)] hover:bg-white/5"
+              >
+                Más tarde
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
