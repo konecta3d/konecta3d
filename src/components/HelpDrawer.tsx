@@ -465,14 +465,20 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
           className="flex-shrink-0 px-5 py-3 text-center"
           style={{ borderTop: "1px solid var(--border)" }}
         >
-          <p className="text-xs text-[var(--foreground)]/30">
+          <p className="text-xs text-[var(--foreground)]/40">
             {isAdmin && !enabled && (
               <span className="inline-flex items-center gap-1 text-orange-400 font-medium mr-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
                 Oculto para clientes
               </span>
             )}
-            {section.items.length} preguntas · arrastra para mover
+            {section.items.length} preguntas
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--foreground)]/55">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+            Puedes arrastrar esta ventana por toda la pantalla para moverla (en ordenador).
           </p>
         </div>
       </div>

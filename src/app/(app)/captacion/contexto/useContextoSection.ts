@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export function useContextoSection<T>(sectionKey: string, defaultValue: T) {
@@ -9,6 +9,9 @@ export function useContextoSection<T>(sectionKey: string, defaultValue: T) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  // Evita autoguardar durante la carga inicial (solo cuando el usuario edita)
+  const initialLoadDone = useRef(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -32,9 +35,22 @@ export function useContextoSection<T>(sectionKey: string, defaultValue: T) {
         setData(json.context[sectionKey] as T);
       }
       setLoading(false);
+      // Marcar carga completada en el siguiente tick para que el efecto de
+      // autoguardado no dispare por el setData de la carga.
+      setTimeout(() => { initialLoadDone.current = true; }, 0);
     };
     load();
   }, [sectionKey]);
+
+  // Autoguardado con debounce: 1.2s tras el último cambio del usuario.
+  useEffect(() => {
+    if (!initialLoadDone.current || !businessId) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { void save(); }, 1200);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+    // save es estable (no depende de render); solo re-disparamos con data
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, businessId]);
 
   const save = async (dataToSave?: T) => {
     if (!businessId || !token) return;
