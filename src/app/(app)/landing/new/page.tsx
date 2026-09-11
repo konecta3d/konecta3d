@@ -8,6 +8,7 @@ import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import LandingAiChat from "@/components/landing/LandingAiChat";
+import BloqueFinalHelp from "@/components/landing/BloqueFinalHelp";
 
 interface Benefit {
   id: string;
@@ -36,6 +37,7 @@ export default function LandingNew() {
   const [chatOpen, setChatOpen] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [hasUnsaved, setHasUnsaved] = useState(false);
+  const [finalHelpMode, setFinalHelpMode] = useState<string | null>(null);
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [ctaModalOpen, setCtaModalOpen] = useState(false);
   const [spacingModalOpen, setSpacingModalOpen] = useState(false);
@@ -845,9 +847,16 @@ useEffect(() => {
                       <button
                         key={opt.id}
                         type="button"
-                        onClick={() =>
-                          update({ finalBlockMode: opt.id as any })
-                        }
+                        onClick={() => {
+                          update({ finalBlockMode: opt.id as any });
+                          if (["tools", "invite", "image"].includes(opt.id)) {
+                            try {
+                              if (!localStorage.getItem(`k3d-finalhelp-${opt.id}`)) {
+                                setFinalHelpMode(opt.id);
+                              }
+                            } catch { /* localStorage no disponible */ }
+                          }
+                        }}
                         className={`px-3 py-1 rounded-full border ${
                           config.finalBlockMode === opt.id
                             ? "border-[var(--brand-4)] bg-[var(--brand-4)]/15 text-[var(--brand-4)]"
@@ -1659,6 +1668,9 @@ useEffect(() => {
           )}
 
           {/* ── Modal personalizar espaciado ──────────────────────────────────── */}
+          {finalHelpMode && (
+            <BloqueFinalHelp mode={finalHelpMode} onClose={() => setFinalHelpMode(null)} />
+          )}
           {spacingModalOpen && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
