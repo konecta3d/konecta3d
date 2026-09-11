@@ -104,6 +104,60 @@ export default function LandingRenderer({
   const [activeLmText, setActiveLmText]         = useState("");
   const activeForm = activeForms[0] as ActiveForm | undefined;
 
+  // "Invita a un amigo": token recibido (el amigo llegó recomendado) y generación del enlace propio.
+  const [referralToken, setReferralToken] = useState("");
+  const [referrerName, setReferrerName]   = useState("");
+  const [refName, setRefName]   = useState("");
+  const [refLink, setRefLink]   = useState("");
+  const [refBusy, setRefBusy]   = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+
+  // Lee el token ?ref= de la URL (sin useSearchParams para no forzar Suspense) y trae el nombre.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = new URLSearchParams(window.location.search).get("ref") || "";
+    if (!token) return;
+    setReferralToken(token);
+    fetch(`/api/referrals?token=${encodeURIComponent(token)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.referrerName) setReferrerName(d.referrerName); })
+      .catch(() => {});
+  }, []);
+
+  const generateReferralLink = async () => {
+    const nombre = refName.trim();
+    if (!nombre || !config.businessId) return;
+    setRefBusy(true);
+    try {
+      const res = await fetch("/api/referrals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId: config.businessId, referrerName: nombre }),
+      });
+      const data = await res.json();
+      if (data?.token) {
+        const base = `${window.location.origin}/l/${config.slug || ""}`;
+        setRefLink(`${base}?ref=${data.token}`);
+      }
+    } catch {
+      /* silencioso */
+    } finally {
+      setRefBusy(false);
+    }
+  };
+
+  const shareReferral = () => {
+    if (!refLink) return;
+    if (navigator.share) {
+      navigator.share({ url: refLink }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(refLink).then(() => {
+        setRefCopied(true);
+        setTimeout(() => setRefCopied(false), 2000);
+      }).catch(() => {});
+    }
+  };
+
   const openLeadCapture = (leadMagnetId: string, ctaText: string) => {
     if (skipLeadCapture) {
       const slug = config.slug || "";
@@ -185,15 +239,6 @@ export default function LandingRenderer({
     }
   };
 
-  const handleShare = () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    if (navigator.share) {
-      navigator.share({ url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).catch(() => {});
-    }
-  };
-
   return (
     <div className="landing-public min-h-screen bg-transparent">
       <div
@@ -217,6 +262,16 @@ export default function LandingRenderer({
         <div className="min-h-screen w-full relative" style={{ paddingTop: landingPaddingY, paddingBottom: landingPaddingY }}>
           <div className="mx-auto w-[390px] min-h-screen px-4">
             <div className="relative w-full" style={{ minHeight: "100vh" }}>
+
+              {/* Banner de referido: el amigo llegó recomendado */}
+              {referrerName && (
+                <div
+                  className="relative z-10 mt-3 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-center text-sm"
+                  style={{ color: textColor }}
+                >
+                  Te recomienda <span className="font-semibold">{referrerName}</span>
+                </div>
+              )}
 
               {/* ── Hero ── */}
               <div
@@ -486,19 +541,48 @@ export default function LandingRenderer({
                           {config.inviteBtnText || "Compartir enlace"}
                         </div>
                       </a>
-                    ) : (
-                      <button
-                        type="button"
-                        className="block mt-2 w-full"
-                        onClick={() => {
-                          trackEvent("cta_click", "landing", config.businessId || "", { cta_number: "invite" });
-                          handleShare();
-                        }}
-                      >
-                        <div className="w-full max-w-[260px] mx-auto rounded-full bg-white px-4 py-2 text-sm font-semibold" style={{ color: "#0c1a24" }}>
-                          {config.inviteBtnText || "Compartir enlace"}
+                    ) : refLink ? (
+                      <div className="space-y-2">
+                        <div className="text-xs" style={{ color: textColor, opacity: 0.85 }}>
+                          Este es tu enlace personal. Cuando alguien entre por él, sabremos que viene de tu parte.
                         </div>
-                      </button>
+                        <div className="w-full rounded-lg px-3 py-2 text-xs break-all" style={{ background: "rgba(255,255,255,0.9)", color: "#0c1a24" }}>
+                          {refLink}
+                        </div>
+                        <button
+                          type="button"
+                          className="block w-full"
+                          onClick={() => {
+                            trackEvent("cta_click", "landing", config.businessId || "", { cta_number: "invite" });
+                            shareReferral();
+                          }}
+                        >
+                          <div className="w-full max-w-[260px] mx-auto rounded-full bg-white px-4 py-2 text-sm font-semibold" style={{ color: "#0c1a24" }}>
+                            {refCopied ? "Enlace copiado" : (config.inviteBtnText || "Compartir mi enlace")}
+                          </div>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={refName}
+                          onChange={(e) => setRefName(e.target.value)}
+                          placeholder="Tu nombre"
+                          className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                          style={{ background: "rgba(255,255,255,0.9)", color: "#0c1a24" }}
+                        />
+                        <button
+                          type="button"
+                          disabled={refBusy || !refName.trim()}
+                          className="block w-full disabled:opacity-50"
+                          onClick={generateReferralLink}
+                        >
+                          <div className="w-full max-w-[260px] mx-auto rounded-full bg-white px-4 py-2 text-sm font-semibold" style={{ color: "#0c1a24" }}>
+                            {refBusy ? "Generando..." : "Generar mi enlace"}
+                          </div>
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -561,6 +645,7 @@ export default function LandingRenderer({
         leadMagnetId={activeLmId}
         ctaText={activeLmText}
         accentColor={ctaBg}
+        referralToken={referralToken}
       />
     </div>
   );

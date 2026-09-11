@@ -12,10 +12,12 @@ interface Props {
   ctaText?: string;
   /** Color de acento de la landing para el botón de envío */
   accentColor?: string;
+  /** Token de "Invita a un amigo": si el visitante llegó recomendado, atribuye el lead */
+  referralToken?: string;
 }
 
 export default function LeadCaptureModal({
-  isOpen, onClose, businessId, slug, leadMagnetId, ctaText, accentColor = "#39a1a9",
+  isOpen, onClose, businessId, slug, leadMagnetId, ctaText, accentColor = "#39a1a9", referralToken,
 }: Props) {
   const router = useRouter();
   const [name, setName]       = useState("");
@@ -47,6 +49,7 @@ export default function LeadCaptureModal({
         name:   name.trim()  || undefined,
         phone:  phone.trim() || undefined,
         source: `lead_magnet_${leadMagnetId}`,
+        referralToken: referralToken || undefined,
       }),
     });
 

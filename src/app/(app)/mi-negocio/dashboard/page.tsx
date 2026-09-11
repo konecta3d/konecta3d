@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import BusinessNotifications from "@/components/mi-negocio/BusinessNotifications";
 
 interface BusinessData {
   id: string;
@@ -238,6 +239,9 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+
+      {/* Avisos: referidos y otras notificaciones (no ocupa nada si no hay) */}
+      {business?.id && <BusinessNotifications businessId={business.id} />}
 
       {/* Tarjeta de identidad del negocio */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
