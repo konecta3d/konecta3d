@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function SidebarTitle() {
-  const [title, setTitle] = useState("KONECTA");
+  const [title, setTitle] = useState("Konecta3D");
 
   useEffect(() => {
     const saved = localStorage.getItem("konecta-sidebar-title");

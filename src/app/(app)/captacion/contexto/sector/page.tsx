@@ -1,4 +1,5 @@
 "use client";
+import ContextBlockIntro from "@/components/context/ContextBlockIntro";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -77,6 +78,7 @@ export default function SectorPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="max-w-2xl mx-auto w-full flex-1 px-4 py-6 space-y-6 pb-28">
+        <ContextBlockIntro blockKey="sector" />
         <div>
           <button
             type="button"
