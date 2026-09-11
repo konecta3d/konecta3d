@@ -29,7 +29,7 @@ const negocioLinks: SidebarLink[] = [
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
   // Contexto aparece primero → debajo del Dashboard y encima de Herramientas
-  { label: "Contexto del negocio", href: "/mi-contexto", category: "Contexto" },
+  { label: "Contexto del negocio (Primer paso)", href: "/mi-contexto", category: "Contexto" },
   { label: "Página de bienvenida", href: "/landing/new", category: "Herramientas", nameKey: "landing" },
   { label: "Imán de clientes", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Herramientas", nameKey: "vipBenefits", module: "module_vip_benefits" },
@@ -40,7 +40,7 @@ const fidelizacionLinks: SidebarLink[] = [
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   // "Inicio" se renderiza como botón destacado en Sidebar.tsx (igual que Dashboard en Fidelización)
-  { label: "Contexto del negocio", href: "/captacion/contexto", category: "Captación" },
+  { label: "Contexto del negocio (Primer paso)", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Imanes de clientes", href: "/captacion/lead-magnets", category: "Captación" },

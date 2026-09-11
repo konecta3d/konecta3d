@@ -343,15 +343,26 @@ export default function LeadMagnetAiChat({
 
       {/* Input */}
       <div className="border-t border-[var(--border)] p-3 space-y-2">
-        {/* Nivel 3 — montar un recurso completo de una pasada */}
-        <button
-          type="button"
-          onClick={generateFullResource}
-          disabled={sending || generating}
-          className="w-full px-3 py-2 rounded-lg border border-[var(--brand-4)] text-[var(--brand-4)] text-xs font-semibold hover:bg-[var(--brand-4)]/10 transition disabled:opacity-40"
-        >
-          {generating ? "Montando tu recurso..." : "Móntame el recurso completo"}
-        </button>
+        {/* Nivel 3 — montar un recurso completo de una pasada.
+            Se desbloquea solo con el contexto completo; sin él la IA no puede
+            personalizar. La zanahoria: completar el contexto. */}
+        {profileState === "ready" ? (
+          <button
+            type="button"
+            onClick={generateFullResource}
+            disabled={sending || generating}
+            className="w-full px-3 py-2 rounded-lg border border-[var(--brand-4)] text-[var(--brand-4)] text-xs font-semibold hover:bg-[var(--brand-4)]/10 transition disabled:opacity-40"
+          >
+            {generating ? "Montando tu recurso..." : "Móntame el recurso completo"}
+          </button>
+        ) : (
+          <Link
+            href="/mi-contexto"
+            className="block w-full text-center px-3 py-2 rounded-lg border border-[var(--border)] text-[var(--foreground)]/50 text-xs font-semibold hover:border-[var(--brand-4)]/40 hover:text-[var(--foreground)]/70 transition"
+          >
+            Completa tu contexto para desbloquear el montaje automático
+          </Link>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
