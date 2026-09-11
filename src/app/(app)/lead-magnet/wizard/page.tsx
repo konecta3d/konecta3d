@@ -269,6 +269,8 @@ function LeadMagnetWizardInner() {
   const [colorTitle, setColorTitle] = useState("#0a323c");
   const [colorButton, setColorButton] = useState("#ffb400");
   const [font, setFont] = useState("Inter");
+  const [customFontUrl, setCustomFontUrl] = useState("");
+  const [fontUploading, setFontUploading] = useState(false);
   const [fontModalOpen, setFontModalOpen] = useState(false);
   const [titleSize, setTitleSize] = useState(1.5);
   const [subtitleSize, setSubtitleSize] = useState(1.1);
@@ -374,6 +376,7 @@ function LeadMagnetWizardInner() {
           if (lm.sn1_en !== undefined) setSn1En(lm.sn1_en ?? true);
           if (lm.sn2_en !== undefined) setSn2En(lm.sn2_en ?? true);
           if (lm.font) setFont(lm.font);
+          if (lm.custom_font_url) setCustomFontUrl(lm.custom_font_url);
         }
         // Navigate to the requested step (default "tipo" for edit mode)
         setStep(stepParam || "tipo");
@@ -405,6 +408,45 @@ function LeadMagnetWizardInner() {
     return labels[type];
   };
 
+  // Sube la fuente propia del negocio a Storage y la deja lista para el PDF y la vista previa.
+  const handleFontUpload = async (file: File) => {
+    if (!businessId) {
+      alert("Falta businessId; no se puede subir la fuente.");
+      return;
+    }
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (!["ttf", "otf", "woff", "woff2"].includes(ext)) {
+      alert("Formato no válido. Usa TTF, OTF, WOFF o WOFF2.");
+      return;
+    }
+    setFontUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("kind", "font");
+      fd.append("businessId", businessId);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/landing/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token || ""}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.url) {
+        const family = file.name.replace(/\.[^.]+$/, "").replace(/['"\\]/g, "").trim() || "Fuente propia";
+        setCustomFontUrl(data.url);
+        setFont(family);
+        setFontModalOpen(false);
+      } else {
+        alert(data.error || "No se pudo subir la fuente.");
+      }
+    } catch {
+      alert("Error al subir la fuente.");
+    } finally {
+      setFontUploading(false);
+    }
+  };
+
   const renderPreview = () => {
     return (
       <LeadMagnetPreview
@@ -427,6 +469,7 @@ function LeadMagnetWizardInner() {
         colorTitle={colorTitle}
         colorButton={colorButton}
         font={font}
+        customFontUrl={customFontUrl}
         titleSize={titleSize}
         subtitleSize={subtitleSize}
         contentSize={contentSize}
@@ -511,6 +554,8 @@ function LeadMagnetWizardInner() {
 
       // Persistir la tipografía como paso aparte: si la columna `font` aún no existe en la BD,
       // este update falla en silencio y NO rompe el guardado principal (el PDF ya lleva la fuente incrustada).
+      // `custom_font_url` va en un update separado para que, si esa columna aún no existe,
+      // no impida persistir `font`.
       if (id) {
         try {
           const { error: fontErr } = await supabase
@@ -520,6 +565,15 @@ function LeadMagnetWizardInner() {
           if (fontErr) console.warn("No se pudo persistir la tipografía (¿falta la columna 'font'?):", fontErr.message);
         } catch (e) {
           console.warn("No se pudo persistir la tipografía:", e);
+        }
+        try {
+          const { error: cfErr } = await supabase
+            .from("lead_magnets")
+            .update({ custom_font_url: customFontUrl || null })
+            .eq("id", id);
+          if (cfErr) console.warn("No se pudo persistir la fuente propia (¿falta la columna 'custom_font_url'?):", cfErr.message);
+        } catch (e) {
+          console.warn("No se pudo persistir la fuente propia:", e);
         }
       }
 
@@ -591,7 +645,12 @@ function LeadMagnetWizardInner() {
       }</div>`;
     }
 
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=${font.replace(/ /g, "+")}&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'${font}',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${
+    // Fuente propia (@font-face con la URL de Storage) o familia de Google Fonts.
+    const fontHead = customFontUrl
+      ? `<style>@font-face{font-family:'${font}';src:url('${customFontUrl}');font-display:swap}</style>`
+      : `<link href="https://fonts.googleapis.com/css2?family=${font.replace(/ /g, "+")}&display=swap" rel="stylesheet">`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${fontHead}<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'${font}',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${
       logoSize >= 40 ? "9999px" : "6px"
     }}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:${subtitleSize}rem;color:#4B5563;margin-bottom:30px;white-space:pre-line}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:${contentSize}rem;color:#374151;line-height:${contentLineHeight};white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:${16 * btnSize}px ${36 * btnSize}px;border-radius:${btnRadius}px;background:${colorButton};color:${contrastText(colorButton)};font-weight:800;text-transform:uppercase;font-size:${0.9 * btnSize}rem;text-decoration:none;box-shadow:${btnShadow ? "0 6px 18px rgba(0,0,0,0.18)" : "none"}}.cta-btn-outline{padding:${13 * btnSize}px ${28 * btnSize}px;border-radius:${btnRadius}px;border:2px solid ${colorButton};color:${colorButton};font-weight:700;text-transform:uppercase;font-size:${0.8 * btnSize}rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${
       showLogo && logoUrl
@@ -1211,7 +1270,7 @@ function LeadMagnetWizardInner() {
             <div className="bg-[var(--card)] rounded-xl p-4 md:p-6 mb-6">
               <h3 className="text-[var(--foreground)] font-bold mb-4">Tipografía</h3>
               <p className="text-xs text-[var(--foreground)]/60 mb-3">
-                La fuente se aplica a todo el PDF (títulos, textos y botones). Elige una de la lista.
+                La fuente se aplica a todo el PDF (títulos, textos y botones). Elige una de la lista o sube la de tu marca.
               </p>
               <button
                 type="button"
@@ -1219,7 +1278,9 @@ function LeadMagnetWizardInner() {
                 className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] hover:border-[#39a1a9] transition-colors"
               >
                 <span className="text-left">
-                  <span className="block text-[10px] uppercase tracking-widest text-[var(--foreground)]/40">Fuente actual</span>
+                  <span className="block text-[10px] uppercase tracking-widest text-[var(--foreground)]/40">
+                    {customFontUrl ? "Fuente propia" : "Fuente actual"}
+                  </span>
                   <span className="block text-lg text-[var(--foreground)]" style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
                 </span>
                 <span className="text-xs text-[#39a1a9] font-bold whitespace-nowrap">Cambiar tipografía</span>
@@ -1433,6 +1494,37 @@ function LeadMagnetWizardInner() {
               </button>
             </div>
             <div className="overflow-y-auto p-5 space-y-6">
+              {/* Subir la fuente propia del negocio */}
+              <div className="rounded-lg border border-dashed border-[#39a1a9]/50 bg-[#39a1a9]/5 p-4">
+                <div className="text-[10px] uppercase tracking-widest text-[#39a1a9] mb-1">Tu propia fuente</div>
+                <p className="text-xs text-[var(--foreground)]/70 mb-3">
+                  Si tu marca ya tiene una tipografía, súbela y se usará en el PDF. Formatos TTF, OTF, WOFF o WOFF2 (máx. 5MB).
+                </p>
+                {customFontUrl && (
+                  <div className="flex items-center justify-between gap-3 mb-3 px-3 py-2 rounded-lg bg-[var(--card)] border border-[#39a1a9]/40">
+                    <span className="text-sm text-[var(--foreground)] truncate" style={{ fontFamily: `'${font}', sans-serif` }}>
+                      {font}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setCustomFontUrl(""); setFont("Inter"); }}
+                      className="text-[10px] text-[var(--foreground)]/50 hover:text-[var(--foreground)] whitespace-nowrap"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                )}
+                <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#39a1a9] text-sm text-[#39a1a9] font-bold cursor-pointer hover:bg-[#39a1a9]/10 ${fontUploading ? "opacity-50 pointer-events-none" : ""}`}>
+                  {fontUploading ? "Subiendo..." : customFontUrl ? "Cambiar mi fuente" : "Subir mi fuente"}
+                  <input
+                    type="file"
+                    accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFontUpload(e.target.files[0])}
+                  />
+                </label>
+              </div>
+
               {FONT_CATEGORIES.map((cat) => (
                 <div key={cat}>
                   <div className="text-[10px] uppercase tracking-widest text-[#39a1a9] mb-2">{cat}</div>
@@ -1442,11 +1534,12 @@ function LeadMagnetWizardInner() {
                         key={f.name}
                         type="button"
                         onClick={() => {
+                          setCustomFontUrl("");
                           setFont(f.name);
                           setFontModalOpen(false);
                         }}
                         className={`text-left px-4 py-3 rounded-lg border transition-colors ${
-                          font === f.name
+                          !customFontUrl && font === f.name
                             ? "border-[#39a1a9] bg-[#39a1a9]/10"
                             : "border-[var(--border)] hover:border-[#39a1a9]/60"
                         }`}

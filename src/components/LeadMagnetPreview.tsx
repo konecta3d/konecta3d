@@ -45,6 +45,7 @@ export interface LeadMagnetPreviewProps {
   colorTitle: string;
   colorButton: string;
   font?: string;
+  customFontUrl?: string;
   titleSize: number;
   subtitleSize?: number;
   contentSize?: number;
@@ -87,6 +88,7 @@ export function LeadMagnetPreview({
   colorTitle,
   colorButton,
   font = "Inter",
+  customFontUrl = "",
   titleSize,
   subtitleSize = 1.1,
   contentSize = 0.9,
@@ -118,9 +120,19 @@ export function LeadMagnetPreview({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Carga la tipografía elegida desde Google Fonts para que la vista previa la muestre igual que el PDF.
+  // Carga la tipografía elegida para que la vista previa la muestre igual que el PDF:
+  // fuente propia subida (@font-face con la URL de Storage) o familia de Google Fonts.
   useEffect(() => {
     if (!font || typeof document === "undefined") return;
+    if (customFontUrl) {
+      const id = `cfont-${font.replace(/\s+/g, "-")}`;
+      if (document.getElementById(id)) return;
+      const style = document.createElement("style");
+      style.id = id;
+      style.textContent = `@font-face{font-family:'${font}';src:url('${customFontUrl}');font-display:swap}`;
+      document.head.appendChild(style);
+      return;
+    }
     const id = `gfont-${font.replace(/\s+/g, "-")}`;
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
@@ -128,7 +140,7 @@ export function LeadMagnetPreview({
     link.rel = "stylesheet";
     link.href = googleFontHref(font);
     document.head.appendChild(link);
-  }, [font]);
+  }, [font, customFontUrl]);
 
   const titleSizePreview = titleSize * 0.6;
 

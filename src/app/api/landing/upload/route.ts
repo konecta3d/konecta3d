@@ -26,18 +26,41 @@ export async function POST(req: Request) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
 
-    // Validar tipo y tamaño de archivo
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/svg+xml", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      return Response.json({ error: "Tipo de archivo no permitido. Usa JPG, PNG, WebP o SVG." }, { status: 400 });
-    }
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    if (file.size > MAX_SIZE) {
-      return Response.json({ error: "Archivo demasiado grande. Máximo 5MB." }, { status: 400 });
+    // Mapa de content-type por extensión para fuentes (los MIME que envía el navegador
+    // para .ttf/.otf/.woff son poco fiables, así que validamos por extensión).
+    const FONT_CONTENT_TYPES: Record<string, string> = {
+      ttf: "font/ttf",
+      otf: "font/otf",
+      woff: "font/woff",
+      woff2: "font/woff2",
+    };
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || (kind === "font" ? "ttf" : "png");
+    let uploadContentType = file.type;
+
+    if (kind === "font") {
+      // Validación de fuentes por extensión
+      if (!FONT_CONTENT_TYPES[ext]) {
+        return Response.json({ error: "Tipo de fuente no permitido. Usa TTF, OTF, WOFF o WOFF2." }, { status: 400 });
+      }
+      const MAX_FONT = 5 * 1024 * 1024; // 5MB
+      if (file.size > MAX_FONT) {
+        return Response.json({ error: "Fuente demasiado grande. Máximo 5MB." }, { status: 400 });
+      }
+      uploadContentType = FONT_CONTENT_TYPES[ext];
+    } else {
+      // Validación de imágenes
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/svg+xml", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        return Response.json({ error: "Tipo de archivo no permitido. Usa JPG, PNG, WebP o SVG." }, { status: 400 });
+      }
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+      if (file.size > MAX_SIZE) {
+        return Response.json({ error: "Archivo demasiado grande. Máximo 5MB." }, { status: 400 });
+      }
     }
 
     // Subir a Supabase Storage (bucket: landing-assets)
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
     const filename = `${kind}/${businessId}/${Date.now()}.${ext}`;
 
     const bytes = await file.arrayBuffer();
@@ -46,7 +69,7 @@ export async function POST(req: Request) {
     const { error: uploadError } = await supabaseAdmin.storage
       .from("landing-assets")
       .upload(filename, buffer, {
-        contentType: file.type,
+        contentType: uploadContentType,
         upsert: true,
       });
 
