@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { splitPoints, contrastText } from "@/lib/leadmagnet-format";
+import { googleFontHref } from "@/lib/pdf-fonts";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
 
@@ -43,6 +44,7 @@ export interface LeadMagnetPreviewProps {
   colorTag: string;
   colorTitle: string;
   colorButton: string;
+  font?: string;
   titleSize: number;
   subtitleSize?: number;
   contentSize?: number;
@@ -84,6 +86,7 @@ export function LeadMagnetPreview({
   colorTag,
   colorTitle,
   colorButton,
+  font = "Inter",
   titleSize,
   subtitleSize = 1.1,
   contentSize = 0.9,
@@ -114,6 +117,18 @@ export function LeadMagnetPreview({
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  // Carga la tipografía elegida desde Google Fonts para que la vista previa la muestre igual que el PDF.
+  useEffect(() => {
+    if (!font || typeof document === "undefined") return;
+    const id = `gfont-${font.replace(/\s+/g, "-")}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = googleFontHref(font);
+    document.head.appendChild(link);
+  }, [font]);
 
   const titleSizePreview = titleSize * 0.6;
 
@@ -181,6 +196,7 @@ export function LeadMagnetPreview({
               background: "#fff",
               position: "relative",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              fontFamily: `'${font}', sans-serif`,
             }}
           >
             {/* Header */}

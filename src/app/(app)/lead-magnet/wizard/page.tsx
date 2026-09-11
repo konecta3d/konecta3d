@@ -8,6 +8,7 @@ import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import { splitPoints, joinPoints, stripBullet, pointToHtml, contrastText } from "@/lib/leadmagnet-format";
 import { CTA_CLOSING_LINES } from "@/lib/cta-closing-lines";
+import { PDF_FONTS, FONT_CATEGORIES, allFontsHref } from "@/lib/pdf-fonts";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
@@ -267,6 +268,8 @@ function LeadMagnetWizardInner() {
   const [colorTag, setColorTag] = useState("#0a323c");
   const [colorTitle, setColorTitle] = useState("#0a323c");
   const [colorButton, setColorButton] = useState("#ffb400");
+  const [font, setFont] = useState("Inter");
+  const [fontModalOpen, setFontModalOpen] = useState(false);
   const [titleSize, setTitleSize] = useState(1.5);
   const [subtitleSize, setSubtitleSize] = useState(1.1);
   const [contentSize, setContentSize] = useState(0.9);
@@ -282,6 +285,17 @@ function LeadMagnetWizardInner() {
   const [sn2En, setSn2En] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
   const [chatMessages, setChatMessages] = useState<WizardChatMessage[]>([]);
+
+  // Al abrir el modal de tipografías, carga todas las familias en una sola petición para verlas en su propia fuente.
+  useEffect(() => {
+    if (!fontModalOpen || typeof document === "undefined") return;
+    if (document.getElementById("gfont-all")) return;
+    const link = document.createElement("link");
+    link.id = "gfont-all";
+    link.rel = "stylesheet";
+    link.href = allFontsHref();
+    document.head.appendChild(link);
+  }, [fontModalOpen]);
 
   useEffect(() => {
     const editId = searchParams.get("edit");
@@ -359,6 +373,7 @@ function LeadMagnetWizardInner() {
           if (lm.sn2) setSn2(lm.sn2);
           if (lm.sn1_en !== undefined) setSn1En(lm.sn1_en ?? true);
           if (lm.sn2_en !== undefined) setSn2En(lm.sn2_en ?? true);
+          if (lm.font) setFont(lm.font);
         }
         // Navigate to the requested step (default "tipo" for edit mode)
         setStep(stepParam || "tipo");
@@ -411,6 +426,7 @@ function LeadMagnetWizardInner() {
         colorTag={colorTag}
         colorTitle={colorTitle}
         colorButton={colorButton}
+        font={font}
         titleSize={titleSize}
         subtitleSize={subtitleSize}
         contentSize={contentSize}
@@ -493,6 +509,20 @@ function LeadMagnetWizardInner() {
         setEditingId(id);
       }
 
+      // Persistir la tipografía como paso aparte: si la columna `font` aún no existe en la BD,
+      // este update falla en silencio y NO rompe el guardado principal (el PDF ya lleva la fuente incrustada).
+      if (id) {
+        try {
+          const { error: fontErr } = await supabase
+            .from("lead_magnets")
+            .update({ font })
+            .eq("id", id);
+          if (fontErr) console.warn("No se pudo persistir la tipografía (¿falta la columna 'font'?):", fontErr.message);
+        } catch (e) {
+          console.warn("No se pudo persistir la tipografía:", e);
+        }
+      }
+
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       return id;
@@ -561,7 +591,7 @@ function LeadMagnetWizardInner() {
       }</div>`;
     }
 
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=${font.replace(/ /g, "+")}&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'${font}',sans-serif}.container{width:210mm;min-height:297mm;padding:20mm;padding-bottom:15mm;background:#fff;position:relative}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${colorBrand};padding-bottom:20px;margin-bottom:30px}.brand-wrapper{display:flex;align-items:center;gap:12px}.brand-logo{height:${logoSize}px;width:${logoSize}px;object-fit:contain;border-radius:${
       logoSize >= 40 ? "9999px" : "6px"
     }}.brand{font-size:1.2rem;font-weight:900;color:${colorBrand};text-transform:uppercase}.tag{background:${colorTag};color:#fff;padding:5px 15px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase}.title{font-size:${titleSizeSmall}rem;font-weight:900;color:${colorTitle};line-height:1.1;margin-bottom:20px;text-transform:uppercase}.subtitle{font-size:${subtitleSize}rem;color:#4B5563;margin-bottom:30px;white-space:pre-line}.section{margin-bottom:20px}.section h4{color:${colorBrand};font-size:0.9rem;text-transform:uppercase;border-left:4px solid ${colorBrand};padding-left:10px;margin-bottom:15px}.content{font-size:${contentSize}rem;color:#374151;line-height:${contentLineHeight};white-space:pre-line}.cta-box{position:absolute;bottom:60px;left:20mm;right:20mm;display:flex;justify-content:center;gap:15px;flex-wrap:wrap}.cta-btn{padding:${16 * btnSize}px ${36 * btnSize}px;border-radius:${btnRadius}px;background:${colorButton};color:${contrastText(colorButton)};font-weight:800;text-transform:uppercase;font-size:${0.9 * btnSize}rem;text-decoration:none;box-shadow:${btnShadow ? "0 6px 18px rgba(0,0,0,0.18)" : "none"}}.cta-btn-outline{padding:${13 * btnSize}px ${28 * btnSize}px;border-radius:${btnRadius}px;border:2px solid ${colorButton};color:${colorButton};font-weight:700;text-transform:uppercase;font-size:${0.8 * btnSize}rem;text-decoration:none}</style></head><body><div class="container"><div class="header"><div class="brand-wrapper">${
       showLogo && logoUrl
@@ -1179,6 +1209,24 @@ function LeadMagnetWizardInner() {
             </div>
 
             <div className="bg-[var(--card)] rounded-xl p-4 md:p-6 mb-6">
+              <h3 className="text-[var(--foreground)] font-bold mb-4">Tipografía</h3>
+              <p className="text-xs text-[var(--foreground)]/60 mb-3">
+                La fuente se aplica a todo el PDF (títulos, textos y botones). Elige una de la lista.
+              </p>
+              <button
+                type="button"
+                onClick={() => setFontModalOpen(true)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg bg-[var(--card)] border border-[var(--border)] hover:border-[#39a1a9] transition-colors"
+              >
+                <span className="text-left">
+                  <span className="block text-[10px] uppercase tracking-widest text-[var(--foreground)]/40">Fuente actual</span>
+                  <span className="block text-lg text-[var(--foreground)]" style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
+                </span>
+                <span className="text-xs text-[#39a1a9] font-bold whitespace-nowrap">Cambiar tipografía</span>
+              </button>
+            </div>
+
+            <div className="bg-[var(--card)] rounded-xl p-4 md:p-6 mb-6">
               <h3 className="text-[var(--foreground)] font-bold mb-4">Colores del documento</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                 <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
@@ -1362,6 +1410,60 @@ function LeadMagnetWizardInner() {
           )}
         </div>
       </div>
+
+      {/* Modal de selección de tipografía */}
+      {fontModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          onClick={() => setFontModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+              <h3 className="text-[var(--foreground)] font-bold">Elige una tipografía</h3>
+              <button
+                type="button"
+                onClick={() => setFontModalOpen(false)}
+                className="text-[var(--foreground)]/60 hover:text-[var(--foreground)] text-xl leading-none"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto p-5 space-y-6">
+              {FONT_CATEGORIES.map((cat) => (
+                <div key={cat}>
+                  <div className="text-[10px] uppercase tracking-widest text-[#39a1a9] mb-2">{cat}</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PDF_FONTS.filter((f) => f.category === cat).map((f) => (
+                      <button
+                        key={f.name}
+                        type="button"
+                        onClick={() => {
+                          setFont(f.name);
+                          setFontModalOpen(false);
+                        }}
+                        className={`text-left px-4 py-3 rounded-lg border transition-colors ${
+                          font === f.name
+                            ? "border-[#39a1a9] bg-[#39a1a9]/10"
+                            : "border-[var(--border)] hover:border-[#39a1a9]/60"
+                        }`}
+                      >
+                        <span className="block text-[10px] text-[var(--foreground)]/40">{f.name}</span>
+                        <span className="block text-xl text-[var(--foreground)]" style={{ fontFamily: `'${f.name}', sans-serif` }}>
+                          Aa Bb Cc 123
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
