@@ -38,6 +38,7 @@ export default function LandingNew() {
   const [businessName, setBusinessName] = useState("");
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [finalHelpMode, setFinalHelpMode] = useState<string | null>(null);
+  const [versionMsg, setVersionMsg] = useState("");
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [ctaModalOpen, setCtaModalOpen] = useState(false);
   const [spacingModalOpen, setSpacingModalOpen] = useState(false);
@@ -1923,21 +1924,54 @@ useEffect(() => {
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 lg:sticky lg:top-6 lg:self-start">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold">Vista previa (móvil)</div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {versionMsg && (
+                  <span className="text-[11px] text-emerald-500 font-medium">{versionMsg}</span>
+                )}
                 <button
                   type="button"
-                  className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-500 hover:bg-red-50"
+                  className="rounded-md border border-[var(--brand-3)] px-3 py-1 text-xs text-[var(--brand-3)] hover:bg-[var(--brand-3)]/10"
+                  title="Guarda cómo está ahora para poder volver a esta versión más adelante."
+                  onClick={() => {
+                    const { __savedVersion: _omit, ...rest } = config;
+                    setConfig({ ...rest, __savedVersion: rest as LandingConfig });
+                    setVersionMsg("Versión guardada");
+                    setTimeout(() => setVersionMsg(""), 2500);
+                  }}
+                >
+                  Guardar versión
+                </button>
+                <button
+                  type="button"
+                  disabled={!config.__savedVersion}
+                  className="rounded-md border border-[var(--border)] px-3 py-1 text-xs disabled:opacity-40"
+                  title="Vuelve a tu última versión guardada."
                   onClick={() => {
                     if (
-                      confirm(
-                        "¿Restaurar valores por defecto? Perderás los cambios no guardados.",
-                      )
+                      config.__savedVersion &&
+                      confirm("¿Restaurar tu versión guardada? Se sustituirá lo que tienes ahora.")
                     ) {
-                      setConfig(defaultLandingConfig);
+                      setConfig({ ...config.__savedVersion, __savedVersion: config.__savedVersion });
                     }
                   }}
                 >
-                  Reset
+                  Restaurar
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-500 hover:bg-red-50"
+                  title="Vuelve a la plantilla base. Tu versión guardada se conserva."
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "¿Empezar de cero? Perderás la configuración actual. Tu versión guardada se conserva.",
+                      )
+                    ) {
+                      setConfig({ ...defaultLandingConfig, __savedVersion: config.__savedVersion });
+                    }
+                  }}
+                >
+                  Empezar de cero
                 </button>
                 {/* FIX #5: usar el estado `slug` en lugar de recalcular con slugify */}
                 <button

@@ -66,6 +66,7 @@ const OMITTED_FIELDS_FOR_GPT: ReadonlySet<string> = new Set([
   "logoUrl",
   "reviewImage",
   "toolsIds",
+  "__savedVersion",
 ]);
 
 /** Serializa la config para enviarla al modelo, sin imágenes ni valores enormes. */

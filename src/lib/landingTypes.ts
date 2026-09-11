@@ -101,6 +101,10 @@ export interface LandingConfig {
     // Campo legado — sólo para migración de datos antiguos
     toolsIds?: string[];
 
+    // Punto de restauración guardado por el negocio ("Guardar versión").
+    // Se persiste dentro del config; el renderer y la IA lo ignoran.
+    __savedVersion?: LandingConfig;
+
     // ID del negocio (para analytics, no se persiste en la config)
     businessId?: string;
 
