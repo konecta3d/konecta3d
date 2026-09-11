@@ -53,6 +53,32 @@ export async function GET(req: Request) {
   const conversion = vMonth > 0 ? Math.round((l30 / vMonth) * 1000) / 10 : 0;
   const onboardingDone = !!biz.sector && !!biz.slug;
 
+  // ── Progreso: contexto, piezas creadas y documentos (todo service-role) ──────
+  const [
+    qCountRes, fidAnswersRes, capCtxRes,
+    { count: landingsCount }, lmRes, { count: benefitsCount },
+    { count: capCampaignsCount }, { count: capFormsCount }, capLmRes,
+  ] = await Promise.all([
+    db.from("gpt_context_questions").select("id", { count: "exact", head: true }),
+    db.from("gpt_context_answers").select("answer_text").eq("business_id", id),
+    db.from("settings").select("value").eq("key", `captacion_context_${id}`).maybeSingle(),
+    db.from("landing_configs").select("id", { count: "exact", head: true }).eq("business_id", id),
+    db.from("lead_magnets").select("id, title, pdf_url, active").eq("business_id", id).order("created_at", { ascending: false }),
+    db.from("benefits").select("id", { count: "exact", head: true }).eq("business_id", id),
+    db.from("captacion_campaigns").select("id", { count: "exact", head: true }).eq("business_id", id),
+    db.from("captacion_forms").select("id", { count: "exact", head: true }).eq("business_id", id),
+    db.from("captacion_lead_magnets").select("id, title, file_url").eq("business_id", id).order("created_at", { ascending: false }),
+  ]);
+
+  const totalQ = qCountRes.count || 0;
+  const answeredQ = (fidAnswersRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
+  const capCtxVal = (capCtxRes.data?.value as Record<string, unknown>) || {};
+  const capFilled = Object.values(capCtxVal).filter(
+    (v) => v && typeof v === "object" && Object.keys(v as object).length > 0
+  ).length;
+  const fidRecursos = (lmRes.data || []) as { title: string; pdf_url: string | null; active: boolean }[];
+  const capRecursos = (capLmRes.data || []) as { title: string; file_url: string | null }[];
+
   return NextResponse.json({
     business: {
       id: biz.id, name: biz.name, sector: biz.sector, slug: biz.slug,
@@ -72,6 +98,20 @@ export async function GET(req: Request) {
       lastActivity: lastEvent?.[0]?.created_at ?? null,
       onboardingDone,
       landingPublished: !!biz.slug,
+    },
+    progress: {
+      contextoFidelizacion: { answered: answeredQ, total: totalQ },
+      contextoCaptacion: { filled: capFilled, total: 6 },
+      landings: landingsCount ?? 0,
+      recursos: fidRecursos.length,
+      beneficios: benefitsCount ?? 0,
+      campanas: capCampaignsCount ?? 0,
+      formularios: capFormsCount ?? 0,
+      recursosCaptacion: capRecursos.length,
+    },
+    documents: {
+      fidelizacion: fidRecursos.map((l) => ({ title: l.title, url: l.pdf_url, active: l.active })),
+      captacion: capRecursos.map((l) => ({ title: l.title, url: l.file_url })),
     },
   });
 }

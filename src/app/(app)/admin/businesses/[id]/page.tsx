@@ -41,7 +41,20 @@ type Business = {
   fecha_alta_suscripcion: string | null;
 };
 
-type Tab = "datos" | "clasificacion" | "modulos" | "pedidos" | "finanzas" | "acceso";
+type Tab = "datos" | "progreso" | "clasificacion" | "modulos" | "pedidos" | "finanzas" | "acceso";
+
+type BizStats = {
+  progress?: {
+    contextoFidelizacion: { answered: number; total: number };
+    contextoCaptacion: { filled: number; total: number };
+    landings: number; recursos: number; beneficios: number;
+    campanas: number; formularios: number; recursosCaptacion: number;
+  };
+  documents?: {
+    fidelizacion: { title: string; url: string | null; active: boolean }[];
+    captacion: { title: string; url: string | null }[];
+  };
+};
 
 const SUB_ESTADOS = ["prueba", "activa", "impagada", "pausada", "baja"] as const;
 const SUB_LABEL: Record<string, string> = {
@@ -63,6 +76,7 @@ export default function BusinessDetail() {
   const [msg, setMsg] = useState<string | null>(null);
   const [crmPerfil, setCrmPerfil] = useState<{ perfil: string | null; leadId: string } | null>(null);
   const [orders, setOrders] = useState<KeychainOrder[]>([]);
+  const [stats, setStats] = useState<BizStats | null>(null);
 
   // Edición de datos
   const [editData, setEditData] = useState({ name: "", sector: "", slug: "", contact_email: "", phone: "", font_family: "" });
@@ -111,6 +125,12 @@ export default function BusinessDetail() {
         const res = await fetch(`/api/admin/keychain-orders?businessId=${id}`, { headers: await getAuthHeader() });
         const json = await res.json();
         if (json.orders) setOrders(json.orders);
+      } catch { /* silencioso */ }
+      // Progreso + documentos (service-role)
+      try {
+        const res = await fetch(`/api/admin/business-stats?id=${id}`, { headers: await getAuthHeader() });
+        const json = await res.json();
+        if (res.ok) setStats(json as BizStats);
       } catch { /* silencioso */ }
     })();
   }, [id]);
@@ -184,6 +204,7 @@ export default function BusinessDetail() {
 
   const TABS: { k: Tab; l: string }[] = [
     { k: "datos", l: "Datos" },
+    { k: "progreso", l: "Progreso" },
     { k: "clasificacion", l: "Clasificación" },
     { k: "modulos", l: "Módulos" },
     { k: "pedidos", l: "Pedidos" },
@@ -262,6 +283,59 @@ export default function BusinessDetail() {
       )}
 
       {/* ── CLASIFICACIÓN ── */}
+      {tab === "progreso" && (
+        <div className="space-y-5">
+          {!stats?.progress ? (
+            <p className="text-sm text-[var(--foreground)]/50">Cargando progreso...</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { l: "Contexto Fidelización", v: `${stats.progress.contextoFidelizacion.answered}/${stats.progress.contextoFidelizacion.total}` },
+                  { l: "Contexto Captación", v: `${stats.progress.contextoCaptacion.filled}/${stats.progress.contextoCaptacion.total}` },
+                  { l: "Landings", v: stats.progress.landings },
+                  { l: "Recursos de valor", v: stats.progress.recursos },
+                  { l: "Beneficios", v: stats.progress.beneficios },
+                  { l: "Campañas", v: stats.progress.campanas },
+                  { l: "Formularios", v: stats.progress.formularios },
+                  { l: "Recursos captación", v: stats.progress.recursosCaptacion },
+                ].map((c) => (
+                  <div key={c.l} className="rounded-lg border border-[var(--border)] p-3">
+                    <div className="text-lg font-bold">{c.v}</div>
+                    <div className="text-[11px] text-[var(--foreground)]/50">{c.l}</div>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-widest text-[var(--brand-1)] mb-2">Documentos</div>
+                {((stats.documents?.fidelizacion.length || 0) + (stats.documents?.captacion.length || 0)) === 0 ? (
+                  <p className="text-sm text-[var(--foreground)]/50">Aún no hay documentos.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {[
+                      ...(stats.documents?.fidelizacion || []).map((d) => ({ title: d.title, url: d.url, tag: "Fidelización" })),
+                      ...(stats.documents?.captacion || []).map((d) => ({ title: d.title, url: d.url, tag: "Captación" })),
+                    ].map((d, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-[var(--border)] px-3 py-2">
+                        <div className="min-w-0">
+                          <div className="text-sm truncate">{d.title || "(sin título)"}</div>
+                          <div className="text-[11px] text-[var(--foreground)]/40">{d.tag}</div>
+                        </div>
+                        {d.url ? (
+                          <a href={d.url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1 rounded-full bg-[var(--brand-1)] text-white flex-shrink-0">Ver</a>
+                        ) : (
+                          <span className="text-[11px] text-[var(--foreground)]/30 flex-shrink-0">sin PDF</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {tab === "clasificacion" && (
         <Card>
           <h2 className="text-sm font-semibold mb-3">Clasificación del cliente</h2>
