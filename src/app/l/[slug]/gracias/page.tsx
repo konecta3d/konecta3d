@@ -47,6 +47,7 @@ export default async function GraciasPage({ params, searchParams }: Props) {
     <GraciasClient
       name={decodeURIComponent(name)}
       slug={slug}
+      lmId={lm}
       pdfUrl={lmData.pdf_url}
       resourceTitle={lmData.title || "el recurso"}
     />

@@ -30,6 +30,7 @@ interface ModuleCounts {
 export default function DashboardPage() {
   const [business, setBusiness] = useState<BusinessData | null>(null);
   const [counts, setCounts] = useState<ModuleCounts>({ landings: 0, leadMagnets: 0, benefits: 0, leads: 0, forms: 0 });
+  const [contextComplete, setContextComplete] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,6 +71,15 @@ export default function DashboardPage() {
         forms: formsRes.count || 0,
       });
 
+      // Estado del contexto (para el paso 2 del onboarding): todas las preguntas respondidas
+      const [qRes, aRes] = await Promise.all([
+        supabase.from("gpt_context_questions").select("id", { count: "exact", head: true }),
+        supabase.from("gpt_context_answers").select("answer_text").eq("business_id", biz.id),
+      ]);
+      const totalQ = qRes.count || 0;
+      const validA = (aRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
+      setContextComplete(totalQ > 0 && validA >= totalQ);
+
       setLoading(false);
     };
     load();
@@ -94,6 +104,15 @@ export default function DashboardPage() {
       description: "Logo, descripción y datos de contacto — lo primero que ven tus clientes.",
       href: "/mi-negocio/perfil",
       done: !!(business?.description && business?.logo_url),
+      ctaLabel: "Completar",
+      passive: false,
+    },
+    {
+      key: "contexto",
+      label: "Completa tu contexto",
+      description: "Las respuestas que personalizan a los asistentes IA. Es la base de todo lo demás.",
+      href: "/mi-contexto",
+      done: contextComplete,
       ctaLabel: "Completar",
       passive: false,
     },

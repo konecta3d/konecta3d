@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 interface Props {
   name: string;
   slug: string;
+  lmId: string;
   pdfUrl: string;
   resourceTitle: string;
   accentColor?: string;
@@ -13,16 +14,19 @@ interface Props {
 
 const REDIRECT_DELAY = 4; // segundos tras pulsar el botón
 
-export default function GraciasClient({ name, slug, pdfUrl, resourceTitle, accentColor = "#39a1a9" }: Props) {
+export default function GraciasClient({ name, slug, lmId, pdfUrl, resourceTitle, accentColor = "#39a1a9" }: Props) {
   const router = useRouter();
   const [phase, setPhase] = useState<"waiting" | "countdown" | "done">("waiting");
   const [seconds, setSeconds] = useState(REDIRECT_DELAY);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Inicia el countdown tras pulsar el botón de descarga
+  // Inicia el countdown tras pulsar el botón de descarga.
+  // Abrimos vía /api/lead-magnet/download para que se registre el evento
+  // pdf_download (así el contador "PDFs descargados" cuenta de verdad);
+  // esa ruta redirige al PDF. Fallback al pdf_url directo si no hay id.
   const handleDownload = () => {
-    // Abrir PDF en pestaña nueva
-    window.open(pdfUrl, "_blank", "noopener,noreferrer");
+    const url = lmId ? `/api/lead-magnet/download?id=${lmId}` : pdfUrl;
+    window.open(url, "_blank", "noopener,noreferrer");
     setPhase("countdown");
   };
 
