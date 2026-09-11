@@ -530,7 +530,7 @@ useEffect(() => {
 
       {/* Info */}
       <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm">
-        <strong className="text-yellow-500">Tip:</strong> Los links guardados se pueden usar en los generadores de Lead Magnet y Beneficios VIP en los botones CTA.
+        <strong className="text-yellow-500">Tip:</strong> Los links guardados se pueden usar en los generadores de Recursos de valor y Beneficios VIP en los botones CTA.
       </div>
     </div>
   );

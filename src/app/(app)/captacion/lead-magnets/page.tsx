@@ -129,7 +129,7 @@ export default function LeadMagnetsPage() {
 
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Lead Magnets de Captación</h1>
+        <h1 className="text-2xl font-bold">Recursos de valor de Captación</h1>
         <p className="text-sm mt-1" style={{ color: "var(--brand-1)" }}>
           Crea recursos para atraer y captar clientes nuevos
         </p>

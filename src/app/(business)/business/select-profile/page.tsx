@@ -46,7 +46,7 @@ const PROFILES = {
   captacion: {
     label: "Captación",
     desc: "Crea campañas, capta leads en eventos y conviértelos en clientes",
-    tags: ["Campañas", "Formularios", "Lead Magnets", "Recorrido"],
+    tags: ["Campañas", "Formularios", "Recursos de valor", "Recorrido"],
     hex:          "#6366f1",
     lightBg:      "rgba(99,102,241,0.11)",
     lightBgEnd:   "rgba(99,102,241,0.05)",

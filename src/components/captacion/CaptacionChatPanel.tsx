@@ -57,7 +57,7 @@ const QUICK_ACTIONS: Record<CaptacionChatSection, Array<{ label: string; prompt:
 };
 
 const SECTION_TITLES: Record<CaptacionChatSection, string> = {
-  lead_magnets: "Asistente — Lead Magnets",
+  lead_magnets: "Asistente — Recursos de valor",
   formularios: "Asistente — Formularios",
   campanas: "Asistente — Campañas",
   recorrido: "Asistente — Seguimiento",

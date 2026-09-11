@@ -296,7 +296,7 @@ export default function CaptacionPage() {
     },
     {
       key: "lead_magnets",
-      label: "Lead Magnets",
+      label: "Recursos de valor",
       description: "PDFs, enlaces y códigos para atraer y captar nuevos clientes.",
       href: "/captacion/lead-magnets",
       count: counts.leadMagnets,

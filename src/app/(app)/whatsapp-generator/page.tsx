@@ -235,7 +235,7 @@ export default function WhatsAppGeneratorPage() {
 
       {/* Info para otros generadores */}
       <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm">
-        <strong className="text-yellow-500">Información:</strong> Los links de WhatsApp guardados se pueden usar en otros generadores (como Lead Magnet) Pegando la URL en el campo de enlace del botón CTA.
+        <strong className="text-yellow-500">Información:</strong> Los links de WhatsApp guardados se pueden usar en otros generadores (como Recursos de valor) Pegando la URL en el campo de enlace del botón CTA.
       </div>
     </div>
   );

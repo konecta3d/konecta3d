@@ -127,7 +127,7 @@ export default function DashboardPage() {
     },
     ...(business?.module_lead_magnet !== false ? [{
       key: "lead_magnet",
-      label: "Activa tu imán de clientes",
+      label: "Crea tu recurso de valor",
       description: "Un recurso gratuito que convierte visitas en contactos.",
       href: "/lead-magnet",
       done: counts.leadMagnets > 0,
@@ -171,7 +171,7 @@ export default function DashboardPage() {
     },
     {
       key: "lead_magnet",
-      label: "Imán de clientes",
+      label: "Recursos de valor",
       description: "Un recurso gratuito que atrae contactos nuevos a tu lista.",
       href: "/lead-magnet",
       enabled: business?.module_lead_magnet !== false,

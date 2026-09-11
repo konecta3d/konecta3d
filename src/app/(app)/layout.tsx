@@ -31,7 +31,7 @@ const fidelizacionLinks: SidebarLink[] = [
   // Contexto aparece primero → debajo del Dashboard y encima de Herramientas
   { label: "Contexto del negocio (Primer paso)", href: "/mi-contexto", category: "Contexto" },
   { label: "Página de bienvenida", href: "/landing/new", category: "Herramientas", nameKey: "landing" },
-  { label: "Imán de clientes", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
+  { label: "Recursos de valor", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Herramientas", nameKey: "vipBenefits", module: "module_vip_benefits" },
   { label: "Formularios", href: "/formularios", category: "Herramientas", nameKey: "forms", module: "module_forms" },
   { label: "Asistente IA", href: "/gpt-fidelizacion", category: "Avanzado", module: "module_gpt" },
@@ -43,7 +43,7 @@ const captacionLinks: SidebarLink[] = [
   { label: "Contexto del negocio (Primer paso)", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
-  { label: "Imanes de clientes", href: "/captacion/lead-magnets", category: "Captación" },
+  { label: "Recursos de valor", href: "/captacion/lead-magnets", category: "Captación" },
   // Recorrido del Cliente: oculto si module_recorrido === false
   { label: "Recorrido del cliente", href: "/captacion/recorrido", category: "Captación", module: "module_recorrido" },
 ];

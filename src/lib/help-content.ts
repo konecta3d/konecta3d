@@ -91,11 +91,11 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
         },
         {
           step: 3,
-          title: "Activa tu imán de clientes",
+          title: "Crea tu recurso de valor",
           description: "Un recurso gratuito (guía, checklist) que intercambias por el contacto del visitante.",
           tip: "Ejemplo: «5 ejercicios para el dolor de espalda». Lo que sabes tú y ellos no.",
           href: "/lead-magnet",
-          hrefLabel: "Crear imán →",
+          hrefLabel: "Crear recurso →",
         },
       ],
     },
@@ -198,10 +198,10 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
         },
         {
           step: 3,
-          title: "Conecta tu imán de clientes",
+          title: "Conecta tu recurso de valor",
           description: "Si tienes un recurso gratuito creado, añádelo aquí. Es lo que convierte visitas en contactos.",
           href: "/lead-magnet",
-          hrefLabel: "Crear imán primero →",
+          hrefLabel: "Crear recurso primero →",
         },
         {
           step: 4,
@@ -249,10 +249,10 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
 
   "recurso-de-valor": {
     slug: "recurso-de-valor",
-    title: "Imán de clientes",
+    title: "Recursos de valor",
     intro: "Un PDF con tu conocimiento profesional que entregas gratis a tus clientes para generar confianza y captar contactos.",
     guide: {
-      intro: "Crea tu primer imán en 3 pasos. No tienes que escribir desde cero.",
+      intro: "Crea tu primer recurso en 3 pasos. No tienes que escribir desde cero.",
       steps: [
         {
           step: 1,
@@ -264,12 +264,12 @@ export const HELP_CONTENT: Record<string, HelpSection> = {
           step: 2,
           title: "Adapta la plantilla",
           description: "El asistente te propone el contenido según tu objetivo. Tú ajustas los textos a tu negocio.",
-          tip: "No hace falta que sea perfecto. Con 5 puntos útiles y tu logo ya tienes un imán de clientes real.",
+          tip: "No hace falta que sea perfecto. Con 5 puntos útiles y tu logo ya tienes un recurso de valor real.",
         },
         {
           step: 3,
           title: "Actívalo en tu página",
-          description: "Cuando esté listo, ve a tu landing y añade el recurso. Sin eso, el imán no capta contactos.",
+          description: "Cuando esté listo, ve a tu landing y añade el recurso. Sin eso, el recurso no capta contactos.",
           href: "/landing/new",
           hrefLabel: "Ir a la página →",
         },

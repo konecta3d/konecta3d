@@ -14,7 +14,7 @@ type CustomNames = {
 const defaultNames: CustomNames = {
   dashboard: "Panel de Control",
   landing: "Landing",
-  leadMagnet: "Lead Magnet",
+  leadMagnet: "Recursos de valor",
   vipBenefits: "Beneficios VIP",
   actions: "Acciones",
 };

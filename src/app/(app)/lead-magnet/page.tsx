@@ -61,7 +61,7 @@ function LeadMagnetListContent() {
   };
 
   const deleteLeadMagnet = async (id: string) => {
-    if (!confirm("¿Eliminar este Lead Magnet?")) return;
+    if (!confirm("¿Eliminar este recurso?")) return;
     await supabase.from("lead_magnets").delete().eq("id", id);
     loadLeadMagnets();
   };

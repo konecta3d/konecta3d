@@ -101,7 +101,7 @@ export default function ResultadosPage() {
 
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex flex-col justify-between">
           <div>
-            <h2 className="text-lg font-semibold mb-1">Lead Magnet / Documentos</h2>
+            <h2 className="text-lg font-semibold mb-1">Recursos de valor / Documentos</h2>
             <p className="text-sm text-white mb-2">
               Recursos descargables que puedes usar para captar y nutrir a tus leads.
             </p>
@@ -111,7 +111,7 @@ export default function ResultadosPage() {
               href="/lead-magnet"
               className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm hover:bg:white/5"
             >
-              Ver Lead Magnets
+              Ver Recursos de valor
             </a>
             <a
               href="/vip-benefits"
@@ -146,7 +146,7 @@ export default function ResultadosPage() {
         <h2 className="text-lg font-semibold mb-2">Qué hacer ahora</h2>
         <ul className="list-disc list-inside text-sm text-white space-y-1">
           <li>Comparte tu landing con tus clientes por WhatsApp o redes sociales.</li>
-          <li>Usa tus lead magnets como gancho para capturar contactos.</li>
+          <li>Usa tus recursos de valor como gancho para capturar contactos.</li>
           <li>Revisa tus leads frecuentemente y haz seguimiento.</li>
         </ul>
       </div>
