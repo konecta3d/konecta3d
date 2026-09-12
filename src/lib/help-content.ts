@@ -12,6 +12,8 @@ export interface HelpGuideStep {
   tip?: string;
   href?: string;
   hrefLabel?: string;
+  /** Micro-vídeo (~1 min) de este paso. YouTube, Vimeo o .mp4 directo. Editable desde /admin/ayuda-contenido. */
+  videoUrl?: string;
 }
 
 export interface HelpGuide {
@@ -19,18 +21,11 @@ export interface HelpGuide {
   steps: HelpGuideStep[];
 }
 
-export interface HelpVideo {
-  title: string;
-  url: string; // YouTube, Vimeo o enlace directo a un .mp4/.webm
-}
-
 export interface HelpSection {
   slug: string;
   title: string;
   intro?: string;
   guide?: HelpGuide;
-  /** Micro-vídeos (~1 min) de esta sección. Editables desde /admin/ayuda-contenido. */
-  videos?: HelpVideo[];
   items: HelpQA[];
 }
 
