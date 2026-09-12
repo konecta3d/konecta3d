@@ -15,6 +15,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { toEmbedUrl, isDirectVideo } from "@/lib/video-embed";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ interface DbStep {
   title: string;
   body: string;
   tip: string | null;
+  video_url: string | null;
   active: boolean;
 }
 
@@ -47,6 +49,7 @@ interface Step {
   title: string;
   body: string;
   tip?: string; // solo si moduleGpt
+  videoUrl?: string; // vídeo tutorial del paso (~1 min)
   stage?: Stage;
 }
 
@@ -322,7 +325,7 @@ export default function OnboardingDrawer({
           const stageB = STAGE_ORDER.indexOf(b.stage);
           return stageA !== stageB ? stageA - stageB : a.step_order - b.step_order;
         })
-        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined, stage: s.stage }))
+        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined, videoUrl: s.video_url ?? undefined, stage: s.stage }))
     : STAGE_ORDER.flatMap(st =>
         ((context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[st] ?? []).map(
           s => ({ ...s, stage: st as Stage })
@@ -455,6 +458,12 @@ function DrawerContent({
   onRestart,
   onClose,
 }: DrawerContentProps) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  // Cierra el vídeo al cambiar de paso, para no quedar reproduciendo el del paso anterior.
+  useEffect(() => { setVideoOpen(false); }, [stepIndex]);
+
+  const embed = step.videoUrl ? toEmbedUrl(step.videoUrl) : null;
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
@@ -510,6 +519,46 @@ function DrawerContent({
               </div>
             </div>
           </a>
+        )}
+
+        {/* Vídeo del paso (~1 min) */}
+        {step.videoUrl && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setVideoOpen(v => !v)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold bg-[var(--brand-1)] text-white hover:opacity-90 transition"
+            >
+              <span className="text-[10px]">▶</span>
+              {videoOpen ? "Ocultar vídeo" : "Ver vídeo del paso (1 min)"}
+            </button>
+            {videoOpen && (
+              <div className="mt-2">
+                {embed ? (
+                  <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
+                    <iframe
+                      src={embed}
+                      title={step.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0, borderRadius: 8 }}
+                    />
+                  </div>
+                ) : isDirectVideo(step.videoUrl) ? (
+                  <video src={step.videoUrl} controls className="w-full rounded-lg" />
+                ) : (
+                  <a
+                    href={step.videoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-xs px-3 py-1.5 rounded-lg font-semibold bg-[var(--brand-4)] text-black"
+                  >
+                    Abrir vídeo →
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

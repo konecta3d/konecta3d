@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT, toEmbedUrl } from "@/lib/help-content";
+import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT } from "@/lib/help-content";
 import Link from "next/link";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -34,7 +34,6 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   // ── Drawer state ──────────────────────────────────────────────────────────
   const [open, setOpen]           = useState(false);
   const [expandedIndex, setExpIdx] = useState<number | null>(null);
-  const [openVideo, setOpenVideo] = useState<number | null>(null);
   const [section, setSection]     = useState<HelpSection>(getHelpSection(pathname));
   const [activeTab, setActiveTab] = useState<"guide" | "faq">("faq");
   const [showPulse, setShowPulse] = useState(false);
@@ -81,7 +80,6 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
     const newSection = src[slug] ?? src["como-funciona"] ?? getHelpSection(pathname);
     setSection(newSection);
     setExpIdx(null);
-    setOpenVideo(null);
 
     // Si la sección tiene guía, seleccionar esa pestaña por defecto
     if (newSection.guide) {
@@ -388,53 +386,6 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
                           {s.hrefLabel ?? "Ir →"}
                         </Link>
                       )}
-
-                      {/* Micro-vídeo (~1 min) de este paso */}
-                      {s.videoUrl && (() => {
-                        const embed = toEmbedUrl(s.videoUrl);
-                        const isDirect = /\.(mp4|webm|ogg)(\?|$)/i.test(s.videoUrl);
-                        const isOpen = openVideo === s.step;
-                        return (
-                          <div className="mt-2.5">
-                            <button
-                              type="button"
-                              onClick={() => setOpenVideo(isOpen ? null : s.step)}
-                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                              style={{ background: "var(--brand-1)", color: "#fff" }}
-                            >
-                              <span className="text-[10px]">▶</span>
-                              {isOpen ? "Ocultar vídeo" : "Ver vídeo (1 min)"}
-                            </button>
-                            {isOpen && (
-                              <div className="mt-2">
-                                {embed ? (
-                                  <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
-                                    <iframe
-                                      src={embed}
-                                      title={s.title}
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                      allowFullScreen
-                                      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0, borderRadius: 8 }}
-                                    />
-                                  </div>
-                                ) : isDirect ? (
-                                  <video src={s.videoUrl} controls className="w-full rounded-lg" />
-                                ) : (
-                                  <a
-                                    href={s.videoUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-block text-xs px-3 py-1.5 rounded-lg font-semibold"
-                                    style={{ background: "var(--brand-4)", color: "#000" }}
-                                  >
-                                    Abrir vídeo →
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
                     </div>
                   </div>
                 </div>

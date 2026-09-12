@@ -7,6 +7,7 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
+import GuideVideoButton from "@/components/onboarding/GuideVideoButton";
 import LandingAiChat from "@/components/landing/LandingAiChat";
 import BloqueFinalHelp from "@/components/landing/BloqueFinalHelp";
 
@@ -324,6 +325,7 @@ useEffect(() => {
                 {guideOpen ? "Cerrar guía" : "Guía de Personalización"}
               </button>
             )}
+            {businessId && <GuideVideoButton context="landing" />}
             {businessId && moduleAiLanding && (
               <button
                 type="button"

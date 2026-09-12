@@ -10,6 +10,7 @@ import { splitPoints, joinPoints, stripBullet, pointToHtml, contrastText } from 
 import { CTA_CLOSING_LINES } from "@/lib/cta-closing-lines";
 import { PDF_FONTS, FONT_CATEGORIES, allFontsHref } from "@/lib/pdf-fonts";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
+import GuideVideoButton from "@/components/onboarding/GuideVideoButton";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
 
 type LeadMagnetType = "guia" | "checklist" | "recomendacion";
@@ -1420,6 +1421,7 @@ function LeadMagnetWizardInner() {
             <h1 className="text-[#ffb400] text-base md:text-lg font-extrabold tracking-widest uppercase">Recurso de Valor</h1>
             <p className="text-[var(--foreground)] text-xs md:text-sm">Convierte tu conocimiento en un recurso valioso para tus clientes</p>
           </div>
+          {businessId && <GuideVideoButton context="resources" />}
         </div>
 
         <div className="flex items-center justify-center gap-1 mb-8">

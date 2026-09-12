@@ -221,14 +221,6 @@ export default function HelpContentEditor() {
     updateSection({ items });
   };
 
-  // ── Vídeo de cada paso de la guía ───────────────────────────────────────
-  const updateStepVideo = (index: number, url: string) => {
-    const guide = content[selectedSlug]?.guide;
-    if (!guide) return;
-    const steps = guide.steps.map((s, i) => (i === index ? { ...s, videoUrl: url } : s));
-    updateSection({ guide: { ...guide, steps } });
-  };
-
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -362,46 +354,6 @@ export default function HelpContentEditor() {
                 />
               </div>
             </div>
-
-            {/* Vídeo de 1 minuto por cada paso de la guía */}
-            {section.guide && (
-              <div
-                className="rounded-xl border border-[var(--border)] p-5 space-y-3"
-                style={{ background: "var(--card)" }}
-              >
-                <div>
-                  <h2 className="text-base font-bold">Vídeos de la guía</h2>
-                  <p className="text-xs text-[var(--foreground)]/40 mt-0.5">
-                    Un vídeo de ~1 min por paso. Pega el enlace (YouTube, Vimeo o un .mp4). Aparece dentro de la tarjeta de ese paso, en la pestaña «Guía rápida» del drawer. Deja vacío el que no tenga vídeo.
-                  </p>
-                </div>
-
-                {section.guide.steps.map((s, i) => (
-                  <div
-                    key={s.step}
-                    className="rounded-xl border border-[var(--border)] p-3 space-y-2"
-                    style={{ background: "var(--background)" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                        style={{ background: "var(--brand-1)", color: "#fff" }}
-                      >
-                        {s.step}
-                      </span>
-                      <span className="text-sm font-semibold text-[var(--foreground)]">{s.title}</span>
-                    </div>
-                    <input
-                      type="text"
-                      value={s.videoUrl ?? ""}
-                      onChange={(e) => updateStepVideo(i, e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
-                      placeholder="https://youtu.be/...  ·  vacío = sin vídeo"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Lista de Q&A */}
             <div

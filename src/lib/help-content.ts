@@ -12,8 +12,6 @@ export interface HelpGuideStep {
   tip?: string;
   href?: string;
   hrefLabel?: string;
-  /** Micro-vídeo (~1 min) de este paso. YouTube, Vimeo o .mp4 directo. Editable desde /admin/ayuda-contenido. */
-  videoUrl?: string;
 }
 
 export interface HelpGuide {
@@ -27,21 +25,6 @@ export interface HelpSection {
   intro?: string;
   guide?: HelpGuide;
   items: HelpQA[];
-}
-
-/**
- * Convierte una URL de vídeo en una URL embebible (iframe) si es de YouTube/Vimeo.
- * Devuelve null si no reconoce el proveedor (se tratará como enlace directo o externo).
- */
-export function toEmbedUrl(url: string): string | null {
-  const u = (url || "").trim();
-  // YouTube: youtu.be/ID  |  youtube.com/watch?v=ID  |  youtube.com/embed/ID
-  const yt = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  // Vimeo: vimeo.com/ID
-  const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
-  return null;
 }
 
 // ─── Contenidos ───────────────────────────────────────────────────────────────

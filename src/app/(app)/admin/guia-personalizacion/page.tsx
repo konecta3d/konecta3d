@@ -16,6 +16,7 @@ interface Step {
   title: string;
   body: string;
   tip: string | null;
+  video_url: string | null;
   active: boolean;
 }
 
@@ -53,7 +54,7 @@ export default function GuiaPersonalizacionAdmin() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [addingTo, setAddingTo] = useState<{ context: Context; stage: Stage } | null>(null);
-  const [newStep, setNewStep] = useState({ title: "", body: "", tip: "" });
+  const [newStep, setNewStep] = useState({ title: "", body: "", tip: "", videoUrl: "" });
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -82,7 +83,7 @@ export default function GuiaPersonalizacionAdmin() {
   // ── Edit ──────────────────────────────────────────────────
   const startEdit = (step: Step) => {
     setEditingId(step.id);
-    setEditData({ title: step.title, body: step.body, tip: step.tip || "" });
+    setEditData({ title: step.title, body: step.body, tip: step.tip || "", video_url: step.video_url || "" });
   };
 
   const cancelEdit = () => {
@@ -98,6 +99,7 @@ export default function GuiaPersonalizacionAdmin() {
         title: editData.title,
         body: editData.body,
         tip: editData.tip || null,
+        video_url: editData.video_url || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", step.id);
@@ -106,7 +108,7 @@ export default function GuiaPersonalizacionAdmin() {
       showToast("Error al guardar: " + error.message);
     } else {
       setSteps(steps.map(s => s.id === step.id
-        ? { ...s, title: editData.title!, body: editData.body!, tip: editData.tip || null }
+        ? { ...s, title: editData.title!, body: editData.body!, tip: editData.tip || null, video_url: editData.video_url || null }
         : s
       ));
       setEditingId(null);
@@ -160,6 +162,7 @@ export default function GuiaPersonalizacionAdmin() {
         title: newStep.title,
         body: newStep.body,
         tip: newStep.tip || null,
+        video_url: newStep.videoUrl || null,
         active: true,
       })
       .select()
@@ -170,7 +173,7 @@ export default function GuiaPersonalizacionAdmin() {
     } else {
       setSteps([...steps, data as Step]);
       setAddingTo(null);
-      setNewStep({ title: "", body: "", tip: "" });
+      setNewStep({ title: "", body: "", tip: "", videoUrl: "" });
       showToast("Paso creado");
     }
     setSaving(false);
@@ -279,7 +282,7 @@ export default function GuiaPersonalizacionAdmin() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => { setAddingTo({ context: activeContext, stage }); setNewStep({ title: "", body: "", tip: "" }); }}
+                  onClick={() => { setAddingTo({ context: activeContext, stage }); setNewStep({ title: "", body: "", tip: "", videoUrl: "" }); }}
                   className="text-xs px-2.5 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--brand-1)]/10 hover:border-[var(--brand-1)] hover:text-[var(--brand-1)] transition-colors"
                 >
                   + Añadir paso
@@ -337,6 +340,18 @@ export default function GuiaPersonalizacionAdmin() {
                             className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
                           />
                         </div>
+                        <div>
+                          <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                            Vídeo del paso <span className="text-[var(--foreground)]/30">(opcional — YouTube, Vimeo o .mp4; se ve en la cabecera y dentro del paso)</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={editData.video_url || ""}
+                            onChange={e => setEditData({ ...editData, video_url: e.target.value })}
+                            placeholder="https://youtu.be/..."
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
+                          />
+                        </div>
                         <div className="flex gap-2 pt-1">
                           <button
                             type="button"
@@ -367,6 +382,9 @@ export default function GuiaPersonalizacionAdmin() {
                               )}
                               {step.tip && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">GPT</span>
+                              )}
+                              {step.video_url && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--brand-1)]/15 text-[var(--brand-1)] border border-[var(--brand-1)]/20">▶ Vídeo</span>
                               )}
                             </div>
                             <h3 className="text-sm font-semibold mb-1">{step.title}</h3>
@@ -445,6 +463,18 @@ export default function GuiaPersonalizacionAdmin() {
                         value={newStep.tip}
                         onChange={e => setNewStep({ ...newStep, tip: e.target.value })}
                         placeholder="Ej: Pídele al GPT ideas para este paso →"
+                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[var(--foreground)]/50 mb-1">
+                        Vídeo del paso <span className="text-[var(--foreground)]/30">(opcional — YouTube, Vimeo o .mp4)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newStep.videoUrl}
+                        onChange={e => setNewStep({ ...newStep, videoUrl: e.target.value })}
+                        placeholder="https://youtu.be/..."
                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
                       />
                     </div>
