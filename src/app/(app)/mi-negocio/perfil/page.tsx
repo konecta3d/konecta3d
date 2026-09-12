@@ -11,6 +11,7 @@ export default function PerfilPage() {
   const [saved, setSaved] = useState(false);
   const [msg, setMsg] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [showContextModal, setShowContextModal] = useState(false);
   // Datos del negocio
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -92,10 +93,34 @@ export default function PerfilPage() {
       setSaved(true);
       setMsg("Datos guardados correctamente");
       setTimeout(() => setSaved(false), 2000);
+      maybeNudgeContext();
     } else {
       setMsg("Error al guardar: " + error.message);
     }
     setTimeout(() => setMsg(""), 3000);
+  };
+
+  // Tras guardar el perfil, si el negocio aún no tiene contexto, recomendarlo
+  // (una sola vez por sesión). El contexto es lo que hace que el asistente monte
+  // landings/recursos con la voz del negocio.
+  const maybeNudgeContext = async () => {
+    try {
+      if (sessionStorage.getItem("k3d-perfil-context-nudge")) return;
+    } catch { /* continuar */ }
+    let hasContext = false;
+    try {
+      const { data } = await supabase
+        .from("gpt_context_answers")
+        .select("answer_text")
+        .eq("business_id", businessId);
+      hasContext = (data || []).some((a) => (a.answer_text || "").trim().length > 0);
+    } catch {
+      hasContext = false;
+    }
+    if (!hasContext) {
+      try { sessionStorage.setItem("k3d-perfil-context-nudge", "1"); } catch { /* ignore */ }
+      setShowContextModal(true);
+    }
   };
 
   const handleLogoUpload = async (file: File) => {
@@ -296,6 +321,40 @@ export default function PerfilPage() {
           </a>
         </div>
       </div>
+
+      {/* Popup: recomendar completar el contexto tras guardar el perfil */}
+      {showContextModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="w-full max-w-md bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[var(--brand-4)] font-bold">
+              Perfil guardado
+            </div>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">
+              Ahora el paso más importante: completa tu contexto
+            </h2>
+            <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
+              El contexto es lo que hace que el asistente monte tus landings, recursos y mensajes con tu voz
+              y tu forma de trabajar. Sin él, todo sale genérico. Es lo primero que conviene rellenar.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => router.push("/mi-contexto")}
+                className="flex-1 px-4 py-3 rounded-lg bg-[var(--brand-4)] text-black font-bold hover:opacity-90"
+              >
+                Completar mi contexto
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowContextModal(false)}
+                className="px-4 py-3 rounded-lg border border-[var(--border)] text-sm text-[var(--foreground)] hover:bg-white/5"
+              >
+                Más tarde
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
