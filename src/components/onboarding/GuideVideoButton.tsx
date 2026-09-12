@@ -32,13 +32,13 @@ export default function GuideVideoButton({ context }: { context: Ctx }) {
     let cancelled = false;
     supabase
       .from("onboarding_steps")
-      .select("id, title, stage, step_order, video_url, context, active")
+      .select("id, title, stage, step_order, video_url, video_enabled, context, active")
       .eq("context", context)
       .eq("active", true)
       .then(({ data }) => {
         if (cancelled || !data) return;
-        const withVideo = (data as Array<VideoStep & { active: boolean }>)
-          .filter((s) => s.video_url && s.video_url.trim())
+        const withVideo = (data as Array<VideoStep & { active: boolean; video_enabled: boolean | null }>)
+          .filter((s) => s.video_url && s.video_url.trim() && s.video_enabled !== false)
           .sort((a, b) => {
             const sa = STAGE_ORDER.indexOf(a.stage);
             const sb = STAGE_ORDER.indexOf(b.stage);

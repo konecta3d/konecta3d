@@ -70,6 +70,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Recursos y guiones", href: "/admin/crm/recursos", category: "CRM Comercial" },
   { label: "Calculadora de impacto", href: "/admin/crm/calculadora", category: "CRM Comercial" },
   { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
+  { label: "Vídeos tutoriales", href: "/admin/videos-tutoriales", category: "Contenido" },
   { label: "Onboarding", href: "/admin/onboarding", category: "Contenido" },
   { label: "Página de acceso", href: "/admin/login-page", category: "Contenido" },
   { label: "Landings de presentación", href: "/admin/landings", category: "Contenido" },

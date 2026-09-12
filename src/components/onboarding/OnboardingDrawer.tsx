@@ -30,6 +30,7 @@ interface DbStep {
   body: string;
   tip: string | null;
   video_url: string | null;
+  video_enabled: boolean | null;
   active: boolean;
 }
 
@@ -325,7 +326,7 @@ export default function OnboardingDrawer({
           const stageB = STAGE_ORDER.indexOf(b.stage);
           return stageA !== stageB ? stageA - stageB : a.step_order - b.step_order;
         })
-        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined, videoUrl: s.video_url ?? undefined, stage: s.stage }))
+        .map(s => ({ title: s.title, body: s.body, tip: s.tip ?? undefined, videoUrl: (s.video_url && s.video_enabled !== false) ? s.video_url : undefined, stage: s.stage }))
     : STAGE_ORDER.flatMap(st =>
         ((context === "landing" ? LANDING_STEPS : RESOURCE_STEPS)[st] ?? []).map(
           s => ({ ...s, stage: st as Stage })

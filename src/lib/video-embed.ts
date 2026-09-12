@@ -5,8 +5,9 @@
 export function toEmbedUrl(url: string): string | null {
   const u = (url || "").trim();
   // YouTube: youtu.be/ID | youtube.com/watch?v=ID | youtube.com/embed/ID | shorts/ID
+  // rel=0 mantiene los vídeos sugeridos del final dentro del mismo canal (experiencia limpia).
   const yt = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0`;
   // Vimeo: vimeo.com/ID
   const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
