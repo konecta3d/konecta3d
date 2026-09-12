@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT } from "@/lib/help-content";
+import { getHelpSection, getHelpSlug, HelpSection, HELP_CONTENT, toEmbedUrl } from "@/lib/help-content";
 import Link from "next/link";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -34,6 +34,7 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
   // ── Drawer state ──────────────────────────────────────────────────────────
   const [open, setOpen]           = useState(false);
   const [expandedIndex, setExpIdx] = useState<number | null>(null);
+  const [openVideo, setOpenVideo] = useState<number | null>(null);
   const [section, setSection]     = useState<HelpSection>(getHelpSection(pathname));
   const [activeTab, setActiveTab] = useState<"guide" | "faq">("faq");
   const [showPulse, setShowPulse] = useState(false);
@@ -80,6 +81,7 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
     const newSection = src[slug] ?? src["como-funciona"] ?? getHelpSection(pathname);
     setSection(newSection);
     setExpIdx(null);
+    setOpenVideo(null);
 
     // Si la sección tiene guía, seleccionar esa pestaña por defecto
     if (newSection.guide) {
@@ -343,6 +345,64 @@ export default function HelpDrawer({ enabled, isAdmin }: HelpDrawerProps) {
 
         {/* Cuerpo con scroll */}
         <div className="flex-1 overflow-y-auto">
+
+          {/* ── Micro-vídeos de la sección (~1 min) ── */}
+          {section.videos && section.videos.length > 0 && (
+            <div className="px-4 pt-4 space-y-2">
+              <div className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]/40">
+                Vídeos de 1 minuto
+              </div>
+              {section.videos.map((v, i) => {
+                const embed = toEmbedUrl(v.url);
+                const isDirect = /\.(mp4|webm|ogg)(\?|$)/i.test(v.url);
+                const isOpen = openVideo === i;
+                return (
+                  <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenVideo(isOpen ? null : i)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--border)]/20"
+                    >
+                      <span
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] flex-shrink-0"
+                        style={{ background: "var(--brand-1)", color: "#fff" }}
+                      >
+                        ▶
+                      </span>
+                      <span className="text-sm font-semibold flex-1 text-[var(--foreground)]">{v.title}</span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4">
+                        {embed ? (
+                          <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
+                            <iframe
+                              src={embed}
+                              title={v.title}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0, borderRadius: 8 }}
+                            />
+                          </div>
+                        ) : isDirect ? (
+                          <video src={v.url} controls className="w-full rounded-lg" />
+                        ) : (
+                          <a
+                            href={v.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-block text-xs px-3 py-1.5 rounded-lg font-semibold"
+                            style={{ background: "var(--brand-4)", color: "#000" }}
+                          >
+                            Abrir vídeo →
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* ── Pestaña: Guía rápida ── */}
           {activeTab === "guide" && section.guide && (

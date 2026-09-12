@@ -19,12 +19,34 @@ export interface HelpGuide {
   steps: HelpGuideStep[];
 }
 
+export interface HelpVideo {
+  title: string;
+  url: string; // YouTube, Vimeo o enlace directo a un .mp4/.webm
+}
+
 export interface HelpSection {
   slug: string;
   title: string;
   intro?: string;
   guide?: HelpGuide;
+  /** Micro-vídeos (~1 min) de esta sección. Editables desde /admin/ayuda-contenido. */
+  videos?: HelpVideo[];
   items: HelpQA[];
+}
+
+/**
+ * Convierte una URL de vídeo en una URL embebible (iframe) si es de YouTube/Vimeo.
+ * Devuelve null si no reconoce el proveedor (se tratará como enlace directo o externo).
+ */
+export function toEmbedUrl(url: string): string | null {
+  const u = (url || "").trim();
+  // YouTube: youtu.be/ID  |  youtube.com/watch?v=ID  |  youtube.com/embed/ID
+  const yt = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  // Vimeo: vimeo.com/ID
+  const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  return null;
 }
 
 // ─── Contenidos ───────────────────────────────────────────────────────────────

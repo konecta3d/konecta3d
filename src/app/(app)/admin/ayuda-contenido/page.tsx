@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { HELP_CONTENT, HelpSection, HelpQA } from "@/lib/help-content";
+import { HELP_CONTENT, HelpSection, HelpQA, HelpVideo } from "@/lib/help-content";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -221,6 +221,23 @@ export default function HelpContentEditor() {
     updateSection({ items });
   };
 
+  // ── Mutaciones de vídeos ────────────────────────────────────────────────
+  const updateVideo = (index: number, field: keyof HelpVideo, val: string) => {
+    const videos = [...(content[selectedSlug]?.videos ?? [])];
+    videos[index] = { ...videos[index], [field]: val };
+    updateSection({ videos });
+  };
+
+  const deleteVideo = (index: number) => {
+    const videos = (content[selectedSlug]?.videos ?? []).filter((_, i) => i !== index);
+    updateSection({ videos });
+  };
+
+  const addVideo = () => {
+    const videos = [...(content[selectedSlug]?.videos ?? []), { title: "", url: "" }];
+    updateSection({ videos });
+  };
+
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -353,6 +370,87 @@ export default function HelpContentEditor() {
                   placeholder="Una frase que resume de qué trata esta sección…"
                 />
               </div>
+            </div>
+
+            {/* Micro-vídeos de la sección */}
+            <div
+              className="rounded-xl border border-[var(--border)] p-5 space-y-3"
+              style={{ background: "var(--card)" }}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <h2 className="text-base font-bold">
+                    Vídeos de 1 minuto
+                    <span className="ml-2 text-sm font-normal text-[var(--foreground)]/40">
+                      ({(section.videos ?? []).length})
+                    </span>
+                  </h2>
+                  <p className="text-xs text-[var(--foreground)]/40 mt-0.5">
+                    Enlaces de YouTube, Vimeo o a un archivo .mp4. Se ven arriba del drawer de esta sección.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addVideo}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+                  style={{ background: "var(--brand-1)", color: "white" }}
+                >
+                  + Añadir vídeo
+                </button>
+              </div>
+
+              {(section.videos ?? []).length === 0 ? (
+                <div className="text-center py-6 text-[var(--foreground)]/30 text-sm">
+                  Sin vídeos en esta sección.{" "}
+                  <button
+                    type="button"
+                    onClick={addVideo}
+                    className="underline underline-offset-2 hover:text-[var(--foreground)]/60 transition-colors"
+                  >
+                    Añade el primero
+                  </button>
+                </div>
+              ) : (
+                (section.videos ?? []).map((v, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-[var(--border)] p-3 space-y-2"
+                    style={{ background: "var(--background)" }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[var(--foreground)]/40 uppercase tracking-wide">
+                        Vídeo {i + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => deleteVideo(i)}
+                        className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:bg-red-500/10 transition-colors text-xs"
+                        title="Eliminar vídeo"
+                      >✕</button>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[var(--foreground)]/50 mb-1">Título</label>
+                      <input
+                        type="text"
+                        value={v.title}
+                        onChange={(e) => updateVideo(i, "title", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
+                        placeholder="Ej: Cómo crear tu primera landing en 1 minuto"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[var(--foreground)]/50 mb-1">Enlace del vídeo</label>
+                      <input
+                        type="text"
+                        value={v.url}
+                        onChange={(e) => updateVideo(i, "url", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm"
+                        placeholder="https://youtu.be/... o https://.../video.mp4"
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Lista de Q&A */}
