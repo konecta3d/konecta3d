@@ -14,6 +14,8 @@ interface SidebarLink {
     module?: string;
     badge?: boolean;
     subLabel?: string;
+    stepNumber?: number;
+    counter?: string;
 }
 
 interface SidebarProps {
@@ -193,9 +195,18 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                 href={link.href}
                 className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} block`}
             >
-                <span className="flex items-center justify-between">
-                    <span>{label}</span>
-                    {link.badge && <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 k3d-blink" />}
+                <span className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                        <span className="truncate">{label}</span>
+                        {link.badge && link.counter && (
+                            <span className="text-[10px] font-bold text-amber-500 flex-shrink-0">{link.counter}</span>
+                        )}
+                    </span>
+                    {link.badge && (
+                        <span className="w-5 h-5 rounded-full bg-amber-400 text-black text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 k3d-blink">
+                            {link.stepNumber ?? ""}
+                        </span>
+                    )}
                 </span>
                 {link.subLabel && link.badge && (
                     <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-500 mt-0.5">

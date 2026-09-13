@@ -21,6 +21,8 @@ interface SidebarLink {
   module?: string;
   badge?: boolean;
   subLabel?: string;
+  stepNumber?: number;
+  counter?: string;
 }
 
 // Perfil de Negocio
@@ -159,6 +161,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [guidedPath, setGuidedPath] = useState<GuidedPathConfig>(DEFAULT_GUIDED_PATH);
   const [completedHrefs, setCompletedHrefs] = useState<Set<string>>(new Set());
+  const [contextCounts, setContextCounts] = useState({ fidAnswered: 0, fidTotal: 0, capFilled: 0 });
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
   const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
@@ -292,6 +295,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             (v) => v && typeof v === "object" && Object.keys(v as object).length > 0
           ).length;
 
+          setContextCounts({ fidAnswered: answered, fidTotal: total, capFilled });
+
           // Ruta guiada: qué secciones marcar y cuáles ya están completas.
           try {
             const gpRes = await fetch("/api/admin/guided-path");
@@ -338,6 +343,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     ? []
     : guidedPath.fidelizacion || [];
   const guidedMap = new Map(guidedSteps.map((s) => [s.href, s.hint]));
+  const guidedOrder = new Map(guidedSteps.map((s, i) => [s.href, i + 1]));
 
   const links = baseLinks
     .filter((l) => {
@@ -348,11 +354,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     })
     .map((l) => {
       const hint = guidedMap.get(l.href);
-      if (hint !== undefined) {
-        const incomplete = !completedHrefs.has(l.href);
-        return { ...l, badge: incomplete, subLabel: incomplete ? hint : undefined };
+      if (hint === undefined) return l;
+      const incomplete = !completedHrefs.has(l.href);
+      if (!incomplete) return { ...l, badge: false, subLabel: undefined };
+      // Contador de avance parcial (solo el Contexto tiene %)
+      let counter: string | undefined;
+      if (l.href === "/mi-contexto" && contextCounts.fidTotal > 0) {
+        counter = `${contextCounts.fidAnswered}/${contextCounts.fidTotal}`;
+      } else if (l.href === "/captacion/contexto") {
+        counter = `${contextCounts.capFilled}/6`;
       }
-      return l;
+      return { ...l, badge: true, subLabel: hint, stepNumber: guidedOrder.get(l.href), counter };
     });
 
   // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
@@ -413,10 +425,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         : "text-[var(--foreground)] hover:bg-[var(--brand-1)]/10"
                     }`}
                   >
-                    <span className="flex items-center justify-between">
-                      <span>{label}</span>
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <span className="truncate">{label}</span>
+                        {link.badge && link.counter && (
+                          <span className="text-[10px] font-bold text-amber-500 flex-shrink-0">{link.counter}</span>
+                        )}
+                      </span>
                       {link.badge && (
-                        <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 k3d-blink" />
+                        <span className="w-5 h-5 rounded-full bg-amber-400 text-black text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 k3d-blink">
+                          {link.stepNumber ?? ""}
+                        </span>
                       )}
                     </span>
                     {link.subLabel && link.badge && (
