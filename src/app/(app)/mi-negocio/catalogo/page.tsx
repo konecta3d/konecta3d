@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 interface ProductService {
   id: string;
@@ -65,7 +66,7 @@ export default function CatalogoPage() {
         const { data: sessionData } = await supabase.auth.getSession();
         const userEmail = sessionData.session?.user?.email || "";
         if (userEmail) {
-          const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", userEmail).single();
+          const { data: biz } = await supabase.from("businesses").select("id").eq("id", await getActiveBusinessId(supabase)).single();
           bid = biz?.id || "";
         }
       }

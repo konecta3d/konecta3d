@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import { CONTEXT_BLOCK_GUIDE } from "@/lib/context-guide";
 import type {
   ContextoIdentidad,
@@ -125,7 +126,7 @@ function ContextoIndexInner() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", email)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);

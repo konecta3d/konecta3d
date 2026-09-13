@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import ActionLinkPicker from "@/components/ActionLinkPicker";
 
 type BenefitObjective = "captar" | "fidelizar" | "ventas" | "referidos";
@@ -83,7 +84,7 @@ function VipBenefitsWizardInner() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       const bid = biz?.id || "";
       if (!bid) return;

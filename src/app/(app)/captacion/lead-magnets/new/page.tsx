@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import Link from "next/link";
 
 type ResourceType = "pdf" | "url" | "code";
@@ -47,7 +48,7 @@ export default function NewLeadMagnetAdvancedPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", email)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
 
       if (biz?.id) setBusinessId(biz.id);

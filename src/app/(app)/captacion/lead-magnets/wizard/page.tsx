@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import Link from "next/link";
 import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import { splitPoints, joinPoints, stripBullet, pointToHtml, contrastText } from "@/lib/leadmagnet-format";
@@ -243,7 +244,7 @@ function CaptacionLeadMagnetWizardInner() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id, name, logo_url")
-        .eq("contact_email", userEmail)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       if (!biz?.id) return;
       setBusinessId(biz.id);

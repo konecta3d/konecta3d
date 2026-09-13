@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 function DashboardContent() {
   const searchParams = useSearchParams();
@@ -37,7 +38,7 @@ function DashboardContent() {
         const { data: bizByEmail } = await supabase
           .from("businesses")
           .select("id")
-          .eq("contact_email", userEmail)
+          .eq("id", await getActiveBusinessId(supabase))
           .single();
 
         bid = bizByEmail?.id || "";

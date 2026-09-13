@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import type { FidelizacionForm, FidelizacionObjective } from "@/types/fidelizacion-forms";
 
 const OBJECTIVE_LABELS: Record<FidelizacionObjective, string> = {
@@ -44,7 +45,7 @@ export default function FormulariosPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", email)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);

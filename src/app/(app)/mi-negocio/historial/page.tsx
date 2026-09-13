@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 export default function HistorialPage() {
   const [businessId, setBusinessId] = useState("");
@@ -25,7 +26,7 @@ useEffect(() => {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
 
       bid = biz?.id || "";

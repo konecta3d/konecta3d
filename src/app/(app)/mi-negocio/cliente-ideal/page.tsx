@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 interface Client {
   id: string;
@@ -73,7 +74,7 @@ export default function ClientesPage() {
           const { data: biz } = await supabase
             .from("businesses")
             .select("id, module_vip_benefits")
-            .eq("contact_email", userEmail)
+            .eq("id", await getActiveBusinessId(supabase))
             .single();
           bid = biz?.id || "";
           setModuleVipBenefits(biz?.module_vip_benefits ?? false);

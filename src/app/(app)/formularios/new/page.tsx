@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 type FormType = "captacion" | "fidelizacion";
 type Objective = "contacto" | "reserva" | "datos" | "opinion" | "retorno" | "comunidad";
@@ -50,7 +51,7 @@ function FormulariosNewContent() {
           const { data: biz } = await supabase
             .from("businesses")
             .select("id")
-            .eq("contact_email", userEmail)
+            .eq("id", await getActiveBusinessId(supabase))
             .single();
           bid = biz?.id || "";
         }

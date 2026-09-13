@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import type { CaptacionLead } from "@/types/captacion";
 import ErrorBanner from "@/components/ui/ErrorBanner";
 
@@ -119,14 +120,20 @@ export default function CaptacionPage() {
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
-        const email = sessionData?.session?.user?.email;
-        if (!email || !token) { setLoading(false); return; }
+        if (!token) { setLoading(false); return; }
+
+        const bid = await getActiveBusinessId(supabase);
+        if (!bid) {
+          setLoadError("No se encontró tu negocio. Contacta con el administrador.");
+          setLoading(false);
+          return;
+        }
 
         // Nota: 'description' no existe en el schema de businesses, se omite
         const { data: biz, error: bizError } = await supabase
           .from("businesses")
           .select("id, name, logo_url, contact_email, phone")
-          .eq("contact_email", email)
+          .eq("id", bid)
           .single();
 
         if (bizError || !biz) {

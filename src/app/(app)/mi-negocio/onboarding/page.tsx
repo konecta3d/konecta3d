@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import { useRouter } from "next/navigation";
 
 export default function OnboardingPage() {
@@ -39,7 +40,7 @@ export default function OnboardingPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
 
       const resolvedId = biz?.id;

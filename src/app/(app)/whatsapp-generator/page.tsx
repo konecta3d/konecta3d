@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import { normalizeWhatsappPhone } from "@/lib/whatsapp";
 
 interface WhatsAppLink {
@@ -31,7 +32,7 @@ export default function WhatsAppGeneratorPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", userEmail)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       const bid = biz?.id || "";
       if (bid) {

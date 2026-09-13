@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import type { CaptacionLeadMagnet } from "@/types/captacion";
 import CaptacionChatPanel from "@/components/captacion/CaptacionChatPanel";
 import ErrorBanner from "@/components/ui/ErrorBanner";
@@ -37,7 +38,7 @@ export default function LeadMagnetsPage() {
       const { data: biz } = await supabase
         .from("businesses")
         .select("id")
-        .eq("contact_email", email)
+        .eq("id", await getActiveBusinessId(supabase))
         .single();
       if (!biz) { setLoading(false); return; }
       setBusinessId(biz.id);
