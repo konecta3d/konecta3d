@@ -13,6 +13,7 @@ interface SidebarLink {
     nameKey?: string;
     module?: string;
     badge?: boolean;
+    subLabel?: string;
 }
 
 interface SidebarProps {
@@ -190,10 +191,17 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             <Link
                 key={link.href}
                 href={link.href}
-                className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} flex items-center justify-between`}
+                className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} block`}
             >
-                <span>{label}</span>
-                {link.badge && <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0 ml-2" />}
+                <span className="flex items-center justify-between">
+                    <span>{label}</span>
+                    {link.badge && <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 animate-pulse" />}
+                </span>
+                {link.subLabel && link.badge && (
+                    <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-500 mt-0.5">
+                        {link.subLabel}
+                    </span>
+                )}
             </Link>
         );
     };

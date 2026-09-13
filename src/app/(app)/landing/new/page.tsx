@@ -612,16 +612,18 @@ useEffect(() => {
                       {ctaType === "link" && (
                         <div className="flex gap-2 items-center mt-2">
                           <input
-                            className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
+                            className="flex-1 min-w-0 rounded-lg border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
                             value={config[linkKey]}
                             onChange={(e) => update({ [linkKey]: e.target.value } as any)}
                             placeholder="Pega la URL aquí..."
                           />
-                          <ActionLinkPicker
-                            value={config[linkKey] as string}
-                            onChange={(url) => update({ [linkKey]: url } as any)}
-                            label=""
-                          />
+                          <div className="flex-shrink-0">
+                            <ActionLinkPicker
+                              value={config[linkKey] as string}
+                              onChange={(url) => update({ [linkKey]: url } as any)}
+                              label=""
+                            />
+                          </div>
                         </div>
                       )}
 

@@ -19,6 +19,7 @@ interface SidebarLink {
   nameKey?: string;
   module?: string;
   badge?: boolean;
+  subLabel?: string;
 }
 
 // Perfil de Negocio
@@ -32,7 +33,7 @@ const negocioLinks: SidebarLink[] = [
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
   // Contexto aparece primero → debajo del Dashboard y encima de Herramientas
-  { label: "Contexto del negocio (Primer paso)", href: "/mi-contexto", category: "Contexto" },
+  { label: "Contexto del negocio", subLabel: "Primer paso", href: "/mi-contexto", category: "Contexto" },
   { label: "Página de bienvenida", href: "/landing/new", category: "Herramientas", nameKey: "landing" },
   { label: "Recursos de valor", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Herramientas", nameKey: "vipBenefits", module: "module_vip_benefits" },
@@ -43,7 +44,7 @@ const fidelizacionLinks: SidebarLink[] = [
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   // "Inicio" se renderiza como botón destacado en Sidebar.tsx (igual que Dashboard en Fidelización)
-  { label: "Contexto del negocio (Primer paso)", href: "/captacion/contexto", category: "Captación" },
+  { label: "Contexto del negocio", subLabel: "Primer paso", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Recursos de valor", href: "/captacion/lead-magnets", category: "Captación" },
@@ -155,6 +156,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [profileActive, setProfileActive] = useState<boolean | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [contextIncomplete, setContextIncomplete] = useState(false);
+  const [captacionContextIncomplete, setCaptacionContextIncomplete] = useState(false);
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
   const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
@@ -280,6 +282,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           const total = qRes.data?.length || 0;
           const answered = (aRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
           setContextIncomplete(total > 0 && answered < total);
+
+          // Contexto de captación (6 bloques guardados en settings)
+          const { data: capCtx } = await supabase
+            .from("settings").select("value").eq("key", `captacion_context_${bizId}`).maybeSingle();
+          const capVal = (capCtx?.value as Record<string, unknown>) || {};
+          const capFilled = Object.values(capVal).filter(
+            (v) => v && typeof v === "object" && Object.keys(v as object).length > 0
+          ).length;
+          setCaptacionContextIncomplete(capFilled < 6);
         }
       }
     };
@@ -316,7 +327,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     })
     .map((l) => ({
       ...l,
-      badge: l.href === "/mi-contexto" && contextIncomplete ? true : l.badge,
+      badge:
+        (l.href === "/mi-contexto" && contextIncomplete) ||
+        (l.href === "/captacion/contexto" && captacionContextIncomplete)
+          ? true
+          : l.badge,
     }));
 
   // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
@@ -371,15 +386,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                    className={`block rounded-lg px-3 py-2 ${
                       isActive
                         ? "bg-[var(--brand-1)] text-white font-semibold"
                         : "text-[var(--foreground)] hover:bg-[var(--brand-1)]/10"
                     }`}
                   >
-                    {label}
-                    {link.badge && (
-                      <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                    <span className="flex items-center justify-between">
+                      <span>{label}</span>
+                      {link.badge && (
+                        <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 animate-pulse" />
+                      )}
+                    </span>
+                    {link.subLabel && link.badge && (
+                      <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-500 mt-0.5">
+                        {link.subLabel}
+                      </span>
                     )}
                   </Link>
                 );
