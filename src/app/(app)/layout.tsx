@@ -395,7 +395,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="flex items-center justify-between">
                       <span>{label}</span>
                       {link.badge && (
-                        <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 animate-pulse" />
+                        <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 k3d-blink" />
                       )}
                     </span>
                     {link.subLabel && link.badge && (

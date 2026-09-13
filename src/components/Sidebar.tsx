@@ -195,7 +195,7 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
             >
                 <span className="flex items-center justify-between">
                     <span>{label}</span>
-                    {link.badge && <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 animate-pulse" />}
+                    {link.badge && <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0 ml-2 k3d-blink" />}
                 </span>
                 {link.subLabel && link.badge && (
                     <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-500 mt-0.5">
