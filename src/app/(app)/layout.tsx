@@ -8,6 +8,7 @@ import SectionVideoButton from "@/components/SectionVideoButton";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import Sidebar from "@/components/Sidebar";
 import { getActiveBusinessId } from "@/lib/active-business";
+import { getCompletedHrefs, DEFAULT_GUIDED_PATH, type GuidedPathConfig } from "@/lib/guided-path";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -33,7 +34,7 @@ const negocioLinks: SidebarLink[] = [
 // Perfil de Fidelización
 const fidelizacionLinks: SidebarLink[] = [
   // Contexto aparece primero → debajo del Dashboard y encima de Herramientas
-  { label: "Contexto del negocio", subLabel: "Primer paso", href: "/mi-contexto", category: "Contexto" },
+  { label: "Contexto del negocio", href: "/mi-contexto", category: "Contexto" },
   { label: "Página de bienvenida", href: "/landing/new", category: "Herramientas", nameKey: "landing" },
   { label: "Recursos de valor", href: "/lead-magnet", category: "Herramientas", nameKey: "leadMagnet", module: "module_lead_magnet" },
   { label: "Beneficios VIP", href: "/vip-benefits", category: "Herramientas", nameKey: "vipBenefits", module: "module_vip_benefits" },
@@ -44,7 +45,7 @@ const fidelizacionLinks: SidebarLink[] = [
 // Perfil de Captación
 const captacionLinks: SidebarLink[] = [
   // "Inicio" se renderiza como botón destacado en Sidebar.tsx (igual que Dashboard en Fidelización)
-  { label: "Contexto del negocio", subLabel: "Primer paso", href: "/captacion/contexto", category: "Captación" },
+  { label: "Contexto del negocio", href: "/captacion/contexto", category: "Captación" },
   { label: "Campañas", href: "/captacion/campanas", category: "Captación" },
   { label: "Formularios", href: "/captacion/formularios", category: "Captación" },
   { label: "Recursos de valor", href: "/captacion/lead-magnets", category: "Captación" },
@@ -76,6 +77,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
   { label: "Vídeos tutoriales", href: "/admin/videos-tutoriales", category: "Contenido" },
   { label: "Vídeos por sección", href: "/admin/videos-secciones", category: "Contenido" },
+  { label: "Ruta guiada", href: "/admin/ruta-guiada", category: "Contenido" },
   { label: "Onboarding", href: "/admin/onboarding", category: "Contenido" },
   { label: "Página de acceso", href: "/admin/login-page", category: "Contenido" },
   { label: "Landings de presentación", href: "/admin/landings", category: "Contenido" },
@@ -155,8 +157,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [modules, setModules] = useState<Record<string, boolean>>(DEFAULT_MODULES);
   const [profileActive, setProfileActive] = useState<boolean | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
-  const [contextIncomplete, setContextIncomplete] = useState(false);
-  const [captacionContextIncomplete, setCaptacionContextIncomplete] = useState(false);
+  const [guidedPath, setGuidedPath] = useState<GuidedPathConfig>(DEFAULT_GUIDED_PATH);
+  const [completedHrefs, setCompletedHrefs] = useState<Set<string>>(new Set());
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
   const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
@@ -281,7 +283,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ]);
           const total = qRes.data?.length || 0;
           const answered = (aRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
-          setContextIncomplete(total > 0 && answered < total);
 
           // Contexto de captación (6 bloques guardados en settings)
           const { data: capCtx } = await supabase
@@ -290,7 +291,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           const capFilled = Object.values(capVal).filter(
             (v) => v && typeof v === "object" && Object.keys(v as object).length > 0
           ).length;
-          setCaptacionContextIncomplete(capFilled < 6);
+
+          // Ruta guiada: qué secciones marcar y cuáles ya están completas.
+          try {
+            const gpRes = await fetch("/api/admin/guided-path");
+            const gp = ((await gpRes.json()).config as GuidedPathConfig) || DEFAULT_GUIDED_PATH;
+            setGuidedPath(gp);
+            const allHrefs = [...(gp.fidelizacion || []), ...(gp.captacion || [])].map((s) => s.href);
+            const completed = await getCompletedHrefs(supabase, bid, allHrefs, {
+              contextDone: !(total > 0 && answered < total),
+              captacionContextDone: capFilled >= 6,
+            });
+            setCompletedHrefs(completed);
+          } catch { /* usa defaults */ }
         }
       }
     };
@@ -318,6 +331,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     ? negocioLinks
     : fidelizacionLinks;
 
+  // Pasos de la ruta guiada del perfil actual (href → etiqueta).
+  const guidedSteps = isCaptacionMode
+    ? guidedPath.captacion || []
+    : isNegocioMode
+    ? []
+    : guidedPath.fidelizacion || [];
+  const guidedMap = new Map(guidedSteps.map((s) => [s.href, s.hint]));
+
   const links = baseLinks
     .filter((l) => {
       if (!isAdminMode && l.module && modules[l.module] === false) {
@@ -325,14 +346,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
       return true;
     })
-    .map((l) => ({
-      ...l,
-      badge:
-        (l.href === "/mi-contexto" && contextIncomplete) ||
-        (l.href === "/captacion/contexto" && captacionContextIncomplete)
-          ? true
-          : l.badge,
-    }));
+    .map((l) => {
+      const hint = guidedMap.get(l.href);
+      if (hint !== undefined) {
+        const incomplete = !completedHrefs.has(l.href);
+        return { ...l, badge: incomplete, subLabel: incomplete ? hint : undefined };
+      }
+      return l;
+    });
 
   // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
   if (!isAdminMode && profileActive === false) {
