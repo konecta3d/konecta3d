@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MobileTitle from "@/components/MobileTitle";
 import HelpDrawer from "@/components/HelpDrawer";
+import SectionVideoButton from "@/components/SectionVideoButton";
 import Sidebar from "@/components/Sidebar";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
@@ -71,6 +72,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Calculadora de impacto", href: "/admin/crm/calculadora", category: "CRM Comercial" },
   { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
   { label: "Vídeos tutoriales", href: "/admin/videos-tutoriales", category: "Contenido" },
+  { label: "Vídeos por sección", href: "/admin/videos-secciones", category: "Contenido" },
   { label: "Onboarding", href: "/admin/onboarding", category: "Contenido" },
   { label: "Página de acceso", href: "/admin/login-page", category: "Contenido" },
   { label: "Landings de presentación", href: "/admin/landings", category: "Contenido" },
@@ -558,7 +560,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span>{maintenanceBanner.message}</span>
             </div>
           )}
-          <main className="p-4 md:p-8">{children}</main>
+          <main className="p-4 md:p-8"><SectionVideoButton />{children}</main>
         </div>
       </div>
 
