@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import type { CaptacionForm } from "@/types/captacion";
 
 const OBJECTIVE_LABELS: Record<"quick" | "diagnostic" | "full", string> = {
@@ -44,13 +45,12 @@ export default function FormulariosPage() {
     const load = async () => {
       const { data: s } = await supabase.auth.getSession();
       const t = s?.session?.access_token;
-      const email = s?.session?.user?.email;
-      if (!email || !t) { setLoading(false); return; }
+      if (!t) { setLoading(false); return; }
       setToken(t);
-      const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", email).single();
-      if (!biz) { setLoading(false); return; }
-      setBusinessId(biz.id);
-      await loadForms(biz.id, t);
+      const bid = await getActiveBusinessId(supabase);
+      if (!bid) { setLoading(false); return; }
+      setBusinessId(bid);
+      await loadForms(bid, t);
     };
     load();
   }, []);

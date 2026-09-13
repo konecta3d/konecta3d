@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 type FormType = "captacion" | "fidelizacion";
 type Objective = "contacto" | "reserva" | "datos" | "opinion" | "retorno" | "comunidad";
@@ -98,15 +99,13 @@ export default function FormulariosWizardPage() {
       let bid = paramId;
 
       if (!bid) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userEmail = sessionData.session?.user?.email || "";
-        if (userEmail) {
+        bid = await getActiveBusinessId(supabase);
+        if (bid) {
           const { data: biz } = await supabase
             .from("businesses")
-            .select("id, name")
-            .eq("contact_email", userEmail)
-            .single();
-          bid = biz?.id || "";
+            .select("name")
+            .eq("id", bid)
+            .maybeSingle();
           if (biz?.name) setBusinessName(biz.name);
         }
       }

@@ -8,6 +8,7 @@ import ActionLinkPicker from "@/components/ActionLinkPicker";
 import { LandingConfig, defaultLandingConfig } from "@/lib/landingTypes";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import GuideVideoButton from "@/components/onboarding/GuideVideoButton";
+import { getActiveBusinessId } from "@/lib/active-business";
 import LandingAiChat from "@/components/landing/LandingAiChat";
 import BloqueFinalHelp from "@/components/landing/BloqueFinalHelp";
 
@@ -129,20 +130,10 @@ export default function LandingNew() {
   useEffect(() => {
     const load = async () => {
       // 1. URL param (usado por admin al abrir un negocio concreto)
-      const paramId = new URLSearchParams(window.location.search).get("businessId");
-      if (paramId) { setBusinessId(paramId); return; }
-
-      // 2. Sesión Supabase Auth
+      // ?businessId → impersonación de admin → negocio de sesión
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userEmail = sessionData?.session?.user?.email || "";
-        if (!userEmail) return;
-        const { data: biz } = await supabase
-          .from("businesses")
-          .select("id")
-          .eq("contact_email", userEmail)
-          .single();
-        setBusinessId(biz?.id || "");
+        const bid = await getActiveBusinessId(supabase, new URLSearchParams(window.location.search));
+        setBusinessId(bid || "");
       } catch { }
     };
     load();

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import Link from "next/link";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -106,14 +107,13 @@ export default function MiContextoPage() {
   // ── Auth + business (sin restricción de módulo) ───────────────────────────
   useEffect(() => {
     const init = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email;
-      if (!userEmail) { router.push("/business/login"); return; }
+      const bid = await getActiveBusinessId(supabase);
+      if (!bid) { router.push("/business/login"); return; }
 
       const { data: biz } = await supabase
         .from("businesses")
         .select("id, name, module_gpt")
-        .eq("contact_email", userEmail)
+        .eq("id", bid)
         .single();
 
       if (!biz) { router.push("/mi-negocio/perfil"); return; }

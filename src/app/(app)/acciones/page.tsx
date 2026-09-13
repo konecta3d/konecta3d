@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import Link from "next/link";
 import { normalizeWhatsappPhone } from "@/lib/whatsapp";
 
@@ -135,20 +136,7 @@ export default function AccionesPage() {
 
 useEffect(() => {
   const load = async () => {
-    let bid = "";
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userEmail = sessionData.session?.user?.email || "";
-
-    if (userEmail) {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("contact_email", userEmail)
-        .single();
-
-      bid = biz?.id || "";
-    }
+    const bid = await getActiveBusinessId(supabase);
 
     if (bid) {
       setBusinessId(bid);

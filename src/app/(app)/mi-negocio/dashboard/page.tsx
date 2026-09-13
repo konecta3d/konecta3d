@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BusinessNotifications from "@/components/mi-negocio/BusinessNotifications";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 interface BusinessData {
   id: string;
@@ -36,14 +37,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email || "";
-      if (!userEmail) { setLoading(false); return; }
+      const bid = await getActiveBusinessId(supabase);
+      if (!bid) { setLoading(false); return; }
 
       const { data: biz } = await supabase
         .from("businesses")
         .select("id, name, slug, logo_url, phone, contact_email, description, module_lead_magnet, module_vip_benefits, module_whatsapp, module_tools, module_forms")
-        .eq("contact_email", userEmail)
+        .eq("id", bid)
         .single();
 
       if (!biz) { setLoading(false); return; }

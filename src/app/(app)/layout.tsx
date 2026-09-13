@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import MobileTitle from "@/components/MobileTitle";
 import HelpDrawer from "@/components/HelpDrawer";
 import SectionVideoButton from "@/components/SectionVideoButton";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 import Sidebar from "@/components/Sidebar";
+import { getActiveBusinessId } from "@/lib/active-business";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -233,15 +235,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (isAdminMode) return;
 
     const load = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData?.session?.user?.email;
-      if (!userEmail) return;
+      // Negocio activo (respeta la impersonación de admin)
+      const bid = await getActiveBusinessId(supabase);
+      if (!bid) return;
 
-      // Usar select("*") para no fallar si hay columnas opcionales no migradas
       const { data, error } = await supabase
         .from("businesses")
         .select("module_vip_benefits, module_lead_magnet, module_whatsapp")
-        .eq("contact_email", userEmail)
+        .eq("id", bid)
         .single();
 
       if (error) {
@@ -254,7 +255,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         const { data: accessData } = await supabase
           .from("businesses")
           .select("profile_active, module_tools, module_forms, module_gpt, module_captacion, module_recorrido")
-          .eq("contact_email", userEmail)
+          .eq("id", bid)
           .single();
 
         setProfileActive((accessData as Record<string, unknown>)?.profile_active as boolean ?? true);
@@ -270,7 +271,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         });
 
         // Comprobar si el contexto está incompleto para mostrar badge en sidebar
-        const bizId = (await supabase.from("businesses").select("id").eq("contact_email", userEmail).single()).data?.id;
+        const bizId = bid;
         if (bizId) {
           const [qRes, aRes] = await Promise.all([
             supabase.from("gpt_context_questions").select("id"),
@@ -552,6 +553,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </header>
+          {/* ── Modo desarrollador (admin entrando como un negocio) ── */}
+          {!isAdminMode && <ImpersonationBanner />}
           {/* ── Banner de mantenimiento / avisos ── */}
           {!isAdminMode && maintenanceBanner?.active && maintenanceBanner.message && (
             <div className="flex items-start gap-3 px-4 py-3 text-sm font-medium"

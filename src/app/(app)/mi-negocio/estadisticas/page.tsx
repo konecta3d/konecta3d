@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -135,17 +136,8 @@ export default function EstadisticasPage() {
       const userId = sessionData.session?.user?.id || "";
       if (!userEmail && !userId) { setLoading(false); return; }
 
-      // Resolver el negocio por user_id (coincide con la RLS) y, si no, por
-      // email sin distinguir mayúsculas — evita estadísticas vacías por desajuste.
-      let bid = "";
-      if (userId) {
-        const byUid = await supabase.from("businesses").select("id").eq("user_id", userId).maybeSingle();
-        bid = byUid.data?.id || "";
-      }
-      if (!bid && userEmail) {
-        const byEmail = await supabase.from("businesses").select("id").ilike("contact_email", userEmail).maybeSingle();
-        bid = byEmail.data?.id || "";
-      }
+      // Negocio activo (respeta la impersonación de admin; si no, user_id/email).
+      const bid = await getActiveBusinessId(supabase);
       if (!bid) { setLoading(false); return; }
 
       // ── Rangos de fechas ────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 export function useContextoSection<T>(sectionKey: string, defaultValue: T) {
   const [data, setData] = useState<T>(defaultValue);
@@ -17,17 +18,12 @@ export function useContextoSection<T>(sectionKey: string, defaultValue: T) {
     const load = async () => {
       const { data: s } = await supabase.auth.getSession();
       const tok = s?.session?.access_token;
-      const email = s?.session?.user?.email;
-      if (!email || !tok) { setLoading(false); return; }
+      if (!tok) { setLoading(false); return; }
       setToken(tok);
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("contact_email", email)
-        .single();
-      if (!biz) { setLoading(false); return; }
-      setBusinessId(biz.id);
-      const res = await fetch(`/api/captacion/context?businessId=${biz.id}`, {
+      const bizId = await getActiveBusinessId(supabase);
+      if (!bizId) { setLoading(false); return; }
+      setBusinessId(bizId);
+      const res = await fetch(`/api/captacion/context?businessId=${bizId}`, {
         headers: { Authorization: `Bearer ${tok}` },
       });
       const json = await res.json();

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 
 interface Benefit {
   id: string;
@@ -22,17 +23,8 @@ function VipBenefitsContent() {
 
 useEffect(() => {
   const load = async () => {
-    const paramId = searchParams.get("businessId");
-    if (paramId) { setBusinessId(paramId); return; }
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userEmail = sessionData?.session?.user?.email || "";
-    if (!userEmail) { setBusinessId(""); return; }
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("id")
-      .eq("contact_email", userEmail)
-      .single();
-    setBusinessId(biz?.id || "");
+    const bid = await getActiveBusinessId(supabase, searchParams);
+    setBusinessId(bid || "");
   };
   load();
 }, [searchParams]);

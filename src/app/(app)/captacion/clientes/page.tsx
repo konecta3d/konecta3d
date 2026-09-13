@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import type { CaptacionLead } from "@/types/captacion";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -531,12 +532,12 @@ function ClientesPage() {
       setToken(t);
       fetch("/api/admin/is-admin", { method: "POST", headers: { Authorization: `Bearer ${t}` } })
         .then(r => r.json()).then(j => setIsAdmin(!!j.isAdmin)).catch(() => {});
-      const { data: biz } = await supabase.from("businesses").select("id").eq("contact_email", email).single();
-      if (!biz) { setLoading(false); return; }
-      setBusinessId(biz.id);
-      await loadLeads(biz.id, t);
+      const bid = await getActiveBusinessId(supabase);
+      if (!bid) { setLoading(false); return; }
+      setBusinessId(bid);
+      await loadLeads(bid, t);
       // Cargar campañas para el selector del modal
-      const campsRes = await fetch(`/api/captacion/campaigns?businessId=${biz.id}`, {
+      const campsRes = await fetch(`/api/captacion/campaigns?businessId=${bid}`, {
         headers: { Authorization: `Bearer ${t}` },
       });
       const campsData = await campsRes.json();

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getActiveBusinessId } from "@/lib/active-business";
 import { useRouter } from "next/navigation";
 
 export default function PerfilPage() {
@@ -36,20 +37,16 @@ export default function PerfilPage() {
         return;
       }
 
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("contact_email", userEmail)
-        .single();
+      const bid = await getActiveBusinessId(supabase);
 
-      if (!biz?.id) {
+      if (!bid) {
         router.push("/business/login?redirect=/mi-negocio/perfil");
         return;
       }
 
-      setBusinessId(biz.id);
+      setBusinessId(bid);
       setCheckingAuth(false);
-      loadData(biz.id);
+      loadData(bid);
     };
 
     checkAuth();

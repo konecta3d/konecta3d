@@ -65,6 +65,17 @@ export async function verifyBusinessOwnership(req: Request, businessId: string):
   const userId   = userData.user.id;
   const userEmail = (userData.user.email || "").toLowerCase();
 
+  // El admin (verificado en servidor por su token) puede actuar sobre CUALQUIER
+  // negocio — es lo que habilita el "modo desarrollador"/impersonación.
+  const adminEmail = (process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
+  if (adminEmail && userEmail === adminEmail) return true;
+  const { data: adminRow } = await supabaseAdmin
+    .from("admins")
+    .select("email")
+    .eq("email", userEmail)
+    .maybeSingle();
+  if (adminRow) return true;
+
   const { data: business, error: bizError } = await supabaseAdmin
     .from("businesses")
     .select("id, user_id, contact_email")

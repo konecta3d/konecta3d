@@ -9,6 +9,7 @@ import { LeadMagnetPreview } from "@/components/LeadMagnetPreview";
 import { splitPoints, joinPoints, stripBullet, pointToHtml, contrastText } from "@/lib/leadmagnet-format";
 import { CTA_CLOSING_LINES } from "@/lib/cta-closing-lines";
 import { PDF_FONTS, FONT_CATEGORIES, allFontsHref } from "@/lib/pdf-fonts";
+import { getActiveBusinessId } from "@/lib/active-business";
 import OnboardingDrawer from "@/components/onboarding/OnboardingDrawer";
 import GuideVideoButton from "@/components/onboarding/GuideVideoButton";
 import LeadMagnetAiChat, { type WizardChatMessage, type WizardChanges } from "@/components/lead-magnet/LeadMagnetAiChat";
@@ -312,16 +313,9 @@ function LeadMagnetWizardInner() {
       const { data: sessionData } = await supabase.auth.getSession();
       setToken(sessionData?.session?.access_token || "");
 
-      // 2. Sesión Supabase Auth
+      // 2. Impersonación de admin o negocio de sesión
       if (!bid) {
-        const userEmail = sessionData?.session?.user?.email || "";
-        if (!userEmail) return;
-        const { data: biz } = await supabase
-          .from("businesses")
-          .select("id")
-          .eq("contact_email", userEmail)
-          .single();
-        bid = biz?.id || "";
+        bid = await getActiveBusinessId(supabase);
       }
 
       if (!bid) return;
