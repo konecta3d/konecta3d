@@ -133,7 +133,7 @@ export default function BusinessesPage() {
   </a>
   <a
     className="text-[var(--brand-1)]"
-    href={`/business/select-profile?businessId=${b.id}`}
+    href={`/business/select-profile?businessId=${b.id}&fromAdmin=1`}
     target="_blank"
   >
     Entrar
