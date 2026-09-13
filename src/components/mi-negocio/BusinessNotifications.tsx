@@ -47,16 +47,18 @@ export default function BusinessNotifications({ businessId }: { businessId: stri
   }, [businessId]);
 
   const markAllRead = async () => {
-    setItems((prev) => prev.map((i) => ({ ...i, read: true })));
-    setUnread(0);
+    // Confirmar en la BD antes de actualizar la vista, para no desincronizar el contador.
     try {
-      await fetch("/api/mi-negocio/notifications", {
+      const res = await fetch("/api/mi-negocio/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` },
         body: JSON.stringify({ businessId }),
       });
+      if (!res.ok) return;
+      setItems((prev) => prev.map((i) => ({ ...i, read: true })));
+      setUnread(0);
     } catch {
-      /* silencioso */
+      /* silencioso: si falla, se quedan como no leídas */
     }
   };
 

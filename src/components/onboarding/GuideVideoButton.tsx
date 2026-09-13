@@ -45,7 +45,7 @@ export default function GuideVideoButton({ context }: { context: Ctx }) {
             return sa !== sb ? sa - sb : a.step_order - b.step_order;
           });
         setVideos(withVideo);
-      });
+      }, () => { /* fallo de red: no romper la página */ });
     return () => { cancelled = true; };
   }, [context]);
 

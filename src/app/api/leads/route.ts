@@ -7,7 +7,12 @@ import { NextResponse } from "next/server";
  * Usado cuando un cliente rellena el formulario de captación antes de descargar el lead magnet.
  */
 export async function POST(req: Request) {
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
+  }
   const { businessId, name, phone, email, source, referralToken } = body as {
     businessId: string;
     name?: string;

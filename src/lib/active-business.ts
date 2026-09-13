@@ -67,11 +67,13 @@ export async function getActiveBusinessId(
   const user = data.session?.user;
   if (!user) return "";
 
-  const byUid = await supabase.from("businesses").select("id").eq("user_id", user.id).maybeSingle();
+  // limit(1) evita que maybeSingle falle en silencio si hubiera filas duplicadas
+  // (p. ej. dos negocios con el mismo email), lo que dejaría el panel vacío sin aviso.
+  const byUid = await supabase.from("businesses").select("id").eq("user_id", user.id).limit(1).maybeSingle();
   if (byUid.data?.id) return byUid.data.id as string;
 
   if (user.email) {
-    const byEmail = await supabase.from("businesses").select("id").ilike("contact_email", user.email).maybeSingle();
+    const byEmail = await supabase.from("businesses").select("id").ilike("contact_email", user.email).limit(1).maybeSingle();
     if (byEmail.data?.id) return byEmail.data.id as string;
   }
 

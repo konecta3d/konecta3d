@@ -43,7 +43,7 @@ export default function SectionVideoButton() {
       .then(({ data }) => {
         if (cancelled) return;
         setVideos(((data as SectionVideo[]) || []).filter((v) => v.video_url && v.video_url.trim()));
-      });
+      }, () => { /* fallo de red: no romper la página */ });
     return () => { cancelled = true; };
   }, [sectionKey]);
 

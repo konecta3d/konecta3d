@@ -64,8 +64,14 @@ export async function POST(req: Request) {
   const supabase = db();
   try {
     let q = supabase.from("notifications").update({ read: true }).eq("business_id", businessId);
-    if (body.ids && body.ids.length > 0) q = q.in("id", body.ids);
-    else q = q.eq("read", false);
+    if (Array.isArray(body.ids)) {
+      // ids provisto: marcar solo esos; si viene vacío, no marcar ninguna.
+      if (body.ids.length === 0) return NextResponse.json({ ok: true });
+      q = q.in("id", body.ids);
+    } else {
+      // sin ids: marcar todas las no leídas.
+      q = q.eq("read", false);
+    }
     const { error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
