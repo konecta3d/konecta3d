@@ -56,4 +56,32 @@ export function captacionContextCompleteCount(context: Record<string, unknown> |
   return CAPTACION_SECTIONS.filter((s) => getCaptacionSectionStatus(s, ctx) === "complete").length;
 }
 
+/**
+ * Progreso a nivel de CAMPO (para el umbral del 90%, que por bloques no tendría
+ * sentido con solo 6). El bloque "clientes" cuenta como 1 campo (completo o no).
+ */
+export function captacionContextFieldProgress(
+  context: Record<string, unknown> | null | undefined
+): { filled: number; total: number } {
+  const ctx = context || {};
+  let filled = 0;
+  let total = 0;
+  for (const s of CAPTACION_SECTIONS) {
+    if (s.key === "clientes") {
+      total += 1;
+      if (getCaptacionSectionStatus(s, ctx) === "complete") filled += 1;
+      continue;
+    }
+    total += s.requiredFields.length;
+    const raw = ctx[s.key];
+    const data = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    for (const f of s.requiredFields) {
+      const val = data[f];
+      const ok = Array.isArray(val) ? val.length > 0 : typeof val === "string" && val.trim().length > 0;
+      if (ok) filled += 1;
+    }
+  }
+  return { filled, total };
+}
+
 export const CAPTACION_SECTIONS_TOTAL = CAPTACION_SECTIONS.length;

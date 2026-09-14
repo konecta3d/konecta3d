@@ -9,7 +9,7 @@ import ImpersonationBanner from "@/components/ImpersonationBanner";
 import Sidebar from "@/components/Sidebar";
 import { getActiveBusinessId } from "@/lib/active-business";
 import { getCompletedHrefs, DEFAULT_GUIDED_PATH, type GuidedPathConfig } from "@/lib/guided-path";
-import { captacionContextCompleteCount, CAPTACION_SECTIONS_TOTAL } from "@/lib/captacion-context-status";
+import { captacionContextCompleteCount, captacionContextFieldProgress, CAPTACION_SECTIONS_TOTAL } from "@/lib/captacion-context-status";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -297,10 +297,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           setContextCounts({ fidAnswered: answered, fidTotal: total, capComplete });
 
-          // El contexto exige el 100%: solo se apaga cuando está TODO relleno, para
-          // que la IA rinda al máximo y sea un incentivo real a completarlo.
+          // Fidelización exige el 100% (incentivo a completarlo del todo para que la
+          // IA rinda al máximo). Captación, al ser más largo, basta con el 90% de campos.
           const contextDone = total === 0 || answered >= total;
-          const captacionContextDone = capComplete >= CAPTACION_SECTIONS_TOTAL;
+          const capField = captacionContextFieldProgress(capVal);
+          const captacionContextDone = capField.total === 0 || capField.filled / capField.total >= 0.9;
 
           // Ruta guiada: qué secciones marcar y cuáles ya están completas.
           try {
@@ -362,21 +363,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     .map((l) => {
       const hint = guidedMap.get(l.href);
       if (hint === undefined) return l;
-      const incomplete = !completedHrefs.has(l.href);
-      if (!incomplete) return { ...l, badge: false, subLabel: undefined };
-      const isActive = l.href === activeHref;
-      // Contador de avance parcial (solo el Contexto tiene %), solo en el paso activo.
+      // Solo el paso ACTIVO (el primero incompleto del camino) muestra la señal.
+      // Los siguientes no aparecen hasta que les llega el turno (el 3 no sale hasta
+      // completar el 1 y el 2); los ya completados tampoco.
+      if (l.href !== activeHref) return { ...l, badge: false, subLabel: undefined };
+      // Contador de avance parcial (solo el Contexto tiene %).
       let counter: string | undefined;
-      if (isActive && l.href === "/mi-contexto" && contextCounts.fidTotal > 0) {
+      if (l.href === "/mi-contexto" && contextCounts.fidTotal > 0) {
         counter = `${contextCounts.fidAnswered}/${contextCounts.fidTotal}`;
-      } else if (isActive && l.href === "/captacion/contexto") {
+      } else if (l.href === "/captacion/contexto") {
         counter = `${contextCounts.capComplete}/${CAPTACION_SECTIONS_TOTAL}`;
       }
       return {
         ...l,
         badge: true,
-        activeStep: isActive,
-        subLabel: isActive ? hint : undefined,
+        activeStep: true,
+        subLabel: hint,
         stepNumber: guidedOrder.get(l.href),
         counter,
       };
