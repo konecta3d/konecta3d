@@ -297,9 +297,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           setContextCounts({ fidAnswered: answered, fidTotal: total, capComplete });
 
-          // El contexto se da por "hecho" al llegar al 90% (no exige el 100%).
-          const contextDone = total === 0 || answered / total >= 0.9;
-          const captacionContextDone = capComplete / CAPTACION_SECTIONS_TOTAL >= 0.9;
+          // El contexto exige el 100%: solo se apaga cuando está TODO relleno, para
+          // que la IA rinda al máximo y sea un incentivo real a completarlo.
+          const contextDone = total === 0 || answered >= total;
+          const captacionContextDone = capComplete >= CAPTACION_SECTIONS_TOTAL;
 
           // Ruta guiada: qué secciones marcar y cuáles ya están completas.
           try {
