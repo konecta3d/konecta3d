@@ -9,6 +9,7 @@ type Business = {
   name: string;
   sector: string | null;
   contact_email?: string | null;
+  logo_url?: string | null;
 };
 
 export default function BusinessesPage() {
@@ -123,7 +124,16 @@ export default function BusinessesPage() {
                 <tr key={b.id} className="border-t border-[var(--border)]">
                   <td className="py-2 font-mono text-xs">{b.public_id || "—"}</td>
                   <td className="py-2 font-medium">
-                    <a className="hover:text-[var(--brand-1)] hover:underline" href={`/admin/businesses/${b.id}`}>{b.name}</a>
+                    <a className="flex items-center gap-2 hover:text-[var(--brand-1)] hover:underline" href={`/admin/businesses/${b.id}`}>
+                      <span className={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-black overflow-hidden flex-shrink-0 ${b.logo_url ? "bg-[var(--background)] border border-[var(--border)]" : "bg-[var(--brand-1)]"}`}>
+                        {b.logo_url ? (
+                          <img src={b.logo_url} alt={b.name} className="w-full h-full object-contain" />
+                        ) : (
+                          (b.name || "?").charAt(0).toUpperCase()
+                        )}
+                      </span>
+                      <span>{b.name}</span>
+                    </a>
                   </td>
                   <td className="py-2">{b.sector || "—"}</td>
                   <td className="py-2">{b.contact_email || "—"}</td>

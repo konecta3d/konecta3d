@@ -31,6 +31,9 @@ type Business = {
   multi_landing_enabled: boolean;
   module_ai_landing: boolean;
   module_ai_recursos: boolean;
+  // Control de acceso
+  profile_active: boolean | null;
+  landing_active: boolean | null;
   // Gestión
   perfil: string | null;
   notas_admin: string | null;
@@ -154,6 +157,32 @@ export default function BusinessDetail() {
   }
 
   const updateModule = (module: string, value: boolean) => save({ [module]: value }, `${module} ${value ? "activado" : "desactivado"}`);
+
+  const toggleAccess = (field: "profile_active" | "landing_active", value: boolean) =>
+    save({ [field]: value }, `${field === "profile_active" ? "Panel" : "Landing"} ${value ? "activado" : "bloqueado"}`);
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const handleDelete = async () => {
+    if (!business) return;
+    if (!confirm(`¿Eliminar "${business.name}"? Esta acción no se puede deshacer.`)) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/admin/delete-business", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...(await getAuthHeader()) },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        window.location.href = "/admin/businesses";
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      flash(data.error || "Error al eliminar");
+    } catch {
+      flash("Error de red");
+    }
+    setIsDeleting(false);
+  };
 
   const handlePasswordReset = async () => {
     if (!newPassword || !business?.contact_email) return;
@@ -441,6 +470,39 @@ export default function BusinessDetail() {
           <p className="text-xs text-[var(--foreground)]/50 mb-3">
             Email: {business.contact_email || "—"} · Último acceso: {business.last_login ? new Date(business.last_login).toLocaleString("es-ES") : "nunca"}
           </p>
+
+          {/* Candados de acceso */}
+          <div className="mb-4">
+            <div className="text-xs uppercase tracking-widest text-[var(--brand-1)] mb-2">Bloqueo de acceso</div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => toggleAccess("profile_active", !(business.profile_active ?? true))}
+                title={(business.profile_active ?? true) ? "Panel activo — clic para bloquear el acceso del negocio" : "Panel bloqueado — clic para reactivar"}
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium border ${
+                  (business.profile_active ?? true)
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
+                    : "bg-red-500/15 text-red-400 border-red-500/30"
+                }`}
+              >
+                Panel: {(business.profile_active ?? true) ? "activo" : "bloqueado"}
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleAccess("landing_active", !(business.landing_active ?? true))}
+                title={(business.landing_active ?? true) ? "Landing activa — clic para bloquearla" : "Landing bloqueada — clic para reactivar"}
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium border ${
+                  (business.landing_active ?? true)
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
+                    : "bg-red-500/15 text-red-400 border-red-500/30"
+                }`}
+              >
+                Landing: {(business.landing_active ?? true) ? "activa" : "bloqueada"}
+              </button>
+            </div>
+            <p className="text-[11px] text-[var(--foreground)]/40 mt-1.5">Bloquear el panel impide que el negocio entre a su gestión; bloquear la landing la deja inaccesible al público.</p>
+          </div>
+
           <Field label={`Nueva contraseña para ${business.contact_email || "el negocio"}`}>
             <div className="flex items-center gap-2">
               <input type={showNewPassword ? "text" : "password"} className={inputCls} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nueva clave…" />
@@ -460,6 +522,20 @@ export default function BusinessDetail() {
           </div>
           <div className="mt-4 pt-4 border-t border-[var(--border)]">
             <a href={business.slug ? `/l/${business.slug}/NFC` : "#"} target="_blank" className="text-sm text-green-500 hover:underline">Ver landing pública →</a>
+          </div>
+
+          {/* Zona de peligro */}
+          <div className="mt-5 pt-4 border-t border-red-500/20">
+            <div className="text-xs uppercase tracking-widest text-red-400 mb-2">Zona de peligro</div>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/30 text-sm font-medium hover:bg-red-500/20 disabled:opacity-50"
+            >
+              {isDeleting ? "Eliminando…" : "Eliminar negocio"}
+            </button>
+            <p className="text-[11px] text-[var(--foreground)]/40 mt-1.5">Elimina el negocio de forma permanente. Esta acción no se puede deshacer.</p>
           </div>
         </Card>
       )}

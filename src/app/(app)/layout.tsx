@@ -60,7 +60,7 @@ const captacionLinks: SidebarLink[] = [
 
 const adminLinks: SidebarLink[] = [
   { label: "Panel de control", href: "/admin/dashboard", category: "Panel Admin" },
-  { label: "Negocios", href: "/admin/configuracion", category: "Panel Admin" },
+  { label: "Negocios", href: "/admin/businesses", category: "Panel Admin" },
   { label: "Módulos", href: "/admin/modulos", category: "Panel Admin" },
   { label: "Configuración", href: "/admin/settings", category: "Panel Admin" },
   { label: "Actividad", href: "/admin/actividad", category: "Panel Admin" },
