@@ -18,6 +18,7 @@ type Business = {
   contact_email: string | null;
   phone: string | null;
   public_id: string | null;
+  logo_url: string | null;
 };
 
 // Helper function removed. We will use useSearchParams instead
@@ -420,10 +421,14 @@ const generateOnboardingPdf = async () => {
 <button
   type="button"
   onClick={() => window.open(`/business/select-profile?businessId=${b.id}&fromAdmin=1`, "_blank")}
-  className="w-12 h-12 rounded-lg bg-[var(--brand-1)] flex items-center justify-center text-xl font-bold text-black hover:opacity-80 transition-opacity"
+  className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold text-black hover:opacity-80 transition-opacity overflow-hidden flex-shrink-0 ${b.logo_url ? "bg-[var(--background)] border border-[var(--border)]" : "bg-[var(--brand-1)]"}`}
   title="Abrir selector de perfil"
 >
-  {b.name.charAt(0).toUpperCase()}
+  {b.logo_url ? (
+    <img src={b.logo_url} alt={b.name} className="w-full h-full object-contain" />
+  ) : (
+    b.name.charAt(0).toUpperCase()
+  )}
 </button>
                     <div className="flex gap-1">
                       <button
