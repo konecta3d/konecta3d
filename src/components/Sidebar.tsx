@@ -16,6 +16,7 @@ interface SidebarLink {
     subLabel?: string;
     stepNumber?: number;
     counter?: string;
+    activeStep?: boolean;
 }
 
 interface SidebarProps {
@@ -203,7 +204,9 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                         )}
                     </span>
                     {link.badge && (
-                        <span className="w-5 h-5 rounded-full bg-amber-400 text-black text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 k3d-blink">
+                        <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 ${
+                            link.activeStep ? "bg-amber-400 text-black k3d-blink" : "bg-amber-400/25 text-amber-500"
+                        }`}>
                             {link.stepNumber ?? ""}
                         </span>
                     )}

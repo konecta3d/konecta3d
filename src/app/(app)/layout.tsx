@@ -9,6 +9,7 @@ import ImpersonationBanner from "@/components/ImpersonationBanner";
 import Sidebar from "@/components/Sidebar";
 import { getActiveBusinessId } from "@/lib/active-business";
 import { getCompletedHrefs, DEFAULT_GUIDED_PATH, type GuidedPathConfig } from "@/lib/guided-path";
+import { captacionContextCompleteCount, CAPTACION_SECTIONS_TOTAL } from "@/lib/captacion-context-status";
 import SidebarTitle from "@/components/SidebarTitle";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +24,7 @@ interface SidebarLink {
   subLabel?: string;
   stepNumber?: number;
   counter?: string;
+  activeStep?: boolean;
 }
 
 // Perfil de Negocio
@@ -161,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [guidedPath, setGuidedPath] = useState<GuidedPathConfig>(DEFAULT_GUIDED_PATH);
   const [completedHrefs, setCompletedHrefs] = useState<Set<string>>(new Set());
-  const [contextCounts, setContextCounts] = useState({ fidAnswered: 0, fidTotal: 0, capFilled: 0 });
+  const [contextCounts, setContextCounts] = useState({ fidAnswered: 0, fidTotal: 0, capComplete: 0 });
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
   const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
@@ -287,15 +289,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           const total = qRes.data?.length || 0;
           const answered = (aRes.data || []).filter((a) => (a.answer_text || "").trim().length > 0).length;
 
-          // Contexto de captación (6 bloques guardados en settings)
+          // Contexto de captación: completitud REAL (misma regla que la página: X/6 bloques completos)
           const { data: capCtx } = await supabase
             .from("settings").select("value").eq("key", `captacion_context_${bizId}`).maybeSingle();
           const capVal = (capCtx?.value as Record<string, unknown>) || {};
-          const capFilled = Object.values(capVal).filter(
-            (v) => v && typeof v === "object" && Object.keys(v as object).length > 0
-          ).length;
+          const capComplete = captacionContextCompleteCount(capVal);
 
-          setContextCounts({ fidAnswered: answered, fidTotal: total, capFilled });
+          setContextCounts({ fidAnswered: answered, fidTotal: total, capComplete });
+
+          // El contexto se da por "hecho" al llegar al 90% (no exige el 100%).
+          const contextDone = total === 0 || answered / total >= 0.9;
+          const captacionContextDone = capComplete / CAPTACION_SECTIONS_TOTAL >= 0.9;
 
           // Ruta guiada: qué secciones marcar y cuáles ya están completas.
           try {
@@ -304,8 +308,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             setGuidedPath(gp);
             const allHrefs = [...(gp.fidelizacion || []), ...(gp.captacion || [])].map((s) => s.href);
             const completed = await getCompletedHrefs(supabase, bid, allHrefs, {
-              contextDone: !(total > 0 && answered < total),
-              captacionContextDone: capFilled >= 6,
+              contextDone,
+              captacionContextDone,
             });
             setCompletedHrefs(completed);
           } catch { /* usa defaults */ }
@@ -344,6 +348,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     : guidedPath.fidelizacion || [];
   const guidedMap = new Map(guidedSteps.map((s) => [s.href, s.hint]));
   const guidedOrder = new Map(guidedSteps.map((s, i) => [s.href, i + 1]));
+  // El paso ACTIVO (el que parpadea) es el primero incompleto del camino, en orden.
+  const activeHref = guidedSteps.find((s) => !completedHrefs.has(s.href))?.href;
 
   const links = baseLinks
     .filter((l) => {
@@ -357,14 +363,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (hint === undefined) return l;
       const incomplete = !completedHrefs.has(l.href);
       if (!incomplete) return { ...l, badge: false, subLabel: undefined };
-      // Contador de avance parcial (solo el Contexto tiene %)
+      const isActive = l.href === activeHref;
+      // Contador de avance parcial (solo el Contexto tiene %), solo en el paso activo.
       let counter: string | undefined;
-      if (l.href === "/mi-contexto" && contextCounts.fidTotal > 0) {
+      if (isActive && l.href === "/mi-contexto" && contextCounts.fidTotal > 0) {
         counter = `${contextCounts.fidAnswered}/${contextCounts.fidTotal}`;
-      } else if (l.href === "/captacion/contexto") {
-        counter = `${contextCounts.capFilled}/6`;
+      } else if (isActive && l.href === "/captacion/contexto") {
+        counter = `${contextCounts.capComplete}/${CAPTACION_SECTIONS_TOTAL}`;
       }
-      return { ...l, badge: true, subLabel: hint, stepNumber: guidedOrder.get(l.href), counter };
+      return {
+        ...l,
+        badge: true,
+        activeStep: isActive,
+        subLabel: isActive ? hint : undefined,
+        stepNumber: guidedOrder.get(l.href),
+        counter,
+      };
     });
 
   // Bloquear panel del negocio si profile_active === false (solo para clientes, no admin)
@@ -433,7 +447,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         )}
                       </span>
                       {link.badge && (
-                        <span className="w-5 h-5 rounded-full bg-amber-400 text-black text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 k3d-blink">
+                        <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 ${
+                          link.activeStep ? "bg-amber-400 text-black k3d-blink" : "bg-amber-400/25 text-amber-500"
+                        }`}>
                           {link.stepNumber ?? ""}
                         </span>
                       )}
