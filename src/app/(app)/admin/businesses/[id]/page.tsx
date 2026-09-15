@@ -80,6 +80,7 @@ export default function BusinessDetail() {
   const [crmPerfil, setCrmPerfil] = useState<{ perfil: string | null; leadId: string } | null>(null);
   const [orders, setOrders] = useState<KeychainOrder[]>([]);
   const [stats, setStats] = useState<BizStats | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   // Edición de datos
   const [editData, setEditData] = useState({ name: "", sector: "", slug: "", contact_email: "", phone: "", font_family: "" });
@@ -132,9 +133,10 @@ export default function BusinessDetail() {
       // Progreso + documentos (service-role)
       try {
         const res = await fetch(`/api/admin/business-stats?id=${id}`, { headers: await getAuthHeader() });
-        const json = await res.json();
+        const json = await res.json().catch(() => ({}));
         if (res.ok) setStats(json as BizStats);
-      } catch { /* silencioso */ }
+        else setStatsError(json.error || `Error ${res.status}`);
+      } catch { setStatsError("Error de red al cargar el progreso"); }
     })();
   }, [id]);
 
@@ -314,7 +316,9 @@ export default function BusinessDetail() {
       {/* ── CLASIFICACIÓN ── */}
       {tab === "progreso" && (
         <div className="space-y-5">
-          {!stats?.progress ? (
+          {statsError ? (
+            <p className="text-sm text-red-400">No se pudo cargar el progreso: {statsError}</p>
+          ) : !stats?.progress ? (
             <p className="text-sm text-[var(--foreground)]/50">Cargando progreso...</p>
           ) : (
             <>

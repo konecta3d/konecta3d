@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     { count: leads30d },
     { data: lastEvent },
   ] = await Promise.all([
-    db.from("businesses").select("id, name, sector, slug, contact_email, last_login, created_at, profile_active, module_lead_magnet, module_vip_benefits, module_whatsapp").eq("id", id).single(),
+    db.from("businesses").select("*").eq("id", id).maybeSingle(),
     pv().gte("created_at", today.toISOString()),
     pv().gte("created_at", d7),
     pv().gte("created_at", d30),
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   ]);
 
   const biz = bizRes.data;
-  if (!biz) return NextResponse.json({ error: "Negocio no encontrado" }, { status: 404 });
+  if (!biz) return NextResponse.json({ error: "Negocio no encontrado", detail: bizRes.error?.message ?? null }, { status: 404 });
 
   const vMonth = viewsMonth ?? 0;
   const l30 = leads30d ?? 0;

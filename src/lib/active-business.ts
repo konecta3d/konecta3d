@@ -52,12 +52,19 @@ type ParamGetter = { get(key: string): string | null } | null | undefined;
  *   2. impersonación de admin (localStorage)
  *   3. el negocio del usuario de sesión (user_id, luego contact_email)
  * Devuelve "" si no hay ninguno.
+ *
+ * Si no se pasan `searchParams`, se lee `?businessId=` de la URL actual del
+ * navegador, para que los deep-links funcionen en todas las pantallas sin tener
+ * que pasar los params a mano en cada página.
  */
 export async function getActiveBusinessId(
   supabase: SupabaseClient,
   searchParams?: ParamGetter
 ): Promise<string> {
-  const param = searchParams?.get?.("businessId");
+  let param = searchParams?.get?.("businessId");
+  if (!param && typeof window !== "undefined") {
+    try { param = new URLSearchParams(window.location.search).get("businessId"); } catch { /* noop */ }
+  }
   if (param && param.trim()) return param.trim();
 
   const imp = getImpersonatedBusinessId();
