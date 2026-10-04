@@ -57,8 +57,8 @@ export default function WhatsAppGeneratorPage() {
 
   const generate = () => {
     const clean = normalizeWhatsappPhone(phone).number;
-    const text = encodeURIComponent(message || "Hola, me interesa más información");
-    const url = `https://wa.me/${clean}?text=${text}`;
+    const query = message.trim() ? `?text=${encodeURIComponent(message.trim())}` : "";
+    const url = `https://wa.me/${clean}${query}`;
     setLink(url);
   };
 
@@ -66,8 +66,8 @@ export default function WhatsAppGeneratorPage() {
     if (!businessId || !phone) return;
     
     const clean = normalizeWhatsappPhone(phone).number;
-    const text = encodeURIComponent(message || "Hola, me interesa más información");
-    const url = `https://wa.me/${clean}?text=${text}`;
+    const query = message.trim() ? `?text=${encodeURIComponent(message.trim())}` : "";
+    const url = `https://wa.me/${clean}${query}`;
     
     if (editingId) {
       await supabase

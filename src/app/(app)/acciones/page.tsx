@@ -164,8 +164,8 @@ useEffect(() => {
     
     if (activeCategory === "whatsapp") {
       const clean = normalizeWhatsappPhone(phone).number;
-      const text = encodeURIComponent(message || "Hola, me interesa más información");
-      finalUrl = `https://wa.me/${clean}?text=${text}`;
+      const query = message.trim() ? `?text=${encodeURIComponent(message.trim())}` : "";
+      finalUrl = `https://wa.me/${clean}${query}`;
     }
     
     if (!finalUrl) return;
@@ -187,8 +187,8 @@ useEffect(() => {
 
     if (activeCategory === "whatsapp") {
       const clean = normalizeWhatsappPhone(phone).number;
-      const text = encodeURIComponent(message || "Hola, me interesa más información");
-      finalUrl = `https://wa.me/${clean}?text=${text}`;
+      const query = message.trim() ? `?text=${encodeURIComponent(message.trim())}` : "";
+      finalUrl = `https://wa.me/${clean}${query}`;
       config = { phone: clean, message };
     }
 
