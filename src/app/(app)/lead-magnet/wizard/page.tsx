@@ -598,13 +598,16 @@ function LeadMagnetWizardInner() {
     if (!businessId) return;
     setPdfGenerating(true);
 
-    let lmId = editingId;
+    // Guardar SIEMPRE el estado actual del formulario (título, contenido, CTAs y sus
+    // enlaces) antes de generar el PDF. Antes, al editar un recurso existente se
+    // saltaba este guardado porque `editingId` ya existía, de modo que los cambios
+    // (sobre todo los enlaces de los CTAs) solo iban al PDF y nunca al registro: al
+    // reabrir el recurso aparecían vacíos. saveLeadMagnet() hace insert o update según
+    // corresponda y devuelve el id en ambos casos.
+    const lmId = await saveLeadMagnet();
     if (!lmId) {
-      lmId = await saveLeadMagnet();
-      if (!lmId) {
-        setPdfGenerating(false);
-        return;
-      }
+      setPdfGenerating(false);
+      return;
     }
 
     let contentHtml = pointToHtml(customContent);
