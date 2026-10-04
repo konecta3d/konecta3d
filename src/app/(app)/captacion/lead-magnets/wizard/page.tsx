@@ -272,7 +272,7 @@ function CaptacionLeadMagnetWizardInner() {
           setName(lm.name || "");
           setCustomTitle(lm.title || "");
           setDescription(lm.description || "");
-          setCtaText(lm.cta_text || "Obtener recurso gratis");
+          setCtaText(lm.cta_text ?? "");
           setExternalUrl(lm.external_url || "");
           // Restaurar el contenido editable guardado (intro, cuerpo, colores, CTAs…)
           const c = lm.content;

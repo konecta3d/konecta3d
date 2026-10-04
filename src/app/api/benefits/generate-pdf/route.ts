@@ -22,7 +22,7 @@ async function buildAndRenderPdf(title: string, value: string, conditions: any):
   const productService = escapeHtml(conditions?.productService || "");
   const bizName        = escapeHtml(conditions?.biz_name    || title || "TU NEGOCIO");
   const clientName     = escapeHtml(conditions?.client_name || "Cliente");
-  const valueDisplay   = escapeHtml(value || "10% Descuento");
+  const valueDisplay   = escapeHtml(value || "");
   const personalCode   = escapeHtml(conditions?.personal_code || "VIP-CODIGO");
   const generatedAt    = escapeHtml(conditions?.generated_at  || "FECHA");
   const validText      = escapeHtml(conditions?.valid_text    || "FECHA");
@@ -82,7 +82,7 @@ async function buildAndRenderPdf(title: string, value: string, conditions: any):
     : "";
 
   const productServiceHtml = showProductService
-    ? `<div style="margin-top:${spaceProductService}px;border:2px solid ${docBorder};border-radius:${docRadius}px;color:${docAccent};padding:10px 16px;text-align:center;font-size:14px;">${productService || "Aplicable a..."}</div>`
+    ? `<div style="margin-top:${spaceProductService}px;border:2px solid ${docBorder};border-radius:${docRadius}px;color:${docAccent};padding:10px 16px;text-align:center;font-size:14px;">${productService}</div>`
     : "";
 
   const codeHtml = showCode

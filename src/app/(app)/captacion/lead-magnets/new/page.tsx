@@ -72,7 +72,7 @@ export default function NewLeadMagnetAdvancedPage() {
       type,
       title:        title.trim() || null,
       description:  description.trim() || null,
-      cta_text:     ctaText.trim() || "Descargar ahora",
+      cta_text:     ctaText.trim() || null,
       file_url:     type === "pdf"  ? (fileUrl.trim()    || null) : null,
       external_url: type === "url"  ? (externalUrl.trim() || null) : null,
       code_value:   type === "code" ? (codeValue.trim()  || null) : null,

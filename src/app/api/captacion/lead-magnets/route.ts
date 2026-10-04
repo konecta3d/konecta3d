@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       code_value: code_value || null,
       title: title || null,
       description: description || null,
-      cta_text: cta_text || "Descargar ahora",
+      cta_text: cta_text ?? null,
       content: content ?? null,
       status: "draft",
     })

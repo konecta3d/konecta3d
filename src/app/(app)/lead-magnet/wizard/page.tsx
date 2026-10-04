@@ -353,9 +353,12 @@ function LeadMagnetWizardInner() {
           contentCustomized.current = true;
           if (lm.objective) setObjective(lm.objective as Objective);
           if (lm.type) setType(lm.type as LeadMagnetType);
-          if (lm.title) setCustomTitle(lm.title);
-          if (lm.intro) setCustomIntro(lm.intro);
-          if (lm.content) setCustomContent(lm.content);
+          // Usar !== undefined (no un guard "truthy") para restaurar también los
+          // campos que el usuario dejó VACÍOS a propósito; si no, la plantilla
+          // vuelve a meter su valor por defecto (p. ej. el subtítulo borrado reaparece).
+          if (lm.title !== undefined) setCustomTitle(lm.title ?? "");
+          if (lm.intro !== undefined) setCustomIntro(lm.intro ?? "");
+          if (lm.content !== undefined) setCustomContent(lm.content ?? "");
           if (lm.cta1_text !== undefined) setCta1Text(lm.cta1_text ?? "");
           if (lm.cta1_link !== undefined) setCta1Link(lm.cta1_link ?? "");
           if (lm.cta2_text !== undefined) setCta2Text(lm.cta2_text ?? "");
@@ -654,7 +657,7 @@ function LeadMagnetWizardInner() {
       showLogo && logoUrl
         ? `<img src="${logoUrl}" alt="logo" class="brand-logo" />`
         : ""
-    }<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || "TITULO"}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${
+    }<div class="brand">${(businessName || "MI NEGOCIO").toUpperCase()}</div></div><div class="tag">${getTypeLabel()}</div></div><div class="title">${customTitle || ""}</div><div class="subtitle">${customIntro || ""}</div><div class="section"><div class="content">${contentHtml}</div></div>${snSection}<div class="cta-box">${
       cta1Enabled && cta1Text
         ? `<a href="${cta1Link || "#"}" class="cta-btn" target="_blank">${cta1Text}${btnArrow ? " &#8250;" : ""}</a>`
         : ""
