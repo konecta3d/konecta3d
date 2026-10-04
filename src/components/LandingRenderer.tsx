@@ -332,7 +332,7 @@ export default function LandingRenderer({
                 {/* eslint-disable-next-line react/no-danger */}
                 <style dangerouslySetInnerHTML={{ __html: ctaInjectedCss }} />
 
-                {config.showCta1 && (
+                {config.showCta1 && (config.cta1Text || "").trim() !== "" && (
                   config.cta1LeadMagnetId ? (
                     <button
                       className="block w-full"
@@ -364,7 +364,7 @@ export default function LandingRenderer({
                   )
                 )}
 
-                {config.showCta2 && (
+                {config.showCta2 && (config.cta2Text || "").trim() !== "" && (
                   config.cta2LeadMagnetId ? (
                     <button
                       className="block w-full"
@@ -396,7 +396,7 @@ export default function LandingRenderer({
                   )
                 )}
 
-                {config.showCta3 && (
+                {config.showCta3 && (config.cta3Text || "").trim() !== "" && (
                   config.cta3LeadMagnetId ? (
                     <button
                       className="block w-full"
@@ -428,7 +428,7 @@ export default function LandingRenderer({
                   )
                 )}
 
-                {config.showMoreButtons && config.showCta4 && (
+                {config.showMoreButtons && config.showCta4 && (config.cta4Text || "").trim() !== "" && (
                   <a
                     href={normalizeUrl(config.cta4Link)}
                     target="_blank"
@@ -437,12 +437,12 @@ export default function LandingRenderer({
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 4 })}
                   >
                     <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
-                      {config.cta4Text || "CTA 4"}
+                      {config.cta4Text}
                     </div>
                   </a>
                 )}
 
-                {config.showMoreButtons && config.showCta5 && (
+                {config.showMoreButtons && config.showCta5 && (config.cta5Text || "").trim() !== "" && (
                   <a
                     href={normalizeUrl(config.cta5Link)}
                     target="_blank"
@@ -451,7 +451,7 @@ export default function LandingRenderer({
                     onClick={() => trackEvent("cta_click", "landing", config.businessId || "", { cta_number: 5 })}
                   >
                     <div className="rounded-xl px-5 py-3 text-center font-semibold drop-shadow w-full max-w-[260px] mx-auto k3d-cta-btn">
-                      {config.cta5Text || "CTA 5"}
+                      {config.cta5Text}
                     </div>
                   </a>
                 )}
