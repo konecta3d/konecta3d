@@ -362,6 +362,8 @@ function CampaignCard({
   const lmLeads = group.leads.filter(l => l.lead_magnet_id);
   const lmDownloaded = lmLeads.filter(l => l.lm_status === "downloaded").length;
   const lmPending = lmLeads.filter(l => l.lm_status !== "downloaded").length;
+  // Leads nuevos (sin tocar) de ESTA campaña — para el badge parpadeante.
+  const newCount = group.leads.filter(l => l.status === "new").length;
 
   const exportCSV = () => {
     const rows = [
@@ -403,7 +405,17 @@ function CampaignCard({
       <div className="p-4 md:p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-base truncate">{group.name}</h2>
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="font-bold text-base truncate">{group.name}</h2>
+              {newCount > 0 && (
+                <span
+                  title={`${newCount} lead${newCount > 1 ? "s" : ""} nuevo${newCount > 1 ? "s" : ""}`}
+                  className="flex-shrink-0 h-5 px-2 rounded-full text-[10px] font-bold flex items-center bg-red-500 text-white k3d-blink-red"
+                >
+                  {newCount > 9 ? "9+" : newCount} nuevo{newCount > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
             {/* Stats */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--foreground)]/50">
               <span><strong className="text-[var(--foreground)]">{total}</strong> leads</span>
