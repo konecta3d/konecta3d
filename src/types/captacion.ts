@@ -17,6 +17,8 @@ export interface WelcomeConfig {
   logo_url?: string;
   title: string;
   subtitle: string;
+  /** Puntos/bullets opcionales que se muestran como lista bajo el subtítulo. */
+  bullets?: string[];
   cta_text?: string;
   bg_color: string;
   text_color: string;

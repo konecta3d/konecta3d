@@ -499,6 +499,16 @@ function WelcomePreview({ config, design }: { config: WelcomeConfig; design: For
       )}
       <h1 className="text-xl font-bold leading-tight mb-2">{config.title || "Título de bienvenida"}</h1>
       <p className="text-sm" style={{ opacity: 0.7 }}>{config.subtitle || "Subtítulo del formulario"}</p>
+      {(config.bullets ?? []).filter(b => b.trim()).length > 0 && (
+        <ul className="mt-4 space-y-2 text-left max-w-[220px] w-full">
+          {(config.bullets ?? []).filter(b => b.trim()).map((b, i) => (
+            <li key={i} className="flex gap-2 text-sm" style={{ lineHeight: 1.35 }}>
+              <span style={{ color: design.accent_color, flexShrink: 0, fontWeight: 700 }}>✓</span>
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       <button
         className="mt-8 px-6 py-3 rounded-xl font-semibold text-sm"
         style={{ background: design.accent_color, color: bg }}
@@ -694,6 +704,26 @@ function WelcomeEditor({ config, onChange }: { config: WelcomeConfig; onChange: 
         <textarea className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent resize-none" rows={2}
           style={{ borderColor: "var(--border)" }}
           value={config.subtitle} onChange={e => onChange({ ...config, subtitle: e.target.value })} />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Puntos (opcional)</label>
+        <div className="space-y-1.5">
+          {(config.bullets ?? []).map((b, i) => (
+            <div key={i} className="flex gap-2">
+              <input className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent" style={{ borderColor: "var(--border)" }}
+                value={b} placeholder={`Punto ${i + 1}`}
+                onChange={e => {
+                  const next = [...(config.bullets ?? [])];
+                  next[i] = e.target.value;
+                  onChange({ ...config, bullets: next });
+                }} />
+              <button type="button" title="Quitar" className="px-2 rounded-lg border text-red-500/70 hover:text-red-500 flex-shrink-0" style={{ borderColor: "var(--border)" }}
+                onClick={() => onChange({ ...config, bullets: (config.bullets ?? []).filter((_, j) => j !== i) })}>✕</button>
+            </div>
+          ))}
+          <button type="button" className="text-xs px-2 py-1.5 rounded-lg border hover:bg-[var(--border)]/10" style={{ borderColor: "var(--border)" }}
+            onClick={() => onChange({ ...config, bullets: [...(config.bullets ?? []), ""] })}>+ Añadir punto</button>
+        </div>
       </div>
       <div>
         <label className="text-xs font-medium text-[var(--foreground)]/60 block mb-1">Texto del botón</label>

@@ -419,9 +419,19 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
               </div>
             )}
             <h1 className="text-2xl font-bold leading-tight mb-3 max-w-xs">{cfg.title}</h1>
-            <p className="text-sm mb-10 max-w-xs" style={{ opacity: 0.7 }}>{cfg.subtitle}</p>
+            <p className="text-sm max-w-xs" style={{ opacity: 0.7 }}>{cfg.subtitle}</p>
+            {(cfg.bullets ?? []).filter(b => b.trim()).length > 0 && (
+              <ul className="mt-5 mb-2 space-y-3 text-left w-full max-w-xs">
+                {(cfg.bullets ?? []).filter(b => b.trim()).map((b, i) => (
+                  <li key={i} className="flex gap-3 text-[15px]" style={{ lineHeight: 1.4 }}>
+                    <span style={{ color: s.accent_color, flexShrink: 0, fontWeight: 700 }}>✓</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <button onClick={next}
-              className="px-8 py-4 rounded-2xl font-semibold text-base active:scale-95 transition-transform"
+              className="mt-8 px-8 py-4 rounded-2xl font-semibold text-base active:scale-95 transition-transform"
               style={{ background: s.accent_color, color: bg }}>
               {cfg.cta_text || "Comenzar →"}
             </button>
