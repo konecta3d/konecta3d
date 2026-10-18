@@ -40,13 +40,15 @@ function CampaignPipeline({
       id: "contexto",
       label: "Contexto",
       complete: contextBlocks >= 3,
+      optional: true,
       href: "/captacion/contexto",
-      hint: contextBlocks < 3 ? `${contextBlocks}/7 bloques` : `${contextBlocks}/7`,
+      hint: contextBlocks < 3 ? `${contextBlocks}/7 · opcional` : `${contextBlocks}/7`,
     },
     {
       id: "formulario",
       label: "Formulario",
       complete: !!campaign.form_id,
+      optional: false,
       href: "/captacion/formularios",
       hint: !campaign.form_id ? "Sin asignar" : "Asignado",
     },
@@ -54,20 +56,25 @@ function CampaignPipeline({
       id: "lead_magnet",
       label: "Lead Magnet",
       complete: !!campaign.lead_magnet_id,
+      optional: true,
       href: "/captacion/lead-magnets",
-      hint: !campaign.lead_magnet_id ? "Sin asignar" : "Asignado",
+      hint: !campaign.lead_magnet_id ? "Opcional" : "Asignado",
     },
     {
       id: "recorrido",
       label: "Recorrido",
       complete: !!(campaign.target_client && campaign.objective),
+      optional: true,
       href: "/captacion/recorrido",
-      hint: !(campaign.target_client && campaign.objective) ? "Sin definir" : "Definido",
+      hint: !(campaign.target_client && campaign.objective) ? "Opcional" : "Definido",
     },
   ];
 
   const completedCount = stations.filter((s) => s.complete).length;
-  const allComplete = completedCount === stations.length;
+  // Para LANZAR solo es imprescindible el Formulario (donde se captan los datos).
+  // Contexto, Lead Magnet y Recorrido son recomendaciones (optional): no bloquean,
+  // para permitir campañas de captura simple (recoger contactos sin recurso).
+  const allComplete = stations.filter((s) => !s.optional).every((s) => s.complete);
 
   return (
     <div className="mt-4 pt-4 border-t border-[var(--border)]">
