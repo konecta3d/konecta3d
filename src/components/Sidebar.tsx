@@ -17,6 +17,7 @@ interface SidebarLink {
     stepNumber?: number;
     counter?: string;
     activeStep?: boolean;
+    notifyCount?: number;
 }
 
 interface SidebarProps {
@@ -208,6 +209,11 @@ export default function Sidebar({ links, title, darkMode: darkModeProp, onToggle
                             link.activeStep ? "bg-amber-400 text-black k3d-blink" : "bg-amber-400/25 text-amber-500"
                         }`}>
                             {link.stepNumber ?? ""}
+                        </span>
+                    )}
+                    {!!link.notifyCount && (
+                        <span className="min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 bg-red-500 text-white k3d-blink-red">
+                            {link.notifyCount > 9 ? "9+" : link.notifyCount}
                         </span>
                     )}
                 </span>

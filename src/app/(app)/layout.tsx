@@ -25,6 +25,7 @@ interface SidebarLink {
   stepNumber?: number;
   counter?: string;
   activeStep?: boolean;
+  notifyCount?: number;
 }
 
 // Perfil de Negocio
@@ -164,6 +165,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [guidedPath, setGuidedPath] = useState<GuidedPathConfig>(DEFAULT_GUIDED_PATH);
   const [completedHrefs, setCompletedHrefs] = useState<Set<string>>(new Set());
   const [contextCounts, setContextCounts] = useState({ fidAnswered: 0, fidTotal: 0, capComplete: 0 });
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
   const [maintenanceBanner, setMaintenanceBanner] = useState<{ active: boolean; message: string } | null>(null);
   const [helpDrawerEnabled, setHelpDrawerEnabled] = useState(true);
 
@@ -247,6 +249,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       // Negocio activo (respeta la impersonación de admin)
       const bid = await getActiveBusinessId(supabase);
       if (!bid) return;
+
+      // Leads nuevos (status "new") para el badge de notificación de "Clientes".
+      // Vía la API (service role) para que funcione también en modo desarrollador.
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token || "";
+        const res = await fetch(`/api/captacion/leads?businessId=${bid}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const n = (json.leads || []).filter((l: { status?: string }) => l.status === "new").length;
+          setNewLeadsCount(n);
+        }
+      } catch { /* silencioso */ }
 
       const { data, error } = await supabase
         .from("businesses")
@@ -361,8 +378,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return true;
     })
     .map((l) => {
+      // Badge de notificación de leads nuevos en "Clientes".
+      const notifyCount = l.href === "/negocio/clientes" && newLeadsCount > 0 ? newLeadsCount : undefined;
       const hint = guidedMap.get(l.href);
-      if (hint === undefined) return l;
+      if (hint === undefined) return notifyCount ? { ...l, notifyCount } : l;
       // Solo el paso ACTIVO (el primero incompleto del camino) muestra la señal.
       // Los siguientes no aparecen hasta que les llega el turno (el 3 no sale hasta
       // completar el 1 y el 2); los ya completados tampoco.
@@ -454,6 +473,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           link.activeStep ? "bg-amber-400 text-black k3d-blink" : "bg-amber-400/25 text-amber-500"
                         }`}>
                           {link.stepNumber ?? ""}
+                        </span>
+                      )}
+                      {!!link.notifyCount && (
+                        <span className="min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-1 bg-red-500 text-white k3d-blink-red">
+                          {link.notifyCount > 9 ? "9+" : link.notifyCount}
                         </span>
                       )}
                     </span>
