@@ -396,6 +396,12 @@ export default function FormRenderer({ campaignId, campaignName, blocks, leadMag
     if (url) setLeadMagnetUrl(url);
     if (leadMagnet?.type === "code") setCodeValue(leadMagnet.code_value || null);
 
+    // Si NO hay lead magnet no existe botón de descarga (que es donde se marca la
+    // conversión). En ese caso, completar el formulario ya cuenta como conversión:
+    // dejamos la cookie aquí para que el próximo escaneo del llavero redirija a la
+    // landing de fidelización del negocio.
+    if (slug && !leadMagnet) markConverted(slug);
+
     next();
     setSubmitting(false);
   };
