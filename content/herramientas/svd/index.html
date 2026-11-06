@@ -199,8 +199,37 @@ footer{padding-block:48px 40px}
 footer .wrap{display:grid;gap:6px;font-size:.88rem;color:var(--muted);border-top:1px solid var(--line);padding-top:20px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--brand);color:var(--on-brand);padding:10px 16px;border-radius:8px;font-weight:600;font-size:.92rem;z-index:20}
 
+[hidden]{display:none!important}
+.hint{font-weight:400;font-size:.82rem;color:var(--muted)}
+.rooms.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tblwrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem}
+.tbl th,.tbl td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font-size:.8rem;color:var(--muted);font-weight:700}
+.tbl .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--ok);font-weight:700}.down{color:var(--bad);font-weight:700}
+.cycle{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0;counter-reset:c}
+.cycle li{counter-increment:c;font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--field)}
+.cycle li::before{content:counter(c) ". ";color:var(--accent);font-weight:700}
+.mrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--field)}
+.mrow .t{flex:1 1 200px;min-width:0}
+.mrow .cnt{font-family:var(--f-display);font-weight:800;min-width:28px;text-align:center}
+.mlist{display:grid;gap:6px}
+.pl{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:8px;background:var(--surface)}
+.pl .ph{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pl .ph b{font-family:var(--f-display);color:var(--accent)}
+.pl.rep{background:var(--field)}
+.ci{border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:grid;gap:8px;background:var(--surface)}
+.ci>label{flex-direction:row;display:flex;gap:10px;align-items:flex-start;font-weight:400;color:var(--ink)}
+.ci input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px;margin-top:3px;flex:0 0 auto}
+.ci.on{border-color:var(--accent)}
+.follow{margin-top:4px}
+.tabs{overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;flex:0 0 auto}
+
 @media (max-width:680px){
-  .rooms,.letters{grid-template-columns:minmax(0,1fr)}
+  .rooms,.rooms.two,.letters{grid-template-columns:minmax(0,1fr)}
   .tabs button{padding:8px 12px;font-size:.9rem}
   .fields,.checks,.compare{grid-template-columns:minmax(0,1fr)}
   .pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -215,7 +244,7 @@ html{scroll-behavior:smooth}
   <div class="wrap">
     <span class="eyebrow">Sistema de Ventas Definitivo · Explosión de Ventas</span>
     <h1>Monta tu Sistema de Ventas Definitivo</h1>
-    <p>Una herramienta para entender el SVD y aplicarlo a tu negocio, te dediques a lo que te dediques. Primero lo entiendes, después ves el caso que se trabajó en el curso y, al final, montas el tuyo con tus números. En la segunda pestaña creas tu encuesta PERE para saber si tus clientes viven una experiencia extraordinaria.</p>
+    <p>Una herramienta para entender el SVD y aplicarlo a tu negocio, te dediques a lo que te dediques. Primero lo entiendes, después ves el caso que se trabajó en el curso y, al final, montas el tuyo con tus números. En la segunda pestaña creas tu encuesta PERE para saber si tus clientes viven una experiencia extraordinaria. En la tercera preparas cómo lo vendes: el problema de tu cliente, tu plantilla de venta y tus cierres.</p>
     <p class="note">Lo que escribas se guarda solo en este navegador. No se envía a nadie.</p>
   </div>
 </header>
@@ -225,6 +254,7 @@ html{scroll-behavior:smooth}
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tabbtn-svd" aria-controls="tab-svd" aria-selected="true" data-tab="svd">Sistema de ventas</button>
       <button type="button" role="tab" id="tabbtn-pere" aria-controls="tab-pere" aria-selected="false" data-tab="pere">Encuesta PERE</button>
+      <button type="button" role="tab" id="tabbtn-vende" aria-controls="tab-vende" aria-selected="false" data-tab="vende">Comunica y cierra</button>
     </div>
     <div class="stepnav" id="nav-svd">
       <a href="#entiende"><b>1</b>Entiéndelo</a>
@@ -237,6 +267,11 @@ html{scroll-behavior:smooth}
       <a href="#pere-ejemplo"><b>2</b>Mira el ejemplo</a>
       <a href="#pere-crea"><b>3</b>Crea la tuya</a>
       <a href="#pere-mide"><b>4</b>Mide los resultados</a>
+    </div>
+    <div class="stepnav" id="nav-vende" hidden>
+      <a href="#problema"><b>1</b>El problema</a>
+      <a href="#plantilla"><b>2</b>Tu plantilla de venta</a>
+      <a href="#cierres"><b>3</b>Tus cierres</a>
     </div>
   </div>
 </nav>
@@ -284,11 +319,12 @@ html{scroll-behavior:smooth}
     <div class="phase-list" id="phaseList"></div>
 
     <details class="box">
-      <summary>Reglas para no engañarte con los números <small>· 8 reglas del curso</small></summary>
+      <summary>Reglas para no engañarte con los números <small>· 10 reglas del curso</small></summary>
       <ol class="rules" style="margin-top:12px">
         <li><span><strong>Un producto estrella, un sistema.</strong> Si tienes varios, céntrate en uno y no pases al siguiente hasta tener el primero bien encarrilado.</span></li>
+        <li><span><strong>Todo se cuenta con un comportamiento.</strong> Cada fase necesita algo que puedas ver y contar. No vale «están interesados»; vale «agendan una segunda reunión».</span></li>
         <li><span><strong>Mismo criterio siempre.</strong> Cuando decides cómo cuentas una fase, no lo cambias. Si lo cambias, es un sistema nuevo y no se compara con el anterior.</span></li>
-        <li><span><strong>El porcentaje se calcula sobre la fase anterior.</strong> Mide qué parte de los que estaban en un paso llega al siguiente.</span></li>
+        <li><span><strong>El porcentaje se calcula sobre la fase anterior.</strong> Mide qué parte de los que estaban en un paso llega al siguiente. Por eso ninguna fase puede tener más personas que la anterior.</span></li>
         <li><span><strong>Solo cuenta quien entra por el sistema.</strong> Si alguien compra tu producto estrella por otra vía, aquí no se mide. Y si tienes fase 4b, nadie se la salta.</span></li>
         <li><span><strong>Mide por periodos fijos.</strong> Lo normal es cada mes. Si desde el primer contacto hasta el cierre pasa más de un mes, mide por trimestres.</span></li>
         <li><span><strong>Un hueco vacío es «no lo sé», no un cero.</strong> Y mejor medir un solo paso que no medir nada.</span></li>
@@ -348,7 +384,7 @@ html{scroll-behavior:smooth}
         <button class="btn" type="button" id="askReset">Empezar de cero</button>
       </div>
       <div class="confirm" id="resetBox" hidden>
-        <span>Se borrará todo lo que has escrito en los pasos 3 y 4.</span>
+        <span>Se borrará todo lo que has escrito en los pasos 3 y 4, también los motivos y los periodos guardados.</span>
         <button class="btn main" type="button" id="doReset">Borrar</button>
         <button class="btn" type="button" id="noReset">Cancelar</button>
       </div>
@@ -358,17 +394,21 @@ html{scroll-behavior:smooth}
       <h3>Tu negocio y tus productos</h3>
       <div class="fields">
         <label for="f-negocio">Negocio<input type="text" id="f-negocio" data-f="negocio" placeholder="A qué te dedicas"></label>
-        <label for="f-canal">Canal que vas a medir<input type="text" id="f-canal" data-f="canal" placeholder="Ej.: anuncio en Instagram, eventos, buzoneo"></label>
-        <label class="full" for="f-estrella">Producto estrella<input type="text" id="f-estrella" data-f="estrella" placeholder="El que más te interesa vender ahora"></label>
-        <label for="f-hab">¿En qué habitación está?
-          <select id="f-hab" data-f="hab"><option value="">Elige</option><option>Salón</option><option>Dormitorio</option></select>
-        </label>
+        <label for="f-canal">Canal que vas a medir<input type="text" id="f-canal" data-f="canal" placeholder="Ej.: anuncio en Instagram, eventos, buzoneo"><span class="hint">El que tenga más clientes ideales. No lo cambies a mitad de periodo: los datos se mezclan.</span></label>
+        <label for="f-presu">Presupuesto mensual del canal<input type="text" id="f-presu" data-f="presu" placeholder="Dinero o tiempo, ej.: 300 € o 6 horas"></label>
         <label for="f-periodo">Periodo de medición
           <select id="f-periodo" data-f="periodo"><option>Mensual</option><option>Trimestral</option></select>
         </label>
+        <label class="full" for="f-estrella">Producto estrella<input type="text" id="f-estrella" data-f="estrella" placeholder="El que más te interesa vender ahora"><span class="hint">El que, vendido con más intensidad, cambiaría tu negocio. De él salen tu cliente ideal y tu producto de captación.</span></label>
+        <label class="toggle full" for="t-ticket"><input type="checkbox" id="t-ticket" data-t="ticket"><span>No tengo un producto estrella claro: trabajo con mi ticket medio<small>Pasa en negocios que adaptan cada servicio al cliente. Ticket medio = ventas del periodo ÷ clientes que compraron en ese periodo. Lo usarás como precio en la fase 8.</small></span></label>
+        <label for="f-hab">¿En qué habitación está?
+          <select id="f-hab" data-f="hab"><option value="">Elige</option><option>Salón</option><option>Dormitorio</option></select>
+        </label>
+        <label class="full" for="f-icp">Tu cliente ideal para ese producto<input type="text" id="f-icp" data-f="icp" placeholder="Quién es: edad, zona, a qué se dedica…"><span class="hint">Primero a quién, después qué: sin un cliente ideal claro no puedes diseñar la captación.</span></label>
+        <label class="full" for="f-problema">Su problema: qué le pasa y cómo se siente si no lo resuelve<input type="text" id="f-problema" data-f="problema" placeholder="Ej.: pierde clientes porque…"><span class="hint">Lo trabajas a fondo en la pestaña «Comunica y cierra».</span></label>
         <label class="full" for="f-cap1">Producto de captación 1 (puerta de entrada)<input type="text" id="f-cap1" data-f="cap1" placeholder="Ej.: guía en PDF, diagnóstico gratuito, demostración"></label>
-        <label class="toggle full" for="t-cap2"><input type="checkbox" id="t-cap2" data-t="cap2"><span>Tengo un segundo producto de captación (fase 4b)<small>Un consumo intermedio, normalmente de pago, entre el gratuito y el producto estrella.</small></span></label>
-        <label class="full" for="f-cap2" id="cap2Wrap" hidden>Producto de captación 2<input type="text" id="f-cap2" data-f="cap2name" placeholder="Ej.: primera sesión, servicio pequeño"></label>
+        <label class="toggle full" for="t-cap2"><input type="checkbox" id="t-cap2" data-t="cap2"><span>Tengo un producto de transición (fase 4b)<small>De pago, entre el gratuito y el producto estrella, cuando el salto es grande. Solo se ofrece a quien consumió la 4a.</small></span></label>
+        <label class="full" for="f-cap2" id="cap2Wrap" hidden>Producto de transición<input type="text" id="f-cap2" data-f="cap2name" placeholder="Ej.: primera sesión, servicio pequeño"></label>
         <label class="toggle full" for="t-neg"><input type="checkbox" id="t-neg" data-t="neg"><span>En mi negocio se negocia la propuesta (fases 6 y 7)<small>Si tus clientes compran o no sin ajustar condiciones, déjalo sin marcar.</small></span></label>
       </div>
     </div>
@@ -404,6 +444,7 @@ html{scroll-behavior:smooth}
       </label>
       <div class="kpis" id="myKpis"></div>
       <div class="verdict" id="myVerdict"></div>
+      <details class="box"><summary>Lo que te deja cada persona, fase a fase</summary><div id="myCdv" style="margin-top:10px"></div></details>
     </div>
   </div>
 </section>
@@ -436,6 +477,34 @@ html{scroll-behavior:smooth}
     </div>
 
     <div class="panel">
+      <h3>Motivos de no compra (fase 8)</h3>
+      <p class="small muted">Cuando alguien no compra, pregúntale el motivo con buen tono y apúntalo aquí. Cuenta cuántas veces se repite cada uno y decide si lo arreglas a corto, medio o largo plazo. Lo que más hace crecer no es la venta: es entender cada no-venta.</p>
+      <div class="fields">
+        <label class="full" for="mo-t">Motivo<input type="text" id="mo-t" placeholder="Ej.: lo quiere pensar con su pareja"></label>
+        <label for="mo-p">Lo arreglo a
+          <select id="mo-p"><option>Corto plazo</option><option>Medio plazo</option><option>Largo plazo</option></select>
+        </label>
+        <div class="row" style="align-self:end"><button class="btn main" type="button" id="mo-add">Apuntar motivo</button></div>
+      </div>
+      <div class="mlist" id="moList"></div>
+      <p class="small muted" id="moInfo"></p>
+      <p class="small">«Es el precio» casi nunca es el motivo real: suele querer decir que no subiste las expectativas por encima del precio. Lleva los motivos que más se repiten a la gestión de objeciones de tu plantilla de venta.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Mejora cada periodo</h3>
+      <p class="small muted">El SVD se revisa cada mes: diseñas, pones objetivos, mides, comparas lo que querías con lo que pasó y cambias una sola cosa. Guarda aquí cada periodo para ver si tus cambios funcionan.</p>
+      <ol class="cycle"><li>Diseña</li><li>Proyecta</li><li>Mide</li><li>Analiza</li><li>Optimiza</li></ol>
+      <div class="fields">
+        <label for="h-l">Periodo<input type="text" id="h-l" placeholder="Ej.: noviembre 2026"></label>
+        <label for="h-c">Qué cambiaste en este periodo<input type="text" id="h-c" placeholder="Ej.: nuevo anuncio en la fase 2"></label>
+      </div>
+      <div class="row"><button class="btn main" type="button" id="h-save">Guardar este periodo</button></div>
+      <div id="hList"></div>
+      <p class="small muted">Si una fase no mejora por mucho que la cambies, puede que la causa esté fuera del sistema: que no se te vea lo suficiente, que la experiencia con tu producto no haga repetir, que te falte equipo para atender o liquidez para invertir en alcance.</p>
+    </div>
+
+    <div class="panel">
       <h3>Llévatelo</h3>
       <p class="small muted">Copia un resumen de tu SVD y tu plan para pegarlo en tus notas, en un correo o en WhatsApp. Al terminar el próximo periodo, vuelve, mide de nuevo y compara.</p>
       <div class="row"><button class="btn main" type="button" id="copyBtn">Copiar mi SVD</button></div>
@@ -456,8 +525,8 @@ html{scroll-behavior:smooth}
       <p>Las encuestas de siempre fallan por dos motivos: responde muy poca gente y casi todos dicen «bien» porque no les apetece explicar. Es más fácil mentir y no volver a comprar. Por eso el curso insiste: no te creas lo que el cliente dice, observa lo que hace. Y propone la encuesta PERE.</p>
     </div>
     <div class="letters">
-      <div class="letter"><span class="L">P</span><h3>Personal</h3><p class="small">Pídela en un momento de trato directo para que responda más gente. Por ejemplo, al cerrar el trabajo y antes de que el cliente se vaya, que la rellene en una tablet. Piensa en qué momento de tu proceso encaja.</p></div>
-      <div class="letter"><span class="L">E</span><h3>Específica</h3><p class="small">Nada de preguntas abiertas o generales. Respuestas ya escritas para que solo tenga que elegir la que más le encaje. Como mucho una pregunta abierta, y siempre opcional.</p></div>
+      <div class="letter"><span class="L">P</span><h3>Personal</h3><p class="small">Pídela en un momento de trato directo para que responda más gente. Por ejemplo, al cerrar el trabajo y antes de que el cliente se vaya, que la rellene en una tablet. Explícale por qué es importante para ti. Piensa en qué momento de tu proceso encaja.</p></div>
+      <div class="letter"><span class="L">E</span><h3>Específica</h3><p class="small">Nada de preguntas abiertas o generales. Respuestas ya escritas para que solo tenga que elegir la que más le encaje. Como mucho una pregunta abierta, y siempre opcional. Si marca una respuesta tibia o mala, ábrele un hueco para que cuente qué pasó.</p></div>
       <div class="letter"><span class="L">R</span><h3>Rápida</h3><p class="small">Se tiene que poder contestar en menos de 2 minutos.</p></div>
       <div class="letter"><span class="L">E</span><h3>Excelencia</h3><p class="small">Tiene que llevarte a la excelencia: no basta con hacerlo bien. Una pregunta mide la satisfacción y otra tiene una respuesta que solo se marca si el servicio fue excelente. Si el cliente marca «correcto», no lo has hecho bien.</p></div>
     </div>
@@ -513,6 +582,7 @@ html{scroll-behavior:smooth}
         </label>
         <label for="p-quien">Quién la ofrece<input type="text" id="p-quien" data-f="pere.quien" placeholder="Ej.: la persona que hizo el trabajo"></label>
         <label class="full" for="p-como">Cómo la rellena<input type="text" id="p-como" data-f="pere.como" placeholder="Ej.: en una tablet, con un QR, en papel"></label>
+        <label class="full" for="p-porque">Qué le dices al pedírsela<input type="text" id="p-porque" data-f="pere.porque" placeholder="Por qué es importante para ti que responda"></label>
       </div>
     </div>
     <div class="panel">
@@ -570,10 +640,85 @@ html{scroll-behavior:smooth}
   </div>
 </section>
 </div>
+
+<!-- PESTAÑA COMUNICA Y CIERRA -->
+<div id="tab-vende" role="tabpanel" aria-labelledby="tabbtn-vende" hidden>
+<section id="problema">
+  <div class="wrap">
+    <div style="display:grid;gap:10px">
+      <span class="stepno">Paso 1 · El problema</span>
+      <h2>Se vende desde el problema, no desde el producto</h2>
+      <p class="lead">El problema son las consecuencias emocionales negativas que vive tu cliente ideal cuando no consume lo que vendes o cuando se lo compra a otro. Las personas deciden sobre todo para alejarse de lo que les duele, y lo positivo pesa mucho más cuando antes se ha hecho consciente lo negativo. Cuanto más intenso es el problema, más probable es la compra.</p>
+    </div>
+    <div class="rooms two">
+      <div class="room"><span class="tag">No consume</span><h3>Quien todavía no lo usa</h3><p class="small">El ejemplo del curso es el hilo dental: el producto apenas aparece y el mensaje es lo que sientes si descuidas tu higiene. Los años de historia, las ventajas y las características no hacen decidir a nadie.</p></div>
+      <div class="room"><span class="tag">Consume con otros</span><h3>Quien se lo compra a otro</h3><p class="small">El ejemplo del curso es Airbnb: no enseña el viaje bonito, enseña lo que pasa en el hotel (los padres se acuestan pronto por el niño, todos con el mismo horario) y te hace preguntarte qué pasa cuando eliges la otra opción.</p></div>
+    </div>
+    <div class="panel">
+      <h3>El problema de tu cliente</h3>
+      <div class="fields">
+        <label class="full" for="v-icp">Tu cliente ideal<input type="text" id="v-icp" data-f="icp" placeholder="Quién es: edad, zona, a qué se dedica…"></label>
+        <label class="full" for="v-tipo">¿Dónde tienes más para crecer?
+          <select id="v-tipo" data-f="v.tipo"><option value="">Elige</option><option>En quien todavía no consume lo que vendo</option><option>En quien se lo compra a otro</option></select>
+        </label>
+        <label class="full" for="v-prob">¿Qué problema tiene?<textarea id="v-prob" rows="2" data-f="problema" placeholder="Lo que le pasa cuando no lo resuelve"></textarea></label>
+        <label class="full" for="v-emo">¿Cómo se siente? Con sus palabras<textarea id="v-emo" rows="2" data-f="v.emo" placeholder="Ej.: vergüenza cuando…, miedo a…, cansancio de…"></textarea></label>
+        <label class="full" for="v-escena">Una situación real que ya ha vivido<textarea id="v-escena" rows="2" data-f="v.escena" placeholder="Una escena concreta en la que se reconozca"></textarea></label>
+        <label class="full" for="v-nocompra">¿Por qué no te compra hoy?<textarea id="v-nocompra" rows="2" data-f="v.nocompra" placeholder="Si tiene el problema y no te compra, algo falla: ¿qué?"></textarea></label>
+      </div>
+    </div>
+    <details class="box"><summary>El test del logo</summary><p class="small" style="margin-top:8px">Lee lo que cuentas de tu negocio y cambia tu logo por el de un competidor. Si el texto sigue valiendo, no estás comunicando con impacto. Comunicar bien no es cuestión de dinero, sino de capacidad.</p></details>
+    <details class="box"><summary>Tu radar de problemas</summary><p class="small" style="margin-top:8px">Observa siempre los hábitos, los miedos y los problemas de tu cliente ideal. Te dan ideas para mejorar la experiencia, el producto y para crear nuevos productos de captación.</p></details>
+  </div>
+</section>
+
+<section id="plantilla">
+  <div class="wrap">
+    <div style="display:grid;gap:10px">
+      <span class="stepno">Paso 2 · Tu plantilla de venta</span>
+      <h2>16 pasos para que lo que cuentas venda</h2>
+      <p class="lead">La plantilla del curso sirve para cualquier comunicación de venta: una página, un anuncio, una propuesta o un mensaje. Sigue el orden Atención → Interés → Deseo → Acción. Rellena cada paso con tu caso; la llamada a la acción se repite tres veces.</p>
+    </div>
+    <div class="panel">
+      <label for="v-uso">¿Para qué la vas a usar?
+        <select id="v-uso" data-f="v.uso"><option value="">Elige</option><option>Página de captación (fase 3)</option><option>Propuesta del producto estrella (fase 5)</option><option>Anuncio</option><option>Mensaje o guion</option></select>
+      </label>
+      <p class="small muted" id="plProg"></p>
+    </div>
+    <div id="plList" style="display:grid;gap:8px"></div>
+    <div class="row"><button class="btn main" type="button" id="copyPl">Copiar mi plantilla</button></div>
+    <textarea id="copyPlFallback" rows="8" hidden readonly aria-label="Plantilla para copiar"></textarea>
+  </div>
+</section>
+
+<section id="cierres">
+  <div class="wrap">
+    <div style="display:grid;gap:10px">
+      <span class="stepno">Paso 3 · Tus cierres</span>
+      <h2>20 técnicas para cerrar la venta</h2>
+      <p class="lead">Se pueden combinar varias en la misma conversación. Marca las que encajen contigo y escribe exactamente lo que dirías, para tenerlas preparadas cuando llegue el momento.</p>
+    </div>
+    <p class="small muted" id="ciCount"></p>
+    <div id="ciList" style="display:grid;gap:8px"></div>
+    <div class="panel">
+      <h3>Seguimiento P-10-15-15</h3>
+      <p class="small">Un acuerdo no es una venta. Cuando el cliente te dice que sí a un presupuesto, un pedido o una propuesta, pero todavía no paga: le llamas a los 10 días, vuelves a llamar a los 15 y repites cada 15 días hasta tener un sí o un no. Ajusta los días a tu negocio. Cuanto más tiempo pasa, más baja la probabilidad de cerrar: tu trabajo es cerrar, no abrir.</p>
+      <div class="fields">
+        <label class="full" for="p10-f">Día del presupuesto o del acuerdo<input type="date" id="p10-f" data-f="p10.fecha"></label>
+        <label for="p10-a">Primera llamada (días)<input type="text" inputmode="decimal" id="p10-a" data-f="p10.a" placeholder="10"></label>
+        <label for="p10-b">Después, cada (días)<input type="text" inputmode="decimal" id="p10-b" data-f="p10.b" placeholder="15"></label>
+      </div>
+      <ul class="diag" id="p10List"></ul>
+    </div>
+    <div class="row"><button class="btn main" type="button" id="copyCi">Copiar mis cierres</button></div>
+    <textarea id="copyCiFallback" rows="8" hidden readonly aria-label="Cierres para copiar"></textarea>
+  </div>
+</section>
+</div>
 </main>
 <footer>
   <div class="wrap">
-    <p>Herramienta de apoyo preparada por Miguel Pileta a partir de los apuntes y la plantilla del SVD del curso Explosión de Ventas (Level UP). No sustituye al curso.</p>
+    <p>Herramienta de apoyo preparada por Miguel Pileta a partir de los apuntes, la plantilla del SVD y el resumen del método del curso Explosión de Ventas (Level UP). No sustituye al curso.</p>
     <p>El caso del centro de estética para novias es el ejemplo que se trabajó en clase.</p>
   </div>
 </footer>
@@ -591,43 +736,43 @@ var FASES=[
   ph:"Ej.: nº de personas a las que llega mi anuncio / nº de personas con las que hablo en eventos"},
  {id:"2",nombre:"Interés",grupo:"Captación",
   que:"Cuántas personas del alcance reaccionan mostrando interés.",
-  medir:"En digital, quien hace clic en el anuncio para saber más. En presencial lo defines tú (por ejemplo, que se acerquen a preguntar), pero siempre igual.",
+  medir:"En digital, quien hace clic en el anuncio para saber más; también vale escanear un QR, coger el teléfono o responder. En presencial lo defines tú (por ejemplo, que se acerquen a preguntar), pero siempre igual. Usa un enlace o un QR distinto para cada acción y sabrás cuál funciona.",rango:"Bajo.",
   ej:"800 hacen clic: el 2 %.",ph:"Ej.: nº de personas que hacen clic / que se acercan a preguntar"},
  {id:"3",nombre:"Contacto",grupo:"Captación",
   que:"Personas interesadas que dejan un contacto que puedes usar: nombre, teléfono o email.",
-  medir:"Cuenta solo los contactos utilizables.",
+  medir:"Cuenta solo los contactos utilizables. Lleva a la gente a una página con una sola propuesta. Si vendes en reuniones, cuenta cuando acuerdan la cita, no cuando se celebra.",rango:"Medio-bajo; más bajo si pides agendar una cita.",
   ej:"200 dejan su contacto: el 25 %.",ph:"Ej.: nº de personas que dejan su teléfono o email"},
  {id:"4a",nombre:"Producto de captación 1",grupo:"Captación",
   que:"Personas que consumen tu producto de captación (tu puerta de entrada).",
-  medir:"Cuenta a quien lo consume, no a quien se lo ofreces. Si fuera un webinar, contarías a quien se conecta.",
+  medir:"Cuenta a quien lo consume, no a quien se lo ofreces. Si fuera un webinar, contarías a quien se conecta. Si es difícil saber quién lo consume, usa una señal posterior: por ejemplo, a quién le envías el diagnóstico. En el curso esta fase también se llama oferta irresistible.",
   ej:"Las 200 descargan la guía en PDF: el 100 %.",precio:true,ph:"Ej.: nº de personas que descargan / usan mi producto de captación"},
- {id:"4b",nombre:"Producto de captación 2",grupo:"Captación",opt:"cap2",
-  que:"Un consumo intermedio, normalmente de pago, entre el gratuito y el producto estrella.",
-  medir:"Solo si existe en tu sistema. Si lo tienes, nadie puede saltárselo: quien compra directamente desde la 4a no cuenta en este sistema.",
+ {id:"4b",nombre:"Producto de transición",grupo:"Captación",opt:"cap2",
+  que:"Un producto de pago que hace de puente entre el gratuito y el producto estrella cuando el salto es grande. Alarga la relación y refuerza el vínculo.",
+  medir:"Solo si existe en tu sistema, y solo se ofrece a quien consumió la 4a. Si lo tienes, nadie puede saltárselo: quien compra directamente desde la 4a no cuenta en este sistema. Referencia del curso: con un producto estrella de más de 3.000 €, una transición de unos 200 a 300 €; ajústalo a tu precio.",
   ej:"40 reservan corte o peinado por 35 €: el 20 % y 1.400 € de caja.",precio:true,ph:"Ej.: nº de personas que compran el segundo producto"},
  {id:"5",nombre:"Producto estrella",grupo:"Venta",
   que:"Personas que reciben la propuesta de tu producto estrella. Todavía no son compras.",
-  medir:"Es el alcance de tu producto estrella: aquí el sistema empieza de nuevo. Si tienes fase 4b, cuentas a los que vienen de la 4b.",
+  medir:"Es el alcance de tu producto estrella: aquí el sistema empieza de nuevo. Si tienes fase 4b, cuentas a los que vienen de la 4b. El objetivo es proponérselo al 100 %: aprovecha cuando la persona está delante.",
   ej:"Las 40 reciben la propuesta: el 100 %.",ph:"Ej.: nº de personas a las que presento la propuesta"},
  {id:"6",nombre:"Negociación",grupo:"Venta",opt:"neg",
   que:"Personas que, tras recibir la propuesta, muestran interés por ajustarla a lo que necesitan.",
-  medir:"Solo si en tu negocio se negocia.",
+  medir:"Solo si en tu negocio se negocia. Criterio típico: acordáis una segunda conversación. Si tu precio es fijo, esta fase no existe.",rango:"Medio a medio-alto.",
   ej:"12 quieren ajustar la propuesta: el 30 %.",ph:"Ej.: nº de personas que quieren ajustar condiciones"},
  {id:"7",nombre:"Sistema P-10-15-15",grupo:"Venta",opt:"neg",
   que:"Personas con las que se cierra el acuerdo después de negociar.",
-  medir:"Es un seguimiento con fechas fijas desde el día en que presentas el presupuesto (P): vuelves a contactar a los 10 días y después cada 15. Ajusta los días a tu negocio. Solo si negocias.",
+  medir:"Es un seguimiento con fechas fijas desde el día en que presentas el presupuesto (P): vuelves a contactar a los 10 días y después cada 15, hasta tener un sí o un no. Un acuerdo no es una venta. Ajusta los días a tu negocio. Solo si negocias. En la pestaña «Comunica y cierra» te calcula las fechas.",
   ej:"Se cierra el acuerdo con 8: el 66,7 %.",ph:"Ej.: nº de personas con las que cierro acuerdo"},
  {id:"8",nombre:"Resolución: € o motivo",grupo:"Venta",
   que:"Personas que compran el producto estrella. De las que no compran, anota el motivo.",
-  medir:"Define cuándo cuentas algo como vendido: ¿con el pago total? ¿con el pago de la reserva? Las compras y los motivos de no compra se apuntan por separado.",
+  medir:"Define antes de empezar cuándo cuentas algo como vendido: ¿con la firma? ¿con el pago de la reserva? ¿con el pago total? Las compras y los motivos de no compra se apuntan por separado: pregunta el motivo con buen tono y llévalo a la lista del paso 4.",rango:"Alto.",
   ej:"6 contratan: el 75 % y 2.701 € de ventas del producto estrella.",precio:true,ph:"Ej.: nº de personas que pagan la reserva"},
  {id:"9",nombre:"Entrega",grupo:"Experiencia",
   que:"Clientes a los que entregas lo prometido dentro del plazo comprometido.",
-  medir:"Hay que cumplir la promesa de valor a quien ha pagado. Entre la venta y la entrega fija siempre un plazo máximo (SLA).",
+  medir:"Hay que cumplir la promesa de valor a quien ha pagado. Entre la venta y la entrega fija siempre un plazo máximo (SLA). Debería ser el 100 % de la fase 8: la experiencia empieza al cerrar la venta.",
   ej:"Las 6 reciben el servicio: el 100 %.",ph:"Ej.: nº de clientes con la entrega hecha en plazo"},
  {id:"10",nombre:"Encuesta PERE",grupo:"Experiencia",
   que:"Clientes a los que preguntas por su experiencia.",
-  medir:"Separa encuestas pedidas, respondidas y la valoración obtenida. PERE significa: Personal (en un momento de trato directo, para que respondan), Específica (respuestas ya escritas; como mucho una pregunta abierta y opcional), Rápida (menos de 2 minutos) y de Excelencia (si el cliente marca «correcto», no lo hiciste bien).",
+  medir:"Debería ser el 100 % de la fase 8. Separa encuestas pedidas, respondidas y la valoración obtenida. PERE significa: Personal (en un momento de trato directo, para que respondan), Específica (respuestas ya escritas; como mucho una pregunta abierta y opcional), Rápida (menos de 2 minutos) y de Excelencia (si el cliente marca «correcto», no lo hiciste bien).",
   ej:"Se pregunta a las 6: el 100 %.",ph:"Ej.: nº de clientes a los que pido la encuesta"}
 ];
 var ENTRADA=["Oferta irresistible: gratis o con un descuento fuerte durante un tiempo","Consumo gratuito que resuelve un problema","Contenidos de valor: PDF, guías, tests, diagnósticos","Sorteos de algo de alto interés","Opinión y conocimiento en redes sociales","Fechas concretas con oferta","Freemium: una parte gratis y lo avanzado de pago","Freemium financiado con publicidad","Selección irresistible en el punto de venta","Producto estrella permanente con productos de relleno","Eventos formativos o informativos con propuesta","Compartir base de datos con otro negocio","Plataformas de cupones","Repercusión con personas conocidas","Colaboraciones de valor con otros negocios","Patrocinio de eventos con oferta","Edición limitada creada con otro negocio","Recomendación con beneficio para quien recomienda","Condiciones premium durante un tiempo limitado","Demostración espectacular en directo"];
@@ -638,8 +783,9 @@ var EX={counts:[40000,800,200,200,40,40,12,8,6,6,6],precios:{"4b":35,"8":2701/6}
 var EX_PCT=EX.counts.map(function(c,i){return i===0?null:c/EX.counts[i-1]*100});
 
 var KEY="svd-practico-v1";
-var S={f:{},t:{cap2:false,neg:false},c:{},ex:null};
-try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&typeof o==="object"){S.f=o.f||{};S.t=o.t||S.t;S.c=o.c||{};S.ex=o.ex||null;S.q=Array.isArray(o.q)?o.q:[]}}}catch(e){}
+var S={f:{},t:{cap2:false,neg:false},c:{},ex:null,q:[],m:[],h:[]};
+try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&typeof o==="object"){S.f=o.f||{};S.t=o.t||S.t;S.c=o.c||{};S.ex=o.ex||null;S.q=Array.isArray(o.q)?o.q:[];S.m=Array.isArray(o.m)?o.m:[];S.h=Array.isArray(o.h)?o.h:[]}}}catch(e){}
+var KEEP=/^(pere\.|ex\.|v\.|pl\.|ci\.|p10\.)/;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function exPcts(){return S.ex&&S.ex.length===EX_PCT.length?S.ex:EX_PCT.slice()}
 
@@ -660,7 +806,7 @@ function renderPhases(){
   FASES.forEach(function(p,i){
     if(p.grupo!==g){g=p.grupo;html+='<div class="grp">'+g+'</div>'}
     html+='<div class="ph"><button type="button" aria-expanded="false" aria-controls="phb'+i+'" data-ph="'+i+'"><span class="n">'+p.id+'</span><span class="t">'+esc(p.nombre)+'<small>'+esc(p.que)+'</small></span>'+(p.opt?'<span class="pill opt">Opcional</span>':'<span></span>')+'</button>'+
-      '<div class="body" id="phb'+i+'" hidden><dl><div><dt>Cómo medirlo</dt><dd>'+esc(p.medir)+'</dd></div>'+(p.ojo?'<div><dt>Ojo</dt><dd>'+esc(p.ojo)+'</dd></div>':'')+'<div><dt>En el caso del curso</dt><dd>'+esc(p.ej)+'</dd></div></dl></div></div>';
+      '<div class="body" id="phb'+i+'" hidden><dl><div><dt>Cómo medirlo</dt><dd>'+esc(p.medir)+'</dd></div>'+(p.ojo?'<div><dt>Ojo</dt><dd>'+esc(p.ojo)+'</dd></div>':'')+(p.rango?'<div><dt>Paso habitual según el curso</dt><dd>'+esc(p.rango)+'</dd></div>':'')+'<div><dt>En el caso del curso</dt><dd>'+esc(p.ej)+'</dd></div></dl></div></div>';
   });
   $("phaseList").innerHTML=html;
 }
@@ -737,9 +883,9 @@ function renderCards(){
      '<label for="crit-'+p.id+'">Criterio: qué cuentas exactamente<textarea id="crit-'+p.id+'" rows="1" data-f="'+p.id+'.crit" placeholder="'+esc(p.ph)+'">'+esc(v(p.id+".crit"))+'</textarea></label>'+
      '<div class="pgrid">'+
      (first?'<label for="obj-'+p.id+'">Objetivo (personas)<input type="text" inputmode="decimal" id="obj-'+p.id+'" data-f="'+p.id+'.obj" value="'+esc(v(p.id+".obj"))+'" placeholder="Ej.: 5000"></label>'
-           :'<label for="obj-'+p.id+'">Objetivo de paso (%)<input type="text" inputmode="decimal" id="obj-'+p.id+'" data-f="'+p.id+'.obj" value="'+esc(v(p.id+".obj"))+'" placeholder="Ej.: 20"></label>')+
+           :'<label for="obj-'+p.id+'">Objetivo de paso (%)<input type="text" inputmode="decimal" id="obj-'+p.id+'" data-f="'+p.id+'.obj" value="'+esc(v(p.id+".obj"))+'" placeholder="'+(p.id==="5"||p.id==="9"||p.id==="10"?"100":"Ej.: 20")+'"></label>')+
      '<label for="med-'+p.id+'">Medición (personas)<input type="text" inputmode="decimal" id="med-'+p.id+'" data-f="'+p.id+'.med" value="'+esc(v(p.id+".med"))+'" placeholder="Al final del periodo"></label>'+
-     (p.precio?'<label for="pre-'+p.id+'">Precio por persona (€)<input type="text" inputmode="decimal" id="pre-'+p.id+'" data-f="'+p.id+'.precio" value="'+esc(v(p.id+".precio"))+'" placeholder="'+(p.id==="4a"?"0 si es gratis":"Ej.: 150")+'"></label>':'')+
+     (p.precio?'<label for="pre-'+p.id+'">'+(p.id==="8"&&S.t.ticket?"Ticket medio (€)":"Precio por persona (€)")+'<input type="text" inputmode="decimal" id="pre-'+p.id+'" data-f="'+p.id+'.precio" value="'+esc(v(p.id+".precio"))+'" placeholder="'+(p.id==="4a"?"0 si es gratis":"Ej.: 150")+'"></label>':'')+
      '</div>'+
      (first?'':'<details class="sla"'+(v(p.id+".slaO")||v(p.id+".slaM")?' open':'')+'><summary>Plazo máximo desde la fase anterior (SLA)</summary><div class="pgrid"><label for="slo-'+p.id+'">Objetivo (días)<input type="text" inputmode="decimal" id="slo-'+p.id+'" data-f="'+p.id+'.slaO" value="'+esc(v(p.id+".slaO"))+'"></label><label for="slm-'+p.id+'">Medición (días)<input type="text" inputmode="decimal" id="slm-'+p.id+'" data-f="'+p.id+'.slaM" value="'+esc(v(p.id+".slaM"))+'"></label></div></details>')+
      '</div></details>';
@@ -770,6 +916,7 @@ function renderResults(){
     var st=$("st-"+r.id);if(!st)return;
     if(r.first){st.className="status";st.textContent=r.med!==null?fN(r.med)+" personas":"Punto de partida";return}
     if(r.pct===null){st.className="status";st.textContent=r.obj!==null?"Objetivo "+fP(r.obj):"Sin medición";return}
+    if(r.pct>100.05){st.className="status bad";st.textContent="Más personas que en la fase anterior: revisa cómo cuentas";return}
     if(r.obj===null){st.className="status";st.textContent="Paso "+fP(r.pct);return}
     var d=r.pct-r.obj;if(Math.abs(d)<0.05)d=0;st.className="status "+(d>=0?"ok":"bad");
     st.textContent="Paso "+fP(r.pct)+" · "+(d===0?"en tu objetivo":(d>0?"+":"−")+fN(Math.abs(d),1)+" puntos");
@@ -793,15 +940,28 @@ function renderResults(){
   else if(ben>0)vd="<strong>Tu ciclo de vida en beneficios es positivo.</strong> Cada persona que entra en tu embudo te deja de media "+fE(ben/m.alcance,2)+". Según el curso, es la señal para invertir más en llegar a más gente.";
   else vd="<strong>Ahora mismo el sistema no se paga solo.</strong> Mira en el paso 4 qué fase está más lejos de su objetivo y empieza por ahí.";
   $("myVerdict").innerHTML=vd;
-  renderDiag(m);renderPlanResult();
+  renderCdv(m,g);renderDiag(m);renderPlanResult();renderMotivos();
+}
+
+function renderCdv(m,g){
+  var el=$("myCdv");
+  if(m.ventas===null){el.innerHTML='<p class="small muted">Cuando tengas ventas, aquí verás cuánto te deja de media cada persona de cada fase: por cada persona alcanzada, por cada contacto, por cada propuesta…</p>';return}
+  var rows=m.rows.filter(function(r){return r.med!==null&&r.med>0});
+  el.innerHTML='<div class="tblwrap"><table class="tbl"><thead><tr><th>Fase</th><th class="n">Personas</th><th class="n">Ventas por persona</th>'+(g!==null?'<th class="n">Beneficio por persona</th>':'')+'</tr></thead><tbody>'+
+    rows.map(function(r){return '<tr><td>'+esc(r.id)+' · '+esc(r.nombre)+'</td><td class="n">'+fN(r.med)+'</td><td class="n">'+fE(m.ventas/r.med,2)+'</td>'+(g!==null?'<td class="n">'+fE((m.ventas-g)/r.med,2)+'</td>':'')+'</tr>'}).join("")+
+    '</tbody></table></div><p class="small muted">Te sirve para saber cuánto puedes invertir en conseguir a una persona más en cada fase.</p>';
 }
 
 // ---------- Paso 4 ----------
 function renderDiag(m){
+  var avisos="";
+  m.rows.forEach(function(r){if(!r.first&&r.pct!==null&&r.pct>100.05)avisos+='<li><strong>'+r.id+' · '+esc(r.nombre)+'</strong>: tiene más personas que la fase anterior. Ninguna fase puede tener más que la anterior: revisa el criterio con el que cuentas.</li>'});
+  var r8=null;m.rows.forEach(function(r){if(r.id==="8")r8=r});
+  m.rows.forEach(function(r){if((r.id==="9"||r.id==="10")&&r8&&r8.med!==null&&r.med!==null&&r.med<r8.med)avisos+='<li><strong>'+r.id+' · '+esc(r.nombre)+'</strong>: llega a '+fN(r.med)+' de los '+fN(r8.med)+' que compraron. Debería ser el 100 %.</li>'});
   var below=m.rows.filter(function(r){return !r.first&&r.pct!==null&&r.obj!==null&&r.pct<r.obj-0.05});
   if(!below.length){
     var withData=m.rows.filter(function(r){return !r.first&&r.pct!==null&&r.obj!==null}).length;
-    $("diag").innerHTML='<li style="border-left-color:var(--ok)">'+(withData?"Todas las fases medidas llegan a su objetivo. Sube un poco el objetivo de la fase más cercana al alcance y vuelve a medir.":"Rellena el objetivo y la medición de tus fases en el paso 3 y aquí verás cuáles se quedan cortas.")+'</li>';return;
+    $("diag").innerHTML=avisos+'<li style="border-left-color:var(--ok)">'+(withData?"Todas las fases medidas llegan a su objetivo. Sube un poco el objetivo de la fase más cercana al alcance y vuelve a medir.":"Rellena el objetivo y la medición de tus fases en el paso 3 y aquí verás cuáles se quedan cortas.")+'</li>';return;
   }
   var worst=below.slice().sort(function(a,b){return (a.pct-a.obj)-(b.pct-b.obj)})[0];
   var nearest=below[0];
@@ -811,7 +971,7 @@ function renderDiag(m){
     html+='<li class="'+(tags.length?'first':'')+'"><strong>'+r.id+' · '+esc(r.nombre)+'</strong>: '+fP(r.pct)+' frente a un objetivo de '+fP(r.obj)+' ('+fN(r.obj-r.pct,1)+' puntos por debajo)'+(tags.length?'. <em>Es '+tags.join(" y ")+'.</em>':'')+'</li>';
   });
   html+='<li style="border-left-color:var(--line)" class="small muted">Regla del curso: empieza por la que peor está respecto a su objetivo y por la más cercana al alcance, porque su mejora se multiplica en todas las fases siguientes.</li>';
-  $("diag").innerHTML=html;
+  $("diag").innerHTML=avisos+html;
 }
 function renderPlanInputs(){
   var fs=activas().slice(1);
@@ -842,9 +1002,12 @@ function resumen(){
   L.push("MI SISTEMA DE VENTAS DEFINITIVO");
   if(v("negocio"))L.push("Negocio: "+v("negocio"));
   if(v("estrella"))L.push("Producto estrella: "+v("estrella")+(v("hab")?" ("+v("hab")+")":""));
+  if(S.t.ticket)L.push("Trabajo con ticket medio en la fase 8");
+  if(v("icp"))L.push("Cliente ideal: "+v("icp"));
+  if(v("problema"))L.push("Su problema: "+v("problema"));
   if(v("cap1"))L.push("Captación 1: "+v("cap1"));
   if(S.t.cap2&&v("cap2name"))L.push("Captación 2: "+v("cap2name"));
-  if(v("canal"))L.push("Canal: "+v("canal"));
+  if(v("canal"))L.push("Canal: "+v("canal")+(v("presu")?" · presupuesto mensual: "+v("presu"):""));
   L.push("Periodo: "+(v("periodo")||"Mensual"));L.push("");
   m.rows.forEach(function(r){
     var s=r.id+" "+r.nombre+": "+(r.med===null?"sin medir":fN(r.med)+" personas");
@@ -859,6 +1022,8 @@ function resumen(){
   var e=ENTRADA.filter(function(_,i){return S.c["e"+i]}),d=DORM.filter(function(_,i){return S.c["d"+i]});
   if(e.length){L.push("");L.push("Ideas de puerta de entrada: "+e.join("; "))}
   if(d.length){L.push("Ideas de dormitorio: "+d.join("; "))}
+  if(S.m.length){L.push("");L.push("Motivos de no compra:");motivosOrden().forEach(function(x){L.push("- "+x.m.t+": "+x.m.n+" "+(x.m.n===1?"vez":"veces")+" · "+x.m.p)})}
+  if(S.h.length){L.push("");L.push("Periodos guardados:");S.h.forEach(function(h){L.push("- "+h.l+": alcance "+fN(h.alc)+" · ventas estrella "+(h.est===null?"—":fN(h.est))+" · ventas "+fE(h.ventas)+(h.c?" · cambio: "+h.c:""))})}
   return L.join("\n");
 }
 $("copyBtn").addEventListener("click",function(){
@@ -870,26 +1035,31 @@ $("copyBtn").addEventListener("click",function(){
 // ---------- Eventos de formulario ----------
 document.addEventListener("input",function(e){
   var el=e.target,k=el.getAttribute&&el.getAttribute("data-f");
-  if(k){S.f[k]=el.value;save();if(k==="ex.gastos")renderExample();else renderResults();return}
+  if(k){S.f[k]=el.value;save();
+    document.querySelectorAll('[data-f="'+k+'"]').forEach(function(o){if(o!==el)o.value=el.value});
+    if(/^pl\./.test(k)){updatePlProg();return}
+    if(/^p10\./.test(k)){renderP10();return}
+    if(/^(v\.|ci\.|pere\.)/.test(k))return;
+    if(k==="ex.gastos")renderExample();else renderResults();return}
 });
 document.addEventListener("change",function(e){
   var el=e.target;
   var t=el.getAttribute&&el.getAttribute("data-t");
   if(t){S.t[t]=el.checked;save();renderCards();renderResults();return}
   var c=el.getAttribute&&el.getAttribute("data-c");
-  if(c){S.c[c]=el.checked;save();renderChecks();return}
+  if(c){S.c[c]=el.checked;save();if(/^ci/.test(c))renderCierres();else renderChecks();return}
   var k=el.getAttribute&&el.getAttribute("data-f");
   if(k&&el.tagName==="SELECT"){S.f[k]=el.value;save()}
 });
 function fillBase(){
-  ["negocio","canal","estrella","hab","periodo","cap1","cap2name","gastos"].forEach(function(k){var el=document.querySelector('[data-f="'+k+'"]');if(el&&S.f[k]!==undefined)el.value=S.f[k]});
-  $("t-cap2").checked=!!S.t.cap2;$("t-neg").checked=!!S.t.neg;
+  ["negocio","canal","presu","estrella","hab","periodo","icp","problema","cap1","cap2name","gastos"].forEach(function(k){document.querySelectorAll('[data-f="'+k+'"]').forEach(function(el){if(S.f[k]!==undefined)el.value=S.f[k];else if(el.tagName!=="SELECT")el.value=""})});
+  $("t-cap2").checked=!!S.t.cap2;$("t-neg").checked=!!S.t.neg;$("t-ticket").checked=!!S.t.ticket;
   if(S.f["ex.gastos"]!==undefined)$("exGastos").value=S.f["ex.gastos"];
 }
 $("loadExample").addEventListener("click",function(){
-  var keep={};Object.keys(S.f).forEach(function(k){if(/^(pere\.|ex\.)/.test(k))keep[k]=S.f[k]});
+  var keep={};Object.keys(S.f).forEach(function(k){if(KEEP.test(k)||k==="icp"||k==="problema")keep[k]=S.f[k]});
   S.f=Object.assign(keep,{negocio:"Centro de estética para novias (ejemplo)",canal:"Campaña de pago en redes",estrella:"Propuesta para preparar a la novia",cap1:"Guía en PDF para aguantar el maquillaje perfecto",cap2name:"Corte o peinado en la peluquería",periodo:"Mensual"});
-  S.t.cap2=true;S.t.neg=true;
+  S.t.cap2=true;S.t.neg=true;S.t.ticket=false;
   FASES.forEach(function(p,i){S.f[p.id+".med"]=String(EX.counts[i]);if(i>0)S.f[p.id+".obj"]=String(Math.round(EX_PCT[i]*10)/10).replace(".",",")});
   S.f["1.obj"]="40000";S.f["4a.precio"]="0";S.f["4b.precio"]="35";S.f["8.precio"]="450,17";
   save();fillBase();renderCards();renderResults();toast("Cargados los números del ejemplo");
@@ -898,24 +1068,23 @@ $("loadExample").addEventListener("click",function(){
 $("askReset").addEventListener("click",function(){$("resetBox").hidden=false});
 $("noReset").addEventListener("click",function(){$("resetBox").hidden=true});
 $("doReset").addEventListener("click",function(){
-  var keep={};Object.keys(S.f).forEach(function(k){if(/^(pere\.|ex\.)/.test(k))keep[k]=S.f[k]});S.f=keep;S.t.cap2=false;S.t.neg=false;S.c={};save();
+  var keep={};Object.keys(S.f).forEach(function(k){if(KEEP.test(k))keep[k]=S.f[k]});S.f=keep;S.t.cap2=false;S.t.neg=false;S.t.ticket=false;
+  var kc={};Object.keys(S.c).forEach(function(k){if(/^ci/.test(k))kc[k]=S.c[k]});S.c=kc;S.m=[];S.h=[];save();
   document.querySelectorAll('#tu-svd [data-f]').forEach(function(el){el.value=el.tagName==="SELECT"?el.options[0].value:""});
-  fillBase();renderChecks();renderCards();renderResults();$("resetBox").hidden=true;toast("Todo borrado");
+  fillBase();renderChecks();renderCards();renderResults();renderHist();$("resetBox").hidden=true;toast("Todo borrado");
 });
 
 // ---------- Pestañas ----------
 // Cada paso es un bloque: solo se ve uno a la vez
-var SECS={svd:["entiende","ejemplo","tu-svd","mejora"],pere:["pere","pere-ejemplo","pere-crea","pere-mide"]};
-var NOMBRES={"entiende":"Entiéndelo","ejemplo":"Mira el ejemplo","tu-svd":"Monta el tuyo","mejora":"Mejóralo","pere":"Entiéndela","pere-ejemplo":"Mira el ejemplo","pere-crea":"Crea la tuya","pere-mide":"Mide los resultados"};
-var LAST={svd:"entiende",pere:"pere"};
-function tabOf(id){return SECS.pere.indexOf(id)>=0?"pere":"svd"}
+var SECS={svd:["entiende","ejemplo","tu-svd","mejora"],pere:["pere","pere-ejemplo","pere-crea","pere-mide"],vende:["problema","plantilla","cierres"]};
+var NOMBRES={"entiende":"Entiéndelo","ejemplo":"Mira el ejemplo","tu-svd":"Monta el tuyo","mejora":"Mejóralo","pere":"Entiéndela","pere-ejemplo":"Mira el ejemplo","pere-crea":"Crea la tuya","pere-mide":"Mide los resultados","problema":"El problema","plantilla":"Tu plantilla de venta","cierres":"Tus cierres"};
+var LAST={svd:"entiende",pere:"pere",vende:"problema"};
+function tabOf(id){for(var t in SECS){if(SECS[t].indexOf(id)>=0)return t}return "svd"}
 function showSection(id,scroll){
   if(!NOMBRES[id])id="entiende";
-  var tab=tabOf(id),pere=tab==="pere";LAST[tab]=id;
-  $("tab-svd").hidden=pere;$("tab-pere").hidden=!pere;
-  $("nav-svd").hidden=pere;$("nav-pere").hidden=!pere;
-  $("tabbtn-svd").setAttribute("aria-selected",pere?"false":"true");
-  $("tabbtn-pere").setAttribute("aria-selected",pere?"true":"false");
+  var tab=tabOf(id);LAST[tab]=id;
+  Object.keys(SECS).forEach(function(t){$("tab-"+t).hidden=t!==tab;$("nav-"+t).hidden=t!==tab;$("tabbtn-"+t).setAttribute("aria-selected",t===tab?"true":"false")});
+  var tb=$("tabbtn-"+tab),tw=tb.parentNode;if(tw.scrollWidth>tw.clientWidth)tw.scrollLeft=Math.max(0,tb.offsetLeft-tw.offsetLeft-12);
   SECS[tab].forEach(function(s){$(s).hidden=s!==id});
   document.querySelectorAll(".stepnav a").forEach(function(a){if(a.getAttribute("href")==="#"+id)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
   if(scroll){var nav=document.querySelector(".steps");var y=nav.getBoundingClientRect().top+window.pageYOffset;if(window.pageYOffset>y)window.scrollTo({top:y,behavior:"smooth"})}
@@ -927,7 +1096,7 @@ Object.keys(SECS).forEach(function(tab){
     var prev=SECS[tab][i-1],next=SECS[tab][i+1],foot=document.createElement("div");foot.className="stepfoot";
     foot.innerHTML=(prev?'<button class="btn" type="button" data-go="'+prev+'">← '+NOMBRES[prev]+'</button>':'<span></span>')+
       (next?'<button class="btn main" type="button" data-go="'+next+'">Siguiente: '+NOMBRES[next]+' →</button>':
-        (tab==="svd"?'<button class="btn main" type="button" data-go="pere">Ahora, tu encuesta PERE →</button>':'<button class="btn" type="button" data-go="mejora">Volver a mi SVD →</button>'));
+        (tab==="svd"?'<button class="btn main" type="button" data-go="pere">Ahora, tu encuesta PERE →</button>':(tab==="pere"?'<button class="btn main" type="button" data-go="problema">Ahora, prepara cómo lo vendes →</button>':'<button class="btn" type="button" data-go="mejora">Volver a mi SVD →</button>')));
     $(id).querySelector(".wrap").appendChild(foot);
   });
 });
@@ -960,7 +1129,8 @@ function segundos(qs,open){return qs.length*12+(open?30:0)}
 function surveyHTML(qs,openText,name){
   var h=qs.map(function(q,i){
     var ops=opciones(q);
-    return '<fieldset><legend>'+(i+1)+'. '+esc(q.t||"(pregunta sin escribir)")+'</legend><div class="opts">'+ops.map(function(o,j){return '<label><input type="radio" name="'+name+i+'" value="'+j+'">'+esc(o)+'</label>'}).join("")+'</div></fieldset>';
+    var low=q.k==="val"?2:(q.k==="exc"?1:-1);
+    return '<fieldset data-low="'+low+'"><legend>'+(i+1)+'. '+esc(q.t||"(pregunta sin escribir)")+'</legend><div class="opts">'+ops.map(function(o,j){return '<label><input type="radio" name="'+name+i+'" value="'+j+'">'+esc(o)+'</label>'}).join("")+'</div>'+(low>=0?'<label class="follow" hidden>¿Qué pasó? <span class="muted">(opcional)</span><textarea rows="2"></textarea></label>':'')+'</fieldset>';
   }).join("");
   if(openText)h+='<label for="'+name+'open">'+esc(openText)+' <span class="muted">(opcional)</span><textarea id="'+name+'open" rows="2"></textarea></label>';
   h+='<p class="small muted">Tiempo aproximado para responder: '+segundos(qs,!!openText)+' segundos.</p>';
@@ -985,7 +1155,7 @@ function renderPere(){
   $("mySurvey").innerHTML=S.q.length?surveyHTML(S.q,open,"my"):'<p class="small muted">Cuando tengas preguntas, aquí verás tu encuesta tal como la verá tu cliente.</p>';
   var c=[];
   var pOk=!!v("pere.momento")&&!!String(v("pere.quien")).trim();
-  c.push([pOk,"P","Personal",pOk?"La pides "+v("pere.momento").toLowerCase()+" y la ofrece "+v("pere.quien")+".":"Falta decir en qué momento la pides y quién la ofrece."]);
+  c.push([pOk,"P","Personal",pOk?"La pides "+v("pere.momento").toLowerCase()+" y la ofrece "+v("pere.quien")+"."+(String(v("pere.porque")).trim()?"":" Te falta la frase con la que le explicas por qué es importante."):"Falta decir en qué momento la pides y quién la ofrece."]);
   var vacias=S.q.filter(function(q){return !String(q.t||"").trim()||opciones(q).length<2}).length;
   var eOk=S.q.length>=1&&S.q.length<=5&&!vacias;
   c.push([eOk,"E","Específica",!S.q.length?"Aún no tienes preguntas.":(vacias?"Hay "+vacias+" pregunta(s) sin texto o con menos de dos respuestas.":S.q.length+" preguntas cerradas con respuestas ya escritas"+(S.t.open?" y una abierta opcional.":"."))]);
@@ -1040,6 +1210,7 @@ function pereResumen(){
   L.push("");
   S.q.forEach(function(q,i){L.push((i+1)+". "+q.t);L.push("   "+opciones(q).join(" · "))});
   if(S.t.open)L.push((S.q.length+1)+". "+(v("pere.open")||EXOPEN)+" (opcional)");
+  if(v("pere.porque"))L.push("Al pedirla le digo: "+v("pere.porque"));
   var pe=v("pere.pedidas"),re=v("pere.resp"),ex=v("pere.excel");
   if(pe||re||ex){L.push("");L.push("Resultados: pedidas "+(pe||"—")+" · respondidas "+(re||"—")+" · excelencia "+(ex||"—"))}
   return L.join("\n");
@@ -1055,11 +1226,162 @@ $("toSvd").addEventListener("click",function(){
   S.f["10.med"]=String(pe);save();renderCards();renderResults();toast("Fase 10 de tu SVD actualizada");
 });
 function fillPere(){
-  ["pere.servicio","pere.momento","pere.quien","pere.como","pere.pt1","pere.pt2","pere.pt3","pere.pt4","pere.open","pere.clientes","pere.pedidas","pere.resp","pere.excel"].forEach(function(k){var el=document.querySelector('[data-f="'+k+'"]');if(el&&S.f[k]!==undefined)el.value=S.f[k]});
+  ["pere.servicio","pere.momento","pere.quien","pere.como","pere.porque","pere.pt1","pere.pt2","pere.pt3","pere.pt4","pere.open","pere.clientes","pere.pedidas","pere.resp","pere.excel"].forEach(function(k){var el=document.querySelector('[data-f="'+k+'"]');if(el&&S.f[k]!==undefined)el.value=S.f[k]});
   $("p-open").checked=!!S.t.open;
 }
 
+// ---------- Motivos de no compra ----------
+function motivosOrden(){return S.m.map(function(m,i){return{m:m,i:i}}).sort(function(a,b){return b.m.n-a.m.n})}
+function renderMotivos(){
+  $("moList").innerHTML=S.m.length?motivosOrden().map(function(x){return '<div class="mrow"><span class="t">'+esc(x.m.t)+' <span class="muted small">· '+esc(x.m.p)+'</span></span><button class="btn sq" type="button" data-mo="dec" data-i="'+x.i+'" aria-label="Una vez menos">−</button><span class="cnt">'+x.m.n+'</span><button class="btn sq" type="button" data-mo="inc" data-i="'+x.i+'" aria-label="Una vez más">+</button><button class="linkbtn" type="button" data-mo="del" data-i="'+x.i+'">Quitar</button></div>'}).join(""):'<p class="small muted">Todavía no has apuntado ningún motivo.</p>';
+  var m=model(),prev=null,r8=null;m.rows.forEach(function(r,i){if(r.id==="8"){r8=r;prev=m.rows[i-1]||null}});
+  var total=S.m.reduce(function(a,b){return a+b.n},0),info="";
+  if(r8&&prev&&r8.med!==null&&prev.med!==null&&prev.med>r8.med){var no=prev.med-r8.med;info=fN(no)+" personas llegaron a la fase "+prev.id+" y no compraron. Tienes apuntado el motivo de "+fN(total)+"."+(total<no?" Te faltan "+fN(no-total)+" por preguntar.":"")}
+  $("moInfo").textContent=info;
+}
+$("mo-add").addEventListener("click",function(){
+  var t=$("mo-t").value.trim();if(!t){toast("Escribe el motivo");$("mo-t").focus();return}
+  var p=$("mo-p").value,found=null;S.m.forEach(function(m){if(m.t.toLowerCase()===t.toLowerCase())found=m});
+  if(found){found.n++;found.p=p}else S.m.push({t:t,n:1,p:p});
+  $("mo-t").value="";save();renderMotivos();toast(found?"Sumado a un motivo que ya tenías":"Motivo apuntado");
+});
+$("mo-t").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();$("mo-add").click()}});
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-mo]");if(!b)return;var i=+b.getAttribute("data-i"),a=b.getAttribute("data-mo"),m=S.m[i];if(!m)return;
+  if(a==="inc")m.n++;else if(a==="dec"){m.n--;if(m.n<1)S.m.splice(i,1)}else S.m.splice(i,1);
+  save();renderMotivos();
+});
+
+// ---------- Mejora cada periodo ----------
+function mesActual(){try{return new Date().toLocaleDateString("es-ES",{month:"long",year:"numeric"})}catch(e){return ""}}
+function renderHist(){
+  if(!$("h-l").value)$("h-l").value=mesActual();
+  if(!S.h.length){$("hList").innerHTML='<p class="small muted">Cuando termines un periodo y tengas tus mediciones, guárdalo. Al guardar el siguiente verás si has mejorado.</p>';return}
+  $("hList").innerHTML='<div class="tblwrap"><table class="tbl"><thead><tr><th>Periodo</th><th class="n">Alcance</th><th class="n">Ventas estrella</th><th class="n">Ventas</th><th class="n">Por persona alcanzada</th><th>Qué cambiaste</th><th></th></tr></thead><tbody>'+
+    S.h.map(function(h,i){
+      var pr=S.h[i-1],dif="";
+      if(pr&&pr.ventas&&h.ventas!==null){var d=(h.ventas/pr.ventas-1)*100;dif=' <span class="'+(d>=0?"up":"down")+'">'+(d>=0?"+":"−")+fN(Math.abs(d),0)+' %</span>'}
+      return '<tr><td>'+esc(h.l)+'</td><td class="n">'+fN(h.alc)+'</td><td class="n">'+(h.est===null?"—":fN(h.est))+'</td><td class="n">'+fE(h.ventas)+dif+'</td><td class="n">'+fE(h.ventas!==null&&h.alc?h.ventas/h.alc:null,2)+'</td><td>'+esc(h.c||"—")+'</td><td><button class="linkbtn" type="button" data-hdel="'+i+'">Quitar</button></td></tr>'}).join("")+
+    '</tbody></table></div>';
+}
+$("h-save").addEventListener("click",function(){
+  var m=model();if(m.alcance===null){toast("Rellena al menos el alcance de este periodo");return}
+  var est=null,pct={};m.rows.forEach(function(r){if(r.id==="8")est=r.med;pct[r.id]=r.pct});
+  S.h.push({l:$("h-l").value.trim()||mesActual(),c:$("h-c").value.trim(),alc:m.alcance,est:est,ventas:m.ventas,gastos:num(S.f.gastos),pct:pct});
+  $("h-c").value="";save();renderHist();toast("Periodo guardado. Cambia una sola cosa y vuelve a medir");
+});
+document.addEventListener("click",function(e){var b=e.target.closest("[data-hdel]");if(!b)return;S.h.splice(+b.getAttribute("data-hdel"),1);save();renderHist()});
+
+// ---------- Plantilla de venta (16 pasos) ----------
+var PLANT=[
+ {n:1,k:"logo",t:"Logotipo",h:"Da confianza: hay una empresa detrás.",ph:"Dónde y cómo aparece tu logo"},
+ {n:2,k:"nombre",t:"Nombre del producto o servicio",h:"Un título con gancho, para que lo identifiquen y lo recuerden."},
+ {n:3,k:"prob",t:"Presentación del problema",h:"Las emociones negativas de tu cliente ideal.",bring:"prob"},
+ {n:4,k:"sol",t:"Solución",h:"Emoción positiva, con verbos en futuro."},
+ {n:5,k:"carac",t:"Características",h:"Técnico y descriptivo: que quede claro qué compra."},
+ {n:6,k:"precio",t:"Precio y condiciones iniciales",h:""},
+ {n:7,k:"para",t:"Para quién es y para quién no",h:"El «no es para» tiene que hacer pensar «ese no puedo ser yo»."},
+ {n:8,k:"cred",t:"Credenciales",h:"Testimonios, reseñas, valoraciones, marcas con las que trabajas, certificaciones, datos."},
+ {n:9,k:"casos",t:"Casos reales",h:"La historia y los resultados de un cliente. Incluso su contacto para que le pregunten."},
+ {n:10,k:"cta",t:"Llamada a la acción",h:"Qué tiene que hacer ahora. Se repite en los pasos 13 y 16."},
+ {n:11,k:"lim",t:"Limitación",h:"Urgencia real: plazas, plazo o unidades. Si no es real, no la pongas: la escasez falsa es publicidad engañosa."},
+ {n:12,k:"bonus",t:"Bonus o regalo",h:"«Y además…»"},
+ {n:13,k:"cta",t:"Llamada a la acción",rep:true},
+ {n:14,k:"obj",t:"Gestión de objeciones",h:"Responde las dudas antes de que aparezcan. Aquí van tus motivos de no compra.",bring:"obj"},
+ {n:15,k:"rep",t:"Repetición",h:"Un resumen de todo lo anterior."},
+ {n:16,k:"cta",t:"Llamada a la acción",rep:true}
+];
+function renderPlant(){
+  $("plList").innerHTML=PLANT.map(function(p){
+    if(p.rep)return '<div class="pl rep"><div class="ph"><b>'+p.n+'</b><strong>'+p.t+'</strong><span class="small muted">· la misma del paso 10</span></div><p class="small" data-ctaecho>'+esc(v("pl.cta")||"(escríbela en el paso 10)")+'</p></div>';
+    return '<div class="pl"><div class="ph"><b>'+p.n+'</b><strong>'+p.t+'</strong></div>'+(p.h?'<p class="small muted">'+p.h+'</p>':'')+
+      '<label for="pl-'+p.k+'">Tu texto<textarea id="pl-'+p.k+'" rows="2" data-f="pl.'+p.k+'" placeholder="'+esc(p.ph||"Escríbelo para tu caso")+'">'+esc(v("pl."+p.k))+'</textarea></label>'+
+      (p.bring==="prob"?'<div class="row"><button class="btn" type="button" data-bring="prob">Traer lo que escribí en «El problema»</button></div>':'')+
+      (p.bring==="obj"?'<div class="row"><button class="btn" type="button" data-bring="obj">Traer mis motivos de no compra</button></div>':'')+'</div>';
+  }).join("");
+  updatePlProg();
+}
+function updatePlProg(){
+  var keys=PLANT.filter(function(p){return !p.rep}).map(function(p){return p.k});
+  var n=keys.filter(function(k){return String(v("pl."+k)).trim()}).length;
+  $("plProg").textContent="Llevas "+n+" de "+keys.length+" pasos escritos.";
+  document.querySelectorAll("[data-ctaecho]").forEach(function(e){e.textContent=v("pl.cta")||"(escríbela en el paso 10)"});
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-bring]");if(!b)return;
+  var k=b.getAttribute("data-bring"),txt="";
+  if(k==="prob"){txt=[v("problema"),v("v.emo"),v("v.escena")].map(function(x){return String(x).trim()}).filter(Boolean).join("\n");if(!txt){toast("Primero rellena «El problema» (paso 1)");return}}
+  else{if(!S.m.length){toast("Apunta antes tus motivos en «Mejóralo» de tu SVD");return}txt=motivosOrden().map(function(x){return "Si te dicen «"+x.m.t+"»: "}).join("\n")}
+  var key=k==="prob"?"pl.prob":"pl.obj",cur=String(v(key)).trim();S.f[key]=cur?cur+"\n"+txt:txt;save();
+  var el=$(k==="prob"?"pl-prob":"pl-obj");el.value=S.f[key];el.focus();updatePlProg();toast("Añadido: ahora dale tu forma");
+});
+function plResumen(){
+  var L=["MI PLANTILLA DE VENTA"+(v("v.uso")?" · "+v("v.uso"):"")];
+  PLANT.forEach(function(p){var t=String(v("pl."+p.k)).trim();L.push("");L.push(p.n+". "+p.t.toUpperCase());L.push(t||"(sin escribir)")});
+  return L.join("\n");
+}
+
+// ---------- Cierres ----------
+var CIERRES=[
+ ["Directivo","Tomas las riendas: dices lo que va a pasar y lo que tiene que hacer el cliente. Exige contundencia y confianza en ti."],
+ ["Érase una vez","Una historia real relacionada con el momento, que emocione. Tenla preparada."],
+ ["Acción física","Como el directivo, pero con movimiento: llevas a la persona a un sitio o a una acción que favorece la compra."],
+ ["El sí infinito","Una serie de preguntas a las que solo tiene sentido responder que sí."],
+ ["El silencio perfecto","Creas el contexto para seguir y te callas. Complementa a las demás."],
+ ["Dime por qué no","Preguntas los motivos antes de perder la venta."],
+ ["¿Qué falta para que sea perfecto?","Para cuando parece que le gusta pero no se cierra."],
+ ["¿Algo barato o algo bueno?","Toca cómo se ve a sí mismo: nadie quiere quedar como quien elige lo barato."],
+ ["Más tiempo, más problema","Proyectas cómo empeora la situación si no actúa. Combina muy bien con «Érase una vez» y con «La razón por encima de la emoción»."],
+ ["No lo compres, pruébalo","Plan B: una pequeña experiencia para no perder al cliente."],
+ ["Yo lo compro, tú lo compras","Si lo uso yo y lo usa mi entorno, a ti también te puede servir."],
+ ["Garantía personal","Tu palabra y tu contacto: si no le sirve, respondes tú."],
+ ["Venta por autoconcepto","Cómo actuaría la persona que el cliente cree que es."],
+ ["La razón por encima de la emoción","Llevas la decisión a un planteamiento lógico."],
+ ["Me entra por una oreja y me sale por la otra","Ignoras lo que no conviene o no se puede gestionar."],
+ ["Comparación directa o indirecta","Directa: dinero frente a valor (cuánto cuesta esto y cuánto aquello). Indirecta: dinero frente a emociones o recuerdos. Va bien con el silencio."],
+ ["La respuesta es sí","Si algo es importante para el cliente, dices que sí y después encuentras cómo."],
+ ["A, B o C","Das opciones, todas buenas para ti, y dejas elegir. Después, silencio."],
+ ["Beneficio inmediato","Algo que refuerce el valor si lo principal tarda en llegar."],
+ ["La línea del tiempo","Cuentas lo que va a pasar a partir de ahora y terminas en un futuro mejor."]
+];
+function renderCierres(){
+  $("ciList").innerHTML=CIERRES.map(function(c,i){var on=!!S.c["ci"+i];
+    return '<div class="ci'+(on?' on':'')+'"><label for="ci-c'+i+'"><input type="checkbox" id="ci-c'+i+'" data-c="ci'+i+'"'+(on?' checked':'')+'><span><strong>'+(i+1)+'. '+esc(c[0])+'</strong><br><span class="small muted">'+esc(c[1])+'</span></span></label>'+
+      (on?'<label for="ci-t'+i+'">Lo que dirías tú<textarea id="ci-t'+i+'" rows="2" data-f="ci.'+i+'" placeholder="Escribe la frase tal como la dirías">'+esc(v("ci."+i))+'</textarea></label>':'')+'</div>'}).join("");
+  var n=CIERRES.filter(function(_,i){return S.c["ci"+i]}).length;
+  $("ciCount").textContent=n?"Tienes "+n+" técnica"+(n===1?"":"s")+" marcada"+(n===1?"":"s")+". Al preparar un cierre, piensa en qué fase está la persona y qué duda tiene, y combina 2 o 3.":"Marca las técnicas que quieras preparar.";
+}
+function renderP10(){
+  var f=v("p10.fecha"),a=num(S.f["p10.a"]),b=num(S.f["p10.b"]);if(a===null||a<=0)a=10;if(b===null||b<=0)b=15;
+  if(!f){$("p10List").innerHTML='<li style="border-left-color:var(--line)" class="small muted">Pon la fecha y verás los días en que te toca llamar.</li>';return}
+  var d0=new Date(f+"T12:00:00");if(isNaN(d0)){$("p10List").innerHTML="";return}
+  var out=[],dias=a;for(var i=0;i<4;i++){var d=new Date(d0.getTime()+dias*864e5);out.push('<li style="border-left-color:var(--gold)"><strong>'+(i===0?"Primera llamada":(i+1)+"ª llamada")+'</strong> · día '+dias+': '+d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})+'</li>');dias+=b}
+  out.push('<li style="border-left-color:var(--line)" class="small muted">Y así cada '+b+' días hasta tener un sí o un no.</li>');
+  $("p10List").innerHTML=out.join("");
+}
+function ciResumen(){
+  var L=["MIS CIERRES"];
+  CIERRES.forEach(function(c,i){if(S.c["ci"+i]){L.push("");L.push((i+1)+". "+c[0]);L.push(String(v("ci."+i)).trim()||"(sin frase preparada)")}});
+  return L.length>1?L.join("\n"):"";
+}
+function copiar(txt,fbId,ok){
+  var fb=$(fbId);function fallback(){fb.hidden=false;fb.value=txt;fb.focus();fb.select();toast("Selecciona el texto y cópialo")}
+  try{navigator.clipboard.writeText(txt).then(function(){fb.hidden=true;toast(ok)},fallback)}catch(err){fallback()}
+}
+$("copyPl").addEventListener("click",function(){copiar(plResumen(),"copyPlFallback","Plantilla copiada")});
+$("copyCi").addEventListener("click",function(){var t=ciResumen();if(!t){toast("Marca primero alguna técnica");return}copiar(t,"copyCiFallback","Cierres copiados")});
+function fillVende(){
+  document.querySelectorAll("#tab-vende [data-f]").forEach(function(el){var k=el.getAttribute("data-f");if(S.f[k]!==undefined)el.value=S.f[k]});
+}
+// En la encuesta de muestra, una respuesta tibia abre el hueco para explicar
+document.addEventListener("change",function(e){
+  var r=e.target;if(!r.matches||!r.matches('.survey input[type="radio"]'))return;
+  var fs=r.closest("fieldset"),low=+fs.getAttribute("data-low"),fo=fs.querySelector(".follow");
+  if(fo)fo.hidden=!(low>=0&&+r.value>=low);
+});
+
 renderPhases();fillBase();renderExample();renderChecks();renderCards();renderResults();
-fillPere();renderPereExample();renderQList();renderPere();syncTab();
+fillPere();renderPereExample();renderQList();renderPere();
+fillVende();renderPlant();renderCierres();renderP10();renderHist();syncTab();
 })();
 </script>
