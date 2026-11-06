@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { businessId, name, type, file_url, external_url, code_value, title, description, cta_text, content } = body;
+  const { businessId, name, type, file_url, external_url, code_value, title, description, cta_text, content, status } = body;
 
   if (!businessId || !name?.trim()) {
     return NextResponse.json({ error: "businessId y name son obligatorios" }, { status: 400 });
@@ -58,7 +58,8 @@ export async function POST(req: Request) {
       description: description || null,
       cta_text: cta_text ?? null,
       content: content ?? null,
-      status: "draft",
+      // Al crear solo se acepta "active"; si no, queda en borrador (los PDF se activan al generarse).
+      status: status === "active" ? "active" : "draft",
     })
     .select()
     .single();

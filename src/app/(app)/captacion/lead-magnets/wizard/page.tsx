@@ -370,7 +370,7 @@ function CaptacionLeadMagnetWizardInner() {
     try {
       const res = editingId
         ? await fetch(`/api/captacion/lead-magnets/${editingId}`, { method: "PUT", headers, body: JSON.stringify({ ...payload, status: "active" }) })
-        : await fetch("/api/captacion/lead-magnets", { method: "POST", headers, body: JSON.stringify(payload) });
+        : await fetch("/api/captacion/lead-magnets", { method: "POST", headers, body: JSON.stringify({ ...payload, status: "active" }) });
       if (res.ok) { router.push("/captacion/lead-magnets"); }
       else { const d = await res.json(); alert("Error: " + (d.error || "desconocido")); }
     } finally { setSaving(false); }
