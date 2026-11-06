@@ -79,6 +79,7 @@ const adminLinks: SidebarLink[] = [
   { label: "Métricas", href: "/admin/crm/metricas", category: "CRM Comercial" },
   { label: "Recursos y guiones", href: "/admin/crm/recursos", category: "CRM Comercial" },
   { label: "Calculadora de impacto", href: "/admin/crm/calculadora", category: "CRM Comercial" },
+  { label: "Herramienta SVD", href: "/admin/crm/herramienta-svd", category: "CRM Comercial" },
   { label: "Guía de Personalización", href: "/admin/guia-personalizacion", category: "Contenido" },
   { label: "Vídeos tutoriales", href: "/admin/videos-tutoriales", category: "Contenido" },
   { label: "Vídeos por sección", href: "/admin/videos-secciones", category: "Contenido" },
