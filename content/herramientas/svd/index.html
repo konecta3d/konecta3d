@@ -194,17 +194,6 @@ details.box summary small{font-weight:400;color:var(--muted)}
 .qrow .qhead strong{font-family:var(--f-display)}
 .linkbtn{font:inherit;font-size:.88rem;background:none;border:none;color:var(--bad);cursor:pointer;padding:2px 4px;text-decoration:underline}
 
-/* Formulario de contacto (solo en la versión publicada en Konecta3D) */
-.contact{background:var(--brand);color:var(--on-brand)}
-.contact .wrap{padding-block:40px;display:grid;gap:14px}
-.contact label{color:var(--on-brand);opacity:.9}
-.contact input[type=text],.contact input[type=tel]{background:var(--surface);color:var(--ink)}
-.contact .toggle{color:var(--on-brand)}
-.contact .toggle small{color:var(--on-brand);opacity:.75}
-.contact a{color:#D9B977}
-.contact .btn.main{background:#D9B977;color:#132322;border-color:#D9B977}
-.contact .msg{border-radius:8px;padding:10px 12px;background:rgba(255,255,255,.1)}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 footer{padding-block:48px 40px}
 footer .wrap{display:grid;gap:6px;font-size:.88rem;color:var(--muted);border-top:1px solid var(--line);padding-top:20px}
@@ -582,25 +571,6 @@ html{scroll-behavior:smooth}
 </section>
 </div>
 </main>
-
-<section class="contact" id="contacto" hidden>
-  <div class="wrap">
-    <span class="eyebrow" style="color:#D9B977">¿Lo revisamos juntos?</span>
-    <h2>Te ayudo a ponerlo en marcha en tu negocio</h2>
-    <p>Déjame tu nombre y tu WhatsApp y te escribo para revisar tu SVD y tu encuesta contigo. Sin compromiso.</p>
-    <form id="leadForm" class="fields" novalidate>
-      <label for="l-nombre">Nombre<input type="text" id="l-nombre" autocomplete="name" required></label>
-      <label for="l-tel">WhatsApp<input type="tel" id="l-tel" autocomplete="tel" inputmode="tel" required></label>
-      <label class="full" for="l-negocio">Tu negocio (opcional)<input type="text" id="l-negocio" autocomplete="organization"></label>
-      <div class="hp" aria-hidden="true"><label for="l-web">No rellenar<input type="text" id="l-web" tabindex="-1" autocomplete="off"></label></div>
-      <label class="toggle full" for="l-adj"><input type="checkbox" id="l-adj" checked><span>Adjuntar lo que he rellenado en esta página<small>Así llego a la conversación sabiendo dónde estás.</small></span></label>
-      <label class="toggle full" for="l-ok"><input type="checkbox" id="l-ok"><span>He leído y acepto la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a><small>Acepto que Miguel Pileta (Konecta3D) me escriba por WhatsApp para revisar mi SVD. Puedo darme de baja cuando quiera.</small></span></label>
-      <div class="full row"><button class="btn main" type="submit" id="l-send">Quiero revisarlo</button></div>
-      <div class="full msg" id="l-msg" hidden></div>
-    </form>
-  </div>
-</section>
-
 <footer>
   <div class="wrap">
     <p>Herramienta de apoyo preparada por Miguel Pileta a partir de los apuntes y la plantilla del SVD del curso Explosión de Ventas (Level UP). No sustituye al curso.</p>
@@ -1087,30 +1057,6 @@ $("toSvd").addEventListener("click",function(){
 function fillPere(){
   ["pere.servicio","pere.momento","pere.quien","pere.como","pere.pt1","pere.pt2","pere.pt3","pere.pt4","pere.open","pere.clientes","pere.pedidas","pere.resp","pere.excel"].forEach(function(k){var el=document.querySelector('[data-f="'+k+'"]');if(el&&S.f[k]!==undefined)el.value=S.f[k]});
   $("p-open").checked=!!S.t.open;
-}
-
-// ---------- Formulario de contacto (solo cuando la página vive en Konecta3D) ----------
-var K3D=window.K3D||null;
-if(K3D&&K3D.endpoint){
-  $("contacto").hidden=false;
-  $("leadForm").addEventListener("submit",function(e){
-    e.preventDefault();
-    var msg=$("l-msg"),btn=$("l-send");
-    var nombre=$("l-nombre").value.trim(),tel=$("l-tel").value.trim();
-    function say(t){msg.hidden=false;msg.innerHTML=t}
-    if(!nombre||tel.replace(/\D/g,"").length<9){say("Escribe tu nombre y un WhatsApp válido.");return}
-    if(!$("l-ok").checked){say("Para enviarlo tienes que aceptar la política de privacidad.");return}
-    btn.disabled=true;btn.textContent="Enviando…";
-    var origen="directo";try{origen=new URLSearchParams(location.search).get("src")||"directo"}catch(err){}
-    var resumenTxt=$("l-adj").checked?[resumen(),pereResumen()].filter(Boolean).join("\n\n"):"";
-    fetch(K3D.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nombre:nombre,telefono:tel,negocio:$("l-negocio").value.trim(),resumen:resumenTxt,origen:origen,consentimiento:true,web:$("l-web").value})})
-      .then(function(r){return r.json().catch(function(){return{}}).then(function(j){return{ok:r.ok,j:j}})})
-      .then(function(res){
-        if(res.ok){$("leadForm").querySelectorAll("input,button").forEach(function(x){x.disabled=true});say("<strong>Recibido, "+esc(nombre)+".</strong> Te escribo por WhatsApp en cuanto pueda para revisarlo contigo.");btn.textContent="Enviado"}
-        else throw new Error(res.j&&res.j.error||"error");
-      })
-      .catch(function(){btn.disabled=false;btn.textContent="Quiero revisarlo";say("No se ha podido enviar."+(K3D.whatsapp?" Escríbeme por WhatsApp al <strong>"+esc(K3D.whatsappTxt||K3D.whatsapp)+"</strong> o <a href=\"https://wa.me/"+esc(K3D.whatsapp)+"\" target=\"_blank\" rel=\"noopener\">abre WhatsApp</a>.":" Inténtalo de nuevo en un momento."))});
-  });
 }
 
 renderPhases();fillBase();renderExample();renderChecks();renderCards();renderResults();
